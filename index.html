@@ -1,0 +1,103 @@
+<!DOCTYPE HTML>
+<!--
+	Written By Iraka
+	Main user interface
+-->
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<link rel="stylesheet" type="text/css" href=".\style.css" />
+		<link rel="stylesheet" type="text/css" href=".\layer_style.css" />
+		<script src=".\jQuery.js"></script>
+		<script src=".\brush.js"></script>
+		<script src=".\palette.js"></script>
+		<script src=".\environment.js"></script>
+		<script src=".\layer.js"></script>
+		<script src=".\cursor.js"></script>
+		<script src=".\event.js"></script>
+		<script src=".\canvas.js"></script>
+		<title>Skeeetch</title>
+	</head>
+
+	<body>
+
+		<div id="mask">
+			<div id="mask_items">
+			</div>
+		</div>
+
+		<div id="top_menu_panel">
+			<div id="top_left_menus">
+				<div class="inline-button top-blocks" id="brush_menus">
+					<div class="inline-button" id="brush_type">Pencil</div>
+					<div class="inline-button">&gt;</div>
+					<div class="inline-button" id="brush_size">10</div>
+				</div>
+				<div class="inline-button top-blocks" id="palette_menus">
+					<div class="inline-button" id="palette_block">
+						Palette
+					</div>
+				</div>
+			</div>
+			<div class="top-blocks" id="top_right_menus">
+				Right
+			</div>
+		</div>
+		<div id="layer_canvas_panel">
+			<div id="layer_panel">
+				<div id="layer_title">
+					<div id="layer_title_left">
+						Layer
+					</div>
+					<div id="layer_title_right">
+						<div class="inline-button" id="layer_delete_button">
+							X
+						</div>
+						<div class="inline-button" id="layer_clear_button">
+							&empty;
+						</div>
+						<div class="inline-button" id="layer_merge_button">
+							&darr;&darr;
+						</div>
+						<div class="inline-button" id="layer_duplicate_button">
+							2&times;
+						</div>
+						<div class="inline-button" id="layer_new_button">
+							+&nbsp;
+						</div>
+					</div>
+				</div>
+				<div id="layers_scroll_window">
+					<div id="layers">
+					</div>
+				</div>
+			</div>
+
+			<div id="canvas_panel">
+				<svg id="brush_cursor_layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
+					<circle id="brush_cursor_round" cx="0" cy="0" r="2" stroke="#000000" stroke-width="2" fill="none" />
+				</svg>
+				<div id="canvas_window"> <!-- Window won't move -->
+					<div id="canvas_container"> <!-- Container may transform -->
+					</div>
+				</div>
+				<div id="bottom_info_panel">
+					<div id="debug_info">
+						debug
+					</div>
+					<div id="transform_info">
+						<!-- div class="inline-button" id="translate_info">
+
+						</div -->
+						<div class="inline-button" id="scale_info">
+							100%
+						</div>
+						<div class="inline-button" id="rotate_info">
+							0&deg;
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

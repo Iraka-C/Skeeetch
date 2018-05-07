@@ -1,0 +1,197 @@
+/*
+	Written By Iraka
+	css file for Skeeetch platform
+*/
+html{
+	width: 100%;
+	height: 100%;
+}
+
+body{
+	font-size: 100%;
+	width: 100%;
+	height: 100%;
+	font-family: Consolas, Monaco, Microsoft YaHei, serif;
+	cursor: default;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	-khtml-user-select: none;
+	user-select: none;
+	overflow-x: hidden;
+	overflow-y: hidden;
+	background-color: #c0c0c0;
+	display: flex;
+	flex-direction: column;
+}
+
+body,div,p,canvas{
+	padding: 0px;
+	margin: 0px;
+}
+
+#mask{
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	background-color: #000000;
+	display: none;
+	opacity: 0.5;
+}
+
+#top_menu_panel{
+	font-size: 125%;
+	width: 100%;
+	overflow: hidden;
+	zoom: 1;
+}
+
+#top_left_menus{
+	float: left;
+}
+
+.top-blocks{
+	padding: 0.5em;
+}
+
+#brush_type{
+	width: 3.5em;
+}
+#brush_size{
+	text-align: right;
+	width: 2em;
+}
+
+#palette_menus{
+	background-color: #86c0e0;
+}
+
+#palette_block{
+	color: #000000;
+	transition-property: color;
+	transition-duration: 0.25s;
+	transition-timing-function: ease;
+}
+
+#top_right_menus{
+	float: right;
+}
+
+#top_left_menus,#top_right_menus{
+	display: inline-block;
+}
+
+/* =================== layers ===================== */
+
+#layer_canvas_panel{
+	flex: 1;
+	display: flex;
+	width: 100%;
+	height: 100%;
+}
+
+#layer_panel{
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	background-color: #a0a0a0;
+	overflow: hidden;
+}
+
+#layer_title{
+	width: 100%;
+	overflow: hidden;
+	zoom: 1;
+}
+
+#layer_title_left{
+	font-size: 120%;
+	float: left;
+	display: inline-block;
+	margin: 0.5em;
+}
+
+#layer_title_right{
+	float: right;
+	display: inline-block;
+	margin-top: 0.5em;
+}
+
+.inline-button{
+	display: inline-block;
+}
+
+#layers_scroll_window{
+	flex: 1;
+	width: 12em;
+	/* Larger width for invisible scroll bar */
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+
+#layer_panel,#layers{
+	width: 12em;
+}
+
+#canvas_panel{
+	flex: 1;
+	position: relative;
+	min-width: 0px;
+	background-color: #e0e0e0;
+}
+
+#brush_cursor_layer{
+	position: absolute;
+	pointer-events: none;
+	display: none;
+	z-index: 1000;
+}
+
+#canvas_window{
+	touch-action: none;
+	cursor: none;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+#canvas_container{
+	position: relative;
+	pointer-events: none;
+	transform-origin: 50% 50%;
+	/*background-color: #ffffff;*/
+	background-image: url('./transparent.png');
+	background-repeat: repeat;
+	box-shadow: 0px 0px 80px #808080;
+	display: none;
+	/*transition-property: transform;
+	transition-duration: 0.5s;
+	transition-timing-function: ease-in-out;*/
+}
+
+#bottom_info_panel{
+	position: absolute;
+	width: 100%;
+	bottom: 0em;
+	overflow: hidden;
+	zoom: 1;
+}
+
+#debug_info{
+	float: left;
+	display: inline-block;
+	margin: 0.5em;
+}
+
+#transform_info{
+	float: right;
+	display: inline-block;
+	margin: 0.5em;
+}
+
+#scale_info,#rotate_info{
+	text-align: right;
+	width: 3em;
+}
