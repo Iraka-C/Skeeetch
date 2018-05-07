@@ -66,6 +66,8 @@ ENV.refreshTransform=function(){
 	$("#canvas_container").css("transform",
 		"matrix("+a+","+b+","+c+","+d+","+e+","+f+")"
 	);
+
+	CURSOR.disfuncCursor(); // avoid a draw after the transform
 };
 
 ENV.toPaperXY=function(x,y){
@@ -95,6 +97,7 @@ ENV.scaleTo=function(ratio){
 	ENV.window.trans.x*=tr;
 	ENV.window.trans.y*=tr;
 	ENV.refreshTransform();
+	$("#brush_cursor_round").attr("r",ENV.nowPen.size*ratio/2);
 };
 
 ENV.rotateTo=function(angle){ // degree
@@ -148,14 +151,14 @@ ENV.rotateScroll=function(event){
 	ENV.rotateTo(rot);
 };
 
-ENV.translateDrag=function(){
-	if(!CURSOR.x||!CURSOR.x1){ // not recorded
-		return;
-	}
-	var dx=CURSOR.x-CURSOR.x1;
-	var dy=CURSOR.y-CURSOR.y1;
-	var newTx=ENV.window.trans.x+dx;
-	var newTy=ENV.window.trans.y+dy;
+ENV.dragInit=undefined; // The Original mouse position at the start of Drag
+ENV.dragTransInit=undefined; // The Original Translation at the start of Drag
+ENV.translateDrag=function(event){
+	var dx=event.originalEvent.offsetX-ENV.dragInit.x;
+	var dy=event.originalEvent.offsetY-ENV.dragInit.y;
+
+	var newTx=ENV.dragTransInit.x+dx;
+	var newTy=ENV.dragTransInit.y+dy;
 	var borderSize=ENV.paperSize.diag*ENV.window.scale;
 	if(Math.abs(newTx)>borderSize||Math.abs(newTy)>borderSize){
 		console.log("Reach Border");

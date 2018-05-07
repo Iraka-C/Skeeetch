@@ -39,6 +39,8 @@ LayerCanvas=function(fatherLayer){
 	var cv=$("<canvas/>").addClass("layer-canvas");
 	cv.attr({"width":ENV.paperSize.width,"height":ENV.paperSize.height});
 	this.canvas=cv;
+	this.opacity=100;
+	this.visible=true;
 }
 
 Layer=function(){ // Constructor
@@ -52,8 +54,32 @@ Layer=function(){ // Constructor
 	});
 
 	this.layerCanvas=new LayerCanvas(this);
+
+	// change opacity
+	this.layerIcon.opacityLabel.on("wheel",event=>{
+		var e=event.originalEvent;
+		LAYERS.changeOpacity(e,this);
+		e.stopPropagation();
+		return false;
+	});
+	this.layerIcon.opacityLabel.on("click",event=>{
+		var cvl=this.layerCanvas;
+		cvl.visible=!cvl.visible;
+		this.layerIcon.opacityLabel.html(cvl.visible?cvl.opacity+"%":"----");
+		cvl.canvas.css("visibility",cvl.visible?"visible":"hidden");
+	});
 }
 
+LAYERS.changeOpacity=function(e,layer){
+	if(layer.layerCanvas.visible==false)return;
+	var nowOp=layer.layerCanvas.opacity;
+	if(e.wheelDelta>0&&nowOp<100)nowOp++;
+	if(e.wheelDelta<0&&nowOp>0)nowOp--;
+
+	layer.layerCanvas.canvas.css("opacity",nowOp/100);
+	layer.layerCanvas.opacity=nowOp;
+	layer.layerIcon.opacityLabel.html(nowOp+"%");
+}
 // ================ functions ================
 
 LAYERS.init=function(){
@@ -65,9 +91,16 @@ LAYERS.init=function(){
 	firstLayer.prev=undefined;
 	setActiveLayer(firstLayer);
 
+	// handle them by yourself
 	$("#layer_new_button").click(addNewEmptyLayer);
 	$("#layer_delete_button").click(deleteActiveLayer);
 	$("#layer_delete_button").addClass("layer-button-disabled");
+
+	// clear layer
+	$("#layer_clear_button").click(()=>{
+		var cv=LAYERS.activeLayer.layerCanvas.canvas[0];
+		cv.width=cv.width;
+	});
 };
 
 function setActiveLayer(layer){

@@ -27,7 +27,7 @@ CANVAS.setCanvasEnvironment=function(event){
 	ctx.globalAlpha=opc;
 	//console.log("Real Canvas Opacity = "+opc);
 
-	CANVAS.enabled=true;
+	CANVAS.enabled=LAYERS.activeLayer.layerCanvas.visible; // only draw on visible layer
 	CANVAS.isPressureDevice=(event.originalEvent.pointerType=="pen");
 
 	if(ENV.nowPen.name=='Eraser'){

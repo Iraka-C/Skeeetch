@@ -3,15 +3,16 @@ CURSOR={};
 CURSOR.x=Number.NAN; // now movement
 CURSOR.y=Number.NAN;
 CURSOR.pressure=0;
-CURSOR.x1=Number.NAN; // last movement
-CURSOR.y1=Number.NAN;
-CURSOR.pressure1=0;
 CURSOR.isDown=false;
 
 CURSOR.init=function(){
 	CURSOR.refreshBrushLayerSize();
-	$("#brush_cursor_round").attr("stroke",PALETTE.getColorString());
+	CURSOR.setColor();
 };
+
+CURSOR.setColor=function(){
+	$("#brush_cursor_round").attr("stroke",PALETTE.getColorString());
+}
 
 CURSOR.refreshBrushLayerSize=function(){
 	$("#brush_cursor_layer").attr({
@@ -25,14 +26,11 @@ CURSOR.showCursor=function(event){
 	$("#brush_cursor_layer").css("display","block");
 };
 CURSOR.moveCursor=function(event){
-	CURSOR.x1=CURSOR.x; // last movement
-	CURSOR.y1=CURSOR.y;
-	CURSOR.pressure1=CURSOR.pressure;
 
-	CURSOR.x=event.originalEvent.layerX; // new movement
-	CURSOR.y=event.originalEvent.layerY;
+	CURSOR.x=event.originalEvent.offsetX; // new movement
+	CURSOR.y=event.originalEvent.offsetY;
 	CURSOR.pressure=event.originalEvent.pressure;
-	
+
 	CANVAS.updateCursor(CURSOR.x,CURSOR.y,CURSOR.pressure);
 
 	$("#brush_cursor_round").attr({
@@ -41,15 +39,17 @@ CURSOR.moveCursor=function(event){
 		"r":ENV.nowPen.size*ENV.window.scale/2
 	});
 };
-CURSOR.hideCursor=function(){
-	$("#brush_cursor_layer").css("display","none");
+
+CURSOR.disfuncCursor=function(){
 	CURSOR.x=Number.NAN; // now movement
 	CURSOR.y=Number.NAN;
 	CURSOR.pressure=0;
-	CURSOR.x1=Number.NAN; // last movement
-	CURSOR.y1=Number.NAN;
-	CURSOR.pressure1=0;
 	CANVAS.updateCursor(Number.NAN,Number.NAN,0);
+};
+
+CURSOR.hideCursor=function(){
+	$("#brush_cursor_layer").css("display","none");
+	CURSOR.disfuncCursor();
 };
 
 CURSOR.pointerDown=()=>{

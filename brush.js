@@ -41,11 +41,19 @@ BRUSHES.setNowBrushSize=function(size){
 BRUSHES.changeNowBrushSize=function(event){
 	var e=event.originalEvent;
 	var size=ENV.nowPen.size;
-	if(e.wheelDelta>0&&size<100){
-		size++;
+	if(e.wheelDelta>0&&size<200){
+		if(size<10)size+=1;
+		else if(size<20)size+=2;
+		else if(size<50)size+=5;
+		else if(size<100)size+=10;
+		else size+=20;
 	}
 	if(e.wheelDelta<0&&size>1){
-		size--;
+		if(size<=10)size-=1;
+		else if(size<=20)size-=2;
+		else if(size<=50)size-=5;
+		else if(size<=100)size-=10;
+		else size-=20;
 	}
 	BRUSHES.setNowBrushSize(size);
 };

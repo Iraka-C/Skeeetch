@@ -28,15 +28,15 @@
 
 		<div id="top_menu_panel">
 			<div id="top_left_menus">
-				<div class="inline-button top-blocks" id="brush_menus">
-					<div class="inline-button" id="brush_type">Pencil</div>
-					<div class="inline-button">&gt;</div>
-					<div class="inline-button" id="brush_size">10</div>
-				</div>
 				<div class="inline-button top-blocks" id="palette_menus">
 					<div class="inline-button" id="palette_block">
 						Palette
 					</div>
+				</div>
+				<div class="inline-button top-blocks" id="brush_menus">
+					<div class="inline-button" id="brush_type">Pencil</div>
+					<div class="inline-button">&gt;</div>
+					<div class="inline-button" id="brush_size">10</div>
 				</div>
 			</div>
 			<div class="top-blocks" id="top_right_menus">
@@ -44,7 +44,21 @@
 			</div>
 		</div>
 		<div id="layer_canvas_panel">
-			<div id="layer_panel">
+			<div id="layer_palette_panel">
+				<div id="palette_panel">
+					<div id="palette_title">
+						<div class="inline-button">Color&nbsp;&gt;</div>
+						<div class="inline-button" id="hue-panel">201</div>
+					</div>
+					<div id="palette_board">
+						<div id="palette_board_inner">
+							<canvas class="palette-canvas" id="palette_SV" width="0" height="0"></canvas>
+							<svg id="palette_svg" xmlns="http://www.w3.org/2000/svg" version="1.1">
+								<circle id="palette_cursor" cx="0" cy="0" r="3" stroke="#000000" stroke-width="2" fill="none" />
+							</svg>
+						</div>
+					</div>
+				</div>
 				<div id="layer_title">
 					<div id="layer_title_left">
 						Layer
@@ -56,12 +70,12 @@
 						<div class="inline-button" id="layer_clear_button">
 							&empty;
 						</div>
-						<div class="inline-button" id="layer_merge_button">
+						<!--div class="inline-button" id="layer_merge_button">
 							&darr;&darr;
 						</div>
 						<div class="inline-button" id="layer_duplicate_button">
 							2&times;
-						</div>
+						</div-->
 						<div class="inline-button" id="layer_new_button">
 							+&nbsp;
 						</div>

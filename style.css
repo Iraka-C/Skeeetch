@@ -42,7 +42,6 @@ body,div,p,canvas{
 }
 
 #top_menu_panel{
-	font-size: 125%;
 	width: 100%;
 	overflow: hidden;
 	zoom: 1;
@@ -53,15 +52,14 @@ body,div,p,canvas{
 }
 
 .top-blocks{
+	font-size: 130%;
 	padding: 0.5em;
 }
 
 #brush_type{
-	width: 3.5em;
+	width: 3.4em;
 }
 #brush_size{
-	text-align: right;
-	width: 2em;
 }
 
 #palette_menus{
@@ -92,13 +90,50 @@ body,div,p,canvas{
 	height: 100%;
 }
 
-#layer_panel{
+#layer_palette_panel{
 	display: flex;
 	flex-direction: column;
 	height: 100%;
 	background-color: #a0a0a0;
 	overflow: hidden;
 }
+
+#palette_panel{
+	width: 100%;
+	overflow: hidden;
+	background-color: #808080;
+	transition-property: height;
+	transition-duration: 0.5s;
+	transition-timing-function: ease;
+}
+
+#palette_title{
+	font-size: 120%;
+	margin-left: 0.5em;
+	margin-top: 0.5em;
+}
+#hue-panel{
+	color: #99dbff;
+	width: 2em;
+	text-align: right;
+}
+#palette_board{
+	width: 100%;
+}
+#palette_board_inner{
+	position:relative;
+	margin: 1em;
+}
+#palette_SV{
+	position: absolute;
+	box-shadow: 0px 0px 20px #606060;
+}
+#palette_svg{
+	position: absolute;
+	pointer-events: none;
+}
+
+/* ====================== Layers ===================== */
 
 #layer_title{
 	width: 100%;
