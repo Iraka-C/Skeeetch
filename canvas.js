@@ -23,7 +23,7 @@ CANVAS.setCanvasEnvironment=function(event){
 	ctx.lineWidth=ENV.nowPen.size; // Brush starts thin
 	ctx.lineCap="round";
 	//ctx.globalAlpha=ENV.nowPen.alpha*ENV.nowPen.alpha;
-	var opc=1-Math.pow(1-ENV.nowPen.alpha,2/Math.PI/CANVAS.lineQuality);
+	var opc=1-Math.pow(1-ENV.nowPen.alpha/100,2/Math.PI/CANVAS.lineQuality);
 	ctx.globalAlpha=opc;
 	//console.log("Real Canvas Opacity = "+opc);
 
@@ -73,7 +73,7 @@ function dis(x1,y1,x2,y2){
 function getRadius(pressure){
 	var p=CANVAS.isPressureDevice?pressure:1;
 	var pRef=Math.pow(p,ENV.nowPen.sharpness);
-	var r=ENV.nowPen.size/2*(ENV.nowPen.minSize*(1-pRef)+pRef);
+	var r=ENV.nowPen.size/2*(ENV.nowPen.minSize/100*(1-pRef)+pRef);
 	return r;
 }
 
@@ -96,6 +96,7 @@ CANVAS.drawLine=function(){
 	var endR=getRadius((CANVAS.pressure+CANVAS.pressure1)/2);
 
 	CANVAS.drawBezierPlots(ctx,startX,startY,startR,midX,midY,midR,endX,endY,endR);
+	//CANVAS.drawLinePlots(ctx,startX,startY,startR,endX,endY,endR,0);
 };
 
 CANVAS.drawPlate=function(ctx,x,y,r){
@@ -103,6 +104,39 @@ CANVAS.drawPlate=function(ctx,x,y,r){
 	ctx.arc(x,y,r,0,2*Math.PI);
 	ctx.fill();
 };
+
+/*CANVAS.drawLinePlots=function(ctx,x0,y0,r0,x1,y1,r1,startDis){
+	var nextDis=startDis;
+	var lineLen=dis(x0,y0,x1,y1);
+	if(lineLen==0)return startDis;
+
+	ctx.fillStyle="#ff0000";
+	var lastK=0;
+	var nx=x0,ny=y0,nr=r0;
+	var startPointDrawn=false;
+
+	console.log("Line Len = "+lineLen+" start from = "+startDis);
+	for(var k=0;;){
+		console.log(k);
+		var step=nextDis/lineLen;
+		k+=step;
+		if(k>=1){
+			break;
+		}
+		var lastK=k;
+		var q=1-k;
+		nx=x0*q+x1*k;
+		ny=y0*q+y1*k;
+		nr=r0*q+r1*k;
+		CANVAS.drawPlate(ctx,nx,ny,nr);
+		nextDis=Math.max(nr/CANVAS.lineQuality,1);
+		startPointDrawn=true;
+	}
+	// return the rest length
+	var remDis=startPointDrawn?dis(nx,ny,x1,y1):startDis-lineLen;
+	ctx.fillStyle=PALETTE.getColorString();
+	return remDis;
+};*/
 
 CANVAS.drawBezierPlots=function(ctx,x0,y0,r0,x1,y1,r1,x2,y2,r2){
 	var ax=x0-2*x1+x2;
@@ -115,6 +149,8 @@ CANVAS.drawBezierPlots=function(ctx,x0,y0,r0,x1,y1,r1,x2,y2,r2){
 	var nx=x0,ny=y0,nr=r0;
 	var nextDis=CANVAS.drawBezierPlots.remDis;
 	var lastK=0;
+	var startPointDrawn=false; // is the start of this curve drawn
+	//ctx.fillStyle="#ff0000";
 
 	for(var k=0,iter=0;;iter++){
 		// Generally, if stuck, quit by force
@@ -122,12 +158,12 @@ CANVAS.drawBezierPlots=function(ctx,x0,y0,r0,x1,y1,r1,x2,y2,r2){
 		var dx_dk=2*ax*k+bx;
 		var dy_dk=2*ay*k+by;
 		var gd=Math.sqrt(dx_dk*dx_dk+dy_dk*dy_dk);
-		var step=nextDis/gd;
 		if(gd==0){
 			// No Gradient
-			CANVAS.drawBezierPlots.remDis=0;
-			return;
+			//console.log("Rendering Stopped: Gradient Lost "+startPointDrawn);
+			break;
 		}
+		var step=nextDis/gd;
 		k+=step;
 		if(k!=k){
 			console.log("ERROR: Bezier K = NaN");
@@ -149,15 +185,18 @@ CANVAS.drawBezierPlots=function(ctx,x0,y0,r0,x1,y1,r1,x2,y2,r2){
 		nr=ar*k2+br*k+r0;
 		if(nr<0)nr=0;
 		CANVAS.drawPlate(ctx,nx,ny,nr);
+		//ctx.fillStyle=PALETTE.getColorString();
 		nextDis=Math.max(nr/CANVAS.lineQuality,1);
+		startPointDrawn=true;
 	}
 	//console.log(lastK);
 	//estimate the remain curve length
 	var tx=x1*(1-lastK)+x2*lastK;
 	var ty=y1*(1-lastK)+y2*lastK;
-	//tx=(nx+tx*2+x2)/4;
-	//ty=(ny+ty*2+y2)/4;
+	tx=(nx+tx*2+x2)/4;
+	ty=(ny+ty*2+y2)/4;
 	var len=dis(nx,ny,tx,ty)+dis(tx,ty,x2,y2);
-	CANVAS.drawBezierPlots.remDis=nr/CANVAS.lineQuality-len;
+	CANVAS.drawBezierPlots.remDis=
+		startPointDrawn?Math.max(nr/CANVAS.lineQuality,1)-len:nextDis-len;
 };
 CANVAS.drawBezierPlots.remDis=0;

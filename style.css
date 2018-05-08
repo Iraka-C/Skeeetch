@@ -77,11 +77,12 @@ body,div,p,canvas{
 	float: right;
 }
 
-#top_left_menus,#top_right_menus{
-	display: inline-block;
+#export_button{
+	background-color: #a0a0a0;
 }
 
-/* =================== layers ===================== */
+
+/* =================== main window ===================== */
 
 #layer_canvas_panel{
 	flex: 1;
@@ -121,7 +122,8 @@ body,div,p,canvas{
 	width: 100%;
 }
 #palette_board_inner{
-	position:relative;
+	position: relative;
+	touch-action: none;
 	margin: 1em;
 }
 #palette_SV{
@@ -170,6 +172,65 @@ body,div,p,canvas{
 	width: 12em;
 }
 
+/* =================== Settings =================== */
+
+#setting_panel{
+	height: 100%;
+	/*width: 13em;*/
+	width: 0em;
+	color: #e0e0e0;
+	background-color: #606060;
+	box-shadow: 0px 0px 50px #202020 inset;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	transition-property: width;
+	transition-duration: 0.5s;
+	transition-timing-function: ease;
+}
+
+#setting_panel_inner{
+	margin: 0.5em;
+	width: 12em;
+}
+
+#setting_main_title{
+	font-size: 130%;
+	border-width: thin;
+	text-align: center;
+}
+
+.setting-title{
+	padding: 0.4em;
+	margin-top: 0.5em;
+	font-size: 120%;
+	border-width: thin;
+	border-style: none none solid none;
+	border-color: #e0e0e0;
+}
+
+.setting-item{
+	color: #c0c0c0;
+	margin: 0.4em;
+	font-size: 100%;
+}
+
+.setting-item-left{
+	width: 5.5em;
+}
+
+.setting-item-unit{
+	font-size: 80%;
+}
+
+.setting-instruction{
+	margin: 0.4em;
+	font-size: 80%;
+	background-color: #404040;
+	color: #a0a0a0;
+	padding: 0.4em;
+}
+/* ==================== Canvas ==================== */
+
 #canvas_panel{
 	flex: 1;
 	position: relative;
@@ -212,6 +273,7 @@ body,div,p,canvas{
 	bottom: 0em;
 	overflow: hidden;
 	zoom: 1;
+	pointer-events: none;
 }
 
 #debug_info{
@@ -224,6 +286,7 @@ body,div,p,canvas{
 	float: right;
 	display: inline-block;
 	margin: 0.5em;
+	pointer-events: auto;
 }
 
 #scale_info,#rotate_info{

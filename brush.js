@@ -2,33 +2,33 @@ BRUSHES=[
 	{
 		name:"Pencil",
 		size:10,
-		minSize:0, // the ratio from size
-		density:1,
-		minDensity:0,
+		minSize:0, // the ratio from size in %
+		//density:1,
+		//minDensity:0,
 		//smoothness:2, // the smoothness of the trail: avoid trembling
-		sharpness:2, // 0.0[0.2]: soft ~ 1.0: mid ~ +Inf[5]: sharp
-		alpha:1
+		sharpness:1, // 0.0[0.2]: soft ~ 1.0: mid ~ +Inf[5]: sharp
+		alpha:100 // in %
 	},
 	{
 		name:"Brush",
 		size:30,
-		minSize:0.5,
-		density:1,
-		minDensity:1,
+		minSize:50,
+		//density:1,
+		//minDensity:1,
 		//smoothness:2,
 		sharpness:1,
 		//mixColor:0.3,
-		alpha:0.4
+		alpha:40
 	},
 	{
 		name:"Eraser",
 		size:10,
-		minSize:1,
-		density:1,
-		minDensity:1,
+		minSize:100,
+		//density:1,
+		//minDensity:1,
 		//smoothness:0,
 		sharpness:1,
-		alpha:1
+		alpha:100
 	}
 ];
 BRUSHES.num=3;

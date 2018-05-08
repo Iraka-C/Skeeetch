@@ -36,7 +36,7 @@ LayerIcon=function(fatherLayer){
 LayerCanvas=function(fatherLayer){
 	this.father=fatherLayer;
 
-	var cv=$("<canvas/>").addClass("layer-canvas");
+	var cv=$("<canvas/>").addClass("layer-canvas").addClass("pixelated");
 	cv.attr({"width":ENV.paperSize.width,"height":ENV.paperSize.height});
 	this.canvas=cv;
 	this.opacity=100;
@@ -56,7 +56,7 @@ Layer=function(){ // Constructor
 	this.layerCanvas=new LayerCanvas(this);
 
 	// change opacity
-	this.layerIcon.opacityLabel.on("wheel",event=>{
+	EVENTS.wheelEventDistributor.addListener(this.layerIcon.opacityLabel,event=>{
 		var e=event.originalEvent;
 		LAYERS.changeOpacity(e,this);
 		e.stopPropagation();
@@ -84,6 +84,11 @@ LAYERS.changeOpacity=function(e,layer){
 
 LAYERS.init=function(){
 	var firstLayer=new Layer();
+	// lock layer
+	firstLayer.opacityLocked=true;
+	firstLayer.layerIcon.opacityLockButton.html("&ne;");
+	PIXEL.fillCanvas(firstLayer.layerCanvas.canvas[0],{r:255,g:255,b:255,a:1},true);
+
 	$("#layers").append(firstLayer.layerIcon.icon);
 	$("#canvas_container").append(firstLayer.layerCanvas.canvas);
 	LAYERS.elementsHead=firstLayer;
@@ -99,7 +104,12 @@ LAYERS.init=function(){
 	// clear layer
 	$("#layer_clear_button").click(()=>{
 		var cv=LAYERS.activeLayer.layerCanvas.canvas[0];
-		cv.width=cv.width;
+		if(!LAYERS.activeLayer.opacityLocked){
+			cv.width=cv.width;
+		}
+		else{
+			PIXEL.fillCanvas(cv,{r:255,g:255,b:255,a:1},false);
+		}
 	});
 };
 

@@ -16,6 +16,7 @@
 		<script src=".\cursor.js"></script>
 		<script src=".\event.js"></script>
 		<script src=".\canvas.js"></script>
+		<script src=".\canvas_pixel.js"></script>
 		<title>Skeeetch</title>
 	</head>
 
@@ -39,8 +40,17 @@
 					<div class="inline-button" id="brush_size">10</div>
 				</div>
 			</div>
-			<div class="top-blocks" id="top_right_menus">
-				Right
+			<div id="top_right_menus">
+				<div class="inline-button top-blocks" id="setting_button">
+					<div class="inline-button">
+						Settings
+					</div>
+				</div>
+				<div class="inline-button top-blocks" id="export_button">
+					<div class="inline-button">
+						Export
+					</div>
+				</div>
 			</div>
 		</div>
 		<div id="layer_canvas_panel">
@@ -87,6 +97,81 @@
 				</div>
 			</div>
 
+			<div id="setting_panel">
+				<div id="setting_panel_inner">
+					<div id="setting_main_title">
+						Settings
+					</div>
+					<div class="setting-title" id="setting_pen_title">
+						Paint Brush
+					</div>
+					<div class="setting-item" id="pen_density_block">
+						<div class="setting-item-left inline-button">Density</div>
+						<div class="setting-item-mid inline-button">&gt;</div>
+						<div class="setting-item-right inline-button"></div>
+						<div class="setting-item-unit inline-button">%</div>
+					</div>
+					<div class="setting-item" id="pen_sharpness_block">
+						<div class="setting-item-left inline-button">Sharpness</div>
+						<div class="setting-item-mid inline-button">&gt;</div>
+						<div class="setting-item-right inline-button"></div>
+					</div>
+					<div class="setting-item" id="pen_minsize_block">
+						<div class="setting-item-left inline-button">Min Size</div>
+						<div class="setting-item-mid inline-button">&gt;</div>
+						<div class="setting-item-right inline-button"></div>
+						<div class="setting-item-unit inline-button">%</div>
+					</div>
+					<div class="setting-item" id="pen_quality_block">
+						<div class="setting-item-left inline-button">Quality</div>
+						<div class="setting-item-mid inline-button">&gt;</div>
+						<div class="setting-item-right inline-button"></div>
+					</div>
+					<div class="setting-instruction">
+						* High quality and low density may lead to color abberation.
+						Higher quality also brings more CPU pressure.
+					</div>
+
+					<div class="setting-title" id="setting_paper_title">
+						Paper
+					</div>
+					<div class="setting-item" id="paper_width_block">
+						<div class="setting-item-left inline-button">Width</div>
+						<div class="setting-item-mid inline-button">&gt;</div>
+						<div class="setting-item-right inline-button"></div>
+						<div class="setting-item-unit inline-button">px</div>
+					</div>
+					<div class="setting-item" id="paper_height_block">
+						<div class="setting-item-left inline-button">Height</div>
+						<div class="setting-item-mid inline-button">&gt;</div>
+						<div class="setting-item-right inline-button"></div>
+						<div class="setting-item-unit inline-button">px</div>
+					</div>
+					<div class="setting-instruction">
+						Submit the paper size change by clicking the APPLY button below
+					</div>
+					<div class="setting-item" id="paper_size_submit_block">
+						<div class="setting-item-left inline-button">Change-<br/>Size</div>
+						<div class="setting-item-mid inline-button">&gt;</div>
+						<div class="setting-item-right inline-button">APPLY</div>
+					</div>
+
+					<div class="setting-title" id="setting_env_title">
+						Environment
+					</div>
+					<div class="setting-item" id="env_antialias_block">
+						<div class="setting-item-left inline-button">Anti-Alias</div>
+						<div class="setting-item-mid inline-button">&gt;</div>
+						<div class="setting-item-right inline-button"></div>
+					</div>
+					<div class="setting-item" id="env_memory_block">
+						<div class="setting-item-left inline-button">RAM Usage</div>
+						<div class="setting-item-mid inline-button">&gt;</div>
+						<div class="setting-item-right inline-button"></div>
+					</div>
+				</div>
+			</div>
+
 			<div id="canvas_panel">
 				<svg id="brush_cursor_layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
 					<circle id="brush_cursor_round" cx="0" cy="0" r="2" stroke="#000000" stroke-width="2" fill="none" />
@@ -97,7 +182,7 @@
 				</div>
 				<div id="bottom_info_panel">
 					<div id="debug_info">
-						debug
+						<!--debug-->
 					</div>
 					<div id="transform_info">
 						<!-- div class="inline-button" id="translate_info">

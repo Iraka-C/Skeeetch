@@ -61,10 +61,12 @@ function getSigma(thsv){
 	v=(v+PALETTE.sigmaBias)/(1+PALETTE.sigmaBias);
 
 	if(s==0){
-		return v==1?1:0;
+		//return v==1?1:0; // Standard
+		return v==1?1:0.1; // Approx.
 	}
 	else if(s==1||v==1){
-		return Number.POSITIVE_INFINITY;
+		//return Number.POSITIVE_INFINITY; // Standard
+		return 1E10; // Approx.
 	}
 
 	var x=0;
@@ -74,6 +76,9 @@ function getSigma(thsv){
 		var vdsx=Math.pow(v/s,x);
 		x-=(1+vdsx-udsx)/(Math.log(s)+vdsx*Math.log(v));
 	}
+	// special cases for tablet
+	if(x!=x)return 0.1;
+	if(x<0.1)return 1E10;
 	return x;
 }
 
@@ -158,14 +163,16 @@ PALETTE.initPaletteWindow=function(){
 	// Not a global event: handle by palette itself
 	$("#palette_SV").on("pointermove",event=>{
 		var e=event.originalEvent;
+		var x=Math.min(Math.max(e.offsetX,0),PALETTE.size-1);
+		var y=Math.min(Math.max(e.offsetY,0),PALETTE.size-1);
 		if(e.buttons){
-			PALETTE.selectColor(e.offsetX,e.offsetY);
+			PALETTE.selectColor(x,y);
 		}
 		e.stopPropagation(); // no drawing
 		return false;
 	});
 
-	$("#palette_panel").on("wheel",event=>{
+	EVENTS.wheelEventDistributor.addListener($("#palette_panel"),event=>{
 		var e=event.originalEvent;
 		var hue=PALETTE.hsv.h;
 		if(e.wheelDelta>0){
@@ -183,7 +190,7 @@ PALETTE.initPaletteWindow=function(){
 		PALETTE.setHue(hue);
 	});
 
-	$("#hue-panel").on("wheel",event=>{
+	EVENTS.wheelEventDistributor.addListener($("#hue-panel"),event=>{
 		var e=event.originalEvent;
 		e.stopPropagation();
 		var hue=PALETTE.hsv.h;
@@ -210,8 +217,13 @@ PALETTE.setHue=function(hue){
 }
 
 PALETTE.selectColor=function(x,y){
+	/*
 	var pix=PALETTE.ctx.getImageData(x,y,1,1).data;
 	PALETTE.setRGB({r:pix[0],g:pix[1],b:pix[2]});
+	*/
+	var newS=x/(PALETTE.size-1)*100;
+	var newV=(1-y/(PALETTE.size-1))*100;
+	PALETTE.setHSV({h:PALETTE.hsv.h,s:newS,v:newV});
 }
 
 PALETTE.getColorString=function(){
@@ -222,7 +234,7 @@ PALETTE.setRGB=function(rgb){ // no board renew
 	PALETTE.rgb=rgb;
 	PALETTE.hsv=rgb2hsv(rgb);
 	PALETTE.sigma=getSigma(PALETTE.hsv);
-	console.log("SIGMA = "+PALETTE.sigma);
+	//console.log("SIGMA = "+PALETTE.sigma);
 
 	$("#palette_menus").css("background-color",PALETTE.getColorString());
 	var textRGB=hsv2rgb({h:PALETTE.hsv.h,s:PALETTE.hsv.s,v:100});
@@ -240,7 +252,7 @@ PALETTE.setHSV=function(hsv){ // no board renew
 	PALETTE.hsv=hsv;
 	PALETTE.rgb=hsv2rgb(hsv);
 	PALETTE.sigma=getSigma(PALETTE.hsv);
-	console.log("SIGMA = "+PALETTE.sigma);
+	//console.log("SIGMA = "+PALETTE.sigma);
 
 	$("#palette_menus").css("background-color",PALETTE.getColorString());
 	var textRGB=hsv2rgb({h:PALETTE.hsv.h,s:PALETTE.hsv.s,v:100});
