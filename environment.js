@@ -4,7 +4,7 @@
 */
 
 ENV={}; // Environment
-ENV.paperSize={width:800,height:600,diag:1000}; // diag == sqrt(x^2+y^2) == 1000px
+ENV.paperSize={width:0,height:0,diag:0}; // diag == sqrt(x^2+y^2) == 1000px
 ENV.window={
 	SIZE:{width:0,height:0}, // window size, *** NOW READ ONLY! ***
 	trans:{x:0,y:0}, // at the center
@@ -21,11 +21,13 @@ ENV.displayAntiAlias=false; // only on display
 ENV.init=function(){ // When the page is loaded
 	ENV.window.SIZE.width=$("#canvas_window").width();
 	ENV.window.SIZE.height=$("#canvas_window").height();
-	ENV.setPaperSize(); // no layer yet
+	ENV.setPaperSize(window.screen.width,window.screen.height); // no layer yet
 	LAYERS.init();
 	PALETTE.init();
 	EVENTS.init();
 	CURSOR.init();
+	NETWORK.init();
+	ENV.shiftAntiAlias();
 	$("#canvas_container").css("display","block");
 };
 $(ENV.init);
@@ -57,8 +59,8 @@ ENV.refreshTransform=function(){
 	$("#canvas_container").css("transform",
 		"matrix("+a+","+b+","+c+","+d+","+e+","+f+")"
 	);
-
-	CURSOR.disfuncCursor(); // avoid a draw after the transform
+	//console.log("matrix("+a+","+b+","+c+","+d+","+e+","+f+")");
+	//CURSOR.disfuncCursor(); // avoid a draw after the transform
 };
 
 ENV.toPaperXY=function(x,y){
@@ -105,6 +107,52 @@ ENV.rotateTo=function(angle){ // degree
 	ENV.refreshTransform();
 };
 
+ENV.translateTo=function(x,y){ // pixelated
+	var borderSize=ENV.paperSize.diag*ENV.window.scale;
+	if(Math.abs(x)>borderSize||Math.abs(y)>borderSize){
+		//console.log("Reach Border");
+		if(x>borderSize)x=borderSize;
+		if(x<-borderSize)x=-borderSize;
+		if(y>borderSize)y=borderSize;
+		if(y<-borderSize)y=-borderSize;
+	}
+	ENV.window.trans.x=x;
+	ENV.window.trans.y=y;
+	ENV.refreshTransform();
+}
+
+ENV.transformTo=function(x,y,a,r){ // four values, with hint
+	//console.log("x = "+x+" y = "+y+" a = "+a);
+	if(r>8.0)r=8.0;
+	if(r<0.1)r=0.1;
+
+	ENV.window.rot=a;
+	ENV.window.scale=r;
+
+	x*=r;
+	y*=r;
+
+	var borderSize=ENV.paperSize.diag*ENV.window.scale;
+	if(Math.abs(x)>borderSize||Math.abs(y)>borderSize){
+		//console.log("Reach Border");
+		if(x>borderSize)x=borderSize;
+		if(x<-borderSize)x=-borderSize;
+		if(y>borderSize)y=borderSize;
+		if(y<-borderSize)y=-borderSize;
+	}
+
+	ENV.window.trans.x=x;
+	ENV.window.trans.y=y;
+
+	ENV.refreshTransform();
+	/*ENV.translateTo(x,y);
+	ENV.rotateTo(a);*/
+	/*ENV.scaleTo(r);
+	ENV.translateTo(x,y);*/
+
+	$("#scale_info").html(Math.round(r*100)+"%");
+	$("#rotate_info").html(Math.round(a)+"&deg;");
+}
 // ================== Operations =========================
 
 ENV.scaleScrollRatio=1.1;
@@ -150,17 +198,7 @@ ENV.translateDrag=function(event){
 
 	var newTx=ENV.dragTransInit.x+dx;
 	var newTy=ENV.dragTransInit.y+dy;
-	var borderSize=ENV.paperSize.diag*ENV.window.scale;
-	if(Math.abs(newTx)>borderSize||Math.abs(newTy)>borderSize){
-		//console.log("Reach Border");
-		if(newTx>borderSize)newTx=borderSize;
-		if(newTx<-borderSize)newTx=-borderSize;
-		if(newTy>borderSize)newTy=borderSize;
-		if(newTy<-borderSize)newTy=-borderSize;
-	}
-	ENV.window.trans.x=newTx;
-	ENV.window.trans.y=newTy;
-	ENV.refreshTransform();
+	ENV.translateTo(newTx,newTy);
 };
 
 // ======================== Brush ===================
@@ -221,3 +259,11 @@ ENV.setPaperSize=function(w,h){
 
 	ENV.refreshTransform();
 };
+
+ENV.getRAMUsage=function(){ // in Bytes
+	var m=0;
+	var canvasRAM=ENV.paperSize.width*ENV.paperSize.height*4; // RGBW
+	m+=$("#layers").children().length*canvasRAM;
+	m+=LAYERS.history.length*canvasRAM;
+	return m;
+}

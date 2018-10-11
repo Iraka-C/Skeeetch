@@ -31,12 +31,6 @@
 	top: 0em;
 }
 
-.layer-name-label{
-	position: absolute;
-	left: 0em;
-	bottom: 0em;
-}
-
 .layer-button-disabled{
 	color: #808080;
 }

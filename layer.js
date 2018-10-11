@@ -104,6 +104,7 @@ LAYERS.init=function(){
 	// clear layer
 	$("#layer_clear_button").click(()=>{
 		var cv=LAYERS.activeLayer.layerCanvas.canvas[0];
+		LAYERS.addHistory(LAYERS.activeLayer,cv.getContext("2d").getImageData(0,0,cv.width,cv.height),"draw");
 		if(!LAYERS.activeLayer.opacityLocked){
 			cv.width=cv.width;
 		}
@@ -121,26 +122,86 @@ function setActiveLayer(layer){
 	layer.layerIcon.icon.addClass("layer-active");
 }
 
+function addEmptyLayerAfter(targetLayer){
+	// function returns the newly added layer
+	var layer=new Layer();
+	if(!targetLayer){ // add at front
+		$("#layers").append(layer.layerIcon.icon);
+		$("#canvas_container").prepend(layer.layerCanvas.canvas);
+		layer.next=LAYERS.elementsHead;
+		LAYERS.elementsHead.prev=layer;
+		layer.prev=undefined;
+		LAYERS.elementsHead=layer;
+	}
+	else{
+		targetLayer.layerIcon.icon.before(layer.layerIcon.icon);
+		targetLayer.layerCanvas.canvas.after(layer.layerCanvas.canvas);
+
+		// Construct linked list
+		layer.next=targetLayer.next;
+		layer.prev=targetLayer;
+		if(targetLayer.next){
+			targetLayer.next.prev=layer;
+		}
+		targetLayer.next=layer;
+	}
+
+	return layer;
+}
+
 function addNewEmptyLayer(){
 	// Append a layer above the now active layer
-	var layer=new Layer();
+	LAYERS.addHistory(LAYERS.activeLayer,undefined,"add");
 	var nowActiveLayer=LAYERS.activeLayer;
-	nowActiveLayer.layerIcon.icon.before(layer.layerIcon.icon);
-	nowActiveLayer.layerCanvas.canvas.after(layer.layerCanvas.canvas);
-
-	// Construct linked list
-	layer.next=nowActiveLayer.next;
-	layer.prev=nowActiveLayer;
-	if(nowActiveLayer.next){
-		nowActiveLayer.next.prev=layer;
-	}
-	nowActiveLayer.next=layer;
-
+	var layer=addEmptyLayerAfter(nowActiveLayer);
 	setActiveLayer(layer);
 	$("#layer_delete_button").removeClass("layer-button-disabled");
+	EVENTS.refreshSettingPanel();
+}
+
+function addNewImageLayer(img){
+	addNewEmptyLayer();
+	var nowActiveLayer=LAYERS.activeLayer;
+	if(img.filename){
+		nowActiveLayer.layerIcon.nameLabel[0].value=img.filename;
+	}
+
+	var cv=nowActiveLayer.layerCanvas.canvas[0];
+	var w=img.width;
+	var h=img.height;
+	var tw=cv.width;
+	var th=cv.height;
+	if(w>tw||h>th){
+		var rx=tw/w,ry=th/h;
+		var r=Math.min(rx,ry);
+		w*=r;h*=r;
+	}
+	cv.getContext("2d").drawImage(img,0,0,w,h);
+	window.URL.revokeObjectURL(img.src);
+}
+
+function deleteLayer(layer){
+	if(!layer.prev){ // layer is the element head
+		LAYERS.elementsHead=layer.next;
+	}
+
+	// delete this layer from LAYERS.elements and DOM
+	layer.layerIcon.icon.remove();
+	layer.layerCanvas.canvas.remove();
+	if(layer.next){
+		layer.next.prev=layer.prev;
+	}
+	if(layer.prev){
+		layer.prev.next=layer.next;
+	}
 }
 
 function deleteActiveLayer(){
+	LAYERS.addHistory(
+		LAYERS.activeLayer,
+		LAYERS.activeLayer.layerCanvas.canvas[0].getContext("2d").getImageData(0,0,ENV.paperSize.width,ENV.paperSize.height),
+		"del"
+	);
 	var layerCnt=$("#layers").children().length;
 	if(layerCnt<=1){
 		return;
@@ -154,19 +215,12 @@ function deleteActiveLayer(){
 	var newActiveLayer=nowActiveLayer.prev;
 	if(!newActiveLayer){ // nowActiveLayer is the element head
 		newActiveLayer=nowActiveLayer.next;
-		LAYERS.elementsHead=newActiveLayer;
 	}
 
 	// delete this layer from LAYERS.elements and DOM
-	nowActiveLayer.layerIcon.icon.remove();
-	nowActiveLayer.layerCanvas.canvas.remove();
-	if(nowActiveLayer.next){
-		nowActiveLayer.next.prev=nowActiveLayer.prev;
-	}
-	if(nowActiveLayer.prev){
-		nowActiveLayer.prev.next=nowActiveLayer.next;
-	}
+	deleteLayer(nowActiveLayer);
 
 	// redirect to the new layer
 	setActiveLayer(newActiveLayer);
+	EVENTS.refreshSettingPanel();
 }

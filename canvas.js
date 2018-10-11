@@ -48,7 +48,13 @@ CANVAS.setCanvasEnvironment=function(event){
 	}
 
 	CANVAS.nowContext=ctx;
+	CANVAS.isVisited=false;
+	CANVAS.imgDataAtInit=ctx.getImageData(0,0,cv.width,cv.height);
 };
+
+CANVAS.visit=function(){
+	CANVAS.isVisited=true;
+}
 
 CANVAS.updateCursor=function(x,y,pressure){
 	CANVAS.x2=CANVAS.x1; // last-last
@@ -62,6 +68,7 @@ CANVAS.updateCursor=function(x,y,pressure){
 	CANVAS.x=XYp.x;
 	CANVAS.y=XYp.y;
 	CANVAS.pressure=pressure;
+	//console.log("Now Pressure = "+pressure);
 }
 
 function dis(x1,y1,x2,y2){
@@ -82,6 +89,8 @@ CANVAS.drawLine=function(){
 		// disabled or cursor not recorded
 		return;
 	}
+
+	CANVAS.visit();
 
 	var ctx=CANVAS.nowContext;
 

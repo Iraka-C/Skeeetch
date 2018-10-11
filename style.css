@@ -39,12 +39,15 @@ body,div,p,canvas{
 	background-color: #000000;
 	display: none;
 	opacity: 0.5;
+	z-index: 10;
+	pointer-events: none;
 }
 
 #top_menu_panel{
 	width: 100%;
 	overflow: hidden;
 	zoom: 1;
+	position: relative;
 }
 
 #top_left_menus{
@@ -81,7 +84,20 @@ body,div,p,canvas{
 	background-color: #a0a0a0;
 }
 
+#filename_lable{
+	height: 100%;
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+}
 
+#filename_input{
+	background: transparent;
+	font-family: Consolas, Monaco, Microsoft YaHei, serif;
+	border: none;
+	text-overflow: ellipsis;
+	color: #000000;
+}
 /* =================== main window ===================== */
 
 #layer_canvas_panel{
@@ -161,14 +177,15 @@ body,div,p,canvas{
 }
 
 #layers_scroll_window{
+	position: relative;
 	flex: 1;
-	width: 12em;
+	width: 20em;
 	/* Larger width for invisible scroll bar */
 	overflow-x: hidden;
 	overflow-y: scroll;
 }
 
-#layer_panel,#layers{
+#layer_palette_panel,#layers{
 	width: 12em;
 }
 
@@ -181,16 +198,22 @@ body,div,p,canvas{
 	color: #e0e0e0;
 	background-color: #606060;
 	box-shadow: 0px 0px 50px #202020 inset;
-	overflow-x: hidden;
-	overflow-y: scroll;
+	overflow: hidden;
 	transition-property: width;
 	transition-duration: 0.5s;
 	transition-timing-function: ease;
 }
 
 #setting_panel_inner{
-	margin: 0.5em;
+	height: 100%;
+	width: 20em;
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+
+#setting_panel_pad{
 	width: 12em;
+	margin: 0.5em;
 }
 
 #setting_main_title{
@@ -229,6 +252,16 @@ body,div,p,canvas{
 	color: #a0a0a0;
 	padding: 0.4em;
 }
+
+#ip_addr_input{
+	background: transparent;
+	font-size: 1em;
+	font-family: Consolas, Monaco, Microsoft YaHei, serif;
+	border: none;
+	text-overflow: ellipsis;
+	color: #a0a0a0;
+}
+
 /* ==================== Canvas ==================== */
 
 #canvas_panel{
@@ -242,7 +275,7 @@ body,div,p,canvas{
 	position: absolute;
 	pointer-events: none;
 	display: none;
-	z-index: 1000;
+	z-index: 1;
 }
 
 #canvas_window{
@@ -262,9 +295,9 @@ body,div,p,canvas{
 	background-repeat: repeat;
 	box-shadow: 0px 0px 80px #808080;
 	display: none;
-	/*transition-property: transform;
-	transition-duration: 0.5s;
-	transition-timing-function: ease-in-out;*/
+	transition-property: transform;
+	transition-duration: 0.1s;
+	transition-timing-function: ease-in-out;
 }
 
 #bottom_info_panel{

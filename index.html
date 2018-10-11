@@ -13,10 +13,12 @@
 		<script src=".\palette.js"></script>
 		<script src=".\environment.js"></script>
 		<script src=".\layer.js"></script>
+		<script src=".\layer_history.js"></script>
 		<script src=".\cursor.js"></script>
 		<script src=".\event.js"></script>
 		<script src=".\canvas.js"></script>
 		<script src=".\canvas_pixel.js"></script>
+		<script src=".\network.js"></script>
 		<title>Skeeetch</title>
 	</head>
 
@@ -28,6 +30,9 @@
 		</div>
 
 		<div id="top_menu_panel">
+			<div class="inline-button" id="filename_lable">
+				<input class="top-blocks" id="filename_input" value="Skeeetch" type="text" maxLength="256" size="18"/>
+			</div>
 			<div id="top_left_menus">
 				<div class="inline-button top-blocks" id="palette_menus">
 					<div class="inline-button" id="palette_block">
@@ -99,75 +104,91 @@
 
 			<div id="setting_panel">
 				<div id="setting_panel_inner">
-					<div id="setting_main_title">
-						Settings
-					</div>
-					<div class="setting-title" id="setting_pen_title">
-						Paint Brush
-					</div>
-					<div class="setting-item" id="pen_density_block">
-						<div class="setting-item-left inline-button">Density</div>
-						<div class="setting-item-mid inline-button">&gt;</div>
-						<div class="setting-item-right inline-button"></div>
-						<div class="setting-item-unit inline-button">%</div>
-					</div>
-					<div class="setting-item" id="pen_sharpness_block">
-						<div class="setting-item-left inline-button">Sharpness</div>
-						<div class="setting-item-mid inline-button">&gt;</div>
-						<div class="setting-item-right inline-button"></div>
-					</div>
-					<div class="setting-item" id="pen_minsize_block">
-						<div class="setting-item-left inline-button">Min Size</div>
-						<div class="setting-item-mid inline-button">&gt;</div>
-						<div class="setting-item-right inline-button"></div>
-						<div class="setting-item-unit inline-button">%</div>
-					</div>
-					<div class="setting-item" id="pen_quality_block">
-						<div class="setting-item-left inline-button">Quality</div>
-						<div class="setting-item-mid inline-button">&gt;</div>
-						<div class="setting-item-right inline-button"></div>
-					</div>
-					<div class="setting-instruction">
-						* High quality and low density may lead to color abberation.
-						Higher quality also brings more CPU pressure.
-					</div>
+					<div id="setting_panel_pad">
+						<div id="setting_main_title">
+							Settings
+						</div>
+						<div class="setting-title" id="setting_pen_title">
+							Paint Brush
+						</div>
+						<div class="setting-item" id="pen_density_block">
+							<div class="setting-item-left inline-button">Density</div>
+							<div class="setting-item-mid inline-button">&gt;</div>
+							<div class="setting-item-right inline-button"></div>
+							<div class="setting-item-unit inline-button">%</div>
+						</div>
+						<div class="setting-item" id="pen_sharpness_block">
+							<div class="setting-item-left inline-button">Sharpness</div>
+							<div class="setting-item-mid inline-button">&gt;</div>
+							<div class="setting-item-right inline-button"></div>
+						</div>
+						<div class="setting-item" id="pen_minsize_block">
+							<div class="setting-item-left inline-button">Min Size</div>
+							<div class="setting-item-mid inline-button">&gt;</div>
+							<div class="setting-item-right inline-button"></div>
+							<div class="setting-item-unit inline-button">%</div>
+						</div>
+						<div class="setting-item" id="pen_quality_block">
+							<div class="setting-item-left inline-button">Quality</div>
+							<div class="setting-item-mid inline-button">&gt;</div>
+							<div class="setting-item-right inline-button"></div>
+						</div>
+						<div class="setting-instruction">
+							* High quality and low density may lead to color abberation.
+							Higher quality also brings more CPU pressure.
+						</div>
 
-					<div class="setting-title" id="setting_paper_title">
-						Paper
-					</div>
-					<div class="setting-item" id="paper_width_block">
-						<div class="setting-item-left inline-button">Width</div>
-						<div class="setting-item-mid inline-button">&gt;</div>
-						<div class="setting-item-right inline-button"></div>
-						<div class="setting-item-unit inline-button">px</div>
-					</div>
-					<div class="setting-item" id="paper_height_block">
-						<div class="setting-item-left inline-button">Height</div>
-						<div class="setting-item-mid inline-button">&gt;</div>
-						<div class="setting-item-right inline-button"></div>
-						<div class="setting-item-unit inline-button">px</div>
-					</div>
-					<div class="setting-instruction">
-						Submit the paper size change by clicking the APPLY button below
-					</div>
-					<div class="setting-item" id="paper_size_submit_block">
-						<div class="setting-item-left inline-button">Change-<br/>Size</div>
-						<div class="setting-item-mid inline-button">&gt;</div>
-						<div class="setting-item-right inline-button">APPLY</div>
-					</div>
+						<div class="setting-title" id="setting_paper_title">
+							Paper
+						</div>
+						<div class="setting-item" id="paper_width_block">
+							<div class="setting-item-left inline-button">Width</div>
+							<div class="setting-item-mid inline-button">&gt;</div>
+							<div class="setting-item-right inline-button"></div>
+							<div class="setting-item-unit inline-button">px</div>
+						</div>
+						<div class="setting-item" id="paper_height_block">
+							<div class="setting-item-left inline-button">Height</div>
+							<div class="setting-item-mid inline-button">&gt;</div>
+							<div class="setting-item-right inline-button"></div>
+							<div class="setting-item-unit inline-button">px</div>
+						</div>
+						<div class="setting-instruction">
+							Resize the paper by clicking the APPLY button below,
+							this will also clear all history operations.
+						</div>
+						<div class="setting-item" id="paper_size_submit_block">
+							<div class="setting-item-left inline-button">Change-<br/>Size</div>
+							<div class="setting-item-mid inline-button">&gt;</div>
+							<div class="setting-item-right inline-button">APPLY</div>
+						</div>
 
-					<div class="setting-title" id="setting_env_title">
-						Environment
-					</div>
-					<div class="setting-item" id="env_antialias_block">
-						<div class="setting-item-left inline-button">Anti-Alias</div>
-						<div class="setting-item-mid inline-button">&gt;</div>
-						<div class="setting-item-right inline-button"></div>
-					</div>
-					<div class="setting-item" id="env_memory_block">
-						<div class="setting-item-left inline-button">RAM Usage</div>
-						<div class="setting-item-mid inline-button">&gt;</div>
-						<div class="setting-item-right inline-button"></div>
+						<div class="setting-title" id="setting_env_title">
+							Environment
+						</div>
+						<div class="setting-item" id="env_antialias_block">
+							<div class="setting-item-left inline-button">Anti-Alias</div>
+							<div class="setting-item-mid inline-button">&gt;</div>
+							<div class="setting-item-right inline-button"></div>
+						</div>
+						<div class="setting-item" id="env_memory_block">
+							<div class="setting-item-left inline-button">RAM Usage</div>
+							<div class="setting-item-mid inline-button">&gt;</div>
+							<div class="setting-item-right inline-button"></div>
+							<div class="setting-item-unit inline-button">MB</div>
+						</div>
+
+						<div class="setting-title" id="setting_env_title">
+							Network
+						</div>
+						<div class="setting-item" id="ip_hint_block">
+							<div class="setting-item-left inline-button">Controller</div>
+							<div class="setting-item-mid inline-button">&gt;</div>
+							<div class="setting-item-right inline-button">Start</div>
+						</div>
+						<div class="setting-item" id="ip_addr_block">
+							<input id="ip_addr_input" placeholder="Address" type="text" maxLength="256" size="18"/>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -185,9 +206,9 @@
 						<!--debug-->
 					</div>
 					<div id="transform_info">
-						<!-- div class="inline-button" id="translate_info">
-
-						</div -->
+						<div class="inline-button" id="reset_info">
+							[&bull;]&nbsp;
+						</div>
 						<div class="inline-button" id="scale_info">
 							100%
 						</div>

@@ -161,7 +161,7 @@ PALETTE.initPaletteWindow=function(){
 	PALETTE.setCursor();
 
 	// Not a global event: handle by palette itself
-	$("#palette_SV").on("pointermove",event=>{
+	$("#palette_SV").on("pointermove pointerdown",event=>{
 		var e=event.originalEvent;
 		var x=Math.min(Math.max(e.offsetX,0),PALETTE.size-1);
 		var y=Math.min(Math.max(e.offsetY,0),PALETTE.size-1);

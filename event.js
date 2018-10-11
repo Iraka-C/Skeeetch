@@ -18,7 +18,9 @@ EVENTS.init=function(){
 	$("html").on("keydown",EVENTS.onKeyDown);
 	$("html").on("keyup",EVENTS.onKeyUp);
 
-	$("#canvas_window").on("pointerover",CURSOR.showCursor);
+	$("#canvas_window").on("pointerover",event=>{
+		CURSOR.showCursor(event);
+	});
 	$("#canvas_window").on("pointermove",event=>{
 		CURSOR.moveCursor(event);
 		if(CURSOR.isDown){
@@ -54,6 +56,9 @@ EVENTS.init=function(){
 				}
 			}
 			CURSOR.pointerUp(event);
+			if(CANVAS.isVisited){ // content changed
+				LAYERS.addHistory(LAYERS.activeLayer,CANVAS.imgDataAtInit,"draw");
+			}
 		}
 
 	});
@@ -78,6 +83,15 @@ EVENTS.init=function(){
 		$("#rotate_info").html("0&deg;");
 		ENV.rotateTo(0);
 	});
+	$("#reset_info").on("click",()=>{ // reset rotate
+		if(NETWORK.isWorking){
+			NETWORK.toInitTransform=true;
+		}
+		else{
+			$("#rotate_info").html("0&deg;");
+			ENV.transformTo(0,0,0,1);
+		}
+	});
 
 	$("#brush_type").on("click",event=>{ENV.shiftBrush();EVENTS.refreshSettingPanel();});
 	EVENTS.wheelEventDistributor.addListener($("#brush_size"),BRUSHES.changeNowBrushSize);
@@ -98,11 +112,12 @@ EVENTS.init=function(){
 
 	$("#export_button").on("click",()=>{ // export image
 		var cv=PIXEL.blendLayers();
-		ENV.downloadCanvas(cv,"Skeeetch.png");
+		ENV.downloadCanvas(cv,$("#filename_input")[0].value+".png");
 	});
 
 	EVENTS.refreshSettingPanel();
 	EVENTS.initSettingButtons();
+	EVENTS.initFileHandler();
 };
 
 EVENTS.onKeyDown=function(event){
@@ -120,6 +135,11 @@ EVENTS.onKeyDown=function(event){
 	if(event.altKey==1&&EVENTS.isAltDown==false){
 		// Alt Pressed
 		EVENTS.isAltDown=true;
+	}
+	if(event.which==90){ // z
+		if(EVENTS.isCtrlDown){
+			LAYERS.undo();
+		}
 	}
 };
 
@@ -140,7 +160,7 @@ EVENTS.onKeyUp=function(event){
 
 EVENTS.wheelEventDistributor={
 	init:function(){
-		$("html").on("wheel",event=>this.onwheel(event));
+		$(window).on("wheel",event=>this.onwheel(event));
 	},
 	nowListener:undefined, // a DOM Object
 	nowFunction:()=>{}, // a function
@@ -148,15 +168,23 @@ EVENTS.wheelEventDistributor={
 		var el=element[0];
 		// The only hack: Deal with record during capture stage
 		el.addEventListener("pointerover",event=>{
+			//console.log("Element In");
+			//console.log(el);
 			this.nowListener=el;
 			this.nowFunction=func;
 		},true);
 		el.addEventListener("pointerout",event=>{
-			if(event.target==el)this.nowListener=undefined;
+			if(event.target==el){
+				//console.log("Element Out");
+				//console.log(el);
+				this.nowListener=undefined;
+			}
 		},true);
 	},
 	onwheel:function(event){
+		//console.log("wheel");
 		if(this.nowListener&&this.nowFunction){
+			//console.log("wheel deliver");
 			this.nowFunction(event);
 		}
 	}
@@ -214,7 +242,9 @@ EVENTS.initSettingButtons=function(){
 		pj.html(EVENTS.bufferPaperSize.height);
 	});
 	$("#paper_size_submit_block").children(".setting-item-right").on("click",event=>{
+		LAYERS.clear();
 		ENV.setPaperSize(EVENTS.bufferPaperSize.width,EVENTS.bufferPaperSize.height);
+		EVENTS.refreshSettingPanel();
 	});
 
 	EVENTS.wheelEventDistributor.addListener($("#env_antialias_block"),event=>{
@@ -224,6 +254,20 @@ EVENTS.initSettingButtons=function(){
 	$("#env_antialias_block").children(".setting-item-right").on("click",event=>{
 		ENV.shiftAntiAlias();
 		$("#env_antialias_block").children(".setting-item-right").html(ENV.displayAntiAlias?"ON":"OFF");
+	});
+
+	$("#ip_hint_block").children(".setting-item-right").on("click",event=>{
+		NETWORK.connect($("#ip_addr_input")[0].value);
+		$("#ip_hint_block").children(".setting-item-right").html("Waiting");
+	});
+	$("#ip_addr_input").on("keydown",event=>{
+		if(event.which==13){ // Enter
+			NETWORK.connect($("#ip_addr_input")[0].value);
+			$("#ip_hint_block").children(".setting-item-right").html("Waiting");
+		}
+	});
+	$("#ip_addr_input").on("focus",event=>{
+		$("#ip_addr_input").css("color","#a0a0a0");
 	});
 };
 
@@ -261,4 +305,44 @@ EVENTS.refreshSettingPanel=function(){
 	$("#paper_height_block").children(".setting-item-right").html(ENV.paperSize.height);
 
 	$("#env_antialias_block").children(".setting-item-right").html(ENV.displayAntiAlias?"ON":"OFF");
+
+	var ramMB=ENV.getRAMUsage()/Math.pow(2,20);
+	$("#env_memory_block").children(".setting-item-right").html(ramMB<100?ramMB.toFixed(1):Math.round(ramMB));
 };
+
+// ===================== File Handlers ========================
+EVENTS.initFileHandler=function(){
+	var drop=$("body")[0];
+	drop.addEventListener("dragenter",EVENTS.dragHandle,false);
+	drop.addEventListener("dragleave",EVENTS.dragHandle,false);
+	drop.addEventListener("dragover",EVENTS.dragHandle,false);
+	drop.addEventListener("drop",EVENTS.dragHandle,false);
+};
+
+EVENTS.dragHandle=function(e){
+	e.preventDefault();
+	if(e.type=="dragenter"||e.type=="dragover"){
+		$("#mask").css("display","inline");
+	}
+	if(e.type=="dragleave"){
+		console.log("LEAVE");
+		$("#mask").css("display","none");
+	}
+	if(e.type=="drop"){
+		$("#mask").css("display","none");
+
+		for(i in e.dataTransfer.files){
+			var file=e.dataTransfer.files[i];
+			if(!file||!file.type||!file.type.match(/image*/))continue;
+
+			window.URL=window.URL||window.webkitURL;
+			var img=new Image();
+			img.src=window.URL.createObjectURL(file);
+			img.filename=file.name;
+			img.onload=function(e){
+				addNewImageLayer(this);
+			}
+		}
+	}
+	EVENTS.refreshSettingPanel();
+}
