@@ -25,9 +25,10 @@ EVENTS.init=function(){
 	});
 
 	$("#canvas-window").on("pointerover",event=>{
-		//CURSOR.showCursor(event);
+		CURSOR.showCursor();
 	});
 	$("#canvas-window").on("pointermove",event=>{
+		CURSOR.showCursor(); // pen->mouse switching
 		CURSOR.moveCursor(event);
 		if(CURSOR.isDown){
 			CANVAS.stroke();
@@ -38,6 +39,7 @@ EVENTS.init=function(){
 		//CURSOR.isDown=false;
 		//CANVAS.updateCursor([NaN,NaN,0]);
 		// disable cursor
+		CURSOR.hideCursor(); // pen away
 	});
 
 	// DOWN / UP outside the window

@@ -188,6 +188,7 @@ PALETTE.setRGB=function(rgb){ // no palette canvas renew
 	//PALETTE.sigma=getSigma(PALETTE.hsv);
 	//console.log("SIGMA = "+PALETTE.sigma);
 	PALETTE.updatePaletteNoRenew();
+	CURSOR.updateColor(PALETTE.getColorString());
 }
 
 PALETTE.setHSV=function(hsv){ // no palette canvas renew
@@ -196,6 +197,7 @@ PALETTE.setHSV=function(hsv){ // no palette canvas renew
 	//PALETTE.sigma=getSigma(PALETTE.hsv);
 	//console.log("SIGMA = "+PALETTE.sigma);
 	PALETTE.updatePaletteNoRenew();
+	CURSOR.updateColor(PALETTE.getColorString());
 }
 
 PALETTE.getColorString=function(rgb){

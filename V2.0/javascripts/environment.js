@@ -41,6 +41,7 @@ ENV.init=function(){ // When the page is loaded
 	LAYERS.init();
 	SettingHandler.init();
 	BrushManager.init();
+	CURSOR.init();
 
 	/**
 	 * Debug part
