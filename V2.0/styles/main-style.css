@@ -1,0 +1,96 @@
+/*
+	Written By Iraka
+	css file for Skeeetch platform
+*/
+
+html{
+	width: 100%;
+	height: 100%;
+}
+
+.noselect{
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	-khtml-user-select: none; /* Konqueror HTML */
+	-moz-user-select: none; /* Old versions of Firefox */
+	-ms-user-select: none; /* Internet Explorer/Edge */
+	user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera and Firefox */
+}
+
+body{
+	font-size: 100%;
+	width: 100%;
+	height: 100%;
+	font-family: Consolas, Monaco, Microsoft YaHei, monospace, serif;
+	cursor: default;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	-khtml-user-select: none;
+	user-select: none;
+	overflow-x: hidden;
+	overflow-y: hidden;
+	background-color: #fff;
+	padding: 0px;
+	margin: 0px;
+	touch-action: none;
+}
+
+#mask{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	background-color: #000;
+	opacity: 0.5;
+	pointer-events: none;
+	display: none;
+}
+
+#ui-panel{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	background-color: #eee;
+	display: flex;
+	flex-direction: column;
+}
+
+#top-menu-panel{
+	z-index: 2;
+	flex: none;
+}
+#column-panel{
+	flex: auto;
+	display: flex;
+	flex-direction: row;
+	height: 0px;
+}
+#canvas-area-panel{
+	flex: auto;
+}
+#layer-area-panel{
+	z-index: 1;
+	flex: none;
+}
+
+input{
+	background: transparent;
+	font-size: 100%;
+	font-family: Consolas, Monaco, Microsoft YaHei, monospace, serif;
+	border: none;
+	padding: 0em;
+	text-overflow: ellipsis;
+}
+input:focus{
+	outline: none;
+}
+canvas{
+	display: block;
+}
+svg{
+	display: block;
+}

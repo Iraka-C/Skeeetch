@@ -19,9 +19,12 @@ EVENTS.init=function(){
 	$("html").on("keyup",EVENTS.onKeyUp);
 
 	$("#canvas_window").on("pointerover",event=>{
+		
 		CURSOR.showCursor(event);
 	});
 	$("#canvas_window").on("pointermove",event=>{
+		console.log("MOVE");
+		
 		CURSOR.moveCursor(event);
 		if(CURSOR.isDown){
 			if(EVENTS.isShiftDown){ // pan
@@ -32,10 +35,14 @@ EVENTS.init=function(){
 			}
 		}
 	});
-	$("#canvas_window").on("pointerout",CURSOR.hideCursor);
+	$("#canvas_window").on("pointerout",()=>{
+		console.log("OUT");
+		CURSOR.hideCursor();
+	});
 
 	// DOWN / UP outside the window
 	$("html").on("pointerdown",event=>{
+		console.log("DOWN");
 		if(event.originalEvent.button==0){ // left / pen
 			CANVAS.setCanvasEnvironment(event);
 			ENV.dragInit={x:event.originalEvent.offsetX,y:event.originalEvent.offsetY};
@@ -48,6 +55,7 @@ EVENTS.init=function(){
 		}
 	});
 	$("html").on("pointerup",event=>{
+		console.log("UP");
 		if(event.originalEvent.button==0){ // left
 			if(event.target==$("#canvas_window")[0]){ // on canvas
 				CURSOR.moveCursor(event);

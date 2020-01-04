@@ -227,7 +227,7 @@ PALETTE.selectColor=function(x,y){
 }
 
 PALETTE.getColorString=function(){
-	return "RGB("+PALETTE.rgb.r+","+PALETTE.rgb.g+","+PALETTE.rgb.b+")";
+	return "rgba("+PALETTE.rgb.r+","+PALETTE.rgb.g+","+PALETTE.rgb.b+",1)";
 };
 
 PALETTE.setRGB=function(rgb){ // no board renew

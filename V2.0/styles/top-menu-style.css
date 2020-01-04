@@ -1,0 +1,72 @@
+#top-menu-panel{
+	display: flex;
+	flex-direction: row;
+	background: #ccc;
+}
+
+#top-menu-left-panel,#top-menu-right-panel{
+	flex: none;
+	display: flex;
+	flex-direction: row;
+}
+
+#top-menu-center-panel{
+	flex: auto;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+}
+
+.top-block{
+	font-size: 125%;
+	padding: 0.5em;
+	transition: background 0.5s;
+}
+.top-block:hover{
+	background: #bbb;
+}
+
+#filename-input{
+	color: #000000;
+	text-align: center;
+}
+#filename-input:focus{
+	background: #bbb;
+}
+#filename-input:hover{
+	background: #bbb;
+}
+
+#file-button{
+	background: #aaa;
+}
+#file-button:hover{
+	background: #bbb;
+}
+
+#brush-selector-panel{
+
+}
+#brush-button{
+	display: flex;
+	flex-direction: row;
+	width: 5.5em;
+}
+
+#brush-size{
+	vertical-align: super;
+	font-size: 80%;
+}
+
+#palette-button{
+	transition: color 0.25s;
+}
+
+/* Brush selector */
+#brush-selector-menu{
+	position: absolute;
+	width: 30em;
+	height: 10em;
+	background: #00000088;
+	display: none;
+}

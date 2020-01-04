@@ -79,8 +79,8 @@ ENV.toPaperXY=function(x,y){
 	var flip=ENV.window.flip?-1:1;
 	var xc=xr*flip/scale+ENV.paperSize.width/2;
 	var yc=yr/scale+ENV.paperSize.height/2;
-
 	return {x:xc,y:yc};
+	
 };
 
 ENV.scaleTo=function(ratio){
