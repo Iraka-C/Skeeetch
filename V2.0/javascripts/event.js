@@ -30,9 +30,6 @@ EVENTS.init=function(){
 	$("#canvas-window").on("pointermove",event=>{
 		CURSOR.showCursor(); // pen->mouse switching
 		CURSOR.moveCursor(event);
-		if(CURSOR.isDown){
-			CANVAS.stroke();
-		}
 	});
 	$("#canvas-window").on("pointerout",()=>{
 		// continue record drawing, so commented out
@@ -44,15 +41,15 @@ EVENTS.init=function(){
 
 	// DOWN / UP outside the window
 	$("html").on("pointerdown",event=>{
-		CURSOR.isDown=true;
-		CANVAS.setCanvasEnvironment(event);
+		CURSOR.down(event);
+		CANVAS.setCanvasEnvironment(event); // init canvas here
 	});
-	$("html").on("pointerup",event=>{ // @TODO: check up and move at the same point?
-		if(event.target==$("#canvas-window")[0]){ // on canvas
+	$("html").on("pointerup",event=>{
+		// no need to paint the last event because there's no pressure info (=0)
+		if(event.target==$("#canvas-window")[0]){
+			// on canvas
 			CURSOR.moveCursor(event);
-			CANVAS.stroke();
 		}
-		CURSOR.isDown=false;
-		CANVAS.updateCursor([NaN,NaN,0]);
+		CURSOR.up(event);
 	});
 }

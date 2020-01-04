@@ -5,7 +5,7 @@
 CANVAS={};
 CANVAS.settings={
 	enabled: true, // is canvas drawable?
-	isPressureDevice: true, // is the pen using now a pressure device
+	nowDeviceType: null, // is the pen using now a pressure device
 	is16bit: true, // is the renderer 16-bit deep
 	strokeRenderFunction: RENDER16.strokeOverlay // see RENDER (render.js)
 };
@@ -65,7 +65,7 @@ CANVAS.setCanvasEnvironment=function(event){ // event="pointerdown"
 		// No canvas or locked, can't draw on it
 		return;
 	}
-	CANVAS.settings.isPressureDevice=(event.originalEvent.pointerType=="pen");
+	CANVAS.settings.nowDeviceType=event.originalEvent.pointerType;
 
 	// canvas context settings
 	let ctx=CANVAS.nowContext;
@@ -104,7 +104,7 @@ CANVAS.updateCursor=function(point){
 
 	// Coordinate transform
 	let pC=ENV.toPaperXY(point[0],point[1]);
-	if(BrushManager.activeBrush.isSizePressure&&CANVAS.settings.isPressureDevice){
+	if(BrushManager.activeBrush.isSizePressure){
 		pT.p0=[pC[0],pC[1],point[2]];
 	}
 	else{ // set pressure to 1 when is not a pressure device
@@ -126,7 +126,7 @@ CANVAS.stroke=function(){
 	}
 	
 	let pT=CANVAS.points;
-	if(isNaN(pT.p2[0])){ // There's a not-recorded pointer
+	if(isNaN(pT.p2[0])||isNaN(pT.p1[0])||isNaN(pT.p0[0])){ // There's a not-recorded pointer
 		return;
 	}
 

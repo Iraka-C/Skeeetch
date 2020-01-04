@@ -9,6 +9,8 @@ CURSOR={};
 CURSOR.point=[NaN,NaN,NaN];
 CURSOR.isShown=false; // is the pointer visible
 CURSOR.isDown=false; //is the pointer pressed on screen
+CURSOR.id=NaN;
+CURSOR.eventIdList=["","",""]; // a list to record now id
 
 CURSOR.init=function(){
 	$("#brush-cursor-layer").attr({
@@ -21,18 +23,26 @@ CURSOR.init=function(){
 }
 
 CURSOR.moveCursor=function(event){
+	let type=event.originalEvent.pointerType;
+	// push one id in
+	CURSOR.eventIdList[2]=CURSOR.eventIdList[1];
+	CURSOR.eventIdList[1]=CURSOR.eventIdList[0];
+	CURSOR.eventIdList[0]=type;
+	if(!CURSOR.isDown
+	 &&CURSOR.eventIdList[2]==CURSOR.eventIdList[1]
+	 &&CURSOR.eventIdList[1]==type){ // same and not drawing
+		CURSOR.id=type;
+	}
 	
+	if(CURSOR.id!=type){ // not the present id, no moving
+		return;
+	}
+
 	CURSOR.point=[ // new movement
 		event.originalEvent.offsetX,
 		event.originalEvent.offsetY,
-		event.originalEvent.pressure
+		type=="pen"?event.originalEvent.pressure:1 // 1 as default
 	];
-	/**
-	 * @TODO: updating while pen is not down seems fluent
-	 */
-	/*if(CURSOR.isDown){ // only update on down
-		CANVAS.updateCursor(CURSOR.point);
-	}*/
 	CANVAS.updateCursor(CURSOR.point);
 
 	$("#brush-cursor-round").attr({
@@ -40,6 +50,9 @@ CURSOR.moveCursor=function(event){
 		"cy":CURSOR.point[1],
 		"r":BrushManager.activeBrush.size*ENV.window.scale/2
 	});
+	if(CURSOR.isDown){ // is drawing
+		CANVAS.stroke();
+	}
 };
 
 CURSOR.updateColor=function(str){
@@ -53,7 +66,7 @@ CURSOR.updateColor=function(str){
  */
 CURSOR.disableCursor=function(){
 	CURSOR.point=[NaN,NaN,NaN];
-	CANVAS.updateCursor(CURSOR.point);
+	CANVAS.updateCursor(CURSOR.point,NaN);
 };
 
 CURSOR.hideCursor=function(){
@@ -70,3 +83,17 @@ CURSOR.showCursor=function(){
 	$("#brush-cursor-layer").css("display","block");
 	//CURSOR.enableCursor();
 };
+
+CURSOR.down=function(event){
+	if(!CURSOR.isDown){
+		CURSOR.isDown=true;
+		//CURSOR.id=event.originalEvent.pointerId;
+	}
+}
+
+CURSOR.up=function(event){
+	if(CURSOR.isDown&&CURSOR.id==event.originalEvent.pointerType){
+		CURSOR.isDown=false;
+		//CURSOR.id=NaN;
+	}
+}

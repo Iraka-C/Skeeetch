@@ -1,5 +1,6 @@
 #canvas-area-panel{
 	position: relative;
+	cursor: none;
 }
 #masked-panel{
 	position: absolute;
@@ -38,6 +39,7 @@
 	transition-duration: 0.5s;
 	transition-timing-function: ease;
 	touch-action: pan-y;
+	cursor: auto;
 }
 .setting-panel-collapsed{
 	width: 0em;
