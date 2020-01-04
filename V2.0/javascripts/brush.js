@@ -76,7 +76,7 @@ BrushManager.initBrushSettingMenu=function(){
 			minSizeUpdateFunc();
 		}, // set
 		(dx,oldVal)=>{ // set on drag-x
-			let newVal=(oldVal+dx/10).clamp(BrushManager.limits.minSize,BrushManager.limits.maxSize);
+			let newVal=(oldVal+dx/4).clamp(BrushManager.limits.minSize,BrushManager.limits.maxSize);
 			BrushManager.activeBrush.minSize=
 				BrushManager.activeBrush.minSize*newVal/BrushManager.activeBrush.size;
 			BrushManager.activeBrush.size=newVal;
@@ -103,7 +103,7 @@ BrushManager.initBrushSettingMenu=function(){
 			BrushManager.activeBrush.minSize=newVal;
 		}, // set
 		(dx,oldVal)=>{ // set on drag-x
-			let newVal=(oldVal+dW).clamp(BrushManager.limits.minSize,BrushManager.activeBrush.size);
+			let newVal=(oldVal+dx/4).clamp(BrushManager.limits.minSize,BrushManager.activeBrush.size);
 			BrushManager.activeBrush.minSize=newVal;
 		}, // set
 		()=>Math.round(BrushManager.activeBrush.minSize)

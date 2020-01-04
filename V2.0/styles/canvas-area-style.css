@@ -160,6 +160,7 @@ table{
 }
 #bottom-info-panel{
 	right: 0px;
+	cursor: auto;
 }
 #bottom-info-panel *{
 	display: flex;
