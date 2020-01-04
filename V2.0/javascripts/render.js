@@ -96,13 +96,21 @@ RENDER.drawBezierPlots=function(ctx,p0,p1,p2){
 	}
 }
 
+
+
 // =================== Settings ======================
 
 /**
- * transform from pressure to stroke width
+ * transform from pressure(0~1) to stroke width
  */
 RENDER.pressureToStrokeRadius=function(pressure){
-	return pressure*BrushManager.activeBrush.size/2;
+	let brush=BrushManager.activeBrush;
+	if(brush.isSizePressure){
+		return (pressure*(brush.size-brush.minSize)+brush.minSize)/2;
+	}
+	else{
+		return brush.size/2;
+	}
 }
 
 // =========================== Tool functions ==============================

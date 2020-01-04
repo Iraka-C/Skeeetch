@@ -12,7 +12,7 @@ BrushManager.brushes=[
 		//minDensity:0,
 		//smoothness:2, // the smoothness of the trail: avoid trembling
 		sharpness:1, // 0.0[0.2]: soft ~ 1.0: mid ~ +Inf[5]: sharp
-		alpha:30 // in %
+		alpha:100 // in %
 	},
 	{
 		name:"Brush",
@@ -57,7 +57,7 @@ BrushManager.initBrushSettingMenu=function(){
 		$("#brush-menu-panel"),
 		"Paint Brush" // title
 	);
-	brushMenu.addSectionTitle("Stroke Control");
+	brushMenu.addSectionTitle("Size Control");
 	let brushSizeUpdateFunc=brushMenu.addInstantNumberItem("Brush Size",0,"px",
 		newVal=>{ // set on input
 			if(newVal){
@@ -111,17 +111,26 @@ BrushManager.initBrushSettingMenu=function(){
 	let minSizeHintUpdateFunc=brushMenu.addHint("* Invalid when pressure is disabled");
 	minSizeHintUpdateFunc(false);
 
-	/*brushMenu.addInstantNumberItem("Megas",120,"MB",
-		newVal=>newVal?Math.round(newVal.clamp(1,1000)):10, // set
-		(dW,oldVal)=>Math.exp(Math.log(oldVal)+dW/10).clamp(1,1000).toFixed(1), // set
-		(dx,oldVal)=>Math.exp(Math.log(oldVal)+dx/10).clamp(1,1000).toFixed(1) // set
+	// =================== opacity ======================
+	brushMenu.addSectionTitle("Opacity Control");
+	let brushOpacityUpdateFunc=brushMenu.addInstantNumberItem("Opacity",0,"%",
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=newVal.clamp(0,100);
+				BrushManager.activeBrush.alpha=newVal;
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			let newVal=(oldVal+dW).clamp(0,100);
+			BrushManager.activeBrush.alpha=newVal;
+		}, // set
+		(dx,oldVal)=>{ // set on drag-x
+			let newVal=(oldVal+dx/4).clamp(0,100);
+			BrushManager.activeBrush.alpha=newVal;
+		}, // set
+		()=>Math.round(BrushManager.activeBrush.alpha)
 	);
-	brushMenu.addHint("* Change Me");
-	brushMenu.addSwitch("Anti",["On","Off","Not Sure"],null,val=>{});
-	brushMenu.addInfo("Mem","dB",()=>Math.round(Math.random()*100));
-	brushMenu.addButton("Set",()=>console.log("Yes"));
-	brushMenu.addButton("M agree <br>to the",()=>console.log("Yes"));
-	brushMenu.addButton("M agree <br>to<br> the",()=>console.log("Yes"));*/
+
 	brushMenu.update();
 	return brushMenu;
 }

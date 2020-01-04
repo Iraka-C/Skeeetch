@@ -34,7 +34,7 @@
 	pointer-events: all; /* Clickable */
 	overflow-x: hidden;
 	overflow-y: auto;
-	width: 14em; /* Hard coded */
+	width: 14em; /* hard coded for animation */
 	transition-property: width, padding;
 	transition-duration: 0.5s;
 	transition-timing-function: ease;
@@ -56,6 +56,8 @@ table{
 }
 .setting-table{
 	margin: 0em;
+	table-layout: fixed;
+	width: 12em;
 }
 .setting-table th{
 	padding-bottom: 1em;
@@ -87,13 +89,13 @@ table{
 
 /* Hard-coded */
 .setting-item-name{
-	width: 7em;
+	width: 6em;
 }
 .setting-item-value{
 	width: 4em;
 }
 .setting-item-unit{
-	width: 2em;
+	width: 1.5em; /* 3 alphabets */
 }
 .setting-table .value{
 	text-align: right;

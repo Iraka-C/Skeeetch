@@ -20,6 +20,10 @@ EVENTS.init=function(){
 	$(window).on("resize",event=>{
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
+		$("#brush-cursor-layer").attr({
+			width:ENV.window.SIZE.width,
+			height:ENV.window.SIZE.height
+		});
 		ENV.refreshTransform();
 		//CURSOR.refreshBrushLayerSize();
 	});

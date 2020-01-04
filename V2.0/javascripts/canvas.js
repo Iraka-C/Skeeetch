@@ -104,12 +104,7 @@ CANVAS.updateCursor=function(point){
 
 	// Coordinate transform
 	let pC=ENV.toPaperXY(point[0],point[1]);
-	if(BrushManager.activeBrush.isSizePressure){
-		pT.p0=[pC[0],pC[1],point[2]];
-	}
-	else{ // set pressure to 1 when is not a pressure device
-		pT.p0=[pC[0],pC[1],1];
-	}
+	pT.p0=[pC[0],pC[1],point[2]];
 
 	CANVAS.pointCnt++;
 	// CANVAS.nowContext.font = '10px serif';
@@ -154,6 +149,7 @@ CANVAS.stroke=function(){
 			p0[0]+(p1[0]-p0[0])*dk,p0[1]+(p1[1]-p0[1])*dk,
 			RENDER.pressureToStrokeRadius(p1[2])
 		];
+		// @TODO: fix sometime interpolated radius is larger than brush size
 		let s2=[
 			p2[0],p2[1],
 			RENDER.pressureToStrokeRadius(Math.max(0,pM+(p1[2]-pM)*dk*2))

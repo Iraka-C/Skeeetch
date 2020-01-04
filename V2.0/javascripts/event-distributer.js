@@ -72,6 +72,7 @@ EventDistributer.button={
 	_onpointermove:function(event){ // send the {dx,dy}
 		if(EventDistributer.button._nowListener&&EventDistributer.button._nowFunction){
 			// There is a pointer down
+			// @TODO: disable drawing when dragging here
 			let e=event.originalEvent;
 			let dx=e.clientX-EventDistributer.button._origin.x;
 			let dy=e.clientY-EventDistributer.button._origin.y;

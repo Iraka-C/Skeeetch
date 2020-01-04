@@ -12,6 +12,10 @@ CURSOR.isDown=false; //is the pointer pressed on screen
 CURSOR.id=NaN;
 CURSOR.eventIdList=["","",""]; // a list to record now id
 
+/**
+ * @TODO: fix brush moving delay (change svg into canvas?)
+ */
+
 CURSOR.init=function(){
 	$("#brush-cursor-layer").attr({
 		width:ENV.window.SIZE.width,

@@ -68,22 +68,7 @@ RENDER16.drawBezierPlots=function(ctx,p0,p1,p2){
 	}
 	RENDER16.renderPoints(wL,wH,hL,hH,w,kPoints);
 
-	// renew canvas
-	// create is 5x faster than get image data
-	let dw=wH-wL+1;
-	let imgData=ctx.createImageData(dw,hH-hL+1); // create square. smaller: faster
-	let data=imgData.data;
-	for(let i=hL;i<=hH;i++){ // copy content
-		for(let j=wL;j<=wH;j++){
-			let idImg=((i-hL)*dw+(j-wL))<<2;
-			let idBuf=(i*w+j)<<2;
-			data[idImg]=CANVAS.buffer[idBuf]>>8;
-			data[idImg+1]=CANVAS.buffer[idBuf+1]>>8;
-			data[idImg+2]=CANVAS.buffer[idBuf+2]>>8;
-			data[idImg+3]=CANVAS.buffer[idBuf+3]>>8;
-		}
-	}
-	ctx.putImageData(imgData,wL,hL);
+	RENDER16.requestRefresh([wL,wH,hL,hH]);
 }
 
 /**
@@ -102,6 +87,54 @@ RENDER16.renderPoints=function(wL,wH,hL,hH,w,kPoints){
 			}
 		}
 	}
+}
+// =============== Displaying =================
+
+/**
+ * refresh screen in range=[wL,wH,hL,hH]
+ */
+RENDER16.requestRefresh=function(range){
+	let nowRange=RENDER16.requestRefresh.range;
+	if(nowRange[0]>range[0])nowRange[0]=range[0]; // wL
+	if(nowRange[1]<range[1])nowRange[1]=range[1]; // wH
+	if(nowRange[2]>range[2])nowRange[2]=range[2]; // hL
+	if(nowRange[3]<range[3])nowRange[3]=range[3]; // hH
+
+	if(RENDER16.requestRefresh.isRequested)return; // already requested
+	RENDER16.requestRefresh.isRequested=true;
+	requestAnimationFrame(RENDER16._refresh);
+}
+RENDER16.requestRefresh.range=[Infinity,0,Infinity,0];
+RENDER16.requestRefresh.isRequested=false;
+
+/**
+ * for requestAnimationFrame
+ */
+RENDER16._refresh=function(){
+	let range=RENDER16.requestRefresh.range;
+	let wL=range[0],wH=range[1];
+	let hL=range[2],hH=range[3];
+	let ctx=CANVAS.nowContext;
+	let w=ctx.canvas.width;
+	// renew canvas
+	// create is 5x faster than get image data
+	let dw=wH-wL+1;
+	let imgData=ctx.createImageData(dw,hH-hL+1); // create square. smaller: faster
+	let data=imgData.data;
+	let buffer=CANVAS.buffer;
+	for(let i=hL;i<=hH;i++){ // copy content
+		for(let j=wL;j<=wH;j++){
+			let idImg=((i-hL)*dw+(j-wL))<<2;
+			let idBuf=(i*w+j)<<2;
+			data[idImg]=buffer[idBuf]>>8;
+			data[idImg+1]=buffer[idBuf+1]>>8;
+			data[idImg+2]=buffer[idBuf+2]>>8;
+			data[idImg+3]=buffer[idBuf+3]>>8;
+		}
+	}
+	ctx.putImageData(imgData,wL,hL);
+	RENDER16.requestRefresh.range=[Infinity,0,Infinity,0];
+	RENDER16.requestRefresh.isRequested=false;
 }
 
 // ========================= 16 bit Pixel Blending ============================
