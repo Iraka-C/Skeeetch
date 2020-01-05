@@ -182,6 +182,7 @@
 .layer-opacity-label{
 	font-size: 125%;
 	color: #86c2e0;
+	mix-blend-mode: multiply;
 	position: absolute;
 	left: 0em;
 	top: 0em;
