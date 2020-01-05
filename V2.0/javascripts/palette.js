@@ -123,7 +123,7 @@ PALETTE.drawPalette=function(hue){ // 0 ~ 360
 /**
  * draw hue selector
  */
-PALETTE.drawHueSelector=function(){
+PALETTE.drawHueSelector=function(x){
 	let sctx=PALETTE.hctx;
 	let sW=PALETTE.hueWidth;
 	let sH=PALETTE.hueHeight;
@@ -131,9 +131,18 @@ PALETTE.drawHueSelector=function(){
 	let hueImgData=sctx.getImageData(0,0,sW,sH);
 	let pix=hueImgData.data;
 	
+	let wThr=sW/18; // width threshold
 	for(let j=0;j<sW;j++){ // column
 		let h=PALETTE.hueSelectorFunc(j/sW);
-		let centerColor=h2rgb(h*360);
+		let s=180,v=255;
+		if(!isNaN(x)){ // highlighted
+			let disX=Math.abs(j-x); // distance of j to x
+			disX=(disX>wThr)?0:1-disX/wThr;
+			disX*=disX; // gradient
+			v=160+95*disX;
+			s=100+80*disX;
+		}
+		let centerColor=hsv2rgb([h*360,s,v]);
 		let pM=1-Math.abs(j*2-sW)/sW;
 		let aM=pM*2<1?pM*2:1;
 		aM=1-aM; // gradient opacity
@@ -311,11 +320,16 @@ PALETTE.initPaletteWindow=function(){
 			// select
 			let x=e.offsetX/PALETTE.hueWidth;
 			PALETTE.setHue(360*PALETTE.hueSelectorFunc(x));
+			PALETTE.drawHueSelector(e.offsetX);
 		}
 		
 	});
+	$("#palette-hue-info").on("pointerup",event=>{
+		PALETTE.drawHueSelector();
+	});
 	$("#palette-hue-info").on("pointerout pointercancel",event=>{
 		PALETTE.isSelectingHue=false;
+		PALETTE.drawHueSelector();
 		$("#palette-hue-selector-canvas").fadeOut(500);
 	});
 

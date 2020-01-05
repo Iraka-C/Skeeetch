@@ -1,9 +1,9 @@
 RENDER16={};
-RENDER16.strokeOverlay=function(p0,p1,p2){
+RENDER16.strokeOverlay=function(p0,p1,p2){ // p=[x,y,pressure]
 	let ctx=CANVAS.nowContext;
 	RENDER16.drawBezierPlots(ctx,p0,p1,p2);
 }
-RENDER16.strokeOverlay.quality=20;
+RENDER16.strokeOverlay.quality=10;
 RENDER16.strokeOverlay.init=function(){
 	RENDER16.drawBezierPlots.remDis=0; // remaining distance to the next curve
 	RENDER16.rgba=[ // 16bit color
@@ -20,18 +20,33 @@ RENDER16.strokeOverlay.init=function(){
 // ========================= New Algo: post rendering ===========================
 RENDER16.drawBezierPlots=function(ctx,p0,p1,p2){
 	let w=ctx.canvas.width,h=ctx.canvas.height;
-	let maxR=Math.ceil(Math.max(p0[2],p1[2],p2[2]));
+
+	// radius
+	let r0=RENDER.pressureToStrokeRadius(p0[2]);
+	let r1=RENDER.pressureToStrokeRadius(p1[2]);
+	let r2=RENDER.pressureToStrokeRadius(p2[2]);
+
+	let maxR=Math.ceil(Math.max(r0,r1,r2));
 	let wL=Math.floor(Math.min(p0[0],p1[0],p2[0])-maxR).clamp(0,w-1);
 	let wH=Math.ceil(Math.max(p0[0],p1[0],p2[0])+maxR).clamp(0,w-1);
 	let hL=Math.floor(Math.min(p0[1],p1[1],p2[1])-maxR).clamp(0,h-1);
 	let hH=Math.ceil(Math.max(p0[1],p1[1],p2[1])+maxR).clamp(0,h-1);
 
+	// density
+	let d0=RENDER.pressureToStrokeOpacity(p0[2]);
+	let d1=RENDER.pressureToStrokeOpacity(p1[2]);
+	let d2=RENDER.pressureToStrokeOpacity(p2[2]);
+
+	// 2-order param
 	let ax=p0[0]-2*p1[0]+p2[0];
 	let ay=p0[1]-2*p1[1]+p2[1];
-	let ar=p0[2]-2*p1[2]+p2[2];
+	let ar=r0-2*r1+r2;
+	let ad=d0-2*d1+d2;
+	// 1-order param
 	let bx=2*(p1[0]-p0[0]);
 	let by=2*(p1[1]-p0[1]);
-	let br=2*(p1[2]-p0[2]);
+	let br=2*(r1-r0);
+	let bd=2*(d1-d0);
 
 	let quality=RENDER16.strokeOverlay.quality;
 	// interval is the pixel length between two circle centers
@@ -54,8 +69,9 @@ RENDER16.drawBezierPlots=function(ctx,p0,p1,p2){
 		let t2=t*t;
 		nx=ax*t2+bx*t+p0[0];
 		ny=ay*t2+by*t+p0[1];
-		nr=ar*t2+br*t+p0[2];
-		kPoints.push([nx,ny,nr])
+		nr=ar*t2+br*t+r0;
+		nd=ad*t2+bd*t+d0;
+		kPoints.push([nx,ny,nr,nd]);
 
 		let interval=Math.max(1/(quality-1)*nr,1);
 		if(bLen<=interval){ // distance for the next
@@ -66,7 +82,7 @@ RENDER16.drawBezierPlots=function(ctx,p0,p1,p2){
 		t=bc.getTWithLength(interval,t);
 		bLen-=interval; // new length
 	}
-	RENDER16.renderPoints(wL,wH,hL,hH,w,kPoints);
+	RENDER16.renderPoints(wL,wH,hL,hH,w,kPoints,quality);
 
 	RENDER16.requestRefresh([wL,wH,hL,hH]);
 }
@@ -75,13 +91,19 @@ RENDER16.drawBezierPlots=function(ctx,p0,p1,p2){
  * render a series of key points
  * Slowest! @TODO: speed up
  */
-RENDER16.renderPoints=function(wL,wH,hL,hH,w,kPoints){
+RENDER16.renderPoints=function(wL,wH,hL,hH,w,kPoints,quality){
+	let qK=1/(quality-1);
+	let rgba=[...RENDER16.rgba]; // spread is the fastest
+	let initOpa=RENDER16.rgba[3];
+
 	// first sqrt
 	for(let k=0;k<kPoints.length;k++){ // each circle in sequence
 		let p=kPoints[k];
 		let r2=p[2]*p[2];
 		let jL=Math.max(Math.ceil(p[1]-p[2]),hL);
 		let jH=Math.min(Math.floor(p[1]+p[2]),hH);
+		let opa=1-Math.pow(1-p[3],qK); // plate opacity 0~1
+		opa*=initOpa; // 0~65535
 		for(let j=jL;j<=jH;j++){
 			let jw=j*w;
 			let dy=j-p[1];
@@ -91,34 +113,14 @@ RENDER16.renderPoints=function(wL,wH,hL,hH,w,kPoints){
 			let idBuf=(jw+iL)<<2;
 			for(let i=iL;i<=iH;i++){
 				//let idBuf=(jw+i)<<2;
-				//let dx=i-p[0];
-				RENDER16.blendNormal(CANVAS.buffer,idBuf,RENDER16.rgba,0);
+				let dx=i-p[0];
+				let dis2Center=Math.sqrt((dx*dx+dy*dy)/r2); // distance to center(0~1)
+				rgba[3]=Math.round(RENDER.softEdge(dis2Center)*opa);
+				RENDER16.blendNormal(CANVAS.buffer,idBuf,rgba,0);
 				idBuf+=4; // avoid mult
 			}
 		}
 	}
-
-	// inner judge
-	/*for(let k=0;k<kPoints.length;k++){ // each circle in sequence
-		let p=kPoints[k];
-		let r2=p[2]*p[2];
-		let iL=Math.max(Math.floor(p[0]-p[2]),wL);
-		let iH=Math.min(Math.ceil( p[0]+p[2]),wH);
-		let jL=Math.max(Math.floor(p[1]-p[2]),hL);
-		let jH=Math.min(Math.ceil( p[1]+p[2]),hH);
-		for(let j=jL;j<=jH;j++){
-			let jw=j*w;
-			let dy=j-p[1];
-			let dxMax=r2-dy*dy;
-			for(let i=iL;i<=iH;i++){
-				let idBuf=(jw+i)<<2;
-				let dx=i-p[0];
-				if(dx*dx<dxMax){
-					RENDER16.blendNormal(CANVAS.buffer,idBuf,RENDER16.rgba,0);
-				}
-			}
-		}
-	}*/
 }
 // =============== Displaying =================
 

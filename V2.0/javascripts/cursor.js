@@ -9,7 +9,7 @@ CURSOR={};
 CURSOR.point=[NaN,NaN,NaN];
 CURSOR.isShown=false; // is the pointer visible
 CURSOR.isDown=false; //is the pointer pressed on screen
-CURSOR.id=NaN;
+CURSOR.id=null;
 CURSOR.eventIdList=["","",""]; // a list to record now id
 
 /**
@@ -33,12 +33,12 @@ CURSOR.moveCursor=function(event){
 	CURSOR.eventIdList[2]=CURSOR.eventIdList[1];
 	CURSOR.eventIdList[1]=CURSOR.eventIdList[0];
 	CURSOR.eventIdList[0]=type;
+
 	if(!CURSOR.isDown
 	 &&CURSOR.eventIdList[2]==CURSOR.eventIdList[1]
 	 &&CURSOR.eventIdList[1]==type){ // same and not drawing
 		CURSOR.id=type;
 	}
-	
 	if(CURSOR.id!=type){ // not the present id, no moving
 		return;
 	}
@@ -51,7 +51,7 @@ CURSOR.moveCursor=function(event){
 	CANVAS.updateCursor(CURSOR.point);
 
 	// set cursor size
-	CURSOR.updateSize();
+	CURSOR.updateXYR();
 	
 
 	if(CURSOR.isDown){ // is drawing
@@ -59,10 +59,12 @@ CURSOR.moveCursor=function(event){
 	}
 };
 
-CURSOR.updateSize=function(){
-	if(!BrushManager.activeBrush){
+CURSOR.updateXYR=function(){
+	if(!BrushManager.activeBrush // no brush at present
+		||isNaN(CURSOR.point[0])){ // no valid coordinate (when resizing window)
 		return;
 	}
+	
 	let r=BrushManager.activeBrush.size*ENV.window.scale/2;
 	$("#brush-cursor-round").attr({
 		"cx":CURSOR.point[0],
@@ -105,10 +107,10 @@ CURSOR.showCursor=function(){
 		CURSOR.isShown=true;
 	}
 	$("#brush-cursor-layer").css("display","block");
-	//CURSOR.enableCursor();
 };
 
 CURSOR.down=function(event){
+	
 	if(!CURSOR.isDown){
 		CURSOR.isDown=true;
 		//CURSOR.id=event.originalEvent.pointerId;
@@ -116,7 +118,9 @@ CURSOR.down=function(event){
 }
 
 CURSOR.up=function(event){
-	if(CURSOR.isDown&&CURSOR.id==event.originalEvent.pointerType){
+	if(CURSOR.isDown&&(
+		CURSOR.id==event.originalEvent.pointerType // on the target leave
+		||CURSOR.id===null)){ // on init
 		CURSOR.isDown=false;
 		//CURSOR.id=NaN;
 	}

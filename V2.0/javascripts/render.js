@@ -32,6 +32,9 @@ RENDER.strokeInt=function(p0,p1,p2){
 /**
  * Overlay algorithm
  */
+/**
+ * @TODO: make the function same as render16
+ */
 
 RENDER.strokeOverlay=function(p0,p1,p2){
 	let ctx=CANVAS.nowContext;
@@ -106,13 +109,46 @@ RENDER.drawBezierPlots=function(ctx,p0,p1,p2){
 RENDER.pressureToStrokeRadius=function(pressure){
 	let brush=BrushManager.activeBrush;
 	if(brush.isSizePressure){
-		return (pressure*(brush.size-brush.minSize)+brush.minSize)/2;
+		return (pressure*(brush.size-brush.minSize)+brush.minSize)/2; // radius
 	}
 	else{
-		return brush.size/2;
+		return brush.size/2; // radius
 	}
 }
 
+/**
+ * transform from pressure(0~1) to opacity
+ */
+RENDER.pressureToStrokeOpacity=function(pressure){
+	let brush=BrushManager.activeBrush;
+	if(brush.isAlphaPressure){
+		return (pressure*(brush.alpha-brush.minAlpha)+brush.minAlpha)/100;
+	}
+	else{
+		return brush.alpha/100;
+	}
+}
+
+/**
+ * soft edge distance to opacity
+ * d(0~1) => opa(0~1)
+ */
+RENDER.softEdge=function(d){
+	let brush=BrushManager.activeBrush;
+	if(brush.edgeHardness>0.9999)return 1; // not soft
+	
+	if(d<brush.edgeHardness){
+		return 1;
+	}
+	let r=(1-d)/(1-brush.edgeHardness);
+	if(r>0.5){
+		let r1=1-r;
+		return 1-2*r1*r1;
+	}
+	else{
+		return 2*r*r;
+	}
+}
 // =========================== Tool functions ==============================
 
 /**

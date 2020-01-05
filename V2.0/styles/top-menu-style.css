@@ -50,11 +50,11 @@
 #brush-button{
 	display: flex;
 	flex-direction: row;
+	align-items: flex-start;
 	width: 5.5em;
 }
 
 #brush-size{
-	vertical-align: super;
 	font-size: 80%;
 }
 

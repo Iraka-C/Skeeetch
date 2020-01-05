@@ -144,25 +144,16 @@ CANVAS.stroke=function(){
 		let dk=Math.max(Math.sqrt(d1/d0),1); // at least at p1
 		let pM=(p1[2]+p0[2])/2;
 		// Interpolation
-		let s0=[
-			(p1[0]+p0[0])/2,(p1[1]+p0[1])/2,
-			RENDER.pressureToStrokeRadius(pM)
-		];
-		let s1=[
-			p0[0]+(p1[0]-p0[0])*dk,p0[1]+(p1[1]-p0[1])*dk,
-			RENDER.pressureToStrokeRadius(p1[2])
-		];
-		let s2=[
-			p2[0],p2[1],
-			RENDER.pressureToStrokeRadius(Math.min(Math.max(0,pM+(p1[2]-pM)*dk*2),p1[2]))
-		];
+		let s0=[(p1[0]+p0[0])/2,(p1[1]+p0[1])/2,pM];
+		let s1=[p0[0]+(p1[0]-p0[0])*dk,p0[1]+(p1[1]-p0[1])*dk,p1[2]];
+		let s2=[p2[0],p2[1],Math.min(Math.max(0,pM+(p1[2]-pM)*dk*2),p1[2])];
 
 		CANVAS.settings.strokeRenderFunction(s2,s1,s0);
 		return;
 	}
 	
-	let s2=[(p1[0]+p2[0])/2,(p1[1]+p2[1])/2,RENDER.pressureToStrokeRadius((p1[2]+p2[2])/2)];
-	let s1=[p1[0],p1[1],RENDER.pressureToStrokeRadius(p1[2])];
-	let s0=[(p1[0]+p0[0])/2,(p1[1]+p0[1])/2,RENDER.pressureToStrokeRadius((p1[2]+p0[2])/2)];
+	let s2=[(p1[0]+p2[0])/2,(p1[1]+p2[1])/2,(p1[2]+p2[2])/2];
+	let s1=[p1[0],p1[1],p1[2]];
+	let s0=[(p1[0]+p0[0])/2,(p1[1]+p0[1])/2,(p1[2]+p0[2])/2];
 	CANVAS.settings.strokeRenderFunction(s2,s1,s0); // old->new
 };

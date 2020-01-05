@@ -60,11 +60,11 @@ table{
 	width: 12em;
 }
 .setting-table th{
-	padding-bottom: 1em;
 	font-size: 125%;
 	font-weight: normal;
 }
 .setting-table .section-title{
+	padding-top: 1em;
 	border-bottom: 0.05em solid #ffffffcc;
 	color: #fff;
 	font-weight: normal;

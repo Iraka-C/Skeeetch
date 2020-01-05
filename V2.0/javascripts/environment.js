@@ -69,7 +69,7 @@ ENV.refreshTransform=function(){
 		ENV.window.rot,
 		ENV.window.scale
 	]);
-	CURSOR.updateSize();
+	CURSOR.updateXYR();
 	//CURSOR.disfuncCursor(); // avoid a draw after the transform
 };
 
