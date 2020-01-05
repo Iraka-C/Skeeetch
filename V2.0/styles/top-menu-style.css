@@ -59,7 +59,7 @@
 }
 
 #palette-button{
-	transition: color 0.25s;
+	transition: color 0.25s ease-out;
 }
 
 /* Brush selector */

@@ -6,14 +6,14 @@ BrushManager.brushes=[
 	{
 		name:"Pencil",
 		size:20, // diameter
-		minSize:0, // the ratio from size in %
+		minSize:1, // diameter
 		isSizePressure:1, // 1: Enable, 0:Disable
 
 		//smoothness:2, // the smoothness of the trail: avoid trembling
 		alpha:100, // in %
 		minAlpha:50,
 		isAlphaPressure:1,
-		edgeHardness:0.8 // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
+		edgeHardness:0.9 // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
 	},
 	{
 		name:"Brush",

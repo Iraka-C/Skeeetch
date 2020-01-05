@@ -71,6 +71,7 @@ body{
 }
 #canvas-area-panel{
 	flex: auto;
+	overflow: hidden;
 }
 #layer-area-panel{
 	z-index: 1;
