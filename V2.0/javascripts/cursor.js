@@ -15,15 +15,16 @@ CURSOR.eventIdList=["","",""]; // a list to record now id
 /**
  * @TODO: fix brush moving delay (change svg into canvas?)
  */
+/**
+ * @TODO: Bug! error cx,cy attribute on window resize
+ */
 
 CURSOR.init=function(){
 	$("#brush-cursor-layer").attr({
 		width:ENV.window.SIZE.width,
 		height:ENV.window.SIZE.height
 	});
-	$("#brush-cursor-round").attr({
-		stroke:PALETTE.getColorString()
-	});
+	CURSOR.updateColor();
 }
 
 CURSOR.moveCursor=function(event){
@@ -49,19 +50,38 @@ CURSOR.moveCursor=function(event){
 	];
 	CANVAS.updateCursor(CURSOR.point);
 
-	$("#brush-cursor-round").attr({
-		"cx":CURSOR.point[0],
-		"cy":CURSOR.point[1],
-		"r":BrushManager.activeBrush.size*ENV.window.scale/2
-	});
+	// set cursor size
+	CURSOR.updateSize();
+	
+
 	if(CURSOR.isDown){ // is drawing
 		CANVAS.stroke();
 	}
 };
 
-CURSOR.updateColor=function(str){
+CURSOR.updateSize=function(){
+	if(!BrushManager.activeBrush){
+		return;
+	}
+	let r=BrushManager.activeBrush.size*ENV.window.scale/2;
 	$("#brush-cursor-round").attr({
-		stroke:str
+		"cx":CURSOR.point[0],
+		"cy":CURSOR.point[1],
+		"r":r
+	});
+	$("#brush-cursor-outer").attr({
+		"cx":CURSOR.point[0],
+		"cy":CURSOR.point[1],
+		"r":r+1
+	});
+}
+
+CURSOR.updateColor=function(){
+	$("#brush-cursor-round").attr({
+		stroke:PALETTE.getColorString()
+	});
+	$("#brush-cursor-outer").attr({
+		stroke:PALETTE.hsv[2]>150?"#00000022":"#ffffff22"
 	});
 }
 

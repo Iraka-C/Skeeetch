@@ -73,25 +73,60 @@ RENDER16.drawBezierPlots=function(ctx,p0,p1,p2){
 
 /**
  * render a series of key points
+ * Slowest! @TODO: speed up
  */
 RENDER16.renderPoints=function(wL,wH,hL,hH,w,kPoints){
-	for(let i=hL;i<=hH;i++){
-		for(let j=wL;j<=wH;j++){
-			let idBuf=(i*w+j)<<2;
-			for(let k=0;k<kPoints.length;k++){
-				let p=kPoints[k];
-				let dx=j-p[0],dy=i-p[1];
-				if(dx*dx+dy*dy<p[2]*p[2]){
+	// first sqrt
+	for(let k=0;k<kPoints.length;k++){ // each circle in sequence
+		let p=kPoints[k];
+		let r2=p[2]*p[2];
+		let jL=Math.max(Math.ceil(p[1]-p[2]),hL);
+		let jH=Math.min(Math.floor(p[1]+p[2]),hH);
+		for(let j=jL;j<=jH;j++){
+			let jw=j*w;
+			let dy=j-p[1];
+			let dx=Math.sqrt(r2-dy*dy);
+			let iL=Math.max(Math.ceil(p[0]-dx),wL);
+			let iH=Math.min(Math.floor(p[0]+dx),wH);
+			let idBuf=(jw+iL)<<2;
+			for(let i=iL;i<=iH;i++){
+				//let idBuf=(jw+i)<<2;
+				//let dx=i-p[0];
+				RENDER16.blendNormal(CANVAS.buffer,idBuf,RENDER16.rgba,0);
+				idBuf+=4; // avoid mult
+			}
+		}
+	}
+
+	// inner judge
+	/*for(let k=0;k<kPoints.length;k++){ // each circle in sequence
+		let p=kPoints[k];
+		let r2=p[2]*p[2];
+		let iL=Math.max(Math.floor(p[0]-p[2]),wL);
+		let iH=Math.min(Math.ceil( p[0]+p[2]),wH);
+		let jL=Math.max(Math.floor(p[1]-p[2]),hL);
+		let jH=Math.min(Math.ceil( p[1]+p[2]),hH);
+		for(let j=jL;j<=jH;j++){
+			let jw=j*w;
+			let dy=j-p[1];
+			let dxMax=r2-dy*dy;
+			for(let i=iL;i<=iH;i++){
+				let idBuf=(jw+i)<<2;
+				let dx=i-p[0];
+				if(dx*dx<dxMax){
 					RENDER16.blendNormal(CANVAS.buffer,idBuf,RENDER16.rgba,0);
 				}
 			}
 		}
-	}
+	}*/
 }
 // =============== Displaying =================
 
 /**
  * refresh screen in range=[wL,wH,hL,hH]
+ */
+/**
+ * @TODO: Add performance monitor
  */
 RENDER16.requestRefresh=function(range){
 	let nowRange=RENDER16.requestRefresh.range;
@@ -122,14 +157,17 @@ RENDER16._refresh=function(){
 	let imgData=ctx.createImageData(dw,hH-hL+1); // create square. smaller: faster
 	let data=imgData.data;
 	let buffer=CANVAS.buffer;
+	let idImg=0;
 	for(let i=hL;i<=hH;i++){ // copy content
+		let iw=i*w;
 		for(let j=wL;j<=wH;j++){
-			let idImg=((i-hL)*dw+(j-wL))<<2;
-			let idBuf=(i*w+j)<<2;
+			//let idImg=((i-hL)*dw+(j-wL))<<2;
+			let idBuf=(iw+j)<<2;
 			data[idImg]=buffer[idBuf]>>8;
 			data[idImg+1]=buffer[idBuf+1]>>8;
 			data[idImg+2]=buffer[idBuf+2]>>8;
 			data[idImg+3]=buffer[idBuf+3]>>8;
+			idImg+=4; // Avoid mult
 		}
 	}
 	ctx.putImageData(imgData,wL,hL);
@@ -144,11 +182,12 @@ RENDER16._refresh=function(){
  * (renew p1[id1..id1+3])
  */
 RENDER16.blendNormal=function(p1,id1,p2,id2){
-	let op=p2[id2+3]+p1[id1+3]-((p2[id2+3]*p1[id1+3])>>16); // blended op
-	let k=p2[id2+3]/op;
+	let op1=p1[id1+3],op2=p2[id2+3];
+	let op=op2+op1-((op2*op1)>>16); // blended op
+	let k=op2/op;
 	p1[id1]+=k*(p2[id2]-p1[id1]);
 	p1[id1+1]+=k*(p2[id2+1]-p1[id1+1]);
 	p1[id1+2]+=k*(p2[id2+2]-p1[id1+2]);
-	let newOp=Math.max(op,p1[id1+3]+1); // at least +1
+	let newOp=Math.max(op,op1+1); // at least +1
 	p1[id1+3]=Math.min(newOp,0xFFFF); // 255*256+ is also valid for a=1.0
 }

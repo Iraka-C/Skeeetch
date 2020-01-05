@@ -49,6 +49,9 @@ CANVAS.setRender16=function(is16bit){
 	let ctx=CANVAS.nowContext;
 	let imgData=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height);
 	// Copy the canvas content into buffer
+	/**
+	 * @TODO: 8->16 bit method
+	 */
 	CANVAS.buffer=new Uint16Array(imgData.data);
 	let size=CANVAS.buffer.length;
 	for(let i=0;i<size;i++){ // 8bit->16bit
@@ -149,10 +152,9 @@ CANVAS.stroke=function(){
 			p0[0]+(p1[0]-p0[0])*dk,p0[1]+(p1[1]-p0[1])*dk,
 			RENDER.pressureToStrokeRadius(p1[2])
 		];
-		// @TODO: fix sometime interpolated radius is larger than brush size
 		let s2=[
 			p2[0],p2[1],
-			RENDER.pressureToStrokeRadius(Math.max(0,pM+(p1[2]-pM)*dk*2))
+			RENDER.pressureToStrokeRadius(Math.min(Math.max(0,pM+(p1[2]-pM)*dk*2),p1[2]))
 		];
 
 		CANVAS.settings.strokeRenderFunction(s2,s1,s0);

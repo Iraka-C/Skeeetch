@@ -5,14 +5,14 @@ BrushManager={};
 BrushManager.brushes=[
 	{
 		name:"Pencil",
-		size:100, // diameter
+		size:300, // diameter
 		minSize:0, // the ratio from size in %
 		isSizePressure:1, // 1: Enable, 0:Disable
 		//density:1,
 		//minDensity:0,
 		//smoothness:2, // the smoothness of the trail: avoid trembling
 		sharpness:1, // 0.0[0.2]: soft ~ 1.0: mid ~ +Inf[5]: sharp
-		alpha:100 // in %
+		alpha:40 // in %
 	},
 	{
 		name:"Brush",

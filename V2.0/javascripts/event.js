@@ -12,6 +12,12 @@ EVENTS.init=function(){
 	/**
 	 * @TODO: Bug! after stylus draw the canvas won't zoom on scroll
 	 */
+
+	/**
+	 * @TODO: Bug! if open a menu on start without entering the canvas window
+	 * then the cursor won't appear at all
+	 */
+
 	//$("html").on("contextmenu",()=>false);
 
 	/**
@@ -20,12 +26,12 @@ EVENTS.init=function(){
 	$(window).on("resize",event=>{
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
+		ENV.refreshTransform();
+		//CURSOR.refreshBrushLayerSize();
 		$("#brush-cursor-layer").attr({
 			width:ENV.window.SIZE.width,
 			height:ENV.window.SIZE.height
 		});
-		ENV.refreshTransform();
-		//CURSOR.refreshBrushLayerSize();
 	});
 
 	$("#canvas-window").on("pointerover",event=>{
