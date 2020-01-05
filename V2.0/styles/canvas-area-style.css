@@ -34,7 +34,7 @@
 	pointer-events: all; /* Clickable */
 	overflow-x: hidden;
 	overflow-y: auto;
-	width: 14em; /* hard coded for animation */
+	width: 16em; /* hard coded for animation */
 	transition-property: width, padding;
 	transition-duration: 0.5s;
 	transition-timing-function: ease;
@@ -57,7 +57,7 @@ table{
 .setting-table{
 	margin: 0em;
 	table-layout: fixed;
-	width: 12em;
+	width: 14em;
 }
 .setting-table th{
 	font-size: 125%;
@@ -89,7 +89,7 @@ table{
 
 /* Hard-coded */
 .setting-item-name{
-	width: 6em;
+	width: 8em;
 }
 .setting-item-value{
 	width: 4em;

@@ -47,7 +47,7 @@ RENDER.strokeOverlay.init=function(){
 	let ctx=CANVAS.nowContext;
 
 	// quality means how many circles are overlayed to one pixel
-	ctx.globalAlpha=1-Math.pow(1-BrushManager.activeBrush.alpha/100,1/(RENDER.strokeOverlay.quality-1)); // @TODO: unify alpha-render alpha function
+	/*ctx.globalAlpha=1-Math.pow(1-BrushManager.activeBrush.alpha/100,1/(RENDER.strokeOverlay.quality-1));*/ // @TODO: unify alpha-render alpha function
 }
 
 RENDER.drawPlate=function(ctx,x,y,r){
@@ -108,8 +108,9 @@ RENDER.drawBezierPlots=function(ctx,p0,p1,p2){
  */
 RENDER.pressureToStrokeRadius=function(pressure){
 	let brush=BrushManager.activeBrush;
+	let p=RENDER.pressureSensitivity(pressure);
 	if(brush.isSizePressure){
-		return (pressure*(brush.size-brush.minSize)+brush.minSize)/2; // radius
+		return (p*(brush.size-brush.minSize)+brush.minSize)/2; // radius
 	}
 	else{
 		return brush.size/2; // radius
@@ -121,8 +122,9 @@ RENDER.pressureToStrokeRadius=function(pressure){
  */
 RENDER.pressureToStrokeOpacity=function(pressure){
 	let brush=BrushManager.activeBrush;
+	let p=RENDER.pressureSensitivity(pressure);
 	if(brush.isAlphaPressure){
-		return (pressure*(brush.alpha-brush.minAlpha)+brush.minAlpha)/100;
+		return (p*(brush.alpha-brush.minAlpha)+brush.minAlpha)/100;
 	}
 	else{
 		return brush.alpha/100;
@@ -148,6 +150,13 @@ RENDER.softEdge=function(d){
 	else{
 		return 2*r*r;
 	}
+}
+
+/**
+ * Consider pressure sensitivity, return new pressure
+ */
+RENDER.pressureSensitivity=function(p){
+	return Math.pow(p,BrushManager.general._sPower);
 }
 // =========================== Tool functions ==============================
 

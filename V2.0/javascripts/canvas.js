@@ -16,6 +16,7 @@ CANVAS.points={ // the points drawn on canvas, under paper coordinate
 };
 CANVAS.nowContext=null; // now operating cv context2D
 CANVAS.pointCnt=0;
+CANVAS.isChanged=false;
 
 // ========================= Functions ===========================
 /**
@@ -82,6 +83,7 @@ CANVAS.setCanvasEnvironment=function(event){ // event="pointerdown"
 	 * @TODO: for some wacom boards, the first 2/3 events appears not constant
 	 */
 	CANVAS.pointCnt=0; // count reset
+	CANVAS.isChanged=false; // change reset
 };
 
 /**
@@ -128,16 +130,17 @@ CANVAS.stroke=function(){
 		return;
 	}
 
+	if(CANVAS.pointCnt==1){ // Only one point down
+		return;
+	}
 	
 	// Consider changing the way to calculate division
 	let p0=pT.p0;
 	let p1=pT.p1;
 	let p2=pT.p2;
 
-	if(CANVAS.pointCnt==1){ // Only one point down
-		return;
-	}
-	else if(CANVAS.pointCnt==2){ // first stroke considering a point updated before down
+	CANVAS.isChanged=true; // canvas changed
+	if(CANVAS.pointCnt==2){ // first stroke considering a point updated before down
 		let d1=dis2(p1[0],p1[1],p2[0],p2[1]);
 		let d0=dis2(p1[0],p1[1],p0[0],p0[1]);
 		if(d0==0)return; // not moved
@@ -157,3 +160,23 @@ CANVAS.stroke=function(){
 	let s0=[(p1[0]+p0[0])/2,(p1[1]+p0[1])/2,(p1[2]+p0[2])/2];
 	CANVAS.settings.strokeRenderFunction(s2,s1,s0); // old->new
 };
+
+/**
+ * On the end of stroke (Notice: not certainly canvas refreshed!)
+ */
+CANVAS.strokeEnd=function(){
+	
+	/**
+	 * @TODO: more precise isChanged detection
+	 */
+	if(CANVAS.isChanged){
+		CANVAS.isChanged=false;
+		requestAnimationFrame(()=>LAYERS.active.updateThumb()); // pass in "this"
+	}
+}
+
+/**
+ * On refreshing canvas, after animation frame
+ */
+CANVAS.onRefreshed=function(){
+}

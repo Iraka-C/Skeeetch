@@ -15,6 +15,7 @@ RENDER16.strokeOverlay.init=function(){
 	RENDER16.rgba[3]=Math.round(opa*255*256); // 0~65536
 	// quality means how many circles are overlayed to one pixel
 	/*ctx.globalAlpha=1-Math.pow(1-BrushManager.activeBrush.alpha/100,1/(RENDER16.strokeOverlay.quality-1));*/
+
 }
 
 // ========================= New Algo: post rendering ===========================
@@ -173,6 +174,7 @@ RENDER16._refresh=function(){
 		}
 	}
 	ctx.putImageData(imgData,wL,hL);
+	CANVAS.onRefreshed();
 	RENDER16.requestRefresh.range=[Infinity,0,Infinity,0];
 	RENDER16.requestRefresh.isRequested=false;
 }

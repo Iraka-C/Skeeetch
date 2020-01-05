@@ -43,13 +43,14 @@ LAYERS.$newLayerUI=function(name,id){
 		"size":"16"
 	});
 	let maskUI=$("<div class='layer-ui-mask'>");
+	let maskUI2=$("<div class='layer-ui-mask2'>");
 	let cvUI=$("<div class='layer-ui-canvas-container'>");
 
 	let cv=$("<canvas class='layer-ui-canvas'>");
-	cv.attr({"width":10,"height":10});
+	cv.attr({"width":1,"height":1});
 	cvUI.append(cv);
 
-	layerUI.append(cvUI,opacityLabel,buttons,nameLabel,maskUI);
+	layerUI.append(cvUI,maskUI2,maskUI,opacityLabel,buttons,nameLabel);
 	return layerUI;
 }
 
@@ -138,6 +139,35 @@ class Layer{
 				event.stopPropagation();
 			}
 		});
+		this.$ui.on("pointermove",event=>{ // move thumb image
+			let offset=this.$ui.offset();
+			let dx=event.pageX-offset.left,dy=event.pageY-offset.top;
+			let w=this.$ui.width(),h=this.$ui.height();
+			if(this.transformType=="X"){ // perform X transform
+				let tx=dx/w;
+				this.$thumb.css({
+					"transform":"translateX("+(this.transformAmount*tx)+"px)"
+				});
+			}
+			else{ // perform Y transform
+				let ty=dy/h;
+				this.$thumb.css({
+					"transform":"translateY("+(this.transformAmount*ty)+"px)"
+				});
+			}
+		});
+		this.$ui.on("pointerout",event=>{ // reset thumb image position
+			if(this.transformType=="X"){ // perform X transform
+				this.$thumb.css({
+					"transform":"translateX("+(this.transformAmount/2)+"px)"
+				});
+			}
+			else{ // perform Y transform
+				this.$thumb.css({
+					"transform":"translateY("+(this.transformAmount/2)+"px)"
+				});
+			}
+		});
 
 		let $cv=$("<canvas class='layer-canvas pixelated'>");
 		$cv.attr({
@@ -150,6 +180,13 @@ class Layer{
 		this.visible=true;
 		this.$div=$cv;
 		this.type="canvas";
+
+		// only canvas has thumb image
+		this.$thumb=this.$ui.children(".layer-ui-canvas-container").children(".layer-ui-canvas");
+		// for thumb image transform
+		this.transformType="X";
+		this.transformAmount=0;
+
 		LAYERS.layerHash[this.id]=this; // submit to id hash table
 	}
 	/**
@@ -158,6 +195,46 @@ class Layer{
 	addBefore(obj){
 		this.$ui.before(obj.$ui);
 		this.$div.after(obj.$div);
+	}
+	/**
+	 * Update the thumb image
+	 * async
+	 */
+	updateThumb(){
+		let cv=this.$div[0];
+		let thumbCV=this.$thumb;
+		let thumbCtx=thumbCV[0].getContext("2d");
+		let w=cv.width,h=cv.height;
+		let uW=this.$ui.width(),uH=this.$ui.height();
+		
+		// plave in canvas
+		let kw=uW/w,kh=uH/h;
+		if(kw<=kh){ // left/right overflow
+			let nW=w*kh; // new width
+			thumbCV.attr({ // also clear the content
+				width:nW,
+				height:uH
+			});
+			this.transformType="X";
+			this.transformAmount=uW-nW;
+			thumbCV.css({
+				"transform":"translateX("+((uW-nW)/2)+"px)"
+			});
+			thumbCtx.drawImage(cv,0,0,nW,uH);
+		}
+		else{ // top/bottom overflow
+			let nH=h*kw; // new height
+			thumbCV.attr({ // also clear the content
+				width:uW,
+				height:nH
+			});
+			this.transformType="Y";
+			this.transformAmount=uH-nH;
+			thumbCV.css({
+				"transform":"translateY("+((uH-nH)/2)+"px)"
+			});
+			thumbCtx.drawImage(cv,0,0,uW,nH);
+		}
 	}
 }
 

@@ -61,5 +61,6 @@ EVENTS.init=function(){
 			CURSOR.moveCursor(event);
 		}
 		CURSOR.up(event);
+		CANVAS.strokeEnd();
 	});
 }

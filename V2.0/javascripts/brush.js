@@ -10,11 +10,10 @@ BrushManager.brushes=[
 		isSizePressure:1, // 1: Enable, 0:Disable
 
 		//smoothness:2, // the smoothness of the trail: avoid trembling
-		sharpness:1, // 0.0[0.2]: soft ~ 1.0: mid ~ +Inf[5]: sharp
 		alpha:100, // in %
 		minAlpha:50,
 		isAlphaPressure:1,
-		edgeHardness:0.9 // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
+		edgeHardness:0.8 // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
 	},
 	{
 		name:"Brush",
@@ -22,12 +21,11 @@ BrushManager.brushes=[
 		minSize:10,
 		isSizePressure:1,
 		//smoothness:2,
-		sharpness:1,
 		//mixColor:0.3,
 		alpha:40,
 		minAlpha:0,
 		isAlphaPressure:1,
-		edgeHardness:0.5
+		edgeHardness:0.4
 	},
 	{
 		name:"Eraser",
@@ -35,15 +33,25 @@ BrushManager.brushes=[
 		minSize:10,
 		isSizePressure:0,
 		//smoothness:0,
-		sharpness:1,
 		alpha:100,
 		minAlpha:100,
 		isAlphaPressure:0,
-		edgeHardness:1
+		edgeHardness:0.9
 	}
 ];
 
+BrushManager.general={
+	sensitivity:1.0, // 0.0 ~ 2.0: 1=normal 0: dull, 2: sharp
+	_sPower:1.0 // 5^(sensitivity-1)
+};
 
+BrushManager.limits={
+	minSize: 1,
+	maxSize: 300,
+	sBase: 5 // sensitivity adjustment base value
+};
+
+// ===================== functions ======================
 
 BrushManager.init=function(){
 	BrushManager.setActiveBrush(0);
@@ -51,13 +59,9 @@ BrushManager.init=function(){
 	BrushManager.initMenuSizeSection(brushMenu);
 	BrushManager.initMenuOpacitySection(brushMenu);
 	BrushManager.initBrushButton(brushMenu);
+	BrushManager.initPenSetting(brushMenu);
 	brushMenu.update();
 }
-
-BrushManager.limits={
-	minSize: 1,
-	maxSize: 300
-};
 
 BrushManager.initBrushSettingMenu=function(){
 	return new SettingManager(
@@ -183,6 +187,30 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 			BrushManager.activeBrush.edgeHardness=newVal;
 		}, // set
 		()=>BrushManager.activeBrush.edgeHardness.toFixed(1)
+	);
+}
+
+BrushManager.initPenSetting=function(brushMenu){
+	brushMenu.addSectionTitle("Stylus");
+	BrushManager.minAlphaUpdateFunc=brushMenu.addInstantNumberItem("Sensitivity",0,"",
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=newVal.clamp(0,2);
+				BrushManager.general.sensitivity=newVal;
+				BrushManager.general._sPower=Math.pow(BrushManager.limits.sBase,newVal-1);
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			let newVal=(oldVal+dW/10).clamp(0,2);
+			BrushManager.general.sensitivity=newVal;
+			BrushManager.general._sPower=Math.pow(BrushManager.limits.sBase,newVal-1);
+		}, // set
+		(dx,oldVal)=>{ // set on drag-x
+			let newVal=(oldVal+dx/100).clamp(0,2);
+			BrushManager.general.sensitivity=newVal;
+			BrushManager.general._sPower=Math.pow(BrushManager.limits.sBase,newVal-1);
+		}, // set
+		()=>BrushManager.general.sensitivity.toFixed(1)
 	);
 }
 
