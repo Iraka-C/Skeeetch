@@ -84,7 +84,11 @@ input{
 	font-family: Consolas, Monaco, Microsoft YaHei, monospace, serif;
 	border: none;
 	padding: 0em;
+	margin: 0em;
 	text-overflow: ellipsis;
+}
+input:disabled {
+	color: #000;
 }
 input:focus{
 	outline: none;

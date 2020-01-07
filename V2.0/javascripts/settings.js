@@ -145,13 +145,13 @@ class SettingManager{
 	}
 	// Add a switch with some preset selections
 	// callback(selectedID), doesn't need to return a value
-	addSwitch(name,valArr,unit,callback,initVal){
-		let toggle=initVal||0;
+	addSwitch(name,valArr,unit,callback,valFunc){
+		let toggle=valFunc?valFunc():0;
 		let item=$("<tr class='hoverable'>").append(
 			$("<td>"+name+"</td>"),
 			$("<td>&gt;</td>")
 		);
-		if(typeof unit=="string"){
+		if(typeof(unit)=="string"){
 			item.append(
 				$("<td class='value'>"+valArr[toggle]+"</td>"),
 				$("<td class='unit'>"+unit+"</td>")
@@ -167,17 +167,16 @@ class SettingManager{
 			item.find(".value").text(valArr[toggle]);
 			if(callback)callback(toggle);
 		});
-		/*this.updateFuncList.push({fun:()=>{
-			if(updateFunc){
-				toggle=updateFunc();
-				return valArr[toggle];
-			}
-			else{
-				return null;
-			}
-		},$div:item.find(".value")});*/
 		this.$frame.find("tbody").append(item);
-		
+
+		let _updateFunc=function(){
+			if(valFunc){
+				toggle=valFunc();
+				item.find(".value").text(valArr[toggle]);
+			}
+		}
+		this._updateFuncList.push(_updateFunc);
+		return _updateFunc;
 	}
 	// Add an info frame to show some data
 	// updateFunc()=>v called when opening this setting

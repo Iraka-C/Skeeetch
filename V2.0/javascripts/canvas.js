@@ -49,14 +49,15 @@ CANVAS.setRender16=function(is16bit){
 
 	let ctx=CANVAS.nowContext;
 	let imgData=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height);
+	let data=imgData.data; // extract from DOM
 	// Copy the canvas content into buffer
 	/**
 	 * @TODO: 8->16 bit method
 	 */
-	CANVAS.buffer=new Uint16Array(imgData.data);
+	CANVAS.buffer=new Uint16Array(data);
 	let size=CANVAS.buffer.length;
-	for(let i=0;i<size;i++){ // 8bit->16bit
-		CANVAS.buffer[i]<<=8;
+	for(let i=0;i<size;i++){ // 8bit->16bit: 0~255 -> 0~65535
+		CANVAS.buffer[i]+=CANVAS.buffer[i]<<8; // *257
 	}
 	CANVAS.settings.strokeRenderFunction=RENDER16.strokeOverlay;
 }

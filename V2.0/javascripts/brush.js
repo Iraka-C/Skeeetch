@@ -13,42 +13,47 @@ BrushManager.brushes=[
 		alpha:100, // in %
 		minAlpha:50,
 		isAlphaPressure:1,
-		edgeHardness:0.9 // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
+		edgeHardness:0.9, // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
+		blendMode:0 // 0: normal, -1: eraser, see RENDER/RENDER16
 	},
 	{
 		name:"Brush",
-		size:50,
-		minSize:10,
+		size:80,
+		minSize:40,
 		isSizePressure:1,
 		//smoothness:2,
 		//mixColor:0.3,
-		alpha:40,
+		alpha:85,
 		minAlpha:0,
 		isAlphaPressure:1,
-		edgeHardness:0.4
+		edgeHardness:0.3,
+		blendMode:0
 	},
 	{
 		name:"Eraser",
-		size:10,
+		size:50,
 		minSize:10,
 		isSizePressure:0,
 		//smoothness:0,
 		alpha:100,
 		minAlpha:100,
 		isAlphaPressure:0,
-		edgeHardness:0.9
+		edgeHardness:0.9,
+		blendMode:-1
 	}
 ];
 
 BrushManager.general={
 	sensitivity:1.0, // 0.0 ~ 2.0: 1=normal 0: dull, 2: sharp
-	_sPower:1.0 // 5^(sensitivity-1)
+	_sPower:1.0, // 5^(sensitivity-1)
+	quality:20, // one pixel rendered by how many circles along the stroke
+	_invQuality:1/20 // 1/quality
 };
 
 BrushManager.limits={
 	minSize: 1,
 	maxSize: 300,
-	sBase: 5 // sensitivity adjustment base value
+	sBase: 5, // sensitivity adjustment base value
 };
 
 // ===================== functions ======================
@@ -58,9 +63,11 @@ BrushManager.init=function(){
 	let brushMenu=BrushManager.initBrushSettingMenu();
 	BrushManager.initMenuSizeSection(brushMenu);
 	BrushManager.initMenuOpacitySection(brushMenu);
-	BrushManager.initBrushButton(brushMenu);
 	BrushManager.initPenSetting(brushMenu);
+	BrushManager.initBrushButton(brushMenu);
+	BrushManager.initBrushSelector();
 	brushMenu.update();
+	BrushManager.brushMenu=brushMenu; // record this
 }
 
 BrushManager.initBrushSettingMenu=function(){
@@ -76,7 +83,8 @@ BrushManager.initMenuSizeSection=function(brushMenu){
 		newVal=>{ // set on input
 			if(newVal){
 				newVal=newVal.clamp(BrushManager.limits.minSize,BrushManager.limits.maxSize);
-				BrushManager.activeBrush.minSize*=newVal/BrushManager.activeBrush.size;
+				BrushManager.activeBrush.minSize=Math.max(BrushManager.activeBrush.minSize*newVal/BrushManager.activeBrush.size,1);
+				// @TODO: better idea? set origin point at (1,1)
 				BrushManager.activeBrush.size=newVal;
 				BrushManager.minSizeUpdateFunc();
 				BrushManager.brushButtonUpdateFunc();
@@ -84,14 +92,14 @@ BrushManager.initMenuSizeSection=function(brushMenu){
 		},
 		(dW,oldVal)=>{ // set on scroll
 			let newVal=(oldVal+dW).clamp(BrushManager.limits.minSize,BrushManager.limits.maxSize);
-			BrushManager.activeBrush.minSize*=newVal/BrushManager.activeBrush.size;
+			BrushManager.activeBrush.minSize=Math.max(BrushManager.activeBrush.minSize*newVal/BrushManager.activeBrush.size,1);
 			BrushManager.activeBrush.size=newVal;
 			BrushManager.minSizeUpdateFunc();
 			BrushManager.brushButtonUpdateFunc();
 		}, // set
 		(dx,oldVal)=>{ // set on drag-x
 			let newVal=(oldVal+dx/4).clamp(BrushManager.limits.minSize,BrushManager.limits.maxSize);
-			BrushManager.activeBrush.minSize*=newVal/BrushManager.activeBrush.size;
+			BrushManager.activeBrush.minSize=Math.max(BrushManager.activeBrush.minSize*newVal/BrushManager.activeBrush.size,1);
 			BrushManager.activeBrush.size=newVal;
 			BrushManager.minSizeUpdateFunc();
 			BrushManager.brushButtonUpdateFunc();
@@ -101,7 +109,7 @@ BrushManager.initMenuSizeSection=function(brushMenu){
 	brushMenu.addSwitch("Pressure Controlled Size",["Disabled","Enabled"],null,id=>{
 		BrushManager.activeBrush.isSizePressure=id;
 		minSizeHintUpdateFunc(id==0?true:false);
-	},1);
+	},()=>BrushManager.activeBrush.isSizePressure);
 	BrushManager.minSizeUpdateFunc=brushMenu.addInstantNumberItem("Min Size",0,"px",
 		newVal=>{ // set on input
 			if(newVal){
@@ -122,7 +130,9 @@ BrushManager.initMenuSizeSection=function(brushMenu){
 	let minSizeHintUpdateFunc=brushMenu.addHint("* Invalid when pressure is disabled");
 	minSizeHintUpdateFunc(false);
 }
-
+/**
+ * @TODO: min opacity can be NaN
+ */
 BrushManager.initMenuOpacitySection=function(brushMenu){
 	brushMenu.addSectionTitle("Opacity Control");
 	BrushManager.brushAlphaUpdateFunc=brushMenu.addInstantNumberItem("Opacity",100,"%",
@@ -151,7 +161,7 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 	brushMenu.addSwitch("Pressure Controlled Opacity",["Disabled","Enabled"],null,id=>{
 		BrushManager.activeBrush.isAlphaPressure=id;
 		minAlphaHintUpdateFunc(id==0?true:false);
-	},1);
+	},()=>BrushManager.activeBrush.isAlphaPressure);
 	BrushManager.minAlphaUpdateFunc=brushMenu.addInstantNumberItem("Min Opacity",0,"%",
 		newVal=>{ // set on input
 			if(newVal){
@@ -179,20 +189,20 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
-			let newVal=(oldVal+dW/10).clamp(0,1);
+			let newVal=(oldVal+dW/20).clamp(0,1);
 			BrushManager.activeBrush.edgeHardness=newVal;
 		}, // set
 		(dx,oldVal)=>{ // set on drag-x
 			let newVal=(oldVal+dx/100).clamp(0,1);
 			BrushManager.activeBrush.edgeHardness=newVal;
 		}, // set
-		()=>BrushManager.activeBrush.edgeHardness.toFixed(1)
+		()=>BrushManager.activeBrush.edgeHardness.toFixed(2)
 	);
 }
 
 BrushManager.initPenSetting=function(brushMenu){
 	brushMenu.addSectionTitle("Stylus");
-	BrushManager.minAlphaUpdateFunc=brushMenu.addInstantNumberItem("Sensitivity",0,"",
+	BrushManager.sensitivityUpdateFunc=brushMenu.addInstantNumberItem("Sensitivity",0,"",
 		newVal=>{ // set on input
 			if(newVal){
 				newVal=newVal.clamp(0,2);
@@ -215,41 +225,54 @@ BrushManager.initPenSetting=function(brushMenu){
 }
 
 BrushManager.setActiveBrush=function(v){
-	BrushManager.activeBrushID=v;
-	BrushManager.activeBrush=BrushManager.brushes[v];
+	if(typeof(v)=="number"){
+		BrushManager.activeBrush=BrushManager.brushes[v];
+	}
+	else{ // object
+		BrushManager.activeBrush=v;
+	}
+	// Update display
+	$("#brush-name").text(BrushManager.activeBrush.name);
+	//$("#brush-size").val(Math.round(BrushManager.activeBrush.size));
+	if(BrushManager.brushMenu){ // if associated with menu
+		BrushManager.brushMenu.update(); // size updated here
+	}
 }
 
 BrushManager.initBrushButton=function(brushMenu){
 	brushMenu.setOpenButton($("#brush-button"));
-	$("#brush-size").val(Math.round(BrushManager.activeBrush.size));
+	BrushManager.brushButtonUpdateFunc=function(){
+		$("#brush-size").val(Math.round(BrushManager.activeBrush.size));
+	};
 	SettingManager.setInputInstantNumberInteraction(
-		$("#brush-size"),$("#brush-button"),
-		newVal=>{ // set on input
-			if(newVal){
-				newVal=newVal.clamp(BrushManager.limits.minSize,BrushManager.limits.maxSize);
-				BrushManager.activeBrush.minSize*=newVal/BrushManager.activeBrush.size;
-				BrushManager.activeBrush.size=newVal;
-				BrushManager.brushSizeUpdateFunc();
-				BrushManager.minSizeUpdateFunc();
-			}
-		},
+		// @TODO: disabled input color
+		$("#brush-size"),$("#brush-button"),null, // no input
 		(dW,oldVal)=>{ // set on scroll
 			let newVal=(oldVal+dW).clamp(BrushManager.limits.minSize,BrushManager.limits.maxSize);
 			BrushManager.activeBrush.minSize*=newVal/BrushManager.activeBrush.size;
 			BrushManager.activeBrush.size=newVal;
 			BrushManager.brushSizeUpdateFunc();
 			BrushManager.minSizeUpdateFunc();
-		}, // set
+		},
 		(dx,oldVal)=>{ // set on drag-x
 			let newVal=(oldVal+dx/4).clamp(BrushManager.limits.minSize,BrushManager.limits.maxSize);
 			BrushManager.activeBrush.minSize*=newVal/BrushManager.activeBrush.size;
 			BrushManager.activeBrush.size=newVal;
 			BrushManager.brushSizeUpdateFunc();
 			BrushManager.minSizeUpdateFunc();
-		}, // set
-		()=>$("#brush-size").val(Math.round(BrushManager.activeBrush.size))
+		},
+		BrushManager.brushButtonUpdateFunc
 	);
-	BrushManager.brushButtonUpdateFunc=function(){
-		$("#brush-size").val(Math.round(BrushManager.activeBrush.size));
-	};
+	BrushManager.brushButtonUpdateFunc();
+}
+
+BrushManager.initBrushSelector=function(){
+	let menu=$("#brush-selector-menu");
+	for(let brush of BrushManager.brushes){
+		let block=$("<div class='brush-selector-item'>").text(brush.name);
+		block.on("click",event=>{
+			BrushManager.setActiveBrush(brush);
+		});
+		menu.append(block);
+	}
 }

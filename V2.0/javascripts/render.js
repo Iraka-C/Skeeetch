@@ -10,6 +10,18 @@ RENDER={};
  * 1: Overlay circle method: render by context2d drawcircle function
  */
 
+// initialize before every draw
+RENDER.init=function(param){
+	RENDER.targetCanvas = param.targetCanvas;
+	RENDER.targetContext = param.targetContext||param.targetCanvas.getContext("2d"); // manual
+
+	RENDER.strokeRenderFunction = param.strokeRenderFunction||RENDER.strokeInt; // fallback
+	RENDER.blendFunction = param.blendFunction; // @TODO: add fallback
+	
+
+	// ======== self ==========
+	RENDER.drawBezierPlots.remDis = 0;
+}
 // ===================== Stroke rendering =======================
 
 /**
@@ -40,7 +52,6 @@ RENDER.strokeOverlay=function(p0,p1,p2){
 	let ctx=CANVAS.nowContext;
 	RENDER.drawBezierPlots(ctx,p0,p1,p2);
 }
-RENDER.strokeOverlay.quality=12;
 RENDER.strokeOverlay.init=function(){
 	// Initialize
 	RENDER.drawBezierPlots.remDis=0; // remaining distance to the next curve
@@ -64,7 +75,7 @@ RENDER.drawBezierPlots=function(ctx,p0,p1,p2){
 	let by=2*(p1[1]-p0[1]);
 	let br=2*(p1[2]-p0[2]);
 
-	let quality=RENDER.strokeOverlay.quality;
+	let quality=BrushManager.general.quality;
 	// interval is the pixel length between two circle centers
 
 	let nx,ny,nr;
@@ -135,20 +146,27 @@ RENDER.pressureToStrokeOpacity=function(pressure){
  * soft edge distance to opacity
  * d(0~1) => opa(0~1)
  */
-RENDER.softEdge=function(d){
-	let brush=BrushManager.activeBrush;
-	if(brush.edgeHardness>0.9999)return 1; // not soft
-	
-	if(d<brush.edgeHardness){
-		return 1;
-	}
-	let r=(1-d)/(1-brush.edgeHardness);
+RENDER.softEdgeNormal=function(d){
+	let d1=1-d;
+	let s=RENDER.softness;
+	let r=d1/s; // softness is not 0
 	if(r>0.5){
 		let r1=1-r;
 		return 1-2*r1*r1;
 	}
-	else{
-		return 2*r*r;
+	return 2*r*r;
+	//return r; // a bit faster than quad? but quality is worse
+	//return (1-Math.cos(Math.PI*r))/2; // easier but slower
+}
+RENDER.softEdge=null; // not initialized
+// init function of this function
+RENDER.softEdgeInit=function(){ // speed up softEdge()
+	RENDER.softness=1-BrushManager.activeBrush.edgeHardness;
+	if(RENDER.softness<1E-2){ // no soft edge
+		RENDER.softEdge=(()=>1);
+	}
+	else{ // calc it
+		RENDER.softEdge=RENDER.softEdgeNormal;
 	}
 }
 

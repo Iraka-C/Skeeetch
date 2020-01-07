@@ -62,11 +62,23 @@
 	transition: color 0.25s ease-out;
 }
 
-/* Brush selector */
+/* ===================== Brush Selector ======================== */
 #brush-selector-menu{
 	position: absolute;
-	width: 30em;
-	height: 10em;
-	background: #00000088;
-	display: none;
+	border-radius: 0em 0em 1.5em 1.5em;
+	color: #fff;
+	background: #000000bb;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.5s;
+}
+
+#brush-selector-panel:hover > #brush-selector-menu{
+	pointer-events: all;
+	opacity: 1;
+}
+
+.brush-selector-item{
+	margin: 1em;
+	display: inline-block;
 }

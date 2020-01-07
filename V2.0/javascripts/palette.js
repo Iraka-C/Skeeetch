@@ -327,6 +327,9 @@ PALETTE.initPaletteWindow=function(){
 	$("#palette-hue-info").on("pointerup",event=>{
 		PALETTE.drawHueSelector();
 	});
+	/**
+	 * @TODO: fix bug: waving the mouse through canvas many times causes lots of animation
+	 */
 	$("#palette-hue-info").on("pointerout pointercancel",event=>{
 		PALETTE.isSelectingHue=false;
 		PALETTE.drawHueSelector();
