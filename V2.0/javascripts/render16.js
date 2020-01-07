@@ -1,31 +1,16 @@
 RENDER16={};
-RENDER16.strokeOverlay=function(p0,p1,p2){ // p=[x,y,pressure]
-	let ctx=CANVAS.nowContext;
-	RENDER16.drawBezierPlots(ctx,p0,p1,p2);
-}
-RENDER16.blendFunction=null;
-RENDER16.strokeOverlay.init=function(){
-	RENDER16.drawBezierPlots.remDis=0; // remaining distance to the next curve
-	
-	switch(BrushManager.activeBrush.blendMode){ // init blend function
-	case -1:RENDER16.blendFunction=RENDER16.blendDestOut;break;
-	case 0:
-	default:RENDER16.blendFunction=RENDER16.blendNormal;
-	}
-	RENDER.softEdgeInit(); // init soft edge function
 
-	// fill all element to 0~65535
-	RENDER16.rgba=new Uint16Array([
-		PALETTE.rgb[0]*257,
-		PALETTE.rgb[1]*257,
-		PALETTE.rgb[2]*257,
-		65535
-	]); // @TODO: change this to canvas init later
+RENDER16.strokeOverlay=function(p0,p1,p2){ // p=[x,y,pressure]
+	RENDER16.drawBezierPlots(p0,p1,p2);
 }
 
 // ========================= New Algo: post rendering ===========================
-RENDER16.drawBezierPlots=function(ctx,p0,p1,p2){
-	let w=ctx.canvas.width,h=ctx.canvas.height;
+/**
+ * @TODO: move this to RENDER
+ */
+RENDER16.drawBezierPlots=function(p0,p1,p2){
+	const w=RENDER.targetCanvas.width;
+	const h=RENDER.targetCanvas.height;
 
 	// radius
 	let r0=RENDER.pressureToStrokeRadius(p0[2]);
@@ -54,19 +39,19 @@ RENDER16.drawBezierPlots=function(ctx,p0,p1,p2){
 	let br=2*(r1-r0);
 	let bd=2*(d1-d0);
 
-	let quality=BrushManager.general.quality;
+	let quality=RENDER.quality;
 	// quality means how many circles are overlayed to one pixel
 	// interval is the pixel length between two circle centers
 
 	let nx,ny,nr;
-	let remL=RENDER16.drawBezierPlots.remDis;
+	let remL=RENDER.bezierRemDis;
 	let bc=new QBezier([p0,p1,p2]);
 	let kPoints=[];
 
 	// calculate length at start
 	let bLen=bc.arcLength;
 	if(bLen<=remL){ // not draw in this section
-		RENDER16.drawBezierPlots.remDis=remL-bLen;
+		RENDER.bezierRemDis=remL-bLen;
 		return;
 	}
 
@@ -78,14 +63,11 @@ RENDER16.drawBezierPlots=function(ctx,p0,p1,p2){
 		ny=ay*t2+by*t+p0[1];
 		nr=ar*t2+br*t+r0;
 		nd=ad*t2+bd*t+d0;
-		kPoints.push([nx,ny,nr,nd]);
-		/**
-		 * @TODO: push the desired opacity directly into the kPoint
-		 */
+		kPoints.push([nx,ny,nr,nd]); // add one key point
 
 		let interval=Math.max(2*nr/quality,1);
 		if(bLen<=interval){ // distance for the next
-			RENDER16.drawBezierPlots.remDis=interval-bLen;
+			RENDER.bezierRemDis=interval-bLen;
 			break;
 		}
 		t=bc.getTWithLength(interval,t);
@@ -102,9 +84,9 @@ RENDER16.drawBezierPlots=function(ctx,p0,p1,p2){
  * Slowest! @TODO: speed up
  */
 RENDER16.renderPoints=function(wL,wH,hL,hH,w,kPoints){
-	let qK=BrushManager.general._invQuality; // 1/quality
-	let rgba=[...RENDER16.rgba]; // spread is the fastest
-	let hd=BrushManager.activeBrush.edgeHardness; // @TODO: refine this part
+	let qK=RENDER._invQuality; // 1/quality
+	let rgba=[...RENDER.rgba]; // spread is the fastest
+	let hd=RENDER.brush.edgeHardness;
 
 	// first sqrt
 	for(let k=0;k<kPoints.length;k++){ // each circle in sequence
@@ -115,27 +97,27 @@ RENDER16.renderPoints=function(wL,wH,hL,hH,w,kPoints){
 
 		const jL=Math.max(Math.ceil(p[1]-p[2]),hL); // y lower bound
 		const jH=Math.min(Math.floor(p[1]+p[2]),hH); // y upper bound
-		let opa=(1-Math.pow(1-p[3],qK))*0xFFFF; // plate opacity 0~65535
+		const opa=Math.round((1-Math.pow(1-p[3],qK))*0xFFFF); // plate opacity 0~65535
 		const x=p[0];
 		for(let j=jL;j<=jH;j++){ // y-axis
 			const dy=j-p[1];
 			const dy2=dy*dy;
 			const sx=Math.sqrt(r2-dy2);
-			const iL=Math.max(Math.ceil(x-sx),wL); // x lower bound
-			const iH=Math.min(Math.floor(x+sx),wH); // x upper bound
 			const solidDx=rIn>dy?Math.sqrt(rI2-dy2):0; // dx range where is not soft edge
 
+			const iL=Math.max(Math.ceil(x-sx),wL); // x lower bound
+			const iH=Math.min(Math.floor(x+sx),wH); // x upper bound
 			let idBuf=(j*w+iL)<<2;
 			for(let i=iL;i<=iH;i++){ // x-axis, this part is the most time consuming
 				const dx=i-x;
 				if(dx<solidDx&&dx>-solidDx){ // must be solid
-					rgba[3]=Math.floor(opa); // opacity of this point
+					rgba[3]=opa; // opacity of this point
 				}
 				else{ // this part is also time-consuming
 					const dis2Center=Math.sqrt((dx*dx+dy2)/r2); // distance to center(0~1)
 					rgba[3]=Math.floor(RENDER.softEdge(dis2Center)*opa);
 				}
-				RENDER16.blendFunction(CANVAS.buffer,idBuf,rgba,0);
+				RENDER.blendFunction(RENDER.buffer,idBuf,rgba,0);
 				idBuf+=4; // avoid mult
 			}
 		}
@@ -170,14 +152,13 @@ RENDER16._refresh=function(){
 	let range=RENDER16.requestRefresh.range;
 	let wL=range[0],wH=range[1];
 	let hL=range[2],hH=range[3];
-	let ctx=CANVAS.nowContext;
-	let w=ctx.canvas.width;
+	let ctx=RENDER.targetContext;
+	let w=RENDER.targetCanvas.width;
 	// renew canvas
 	// create is 5x faster than get image data
-	let dw=wH-wL+1;
-	let imgData=ctx.createImageData(dw,hH-hL+1); // create square. smaller: faster
+	let imgData=ctx.createImageData(wH-wL+1,hH-hL+1); // create square. smaller: faster
 	let data=imgData.data;
-	let buffer=CANVAS.buffer;
+	let buffer=RENDER.buffer;
 	let idImg=0;
 	for(let j=hL;j<=hH;j++){ // copy content
 		let idBuf=(j*w+wL)<<2;
@@ -203,7 +184,7 @@ RENDER16._refresh=function(){
 	// 	ctx.drawImage(imgBitmap,wL,hL);
 	// });
 	ctx.putImageData(imgData,wL,hL); // time is spent here
-	CANVAS.onRefreshed();
+	//CANVAS.onRefreshed();
 	RENDER16.requestRefresh.range=[Infinity,0,Infinity,0];
 	RENDER16.requestRefresh.isRequested=false;
 }

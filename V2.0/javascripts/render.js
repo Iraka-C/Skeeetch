@@ -4,6 +4,8 @@
  */
 RENDER={};
 
+RENDER.sBase=5; // power base 5^(sensitivity-1)
+
 /**
  * Render algorithm list
  * 0: Integration calculation method: render on a part of the image data (RENDER.strokeInt)
@@ -11,18 +13,51 @@ RENDER={};
  */
 
 // initialize before every draw
+// constider break into renew everytime & renew on every stroke
 RENDER.init=function(param){
-	RENDER.targetCanvas = param.targetCanvas;
-	RENDER.targetContext = param.targetContext||param.targetCanvas.getContext("2d"); // manual
+	RENDER.targetContext = param.targetContext; // manual
 
+	RENDER.bitDepth = param.bitDepth||8;
+	RENDER.brush = param.brush; // no fallback
+	RENDER.sensitivity = param.sensitivity||1.0; // BrushManager.general.sensitivity
+	RENDER.quality = param.quality||16;
 	RENDER.strokeRenderFunction = param.strokeRenderFunction||RENDER.strokeInt; // fallback
-	RENDER.blendFunction = param.blendFunction; // @TODO: add fallback
-	
+
+	if(param.bitDepth==16){ // must provide a buffer
+		RENDER.buffer = param.buffer;
+	}
+	RENDER.rgba = param.bitDepth==16? // a color
+		new Uint16Array([ // fill all element to 0~65535
+			param.rgb[0]*257,
+			param.rgb[1]*257,
+			param.rgb[2]*257,
+			0 // opacity info in brush
+		]):
+		param.rgb;
 
 	// ======== self ==========
-	RENDER.drawBezierPlots.remDis = 0;
+	RENDER.targetCanvas = param.targetContext.canvas;
+	RENDER.bezierRemDis = 0; // remaining distance to the next curve
+	RENDER._invQuality = 1/RENDER.quality;
+	RENDER._sPower = Math.pow(RENDER.sBase,RENDER.sensitivity-1);
+	RENDER.blendFunction = RENDER.brush.blendMode==-1? // @TODO: bit depth
+		RENDER16.blendDestOut:
+		RENDER16.blendNormal;
+	
+
+	// ========= soft edge function =========
+	RENDER.softness = 1-param.brush.edgeHardness;
+	if(RENDER.softness<1E-2){ // no soft edge
+		RENDER.softEdge=(()=>1); // always 1
+	}
+	else{ // calc it
+		RENDER.softEdge=RENDER.softEdgeNormal;
+	}
 }
 // ===================== Stroke rendering =======================
+RENDER.drawStroke=function(p0,p1,p2){
+	RENDER.strokeRenderFunction(p0,p1,p2);
+}
 
 /**
  * Integration algorithm
@@ -118,7 +153,7 @@ RENDER.drawBezierPlots=function(ctx,p0,p1,p2){
  * transform from pressure(0~1) to stroke width
  */
 RENDER.pressureToStrokeRadius=function(pressure){
-	let brush=BrushManager.activeBrush;
+	let brush=RENDER.brush;
 	let p=RENDER.pressureSensitivity(pressure);
 	if(brush.isSizePressure){
 		return (p*(brush.size-brush.minSize)+brush.minSize)/2; // radius
@@ -132,7 +167,7 @@ RENDER.pressureToStrokeRadius=function(pressure){
  * transform from pressure(0~1) to opacity
  */
 RENDER.pressureToStrokeOpacity=function(pressure){
-	let brush=BrushManager.activeBrush;
+	let brush=RENDER.brush;
 	let p=RENDER.pressureSensitivity(pressure);
 	if(brush.isAlphaPressure){
 		return (p*(brush.alpha-brush.minAlpha)+brush.minAlpha)/100;
@@ -147,34 +182,22 @@ RENDER.pressureToStrokeOpacity=function(pressure){
  * d(0~1) => opa(0~1)
  */
 RENDER.softEdgeNormal=function(d){
-	let d1=1-d;
-	let s=RENDER.softness;
-	let r=d1/s; // softness is not 0
+	let r=(1-d)/RENDER.softness; // softness is not 0
 	if(r>0.5){
 		let r1=1-r;
 		return 1-2*r1*r1;
 	}
 	return 2*r*r;
+	//return r*r; // good for rendering considering the brush convolution, a bit sharp at the center
 	//return r; // a bit faster than quad? but quality is worse
 	//return (1-Math.cos(Math.PI*r))/2; // easier but slower
-}
-RENDER.softEdge=null; // not initialized
-// init function of this function
-RENDER.softEdgeInit=function(){ // speed up softEdge()
-	RENDER.softness=1-BrushManager.activeBrush.edgeHardness;
-	if(RENDER.softness<1E-2){ // no soft edge
-		RENDER.softEdge=(()=>1);
-	}
-	else{ // calc it
-		RENDER.softEdge=RENDER.softEdgeNormal;
-	}
 }
 
 /**
  * Consider pressure sensitivity, return new pressure
  */
 RENDER.pressureSensitivity=function(p){
-	return Math.pow(p,BrushManager.general._sPower);
+	return Math.pow(p,RENDER._sPower);
 }
 // =========================== Tool functions ==============================
 

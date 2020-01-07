@@ -6,8 +6,8 @@ CANVAS={};
 CANVAS.settings={
 	enabled: true, // is canvas drawable?
 	nowDeviceType: null, // is the pen using now a pressure device
-	is16bit: true, // is the renderer 16-bit deep
-	strokeRenderFunction: RENDER16.strokeOverlay // see RENDER (render.js)
+	is16bit: true//, // is the renderer 16-bit deep
+	//strokeRenderFunction: RENDER16.strokeOverlay // see RENDER (render.js)
 };
 CANVAS.points={ // the points drawn on canvas, under paper coordinate
 	p0: [NaN,NaN,NaN], // x,y,pressure(0~1)
@@ -40,7 +40,7 @@ CANVAS.setRender16=function(is16bit){
 
 	if(!is16bit){ // release buffer
 		CANVAS.buffer=null; // U16int buffer for calculating the drawings
-		CANVAS.settings.strokeRenderFunction=RENDER.strokeOverlay;
+		//CANVAS.settings.strokeRenderFunction=RENDER.strokeOverlay;
 		return;
 	}
 	if(!CANVAS.nowContext){ // no context / active layer
@@ -59,7 +59,7 @@ CANVAS.setRender16=function(is16bit){
 	for(let i=0;i<size;i++){ // 8bit->16bit: 0~255 -> 0~65535
 		CANVAS.buffer[i]+=CANVAS.buffer[i]<<8; // *257
 	}
-	CANVAS.settings.strokeRenderFunction=RENDER16.strokeOverlay;
+	//CANVAS.settings.strokeRenderFunction=RENDER16.strokeOverlay;
 }
 
 /**
@@ -78,13 +78,22 @@ CANVAS.setCanvasEnvironment=function(event){ // event="pointerdown"
 	
 	// ctx.strokeStyle="#000000";
 	// ctx.lineWidth=3;
-	CANVAS.settings.strokeRenderFunction.init();
+	//CANVAS.settings.strokeRenderFunction.init();
 
 	/**
 	 * @TODO: for some wacom boards, the first 2/3 events appears not constant
 	 */
 	CANVAS.pointCnt=0; // count reset
 	CANVAS.isChanged=false; // change reset
+	RENDER.init({
+		targetContext: CANVAS.nowContext,
+		buffer: CANVAS.buffer,
+		bitDepth: CANVAS.settings.is16bit?16:8,
+		brush: BrushManager.activeBrush,
+		rgb: PALETTE.rgb,
+		sensitivity: BrushManager.general.sensitivity,
+		strokeRenderFunction: RENDER16.strokeOverlay // consider revise
+	});
 };
 
 /**
@@ -152,14 +161,14 @@ CANVAS.stroke=function(){
 		let s1=[p0[0]+(p1[0]-p0[0])*dk,p0[1]+(p1[1]-p0[1])*dk,p1[2]];
 		let s2=[p2[0],p2[1],Math.min(Math.max(0,pM+(p1[2]-pM)*dk*2),p1[2])];
 
-		CANVAS.settings.strokeRenderFunction(s2,s1,s0);
+		RENDER.drawStroke(s2,s1,s0);
 		return;
 	}
 	
 	let s2=[(p1[0]+p2[0])/2,(p1[1]+p2[1])/2,(p1[2]+p2[2])/2];
 	let s1=[p1[0],p1[1],p1[2]];
 	let s0=[(p1[0]+p0[0])/2,(p1[1]+p0[1])/2,(p1[2]+p0[2])/2];
-	CANVAS.settings.strokeRenderFunction(s2,s1,s0); // old->new
+	RENDER.drawStroke(s2,s1,s0); // old->new
 };
 
 /**

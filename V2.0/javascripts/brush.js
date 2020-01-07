@@ -45,15 +45,15 @@ BrushManager.brushes=[
 
 BrushManager.general={
 	sensitivity:1.0, // 0.0 ~ 2.0: 1=normal 0: dull, 2: sharp
-	_sPower:1.0, // 5^(sensitivity-1)
-	quality:20, // one pixel rendered by how many circles along the stroke
-	_invQuality:1/20 // 1/quality
+	//_sPower:1.0, // 5^(sensitivity-1)
+	quality:20 // one pixel rendered by how many circles along the stroke
+	//_invQuality:1/20 // 1/quality
 };
 
 BrushManager.limits={
 	minSize: 1,
-	maxSize: 300,
-	sBase: 5, // sensitivity adjustment base value
+	maxSize: 300
+//	sBase: 5, // sensitivity adjustment base value
 };
 
 // ===================== functions ======================
@@ -207,18 +207,18 @@ BrushManager.initPenSetting=function(brushMenu){
 			if(newVal){
 				newVal=newVal.clamp(0,2);
 				BrushManager.general.sensitivity=newVal;
-				BrushManager.general._sPower=Math.pow(BrushManager.limits.sBase,newVal-1);
+				//BrushManager.general._sPower=Math.pow(BrushManager.limits.sBase,newVal-1);
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
 			let newVal=(oldVal+dW/10).clamp(0,2);
 			BrushManager.general.sensitivity=newVal;
-			BrushManager.general._sPower=Math.pow(BrushManager.limits.sBase,newVal-1);
+			//BrushManager.general._sPower=Math.pow(BrushManager.limits.sBase,newVal-1);
 		}, // set
 		(dx,oldVal)=>{ // set on drag-x
 			let newVal=(oldVal+dx/100).clamp(0,2);
 			BrushManager.general.sensitivity=newVal;
-			BrushManager.general._sPower=Math.pow(BrushManager.limits.sBase,newVal-1);
+			//BrushManager.general._sPower=Math.pow(BrushManager.limits.sBase,newVal-1);
 		}, // set
 		()=>BrushManager.general.sensitivity.toFixed(1)
 	);
@@ -275,4 +275,5 @@ BrushManager.initBrushSelector=function(){
 		});
 		menu.append(block);
 	}
+	// TODO: change size val on changing brush
 }
