@@ -16,6 +16,9 @@ EventDistributer.wheel={
 	},
 	_nowListener:null, // a DOM Object
 	_nowFunction:()=>{}, // a function
+	/**
+	 * callback(wY,wX): change on x & y: scroll up = +1, scroll down = -1
+	 */
 	addListener:function($element,callback){ // $element is a jQuery Object
 		let el=$element[0];
 		// The only hack: Deal with record during capture stage
@@ -37,8 +40,11 @@ EventDistributer.wheel={
 	_onwheel:function(event){
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){
 			let e=event.originalEvent;
-			let wheelchange=e.wheelDelta>0?1:e.wheelDelta<0?-1:0;
-			EventDistributer.wheel._nowFunction(wheelchange);
+			let dx=e.wheelDeltaX;
+			let dy=e.wheelDeltaY;
+			let wX=dx>0?1:dx<0?-1:0;
+			let wY=dy>0?1:dy<0?-1:0;
+			EventDistributer.wheel._nowFunction(wY,wX); // Y first
 		}
 	}
 };

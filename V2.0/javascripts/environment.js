@@ -9,8 +9,8 @@ ENV={}; // Environment
 
 ENV.paperSize={width:0,height:0,diag:0}; // diag == sqrt(x^2+y^2)
 ENV.window={
-	SIZE:{width:0,height:0}, // window size, *** NOW READ ONLY! ***
-	trans:{x:0,y:0}, // translate from the window center. (y)v >(x)cooedinate
+	SIZE:{width:0,height:0}, // window size, unit: window pixel *** NOW READ ONLY! ***
+	trans:{x:0,y:0}, // translate from the window center. unit: window pixel (y)v >(x)cooedinate
 	rot:0.0, // 0 degree CW
 	flip:false, // not flipped
 	scale:1.0, // not zoomed

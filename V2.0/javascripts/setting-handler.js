@@ -81,10 +81,13 @@ SettingHandler.initTransformHandler=function(){
 	});
 
 	// Scroll on canvas
-	EventDistributer.wheel.addListener($("#canvas-layers-panel"),dw=>{ // Scroll
-		let newS=SettingHandler.updateScale(dw,ENV.window.scale);
+	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx)=>{ // Scroll
+		/*let newS=SettingHandler.updateScale(dw,ENV.window.scale);
 		ENV.scaleTo(newS);
-		$("#scale-info-input").val(Math.round(newS*100));
+		$("#scale-info-input").val(Math.round(newS*100));*/
+		let newTx=ENV.window.trans.x+dx*10;
+		let newTy=ENV.window.trans.y+dy*10;
+		ENV.translateTo(newTx,newTy);
 	});
 }
 
