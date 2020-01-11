@@ -42,6 +42,7 @@ ENV.init=function(){ // When the page is loaded
 	SettingHandler.init();
 	BrushManager.init();
 	CURSOR.init();
+	HISTORY.init();
 
 	/**
 	 * Debug part
@@ -109,9 +110,8 @@ ENV.rotateTo=function(angle){ // degree
 ENV.translateTo=function(x,y){ // pixelated
 	let borderSize=ENV.paperSize.diag*ENV.window.scale;
 	if(Math.abs(x)>borderSize||Math.abs(y)>borderSize){
-		//console.log("Reach Border");
-		x.clamp(-borderSize,borderSize);
-		y.clamp(-borderSize,borderSize);
+		x=x.clamp(-borderSize,borderSize);
+		y=y.clamp(-borderSize,borderSize);
 	}
 	ENV.window.trans.x=x;
 	ENV.window.trans.y=y;
@@ -173,13 +173,29 @@ ENV.setPaperSize=function(w,h){
 		cv.getContext("2d").putImageData(layerData,0,0);
 
 	}*/
+	for(let id in LAYERS.layerHash){ // for all canvases
+		const item=LAYERS.layerHash[id];
+		if(item.type!="canvas"){ // not a canvas
+			continue;
+		}
+		let cv=item.$div[0];
+		let layerData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height); // image data
+		// do some zooming/interpolation work here...
+		cv.width=ENV.paperSize.width;
+		cv.height=ENV.paperSize.height;
+		cv.getContext("2d").putImageData(layerData,0,0);
+		item.updateThumb(); // update thumb image in layer panel
+	}
 
 	let k1=ENV.window.SIZE.width/w;
 	let k2=ENV.window.SIZE.height/h;
-	let k=Math.min(k1,k2).clamp(0.2,4.0)*0.8;
-	ENV.scaleTo(k);
+	let k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
+	ENV.transformTo(0,0,0,k);
 	$("#scale-info-input").val(Math.round(k*100));
 	ENV.displaySettings.enableTransformAnimation=isAnim; // recover animation setting
+	if(LAYERS.active&&LAYERS.active.type=="canvas"){ // if there is an active CV, refresh it
+		CANVAS.setTargetCanvas(LAYERS.active.$div[0]);
+	}
 };
 // ====================== Tools functions ==========================
 /**

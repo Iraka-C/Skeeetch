@@ -30,14 +30,14 @@ LAYERS.$newLayerUI=function(name,id){
 	let maskButton=$("<div>").html("&#8628;");
 	buttons.append(lockButton,blendModeButton,maskButton);
 	
-	SettingHandler.addHint(opacityLabel,()=>"Change opacity. Click to hide this layer.");
-	SettingHandler.addHint(lockButton,()=>"Lock pixel / opacity");
-	SettingHandler.addHint(blendModeButton,()=>"Switch blend mode");
-	SettingHandler.addHint(maskButton,()=>"Set this layer as a clipping mask");
+	EventDistributer.footbarHint(opacityLabel,()=>"Change opacity. Click to hide this layer.");
+	EventDistributer.footbarHint(lockButton,()=>"Lock pixel / opacity");
+	EventDistributer.footbarHint(blendModeButton,()=>"Switch blend mode");
+	EventDistributer.footbarHint(maskButton,()=>"Set this layer as a clipping mask");
 
 	var nameLabel=$("<input class='layer-name-label'>");
 	nameLabel.attr({
-		"value":name,
+		"value":id,//name,
 		"type":"text",
 		"maxLength":"256",
 		"size":"16"
@@ -116,10 +116,25 @@ LAYERS.set$ElementAsLayerContainer=function($el){
 
 LAYERS.onOrderChanged=function(event){
 	// Before: Remove all other divs in the canvas container
-	let newGroup=LAYERS.layerHash[event.to.getAttribute("data-layer-id")];
-	let obj=LAYERS.layerHash[event.item.getAttribute("data-layer-id")];
+	const oldGroupId=event.from.getAttribute("data-layer-id");
+	const newGroupId=event.to.getAttribute("data-layer-id");
+	const itemId=event.item.getAttribute("data-layer-id");
+	const oldIndex=event.oldIndex;
+	const newIndex=event.newIndex;
+
+	let newGroup=LAYERS.layerHash[newGroupId];
+	let obj=LAYERS.layerHash[itemId];
 	let $div=obj.$div.detach(); // get the DOM element $
-	newGroup.insert$At($div,event.newIndex); // insert at new place
+	newGroup.insert$At($div,newIndex); // insert at new place
+
+	HISTORY.addHistory({ // add a history item
+		type:"move-layer-item",
+		id:itemId,
+		from:oldGroupId,
+		to:newGroupId,
+		oldIndex:oldIndex,
+		newIndex:newIndex
+	});
 }
 
 // ====================== class defs ========================
@@ -186,6 +201,9 @@ class Layer{
 		// for thumb image transform
 		this.transformType="X";
 		this.transformAmount=0;
+		// the latest image data in this layer: for history recording, @TODO: not null~!
+		let cv=$cv[0];
+		this.latestImageData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height);
 
 		LAYERS.layerHash[this.id]=this; // submit to id hash table
 	}
@@ -195,6 +213,33 @@ class Layer{
 	addBefore(obj){
 		this.$ui.before(obj.$ui);
 		this.$div.after(obj.$div);
+		HISTORY.addHistory({ // add a create new layer history item
+			type:"move-layer-item",
+			subType:"new",
+			id:obj.id,
+			from:null,
+			to:obj.$ui.parent()[0].getAttribute("data-layer-id"),
+			oldIndex:null,
+			newIndex:obj.$ui.index()
+		});
+	}
+	/**
+	 * Update the latest imgData
+	 * record history
+	 * async
+	 */
+	updateLatestImageData(){
+		let cv=this.$div[0];
+		let imgData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height);
+		// update history @TODO: do not update history when no change is applied to the canvas
+		HISTORY.addHistory({
+			type: "canvas-change",
+			id: this.id,
+			data: imgData,
+			prevData: this.latestImageData,
+		});
+
+		this.latestImageData=imgData;
 	}
 	/**
 	 * Update the thumb image
@@ -236,6 +281,16 @@ class Layer{
 			thumbCtx.drawImage(cv,0,0,uW,nH);
 		}
 	}
+	/**
+	 * update all without recording history
+	 */
+	updateSettings(imgData){
+		let cv=this.$div[0];
+		imgData=imgData||cv.getContext("2d").getImageData(0,0,cv.width,cv.height);
+		this.latestImageData=imgData; // record image data
+		CANVAS.setTargetCanvas(cv,imgData);
+		this.updateThumb();
+	}
 }
 
 class LayerGroup{
@@ -274,8 +329,23 @@ class LayerGroup{
 		LAYERS.layerHash[this.id]=this;
 	}
 	/**
+	 * insert the $ui element to the i-th position of this group (as a result)
+	 * in the layer panel
+	 * i starts from 0
+	 */
+	insert$UIAt($ui,i){
+		let ct=this.$ui.children(".layer-group-container");
+		if(i==0){ // First position
+			ct.prepend($ui);
+		}
+		else{ // other positions
+			let $children=ct.children();
+			$children.eq(i-1).after($ui);
+		}
+	}
+	/**
 	 * insert the $ element to the i-th position of this group (as a result)
-	 * in the canvas container
+	 * in the canvas container (reversed order)
 	 * i starts from 0
 	 */
 	insert$At($el,i){
@@ -294,13 +364,31 @@ class LayerGroup{
 	addBefore(obj){
 		this.$ui.before(obj.$ui);
 		this.$div.after(obj.$div);
+		HISTORY.addHistory({ // add a create new layer history item
+			type:"move-layer-item",
+			subType:"new",
+			id:obj.id,
+			from:null,
+			to:obj.$ui.parent()[0].getAttribute("data-layer-id"),
+			oldIndex:null,
+			newIndex:obj.$ui.index()
+		});
 	}
 	/**
-	 * Add the layer/group object element at the first position
+	 * Add the layer/group object element at the first ([0]) position
 	 */
 	addInside(obj){
 		this.$ui.children(".layer-group-container").prepend(obj.$ui);
 		this.$div.append(obj.$div);
+		HISTORY.addHistory({ // add a create new layer history item
+			type:"move-layer-item",
+			subType:"new",
+			id:obj.id,
+			from:null,
+			to:this.id,
+			oldIndex:null,
+			newIndex:0
+		});
 	}
 
 	/**
@@ -339,7 +427,17 @@ LAYERS.init=function(){
 		opacity:1,
 		visible:true,
 		type:"root",
-		insert$At:($el,i)=>{ // insert element, same as LayerGroup
+		insert$UIAt($ui,i){ // insert ui, same as LayerGroup
+			let ct=$("#layer-panel-inner");
+			if(i==0){ // First position
+				ct.prepend($ui);
+			}
+			else{ // other positions
+				let $children=ct.children();
+				$children.eq(i-1).after($ui);
+			}
+		},
+		insert$At:($el,i)=>{ // insert canvas panel element, same as LayerGroup
 			let ct=$("#canvas-layers-container");
 			if(i==0){ // First position
 				ct.append($el);
@@ -376,7 +474,10 @@ LAYERS.initFirstLayer=function(){
  * Set a layer / group as the present active object
  * Also set the canvas target to this object
  */
-LAYERS.setActive=function(obj){ // layer or group
+LAYERS.setActive=function(obj){ // layer or group or id
+	if(typeof(obj)=="string"){ // id
+		obj=LAYERS.layerHash[obj];
+	}
 	if(LAYERS.active==obj){ // already active
 		return;
 	}
@@ -386,7 +487,9 @@ LAYERS.setActive=function(obj){ // layer or group
 	if(obj.type=="canvas"){ // canvas layer
 		obj.$ui.addClass("layer-ui-active");
 		obj.$ui.children(".layer-ui-mask").addClass("layer-ui-mask-active");
-		CANVAS.setTargetCanvas(obj.$div[0]); // set CANVAS draw target
+		let cv=obj.$div[0];
+		obj.latestImageData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height); // record image data
+		CANVAS.setTargetCanvas(cv,obj.latestImageData); // set CANVAS draw target
 	}
 	else if(obj.type=="group"){ // group
 		obj.$ui.addClass("layer-group-ui-active");
@@ -443,39 +546,41 @@ LAYERS.initLayerPanelButtons=function(){
 	$("#delete-button").on("click",event=>{
 		// Do not delete when only 1 child
 		if(LAYERS._checkIfOnlyOneLayerLeft())return;
-
-		let nowLayer=LAYERS.active;
-		let newActive=null; // new active layer
-		// check next
-		let $next=nowLayer.$ui.next();
-		if($next.length){
-			newActive=LAYERS.layerHash[$next.attr("data-layer-id")];
-		}
-		else{ // check prev
-			let $prev=nowLayer.$ui.prev();
-			if($prev.length){
-				newActive=LAYERS.layerHash[$prev.attr("data-layer-id")];
-			}
-			else{ // check father
-				let $par=nowLayer.$ui.parent();
-				if($par.length){
-					newActive=LAYERS.layerHash[$par.attr("data-layer-id")];
-				}
-				// Should be no else here
-			}
-		}
-
-		LAYERS._inactive();
-		nowLayer.$ui.detach();
-		nowLayer.$div.detach();
-
-		// remove from hash.
-		// not necessary when adding undo/redo: will be possibly re-used
-		delete LAYERS.layerHash[nowLayer.id];
-
-		LAYERS.setActive(newActive);
-
+		LAYERS.deleteItem(LAYERS.active);
+		
 	});
+}
+
+LAYERS.deleteItem=function(obj){
+	let nowLayer=obj;
+	// check next
+	let $newActive=nowLayer.$ui.next();
+	if(!$newActive.length){ // check prev
+		$newActive=nowLayer.$ui.prev();
+	}
+	if(!$newActive.length){ // check parent
+		$newActive=nowLayer.$ui.parent();
+	}
+	// new active layer
+	let newActive=LAYERS.layerHash[$newActive.attr("data-layer-id")];
+
+	HISTORY.addHistory({ // add a delete layer history item, before detach
+		type:"move-layer-item",
+		subType:"delete",
+		id:obj.id,
+		from:obj.$ui.parent().attr("data-layer-id"),
+		to:null,
+		oldIndex:obj.$ui.index(),
+		newIndex:null
+	});
+
+	LAYERS._inactive();
+	nowLayer.$ui.detach();
+	nowLayer.$div.detach();
+
+	// remove from hash: in HISTORY.addHistory when this layer won't be retrieved
+
+	LAYERS.setActive(newActive);
 }
 
 LAYERS._checkIfOnlyOneLayerLeft=function(){

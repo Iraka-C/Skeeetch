@@ -4,6 +4,12 @@
 
 EVENTS={};
 
+EVENTS.key={
+	ctrl:false,
+	shift:false,
+	alt:false
+};
+
 EVENTS.init=function(){
 	/**
 	 * @TODO: stylus won't drag on layer panel
@@ -14,11 +20,11 @@ EVENTS.init=function(){
 	 */
 
 	/**
-	 * @TODO: Bug! if open a menu on start without entering the canvas window
-	 * then the cursor won't appear at all
+	 * @TODO: touch event / multitouch support
 	 */
 
-	//$("html").on("contextmenu",()=>false);
+
+	//$("html").on("contextmenu",e=>false);
 
 	/**
 	 * Window resize handler
@@ -63,4 +69,64 @@ EVENTS.init=function(){
 		CURSOR.up(event);
 		CANVAS.strokeEnd();
 	});
+
+	// Scroll on canvas
+	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx)=>{ // Scroll
+		let newTx=ENV.window.trans.x-dx*10;
+		let newTy=ENV.window.trans.y-dy*10;
+		ENV.translateTo(newTx,newTy);
+	});
+
+	$("html").on("keydown",EVENTS.keyDown);
+	$("html").on("keyup",EVENTS.keyUp);
+}
+
+// keyboard down handler
+EVENTS.keyDown=function(event){
+	let shift=event.shiftKey==1;
+	let ctrl=event.ctrlKey==1;
+	let alt=event.altKey==1;
+	let functionKeyChanged=false;
+
+	if(shift&&!EVENTS.key.shift){ // long pressing a key may fire several events
+		EVENTS.key.shift=true;
+		functionKeyChanged=true;
+	}
+	if(ctrl&&!EVENTS.key.ctrl){
+		EVENTS.key.ctrl=true;
+		functionKeyChanged=true;
+	}
+	if(alt&&!EVENTS.key.alt){
+		EVENTS.key.alt=true;
+		functionKeyChanged=true;
+	}
+
+	if(functionKeyChanged){ // shift|ctrl|alt pressed
+		EventDistributer.footbarHint.update();
+	}
+}
+
+// keyboard up handler
+EVENTS.keyUp=function(event){
+	let shift=event.shiftKey==1;
+	let ctrl=event.ctrlKey==1;
+	let alt=event.altKey==1;
+	let functionKeyChanged=false;
+
+	if(!shift&&EVENTS.key.shift){ // long pressing a key may fire several events
+		EVENTS.key.shift=false;
+		functionKeyChanged=true;
+	}
+	if(!ctrl&&EVENTS.key.ctrl){
+		EVENTS.key.ctrl=false;
+		functionKeyChanged=true;
+	}
+	if(!alt&&EVENTS.key.alt){
+		EVENTS.key.alt=false;
+		functionKeyChanged=true;
+	}
+
+	if(functionKeyChanged){ // shift|ctrl|alt leave
+		EventDistributer.footbarHint.update();
+	}
 }

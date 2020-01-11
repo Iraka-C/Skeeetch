@@ -6,7 +6,8 @@ CURSOR={};
 
 // present position: (x,y,pressure)
 // The posistion is relative to the #canvas-window
-CURSOR.point=[NaN,NaN,NaN];
+CURSOR.p0=[NaN,NaN,NaN]; // latest point
+CURSOR.p1=[NaN,NaN,NaN]; // last point
 CURSOR.isShown=false; // is the pointer visible
 CURSOR.isDown=false; //is the pointer pressed on screen
 CURSOR.id=null;
@@ -43,37 +44,49 @@ CURSOR.moveCursor=function(event){
 		return;
 	}
 
-	CURSOR.point=[ // new movement
+	CURSOR.p1=CURSOR.p0; // hand to the last event
+	CURSOR.p0=[ // new movement
 		event.originalEvent.offsetX,
 		event.originalEvent.offsetY,
 		type=="pen"?event.originalEvent.pressure:1 // 1 as default
 	];
-	CANVAS.updateCursor(CURSOR.point);
-
 	// set cursor size
 	CURSOR.updateXYR();
-	
 
-	if(CURSOR.isDown){ // is drawing
-		CANVAS.stroke();
+	// canvas operation
+	CANVAS.updateCursor(CURSOR.p0);
+	if(CURSOR.isDown){
+		if(EVENTS.key.shift){ // shift pressed
+			let dx=CURSOR.p0[0]-CURSOR.p1[0];
+			let dy=CURSOR.p0[1]-CURSOR.p1[1];
+			if(!isNaN(dx)){ // all available
+				let newTx=ENV.window.trans.x+dx;
+				let newTy=ENV.window.trans.y+dy;
+				ENV.translateTo(newTx,newTy);
+			}
+		}
+		else{ // is drawing
+			CANVAS.stroke();
+		}
 	}
+	
 };
 
 CURSOR.updateXYR=function(){
 	if(!BrushManager.activeBrush // no brush at present
-		||isNaN(CURSOR.point[0])){ // no valid coordinate (when resizing window)
+		||isNaN(CURSOR.p0[0])){ // no valid coordinate (when resizing window)
 		return;
 	}
 	
 	let r=BrushManager.activeBrush.size*ENV.window.scale/2;
 	$("#brush-cursor-round").attr({
-		"cx":CURSOR.point[0],
-		"cy":CURSOR.point[1],
+		"cx":CURSOR.p0[0],
+		"cy":CURSOR.p0[1],
 		"r":r
 	});
 	$("#brush-cursor-outer").attr({
-		"cx":CURSOR.point[0],
-		"cy":CURSOR.point[1],
+		"cx":CURSOR.p0[0],
+		"cy":CURSOR.p0[1],
 		"r":r+1
 	});
 }
@@ -91,8 +104,9 @@ CURSOR.updateColor=function(){
  * Disable cursor data
  */
 CURSOR.disableCursor=function(){
-	CURSOR.point=[NaN,NaN,NaN];
-	CANVAS.updateCursor(CURSOR.point,NaN);
+	CURSOR.p0=[NaN,NaN,NaN];
+	CURSOR.p1=[NaN,NaN,NaN];
+	CANVAS.updateCursor(CURSOR.p0);
 };
 
 CURSOR.hideCursor=function(){

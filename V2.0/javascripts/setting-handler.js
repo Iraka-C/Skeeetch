@@ -6,7 +6,8 @@ SettingHandler={};
 
 SettingHandler.init=function(){
 	SettingHandler.initTransformHandler();
-	SettingHandler.initSystemSetting();
+	let sys=SettingHandler.initSystemSetting();
+	sys.update();
 }
 
 
@@ -74,20 +75,10 @@ SettingHandler.initTransformHandler=function(){
 	$("#reset-info").click(event=>{
 		let k1=ENV.window.SIZE.width/ENV.paperSize.width;
 		let k2=ENV.window.SIZE.height/ENV.paperSize.height;
-		let k=Math.min(k1,k2).clamp(0.2,4.0)*0.8;
+		let k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
 		ENV.transformTo(0,0,0,k);
 		$("#scale-info-input").val(Math.round(k*100));
 		$("#rotate-info-input").val("0");
-	});
-
-	// Scroll on canvas
-	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx)=>{ // Scroll
-		/*let newS=SettingHandler.updateScale(dw,ENV.window.scale);
-		ENV.scaleTo(newS);
-		$("#scale-info-input").val(Math.round(newS*100));*/
-		let newTx=ENV.window.trans.x+dx*10;
-		let newTy=ENV.window.trans.y+dy*10;
-		ENV.translateTo(newTx,newTy);
 	});
 }
 
@@ -98,27 +89,13 @@ SettingHandler.updateScale=function(dS,oldVal){
 	return newS.clamp(0.1,8.0); // mod to 0.1~8.0
 }
 
-// ====================== Layer settings =========================
-// Show a hint from infoFunc() when mouse over $el
-SettingHandler.addHint=function($el,infoFunc){
-	$el.on("pointerover",event=>{
-		$("#front-info-box").html(infoFunc());
-		$("#front-info-panel").css("opacity","1");
-	});
-	$el.on("pointerout",event=>{
-		$("#front-info-panel").css("opacity","0");
-	});
-}
-
 // ====================== system settings =========================
 SettingHandler.initSystemSetting=function(){
 	let sys=new SettingManager($("#settings-menu-panel"),"System");
 	sys.addSectionTitle("Render");
 	sys.addSwitch("Renderer Bit Depth",["16","8"],"bit",val=>{
-		switch(val){
-		case 1: CANVAS.setRender16(false);break;
-		default: CANVAS.setRender16(true);break;
-		}
+		CANVAS.settings.method=val+2;
+		CANVAS.setTargetCanvas(CANVAS.nowCanvas);
 	});
 
 	sys.addSectionTitle("Display");
@@ -136,4 +113,5 @@ SettingHandler.initSystemSetting=function(){
 		}
 	});
 	sys.setOpenButton($("#system-button"));
+	return sys;
 }

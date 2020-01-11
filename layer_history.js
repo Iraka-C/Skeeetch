@@ -26,7 +26,7 @@ LAYERS.getLayer=function(index){
 LAYERS.addHistory=function(targetLayer,imgData,typeStr){
 	//var cv=targetLayer.layerCanvas.canvas[0];
 	//var imgData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height); // deep copy
-
+	return; // for debug
 	LAYERS.history.splice(
 		LAYERS.lastOperationIndex+1,
 		LAYERS.history.length-LAYERS.lastOperationIndex,

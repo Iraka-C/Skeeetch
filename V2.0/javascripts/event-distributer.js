@@ -62,6 +62,7 @@ EventDistributer.button={
 		$(window).on("pointermove",EventDistributer.button._onpointermove);
 		$(window).on("pointerup pointercancel",EventDistributer.button._onpointerup);
 	},
+	isDragging:false,
 	_origin:{x:NaN,y:NaN},
 	_nowListener:null, // a DOM Object
 	_nowFunction:()=>{}, // a function
@@ -73,6 +74,7 @@ EventDistributer.button={
 			EventDistributer.button._nowFunction=callback;
 			EventDistributer.button._nowInitValue=initFunc();
 			EventDistributer.button._origin={x:event.clientX,y:event.clientY};
+			EventDistributer.button.isDragging=true;
 		},true);
 	},
 	_onpointermove:function(event){ // send the {dx,dy}
@@ -89,5 +91,26 @@ EventDistributer.button={
 		EventDistributer.button._nowListener=null;
 		EventDistributer.button._origin={x:NaN,y:NaN};
 		EventDistributer.button._nowInitValue={};
+		EventDistributer.button.isDragging=false;
+	}
+}
+
+// System hint
+// Show a hint from infoFunc() when mouse over $el
+EventDistributer.footbarHint=function($el,infoFunc){ // infoFunc put in closure
+	$el.on("pointerover",event=>{
+		EventDistributer.footbarHint.infoFunc=infoFunc; // record this function
+		$("#front-info-box").html(EventDistributer.footbarHint.infoFunc());
+		$("#front-info-panel").css("opacity","1");
+	});
+	$el.on("pointerout",event=>{
+		EventDistributer.footbarHint.infoFunc=null;
+		$("#front-info-panel").css("opacity","0");
+	});
+}
+EventDistributer.footbarHint.infoFunc=null;
+EventDistributer.footbarHint.update=function(){ // update when environment changes i.e. a key pressed
+	if(EventDistributer.footbarHint.infoFunc){ // there's a function registered
+		$("#front-info-box").html(EventDistributer.footbarHint.infoFunc());
 	}
 }
