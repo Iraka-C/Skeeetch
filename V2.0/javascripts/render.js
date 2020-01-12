@@ -21,9 +21,7 @@ RENDER.init=function(param){
 		RENDER.renderer=null;
 		return;
 	}
-
 	RENDER.method=param.method||2;
-	console.log(RENDER.method);
 	
 	switch(RENDER.method){
 	//case 1: RENDER.renderer=new WebGLRenderer(param);break;

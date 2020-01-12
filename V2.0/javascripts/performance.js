@@ -53,14 +53,16 @@ PERFORMANCE.getMemoryEstimation=function(){ // in MB
 }
 
 PERFORMANCE.submitFpsStat=function(intv){ // intv in ms
-	let counter=PERFORMANCE.fpsCounter;
-	let nowIntv=counter.intvList[counter.intvPt]||0;
+	const counter=PERFORMANCE.fpsCounter;
+	const len=counter.intvList.length;
+	const nowIntv=counter.intvList[counter.intvPt]||0;
 	counter.intvSum+=intv-nowIntv;
-	counter.fps=1000/(counter.intvSum/counter.intvList.length);
+	counter.fps=1000*len/counter.intvSum;
+	// if fps drops lower than a threshold i.e. 30fps, then start warning
 	
 	// renew list
 	counter.intvList[counter.intvPt]=intv;
-	if(++counter.intvPt>=counter.intvList.length){
+	if(++counter.intvPt>=len){
 		counter.intvPt=0;
 	}
 }

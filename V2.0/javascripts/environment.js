@@ -262,11 +262,14 @@ ENV.fireTransformAnimation=function(pArr){
 	if(!ENV.displaySettings.enableTransformAnimation){ // no animation
 		let mat=ENV.getTransformMatrix(pArr)
 		let matrixStr="matrix("+mat[0]+","+mat[1]+","+mat[2]+","+mat[3]+","+mat[4]+","+mat[5]+")";
-		$("#canvas-container").css("transform",matrixStr);
 		anim.target=pArr;
 		anim.start=pArr;
 		anim.now=pArr;
 		anim.process=1;
+		$("#canvas-container").css({ // set style
+			"transform":matrixStr, // transform
+			"box-shadow":"0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
+		});
 		return;
 	}
 	anim.target=pArr;
@@ -276,10 +279,10 @@ ENV.fireTransformAnimation=function(pArr){
 	}*/
 	anim.start=anim.now;
 	anim.process=0;
-	//if(!anim.isAnimationFired){ // no animation at present
-		//anim.isAnimationFired=true;
+	if(!anim.isAnimationFired){ // no animation at present
+		anim.isAnimationFired=true;
 		requestAnimationFrame(ENV._transformAnimation);
-	//}
+	}
 }
 ENV._transformAnimation=function(){
 	let anim=ENV.window._transAnimation;
@@ -293,8 +296,8 @@ ENV._transformAnimation=function(){
 
 		let tP=anim.target;
 		let sP=anim.start; 
-		// if shift pressed, run animation quickly to reduce delay
-		let nextFps=EVENTS.key.shift?30:PERFORMANCE.fpsCounter.fps;
+		// if shift pressed, run animation 10x faster to reduce latency on dragging
+		let nextFps=PERFORMANCE.fpsCounter.fps/(EVENTS.key.shift?10:1);
 		let step=1/(anim.time*nextFps);
 		p+=step;
 		if(p>1)p=1; // end
@@ -308,7 +311,11 @@ ENV._transformAnimation=function(){
 		anim.now=newP;
 		let newM=ENV.getTransformMatrix(newP);
 		let matrixStr="matrix("+newM[0]+","+newM[1]+","+newM[2]+","+newM[3]+","+newM[4]+","+newM[5]+")";
-		$("#canvas-container").css("transform",matrixStr);
+		$("#canvas-container").css({
+			"transform":matrixStr, // transform
+			"box-shadow":"0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
+		});
+
 		//console.log(matrixStr);
 		
 		if(p<1-1E-6){ // request new frame
