@@ -15,7 +15,7 @@ ENV.window={
 	flip:false, // not flipped
 	scale:1.0, // not zoomed
 	_transAnimation:{ // translation control animation
-		time:1.5, // total time in s
+		time:3, // total time in s
 		target:[0,0,0,1], // end point
 		start:[0,0,0,1], // start point
 		now:[0,0,0,1], // present status
@@ -110,6 +110,9 @@ ENV.rotateTo=function(angle){ // degree
 ENV.translateTo=function(x,y){ // pixelated
 	let borderSize=ENV.paperSize.diag*ENV.window.scale;
 	if(Math.abs(x)>borderSize||Math.abs(y)>borderSize){
+		/**
+		 * @TODO: better clamp for paper inside window
+		 */
 		x=x.clamp(-borderSize,borderSize);
 		y=y.clamp(-borderSize,borderSize);
 	}
@@ -284,7 +287,9 @@ ENV._transformAnimation=function(){
 		if(p>1)p=1;
 		anim.process=p;
 		// interpolate by p
-		let q=p*(2-p); // 2th order ease-out
+		let q=1-p;
+		q*=q; // (1-p)^2
+		q=1-q*q; // 4th order 1-(1-p)^4
 
 		let newP=pArrInterpolate(sP,tP,q);
 		anim.now=newP;
@@ -386,4 +391,14 @@ function testPsd_DEBUG(){
 
 		
 	
+}
+
+// ============ load text test ===============
+function loadTextFile(url,callback){
+	var request=new XMLHttpRequest();
+	request.open('GET',url,true);
+	request.addEventListener('load',function(){
+		callback(request.responseText);
+	});
+	request.send();
 }
