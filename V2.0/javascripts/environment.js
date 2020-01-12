@@ -15,11 +15,13 @@ ENV.window={
 	flip:false, // not flipped
 	scale:1.0, // not zoomed
 	_transAnimation:{ // translation control animation
-		time:3, // total time in s
+		time:1, // total time in s
 		target:[0,0,0,1], // end point
 		start:[0,0,0,1], // start point
 		now:[0,0,0,1], // present status
-		process:1 // the processed animation part, 0~1
+		process:1, // the processed animation part, 0~1
+		isAnimationFired:false, // is animation running
+		lastTime:0 // last animation time, for stats
 	}
 };
 
@@ -43,6 +45,7 @@ ENV.init=function(){ // When the page is loaded
 	BrushManager.init();
 	CURSOR.init();
 	HISTORY.init();
+	PERFORMANCE.init();
 
 	/**
 	 * Debug part
@@ -50,11 +53,6 @@ ENV.init=function(){ // When the page is loaded
 	//testPsd_DEBUG();
 	//initSettingSample_DEBUG();
 
-	// LAYERS.init();
-	// PALETTE.init();
-	// EVENTS.init();
-	// CURSOR.init();
-	// NETWORK.init();
 	// ENV.shiftAntiAlias();
 	// $("#canvas_container").css("display","block");
 };
@@ -272,19 +270,34 @@ ENV.fireTransformAnimation=function(pArr){
 		return;
 	}
 	anim.target=pArr;
+	/*if(EVENTS.key.shift){ // is dragging, direct move
+		anim.now[0]=pArr[0];
+		anim.now[1]=pArr[1];
+	}*/
 	anim.start=anim.now;
 	anim.process=0;
-	requestAnimationFrame(ENV._transformAnimation);
+	//if(!anim.isAnimationFired){ // no animation at present
+		//anim.isAnimationFired=true;
+		requestAnimationFrame(ENV._transformAnimation);
+	//}
 }
 ENV._transformAnimation=function(){
 	let anim=ENV.window._transAnimation;
 	let p=anim.process; // deal with animation effect
-	if(p<1-1E-6){ // continue animation
+	if(p<1-1E-6){ // continue animation, double check for unintentional fire
+		let nowTime=Date.now();
+		if(anim.lastTime>0){ // there's last animation
+			PERFORMANCE.submitFpsStat(nowTime-anim.lastTime);
+		}
+		anim.lastTime=nowTime;
+
 		let tP=anim.target;
-		let sP=anim.start;
-		let step=1/(anim.time*60); // 60fps
+		let sP=anim.start; 
+		// if shift pressed, run animation quickly to reduce delay
+		let nextFps=EVENTS.key.shift?30:PERFORMANCE.fpsCounter.fps;
+		let step=1/(anim.time*nextFps);
 		p+=step;
-		if(p>1)p=1;
+		if(p>1)p=1; // end
 		anim.process=p;
 		// interpolate by p
 		let q=1-p;
@@ -298,7 +311,13 @@ ENV._transformAnimation=function(){
 		$("#canvas-container").css("transform",matrixStr);
 		//console.log(matrixStr);
 		
-		requestAnimationFrame(ENV._transformAnimation);
+		if(p<1-1E-6){ // request new frame
+			requestAnimationFrame(ENV._transformAnimation);
+		}
+		else{
+			anim.lastTime=0; // cancel timer
+			anim.isAnimationFired=false; // cancel animation
+		}
 	}
 }
 
@@ -307,7 +326,7 @@ function pArrInterpolate(p1,p2,k){
 	let x=(p2[0]-p1[0])*k+p1[0];
 	let y=(p2[1]-p1[1])*k+p1[1];
 
-	// angle interpolation
+	// angle interpolation around a circle
 	let d1=p1[2],d2=p2[2];
 	let dD=(d2-d1)%360;
 	if(dD<0)dD+=360;
@@ -316,7 +335,7 @@ function pArrInterpolate(p1,p2,k){
 	}
 	let r=d1+dD*k;
 
-	// scale interpolation
+	// scale interpolation using log scale
 	let sL1=Math.log(p1[3]);
 	let sL2=Math.log(p2[3]);
 	let s=Math.exp((sL2-sL1)*k+sL1);
@@ -394,10 +413,14 @@ function testPsd_DEBUG(){
 }
 
 // ============ load text test ===============
+/**
+ * load a text file
+ * only works on web server
+ */
 function loadTextFile(url,callback){
 	var request=new XMLHttpRequest();
-	request.open('GET',url,true);
-	request.addEventListener('load',function(){
+	request.open("GET",url,true);
+	request.addEventListener("load",function(){
 		callback(request.responseText);
 	});
 	request.send();

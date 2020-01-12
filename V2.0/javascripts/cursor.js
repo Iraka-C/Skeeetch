@@ -56,7 +56,7 @@ CURSOR.moveCursor=function(event){
 	// canvas operation
 	CANVAS.updateCursor(CURSOR.p0);
 	if(CURSOR.isDown){
-		if(EVENTS.key.shift){ // shift pressed
+		if(EVENTS.key.shift){ // shift pressed, pan
 			let dx=CURSOR.p0[0]-CURSOR.p1[0];
 			let dy=CURSOR.p0[1]-CURSOR.p1[1];
 			if(!isNaN(dx)){ // all available
