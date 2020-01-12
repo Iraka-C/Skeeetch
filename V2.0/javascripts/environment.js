@@ -32,11 +32,12 @@ ENV.displaySettings={
 
 
 // ========================= Functions ============================
-
 ENV.init=function(){ // When the page is loaded
 	ENV.window.SIZE.width=$("#canvas-window").width();
 	ENV.window.SIZE.height=$("#canvas-window").height();
 	ENV.setPaperSize(window.screen.width,window.screen.height); // no layer yet
+
+	LANG.init(); // set all doms after load
 	EVENTS.init();
 	EventDistributer.init();
 	PALETTE.init();
@@ -69,7 +70,6 @@ ENV.refreshTransform=function(){
 		ENV.window.scale
 	]);
 	CURSOR.updateXYR();
-	//CURSOR.disfuncCursor(); // avoid a draw after the transform
 };
 
 /**
@@ -82,7 +82,6 @@ ENV.scaleTo=function(ratio){
 	ENV.window.trans.x*=tr;
 	ENV.window.trans.y*=tr;
 	ENV.refreshTransform();
-	//$("#brush_cursor_round").attr("r",ENV.nowPen.size*ratio/2);
 };
 
 /**
@@ -162,18 +161,6 @@ ENV.setPaperSize=function(w,h){
 	});
 
 	// Resize all layers and containers recursively
-	/*for(var layer=LAYERS.elementsHead;layer;layer=layer.next){ // down to up
-		var cv=layer.layerCanvas.canvas[0];
-		var layerData=cv.getContext("2d").getImageData(0,0,ENV.paperSize.width,ENV.paperSize.height);
-		//var layerPix=layerData.data;
-		//tempPix=layerPix.slice(0);
-
-		cv.width=ENV.paperSize.width;
-		cv.height=ENV.paperSize.height;
-		// not the previous context any more
-		cv.getContext("2d").putImageData(layerData,0,0);
-
-	}*/
 	for(let id in LAYERS.layerHash){ // for all canvases
 		const item=LAYERS.layerHash[id];
 		if(item.type!="canvas"){ // not a canvas

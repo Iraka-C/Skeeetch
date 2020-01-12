@@ -11,12 +11,20 @@
 		<link rel="stylesheet" type="text/css" href="./styles/top-menu-style.css" />
 		<link rel="stylesheet" type="text/css" href="./styles/layer-panel-style.css" />
 		<link rel="stylesheet" type="text/css" href="./styles/canvas-area-style.css" />
+		<!-- load static libraries -->
 		<script src="./javascripts/jquery-3.4.1.min.js"></script>
 		<script src="./javascripts/Sortable.min.js"></script>
 		<script src="./javascripts/ag-psd.js"></script>
+		<script src="./javascripts/js.cookie.min.js"></script>
 		<script src="./javascripts/math.js"></script>
 		<script src="./javascripts/q-bezier.js"></script>
 
+		<!-- load languages -->
+		<script src="./javascripts/languages/lang-zh.js"></script>
+		<script src="./javascripts/languages/lang-en.js"></script>
+		<script src="./javascripts/lang.js"></script>
+
+		<!-- load page handlers -->
 		<script src="./javascripts/event-distributer.js"></script>
 		<script src="./javascripts/event.js"></script>
 		<script src="./javascripts/brush.js"></script>
@@ -74,7 +82,8 @@
 								Test
 							</div>
 							<div id="palette-hue-info">
-								<div>Hue&middot;</div>
+								<div id="palette-hue-sign">Hue</div>
+								<div>&middot;</div>
 								<div id="palette-hue-value">200</div>
 							</div>
 						</div>

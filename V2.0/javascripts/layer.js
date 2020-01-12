@@ -30,7 +30,7 @@ LAYERS.$newLayerUI=function(name,id){
 	let maskButton=$("<div>").html("&#8628;");
 	buttons.append(lockButton,blendModeButton,maskButton);
 	
-	EventDistributer.footbarHint(opacityLabel,()=>"Change opacity. Click to hide this layer.");
+	EventDistributer.footbarHint(opacityLabel,()=>Lang("layer-opacity-label"));
 	EventDistributer.footbarHint(lockButton,()=>"Lock pixel / opacity");
 	EventDistributer.footbarHint(blendModeButton,()=>"Switch blend mode");
 	EventDistributer.footbarHint(maskButton,()=>"Set this layer as a clipping mask");

@@ -91,22 +91,22 @@ SettingHandler.updateScale=function(dS,oldVal){
 
 // ====================== system settings =========================
 SettingHandler.initSystemSetting=function(){
-	let sys=new SettingManager($("#settings-menu-panel"),"System");
-	sys.addSectionTitle("Render");
-	sys.addSwitch("Renderer Bit Depth",["16","8"],"bit",val=>{
+	let sys=new SettingManager($("#settings-menu-panel"),Lang("System"));
+	sys.addSectionTitle(Lang("Renderer"));
+	sys.addSwitch(Lang("Render Method"),["16","8"],Lang("bit"),val=>{
 		CANVAS.settings.method=val+2;
 		CANVAS.setTargetCanvas(CANVAS.nowCanvas);
 	});
 
-	sys.addSectionTitle("Display");
-	sys.addHint("These settings does not affect drawing result.");
-	sys.addSwitch("Anti-Aliasing",["On","Off"],null,val=>{
+	sys.addSectionTitle(Lang("Display"));
+	sys.addHint(Lang("display-hint-1"));
+	sys.addSwitch(Lang("Anti-Aliasing"),[Lang("On"),Lang("Off")],null,val=>{
 		switch(val){
 		case 1: ENV.setAntiAliasing(false);break;
 		default: ENV.setAntiAliasing(true);break;
 		}
 	});
-	sys.addSwitch("Transform Animation",["On","Off"],null,val=>{
+	sys.addSwitch(Lang("Transform Animation"),[Lang("On"),Lang("Off")],null,val=>{
 		switch(val){
 		case 1: ENV.setTransformAnimation(false);break;
 		default: ENV.setTransformAnimation(true);break;

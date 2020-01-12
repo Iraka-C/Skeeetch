@@ -4,7 +4,7 @@
 BrushManager={};
 BrushManager.brushes=[
 	{
-		name:"Pencil",
+		name:Lang("pencil"),
 		size:20, // diameter
 		minSize:1, // diameter
 		isSizePressure:1, // 1: Enable, 0:Disable
@@ -17,7 +17,7 @@ BrushManager.brushes=[
 		blendMode:0 // 0: normal, -1: eraser, see RENDER/RENDER16
 	},
 	{
-		name:"Brush",
+		name:Lang("brush"),
 		size:80,
 		minSize:40,
 		isSizePressure:1,
@@ -30,7 +30,7 @@ BrushManager.brushes=[
 		blendMode:0
 	},
 	{
-		name:"Eraser",
+		name:Lang("eraser"),
 		size:50,
 		minSize:10,
 		isSizePressure:0,
@@ -73,13 +73,14 @@ BrushManager.init=function(){
 BrushManager.initBrushSettingMenu=function(){
 	return new SettingManager(
 		$("#brush-menu-panel"),
-		"Paint Brush" // title
+		Lang("Paint Brush") // title
 	);
 };
 
 BrushManager.initMenuSizeSection=function(brushMenu){
-	brushMenu.addSectionTitle("Size Control");
-	BrushManager.brushSizeUpdateFunc=brushMenu.addInstantNumberItem("Brush Size",0,"px",
+	brushMenu.addSectionTitle(Lang("Size Control"));
+	BrushManager.brushSizeUpdateFunc=brushMenu.addInstantNumberItem(
+		Lang("Brush Size"),0,Lang("px"),
 		newVal=>{ // set on input
 			if(newVal){
 				newVal=newVal.clamp(BrushManager.limits.minSize,BrushManager.limits.maxSize);
@@ -106,11 +107,12 @@ BrushManager.initMenuSizeSection=function(brushMenu){
 		}, // set
 		()=>Math.round(BrushManager.activeBrush.size)
 	);
-	brushMenu.addSwitch("Pressure Controlled Size",["Disabled","Enabled"],null,id=>{
+	brushMenu.addSwitch(Lang("Pressure Controlled Size"),[Lang("Disabled"),Lang("Enabled")],null,id=>{
 		BrushManager.activeBrush.isSizePressure=id;
 		minSizeHintUpdateFunc(id==0?true:false);
 	},()=>BrushManager.activeBrush.isSizePressure);
-	BrushManager.minSizeUpdateFunc=brushMenu.addInstantNumberItem("Min Size",0,"px",
+	BrushManager.minSizeUpdateFunc=brushMenu.addInstantNumberItem(
+		Lang("Min Size"),0,Lang("px"),
 		newVal=>{ // set on input
 			if(newVal){
 				newVal=newVal.clamp(BrushManager.limits.minSize,BrushManager.activeBrush.size);
@@ -127,15 +129,15 @@ BrushManager.initMenuSizeSection=function(brushMenu){
 		}, // set
 		()=>Math.round(BrushManager.activeBrush.minSize)
 	);
-	let minSizeHintUpdateFunc=brushMenu.addHint("* Invalid when pressure is disabled");
+	let minSizeHintUpdateFunc=brushMenu.addHint(Lang("brush-pressure-hint-1"));
 	minSizeHintUpdateFunc(false);
 }
 /**
  * @TODO: min opacity can be NaN
  */
 BrushManager.initMenuOpacitySection=function(brushMenu){
-	brushMenu.addSectionTitle("Opacity Control");
-	BrushManager.brushAlphaUpdateFunc=brushMenu.addInstantNumberItem("Opacity",100,"%",
+	brushMenu.addSectionTitle(Lang("Opacity Control"));
+	BrushManager.brushAlphaUpdateFunc=brushMenu.addInstantNumberItem(Lang("Opacity"),100,"%",
 		newVal=>{ // set on input
 			if(newVal){
 				newVal=newVal.clamp(0,100);
@@ -158,11 +160,11 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 		}, // set
 		()=>Math.round(BrushManager.activeBrush.alpha)
 	);
-	brushMenu.addSwitch("Pressure Controlled Opacity",["Disabled","Enabled"],null,id=>{
+	brushMenu.addSwitch(Lang("Pressure Controlled Opacity"),[Lang("Disabled"),Lang("Enabled")],null,id=>{
 		BrushManager.activeBrush.isAlphaPressure=id;
 		minAlphaHintUpdateFunc(id==0?true:false);
 	},()=>BrushManager.activeBrush.isAlphaPressure);
-	BrushManager.minAlphaUpdateFunc=brushMenu.addInstantNumberItem("Min Opacity",0,"%",
+	BrushManager.minAlphaUpdateFunc=brushMenu.addInstantNumberItem(Lang("Min Opacity"),0,"%",
 		newVal=>{ // set on input
 			if(newVal){
 				newVal=newVal.clamp(0,BrushManager.activeBrush.alpha);
@@ -179,7 +181,7 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 		}, // set
 		()=>Math.round(BrushManager.activeBrush.minAlpha)
 	);
-	let minAlphaHintUpdateFunc=brushMenu.addHint("* Invalid when pressure is disabled");
+	let minAlphaHintUpdateFunc=brushMenu.addHint(Lang("brush-pressure-hint-1"));
 	minAlphaHintUpdateFunc(false);
 	BrushManager.edgeHardnessUpdateFunc=brushMenu.addInstantNumberItem("Hard Edge",0,"",
 		newVal=>{ // set on input
