@@ -91,6 +91,9 @@ EVENTS.keyDown=function(event){
 	if(shift&&!EVENTS.key.shift){ // long pressing a key may fire several events
 		EVENTS.key.shift=true;
 		functionKeyChanged=true;
+		// change cursor
+		$("#canvas-area-panel").css("cursor","move");
+		$("#brush-cursor").css("display","none");
 	}
 	if(ctrl&&!EVENTS.key.ctrl){
 		EVENTS.key.ctrl=true;
@@ -117,6 +120,9 @@ EVENTS.keyUp=function(event){
 	if(!shift&&EVENTS.key.shift){ // long pressing a key may fire several events
 		EVENTS.key.shift=false;
 		functionKeyChanged=true;
+		// change cursor
+		$("#canvas-area-panel").css("cursor","none");
+		$("#brush-cursor").css("display","block");
 	}
 	if(!ctrl&&EVENTS.key.ctrl){
 		EVENTS.key.ctrl=false;
