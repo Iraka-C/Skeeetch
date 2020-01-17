@@ -48,7 +48,8 @@ class CPURenderer{
 			CPURenderer.blendDestOut:
 			CPURenderer.blendNormal;
 
-		this.quality=param.quality||16; // how many circles are overlayed to one pixel
+		this.quality=param.quality||24; // how many circles are overlayed to one pixel. 48 for good quality
+		// @TODO: auto quality
 		this._invQuality=1/this.quality;
 		this.bezierRemDis=0; // distance remain = 0 at first
 

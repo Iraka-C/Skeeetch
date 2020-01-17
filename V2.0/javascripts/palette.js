@@ -261,6 +261,11 @@ PALETTE.init=function(){
 	PALETTE.isSelectingHue=false;
 	
 	PALETTE.initPaletteWindow();
+
+	// Palette top button
+	$("#palette-button").on("click",event=>{
+		$("#palette-panel").slideToggle(300);
+	});
 	
 };
 

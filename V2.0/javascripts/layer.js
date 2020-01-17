@@ -324,7 +324,6 @@ class LayerGroup{
 		this.visible=true;
 		this.$div=$div;
 		this.type="group";
-		this.isExpanded=true;
 		LAYERS.layerHash[this.id]=this;
 	}
 	/**
@@ -397,17 +396,8 @@ class LayerGroup{
 		let $panel=this.$ui.children(".group-title-panel");
 		let $ct=this.$ui.children(".layer-group-container");
 		let $button=$panel.children(".group-title-expand-button");
-		if(this.isExpanded){ // opened, close it
-			this.isExpanded=false;
-			$button.removeClass("group-expanded");
-			$ct.fadeOut(250);
-		}
-		else{ // closed, open it
-			this.isExpanded=true;
-			$button.addClass("group-expanded");
-			$ct.fadeIn(250);
-		}
-
+		$button.toggleClass("group-expanded");
+		$ct.fadeToggle(250);
 	}
 }
 

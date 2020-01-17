@@ -95,6 +95,7 @@ RENDER.pressureToStrokeOpacity=function(pressure,brush){
 /**
  * Consider pressure sensitivity, return new pressure
  */
+// @TODO: error when sensitivity is 0
 RENDER.pressureSensitivity=function(p){
 	return Math.pow(p,RENDER._sPower);
 }

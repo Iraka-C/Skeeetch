@@ -15,6 +15,7 @@ CURSOR.eventIdList=["","",""]; // a list to record now id
 
 /**
  * @TODO: fix brush moving delay (change svg into canvas?)
+ * The delay is seemingly larger than SAI
  */
 /**
  * @TODO: Bug! error cx,cy attribute on window resize

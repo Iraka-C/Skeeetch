@@ -3,10 +3,17 @@
 	flex-direction: column;
 }
 
+#layer-area-width-panel{
+	flex: none;
+	height: 0em;
+	margin: 0em 1em;
+}
+
 #palette-panel{
 	position: relative;
 	background: #888;
 	flex: none;
+	overflow: hidden;
 }
 
 .layer-panel-block{ /* The width of all elements in layer block */
