@@ -31,13 +31,13 @@ LAYERS.$newLayerUI=function(name,id){
 	buttons.append(lockButton,blendModeButton,maskButton);
 	
 	EventDistributer.footbarHint(opacityLabel,()=>Lang("layer-opacity-label"));
-	EventDistributer.footbarHint(lockButton,()=>"Lock pixel / opacity");
-	EventDistributer.footbarHint(blendModeButton,()=>"Switch blend mode");
-	EventDistributer.footbarHint(maskButton,()=>"Set this layer as a clipping mask");
+	EventDistributer.footbarHint(lockButton,()=>Lang("Lock pixel / opacity"));
+	EventDistributer.footbarHint(blendModeButton,()=>Lang("Switch blend mode"));
+	EventDistributer.footbarHint(maskButton,()=>Lang("Set this layer as a clipping mask"));
 
 	var nameLabel=$("<input class='layer-name-label'>");
 	nameLabel.attr({
-		"value":id,//name,
+		"value":name,
 		"type":"text",
 		"maxLength":"256",
 		"size":"16"
@@ -144,7 +144,7 @@ class Layer{
 	 * @TODO: pointer-event on layer panel doesn't allow dragging
 	 */
 	constructor(name){
-		name=name||"New Layer";
+		name=name||Lang("New Layer");
 		this.id=LAYERS.generateHash();
 		this.$ui=LAYERS.$newLayerUI(name,this.id);
 		this.$ui.on("pointerdown",event=>{
@@ -201,9 +201,12 @@ class Layer{
 		// for thumb image transform
 		this.transformType="X";
 		this.transformAmount=0;
-		// the latest image data in this layer: for history recording, @TODO: not null~!
+		// the latest image data in this layer: for history recording,
 		let cv=$cv[0];
-		this.latestImageData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height);
+		this.latestImageData=cv.getContext("2d").createImageData(cv.width,cv.height);
+		// @TODO: will this affect WebGL content?
+		// According to https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-context-mode yes it will
+		// if resize (width=width), the context is set to null again
 
 		LAYERS.layerHash[this.id]=this; // submit to id hash table
 	}
@@ -228,9 +231,7 @@ class Layer{
 	 * record history
 	 * async
 	 */
-	updateLatestImageData(){
-		let cv=this.$div[0];
-		let imgData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height);
+	updateLatestImageData(imgData){
 		// update history @TODO: do not update history when no change is applied to the canvas
 		HISTORY.addHistory({
 			type: "canvas-change",
@@ -238,7 +239,6 @@ class Layer{
 			data: imgData,
 			prevData: this.latestImageData,
 		});
-
 		this.latestImageData=imgData;
 	}
 	/**
@@ -286,7 +286,6 @@ class Layer{
 	 */
 	updateSettings(imgData){
 		let cv=this.$div[0];
-		imgData=imgData||cv.getContext("2d").getImageData(0,0,cv.width,cv.height);
 		this.latestImageData=imgData; // record image data
 		CANVAS.setTargetCanvas(cv,imgData);
 		this.updateThumb();
@@ -295,7 +294,7 @@ class Layer{
 
 class LayerGroup{
 	constructor(name){
-		name=name||"New Group";
+		name=name||Lang("New Group");
 		this.id=LAYERS.generateHash();
 		this.$ui=LAYERS.$newLayerGroupUI(name,this.id);
 		this.$ui.on("pointerdown",event=>{ // click to activate
@@ -489,6 +488,7 @@ LAYERS.setActive=function(obj){ // layer or group or id
 		obj.$ui.children(".layer-ui-mask").addClass("layer-ui-mask-active");
 		let cv=obj.$div[0];
 		obj.latestImageData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height); // record image data
+		// @TODO: what if gl
 		CANVAS.setTargetCanvas(cv,obj.latestImageData); // set CANVAS draw target
 	}
 	else if(obj.type=="group"){ // group
@@ -545,7 +545,7 @@ LAYERS.initLayerPanelButtons=function(){
 	});
 	$("#delete-button").on("click",event=>{
 		// Do not delete when only 1 child
-		if(LAYERS._checkIfOnlyOneLayerLeft())return;
+		if(LAYERS._checkIfOnlyOneLayerLeft(LAYERS.active.id))return;
 		LAYERS.deleteItem(LAYERS.active);
 		
 	});
@@ -583,11 +583,11 @@ LAYERS.deleteItem=function(obj){
 	LAYERS.setActive(newActive);
 }
 
-LAYERS._checkIfOnlyOneLayerLeft=function(){
+LAYERS._checkIfOnlyOneLayerLeft=function(toDeleteId){
 	let l1=$("#canvas-layers-container").children();
 	if(l1.length==1){ // only one child: empty group or layer
-		l1=l1.eq(0).children();
-		if(l1.length==0){ // no child
+		l1=l1.eq(0);
+		if(l1.attr("data-layer-id")==toDeleteId){ // no child after deleting this
 			return true;
 		}
 	}

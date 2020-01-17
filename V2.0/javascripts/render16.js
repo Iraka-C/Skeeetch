@@ -240,6 +240,21 @@ class CPURenderer{
 
 		RENDER.onRefresh(); // call refresh callback
 	}
+
+	/**
+	 * return ImageData
+	 */
+	getImageData(){
+		const cv=this.canvas;
+		return this.ctx.getImageData(0,0,cv.width,cv.height);
+	}
+
+	/**
+	 * draw ImageData
+	 */
+	putImageData(imgData){
+		this.ctx.putImageData(imgData,0,0);
+	}
 	// ============= tools ==============
 	/**
 	 * soft edge distance calc

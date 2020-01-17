@@ -133,7 +133,7 @@ CANVAS.strokeEnd=function(){
 		CANVAS.isChanged=false;
 		//console.log("end");
 		requestAnimationFrame(()=>{
-			LAYERS.active.updateLatestImageData();
+			LAYERS.active.updateLatestImageData(RENDER.getImageData());
 			LAYERS.active.updateThumb();
 		}); // pass in "this"
 	}

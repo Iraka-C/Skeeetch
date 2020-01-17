@@ -5,8 +5,8 @@ LANG={};
 
 switch(Cookies.get("lang")){
 case "zh":LANG=LANG_ZH;break;
-case "en":
-default:LANG=LANG_EN;
+case "en":LANG=LANG_EN;break;
+default:LANG=LANG_ZH;
 };
 //LANG=LANG_ZH; // language setting, read from cookie
 Lang=text=>LANG[text]||text; // if not found, use the original text
@@ -21,4 +21,4 @@ LANG.init=()=>{
 		}
 	}
 }
-Cookies.set("lang","zh");
+//Cookies.set("lang","zh");

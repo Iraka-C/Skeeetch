@@ -5,6 +5,8 @@ LANG_ZH={
 	"pencil":"铅笔",
 	"brush":"画笔",
 	"eraser":"橡皮擦",
+	"New Layer":"新图层",
+	"New Group":"新组",
 
 	// Setting Menu
 	"System":"系统设置",
@@ -34,7 +36,10 @@ LANG_ZH={
 	"Min Opacity":"最低不透明度",
 
 	// Layer
-	"layer-opacity-label":"调节图层不透明度，单击以隐藏此图层"
+	"layer-opacity-label":"调节图层不透明度，单击以隐藏此图层",
+	"Lock pixel / opacity":"锁定图层/不透明度",
+	"Switch blend mode":"混合模式",
+	"Set this layer as a clipping mask":"剪贴蒙版"
 };
 LANG_ZH._id={
 	"filename-input":"Skeeetch",

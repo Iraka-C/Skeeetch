@@ -57,6 +57,13 @@ RENDER.initBeforeStroke=function(param){
 RENDER.strokeBezier=function(p0,p1,p2){
 	RENDER.renderer.strokeBezier(p0,p1,p2);
 }
+
+/**
+ * get the ImageData item from renderer
+ */
+RENDER.getImageData=function(){
+	return RENDER.renderer.getImageData();
+}
 // =================== Tools ======================
 
 /**

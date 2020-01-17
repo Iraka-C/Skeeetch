@@ -70,14 +70,15 @@ table{
 	font-weight: normal;
 }
 .setting-table .hoverable{
-	transition: box-shadow 0.25s;
+	transition: box-shadow 0.25s, color 0.1s;
+	color: #ddd;
 }
 .setting-table .hoverable:hover{
 	box-shadow: 0em 0em 0.5em #00000088;
+	color: #fff;
 }
 .setting-table tr td{
 	padding: 0.2em 0.1em;
-	color: #ddd;
 	text-overflow: ellipsis;
 }
 .setting-table .setting-hint{

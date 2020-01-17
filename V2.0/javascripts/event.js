@@ -56,11 +56,11 @@ EVENTS.init=function(){
 	});
 
 	// DOWN / UP outside the window
-	$("html").on("pointerdown",event=>{
+	$(window).on("pointerdown",event=>{
 		CURSOR.down(event);
 		CANVAS.setCanvasEnvironment(event); // init canvas here
 	});
-	$("html").on("pointerup",event=>{
+	$(window).on("pointerup",event=>{
 		// no need to paint the last event because there's no pressure info (=0)
 		if(event.target==$("#canvas-window")[0]){
 			// on canvas
@@ -77,8 +77,8 @@ EVENTS.init=function(){
 		ENV.translateTo(newTx,newTy);
 	});
 
-	$("html").on("keydown",EVENTS.keyDown);
-	$("html").on("keyup",EVENTS.keyUp);
+	$(window).on("keydown",EVENTS.keyDown);
+	$(window).on("keyup",EVENTS.keyUp);
 }
 
 // keyboard down handler
@@ -102,6 +102,7 @@ EVENTS.keyDown=function(event){
 	}
 
 	if(functionKeyChanged){ // shift|ctrl|alt pressed
+		// more actions related to key changed?
 		EventDistributer.footbarHint.update();
 	}
 }

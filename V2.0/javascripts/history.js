@@ -5,8 +5,7 @@ HISTORY={};
 
 HISTORY.list=[];
 HISTORY.nowId=-1; // no history yet
-HISTORY.nowLength=0;
-HISTORY.late
+HISTORY.MAX_HISTORY=20; // at most 20 steps
 
 class HistoryItem{
 	constructor(info){
@@ -48,22 +47,24 @@ class HistoryItem{
  * init AFTER paper size is set and layer canvas added to UI
  */
 HISTORY.init=function(){
-
+	EventDistributer.key.addListener($(window),"ctrl+z",event=>{
+		HISTORY.undo();
+	});
+	EventDistributer.key.addListener($(window),"ctrl+shift+z",event=>{
+		HISTORY.redo();
+	});
+	EventDistributer.key.addListener($(window),"ctrl+y",event=>{
+		HISTORY.redo();
+	});
 }
 
 HISTORY.addHistory=function(info){ // see HistoryItem constructor for info structure
-	return; // For debugging
-	let len=HISTORY.list.length;
-	for(let i=HISTORY.nowId+1;i<len;i++){ // clear all history afterwards
-		let item=HISTORY.list[i];
-		if(item.info.subType=="new"){ // creating a layer, won't be used anymore
-			//console.log("delete",item.info.id);
-			delete LAYERS.layerHash[item.info.id]; // release the resource
-		}
+	HISTORY.clearAllHistoryAfter(); // delete all item after HISTORY.nowId
+	if(HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
+		HISTORY.popHead(); // pop the oldest history and release related resources
 	}
+	HISTORY.list.push(new HistoryItem(info));
 	HISTORY.nowId++;
-	HISTORY.list.splice(HISTORY.nowId,len,new HistoryItem(info)); // len>HISTORY.nowId: delete all item after HISTORY.nowId
-	HISTORY.nowLength=HISTORY.list.length;
 }
 
 HISTORY.undo=function(){ // undo 1 step
@@ -81,7 +82,7 @@ HISTORY.undo=function(){ // undo 1 step
 }
 
 HISTORY.redo=function(){ // redo 1 step
-	if(HISTORY.nowId>=HISTORY.nowLength-1)return; // no newer history
+	if(HISTORY.nowId>=HISTORY.list.length-1)return; // no newer history
 	let item=HISTORY.list[++HISTORY.nowId];
 	switch(item.info.type){
 	case "canvas-change":
@@ -100,7 +101,9 @@ HISTORY.undoCanvasChange=function(info){
 	let layer=LAYERS.layerHash[info.id];
 	let ctx=layer.$div[0].getContext("2d");
 	ctx.putImageData(info.prevData,0,0); // use putImageData to ensure image quality
+	// @TODO: gl compability?
 	LAYERS.setActive(layer); // also update canvas buffer and latest image data
+	// @TODO: logic here
 	layer.updateSettings(info.prevData);
 }
 HISTORY.redoCanvasChange=function(info){
@@ -175,19 +178,46 @@ HISTORY.redoMoveItem=function(info){
 // ============== Other manip ================
 // remove the first history record
 HISTORY.popHead=function(){
-	// @TODO: when deleting one element, remove all inner contents from LAYERS list
+	if(HISTORY.list.length==0){ // check is empty
+		return;
+	}
 	let item=HISTORY.list[0];
-	if(item.subType=="delete"){ // won't be recalled anymore
+	if(item.info.subType=="delete"){ // won't be recalled anymore
+		let idList=[item.info.id];
 		let obj=LAYERS.layerHash[item.info.id]; // the object deleted
-		// clear all its descendants
-		let $desc=obj.$div.find("*");
-		for(let i=0;i<$desc.length;i++){ // for all descendants
-			let id=$desc[i].attr("data-layer-id");
-
+		// clear all its descendants and itself
+		obj.$div.find("*").each(function(){
+			idList.push($(this).attr("data-layer-id"));
+		});
+		for(let id of idList){ // remove from layer list to release memory
+			delete LAYERS.layerHash[id];
 		}
+	}
+	HISTORY.list.shift();
+	HISTORY.nowId--; // <= handled by other functions?
+}
+
+// clear all history before present status
+HISTORY.clearAllHistoryBefore=function(){
+	while(HISTORY.nowId>=0){ // pop all histories before nowId = -1
+		HISTORY.popHead();
 	}
 }
 
-// clear all history
-HISTORY.clearAll=function(){
+// clear all history after present status
+HISTORY.clearAllHistoryAfter=function(){
+	let len=HISTORY.list.length;
+	for(let i=HISTORY.nowId+1;i<len;i++){ // clear all history afterwards
+		let item=HISTORY.list[i];
+		if(item.info.subType=="new"){ // creating a layer action, won't be used anymore
+			delete LAYERS.layerHash[item.info.id]; // release the resource
+		}
+	}
+	HISTORY.list.splice(HISTORY.nowId+1,len); // len>HISTORY.nowId: delete all item after nowId
+}
+
+// clear all histories. nowId should be -1
+HISTORY.clearAllHistory=function(){
+	HISTORY.clearAllHistoryBefore();
+	HISTORY.clearAllHistoryAfter();
 }
