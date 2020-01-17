@@ -19,6 +19,8 @@ LANG_ZH={
 	"On":"开启",
 	"Off":"关闭",
 	"Transform Animation":"过渡动画",
+	"sys-info":"系统信息",
+	"sys-mem":"内存使用",
 
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",
@@ -40,6 +42,8 @@ LANG_ZH={
 	"Lock pixel / opacity":"锁定图层/不透明度",
 	"Switch blend mode":"混合模式",
 	"Set this layer as a clipping mask":"剪贴蒙版"
+
+	//
 };
 LANG_ZH._id={
 	"filename-input":"Skeeetch",

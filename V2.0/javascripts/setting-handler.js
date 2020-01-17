@@ -113,5 +113,9 @@ SettingHandler.initSystemSetting=function(){
 		}
 	});
 	sys.setOpenButton($("#system-button"));
+
+	sys.addSectionTitle(Lang("sys-info"));
+	sys.addInfo(Lang("sys-mem"),"MB",()=>PERFORMANCE.getMemoryEstimation().toFixed(1));
+
 	return sys;
 }

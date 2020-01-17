@@ -179,17 +179,21 @@ class SettingManager{
 		return _updateFunc;
 	}
 	// Add an info frame to show some data
-	// updateFunc()=>v called when opening this setting
-	addInfo(name,unit,updateFunc){
+	// valFunc()=>v called when opening this setting
+	addInfo(name,unit,valFunc){
 		let item=$("<tr>").append(
 			$("<td>"+name+"</td>"),
 			$("<td>&gt;</td>"),
 			$("<td class='value'></td>"),
 			$("<td class='unit'>"+unit+"</td>")
 		);
-		//this.updateFuncList.push({fun:updateFunc,$div:item.find(".value")});
+		let _updateFunc=function(){
+			if(valFunc){
+				item.find(".value").text(valFunc());
+			}
+		}
+		this._updateFuncList.push(_updateFunc);
 		this.$frame.find("tbody").append(item);
-		
 	}
 	// Add a single click button with callback
 	addButton(text,callback){
