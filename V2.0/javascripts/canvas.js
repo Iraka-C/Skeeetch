@@ -5,7 +5,10 @@
 CANVAS={};
 CANVAS.settings={
 	enabled: true, // is canvas drawable?
-	method: 2 // webgl:1, cpu16bit:2, ctx2d:3
+	method: 2, // webgl:1, cpu16bit:2, ctx2d:3
+	strokeRectification: false,
+	smoothness: 3,
+	_speed: 0 // a function of smoothness
 };
 CANVAS.points={ // the points drawn on canvas, under paper coordinate
 	p0: [NaN,NaN,NaN], // x,y,pressure(0~1)
@@ -21,7 +24,7 @@ CANVAS.isChanged=false;
  * Update the target canvas to draw
  * targetCV is a DOM canvas element!
  */
-CANVAS.setTargetCanvas=function(targetCV,imgData){ // imgData is the image data in targetCV
+CANVAS.setTargetCanvas=function(targetCV,imgData){ // imgData is the data in targetCV
 	CANVAS.nowCanvas=targetCV;
 	RENDER.init({ // init after setActiveLayer || change renderer
 		canvas: targetCV,
@@ -29,6 +32,7 @@ CANVAS.setTargetCanvas=function(targetCV,imgData){ // imgData is the image data 
 		onRefresh: CANVAS.onRefresh,
 		imgData:imgData
 	});
+	CANVAS.updateSpeed(); // at init
 }
 
 /**
@@ -52,11 +56,21 @@ CANVAS.setCanvasEnvironment=function(event){ // event="pointerdown"
 	});
 };
 
+CANVAS.updateSpeed=function(){
+	if(CANVAS.settings.smoothness>=0){ // slow down
+		CANVAS.settings._speed=Math.pow(0.75,CANVAS.settings.smoothness);
+	}
+	else{ // tremble
+		let p1=CANVAS.settings.smoothness+5;
+		CANVAS.settings._speed=2-p1*p1/25;
+	}
+}
+
 /**
  * Update cursor trace, point=[x,y,pressure] relative to div #canvas-window
  */
 CANVAS.updateCursor=function(point){
-	let pT=CANVAS.points;
+	const pT=CANVAS.points;
 	/**
 	 * @TODO: Mysterious behavior
 	 * pT seems to contain some of the uncorrect values
@@ -74,8 +88,20 @@ CANVAS.updateCursor=function(point){
 	pT.p1=pT.p0;
 
 	// Coordinate transform
-	let pC=ENV.toPaperXY(point[0],point[1]);
-	pT.p0=[pC[0],pC[1],point[2]];
+	const pC=ENV.toPaperXY(point[0],point[1]);
+
+	const p=CANVAS.settings._speed;
+	const q=1-p;
+	if(!isNaN(pT.p1[0])){ // Smooth the trail
+		pT.p0=[
+			pC[0]*p+pT.p1[0]*q,
+			pC[1]*p+pT.p1[1]*q,
+			point[2]*p+pT.p1[2]*q
+		];
+	}
+	else{
+		pT.p0=[pC[0],pC[1],point[2]];
+	}
 	CANVAS.pointCnt++;
 }
 
@@ -91,7 +117,7 @@ CANVAS.stroke=function(){
 	if(isNaN(pT.p2[0])||isNaN(pT.p1[0])||isNaN(pT.p0[0])){ // There's a not-recorded pointer
 		return;
 	}
-	if(CANVAS.pointCnt==1){ // Only one point down
+	if(CANVAS.settings.strokeRectification&&CANVAS.pointCnt==1){ // Only one point down
 		return;
 	}
 	
@@ -101,7 +127,8 @@ CANVAS.stroke=function(){
 	let p2=pT.p2;
 
 	CANVAS.isChanged=true; // canvas changed
-	if(CANVAS.pointCnt==2){ // first stroke considering a point updated before down
+	if(CANVAS.settings.strokeRectification&&CANVAS.pointCnt==2){
+		// first stroke considering a point updated before down
 		let d1=dis2(p1[0],p1[1],p2[0],p2[1]);
 		let d0=dis2(p1[0],p1[1],p0[0],p0[1]);
 		if(d0==0)return; // not moved
@@ -126,6 +153,7 @@ CANVAS.stroke=function(){
  * On the end of stroke (Notice: not certainly canvas refreshed!)
  */
 CANVAS.strokeEnd=function(){
+	CANVAS.points.p0=[NaN,NaN,0];
 	/**
 	 * @TODO: more precise isChanged detection
 	 */
@@ -144,4 +172,46 @@ CANVAS.strokeEnd=function(){
  */
 CANVAS.onRefresh=function(){
 	//console.log("refreshed");
+}
+
+CANVAS.clearAll=function(){
+	if(!RENDER.renderer||!CANVAS.settings.enabled){
+		// No canvas or locked, can't draw on it
+		return;
+	}
+	const cv=CANVAS.nowCanvas;
+	cv.width=cv.width;
+	RENDER.init({ // init after setActiveLayer || change renderer
+		canvas: cv,
+		method: CANVAS.settings.method,
+		onRefresh: CANVAS.onRefresh
+	});
+	requestAnimationFrame(()=>{
+		LAYERS.active.updateLatestImageData(RENDER.getImageData());
+		LAYERS.active.updateThumb();
+	});
+}
+
+// ================ Other tools ==================
+// Mixing pixels should be pre-order or **mid-order**? Not post-order certainly.
+CANVAS._takePixel=function($div,x,y,pix){
+	if($div.is("canvas")){ // a group
+		const data=RENDER.getImageData($div[0],x,y,1,1).data; // 2d way, not gl
+		return [data[0],data[1],data[2],data[3]/255]; // Uint8[4] => float
+	}
+	const cdiv=$div.children();
+	let tPix=[0,0,0,0];
+	cdiv.each(function(id){
+		// blend
+		const data=CANVAS._takePixel($(this),x,y);
+		tPix=SMath.blendNormal(tPix,data);
+	});
+	return tPix;
+}
+
+CANVAS.pickColor=function(x,y){ // ALL visible layers, (x,y) is under the window coordinate
+	const p=ENV.toPaperXY(x,y);
+	let pix=CANVAS._takePixel($("#canvas-layers-container"),p[0],p[1]);
+	
+	return SMath.blendNormal([PALETTE.rgb[0],PALETTE.rgb[1],PALETTE.rgb[2],1],pix);
 }

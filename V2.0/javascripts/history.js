@@ -99,17 +99,14 @@ HISTORY.redo=function(){ // redo 1 step
 // "canvas-change" type
 HISTORY.undoCanvasChange=function(info){
 	let layer=LAYERS.layerHash[info.id];
-	let ctx=layer.$div[0].getContext("2d");
-	ctx.putImageData(info.prevData,0,0); // use putImageData to ensure image quality
-	// @TODO: gl compability?
+	RENDER.putImageData(layer.$div[0],info.prevData); // use putImageData to ensure image quality
 	LAYERS.setActive(layer); // also update canvas buffer and latest image data
 	// @TODO: logic here
 	layer.updateSettings(info.prevData);
 }
 HISTORY.redoCanvasChange=function(info){
 	let layer=LAYERS.layerHash[info.id];
-	let ctx=layer.$div[0].getContext("2d");
-	ctx.putImageData(info.data,0,0);
+	RENDER.putImageData(layer.$div[0],info.data); // use putImageData to ensure image quality
 	LAYERS.setActive(layer); // also update canvas buffer and latest image data
 	layer.updateSettings(info.data);
 }

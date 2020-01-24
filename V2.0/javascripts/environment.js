@@ -37,7 +37,7 @@ ENV.init=function(){ // When the page is loaded
 	ENV.window.SIZE.height=$("#canvas-window").height();
 	ENV.setPaperSize(window.screen.width,window.screen.height); // no layer yet
 
-	LANG.init(); // set all doms after load
+	LANG.init(); // set all doms after load?
 	EVENTS.init();
 	EventDistributer.init();
 	PALETTE.init();

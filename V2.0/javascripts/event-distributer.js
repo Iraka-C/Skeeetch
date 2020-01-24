@@ -23,19 +23,19 @@ EventDistributer.wheel={
 		let el=$element[0];
 		// The only hack: Deal with record during capture stage
 		el.addEventListener("pointerover",event=>{
-			//console.log("over");
-			//console.log(event.target);
-			
+			//console.log("over",event.target);
 			EventDistributer.wheel._nowListener=el;
 			EventDistributer.wheel._nowFunction=callback;
 		},true);
-		el.addEventListener("pointerout",event=>{ // @TODO: pointerup pointercancel?
-			EventDistributer.wheel._nowListener=null;
-			//console.log("out");
-			//console.log(event.target);
-			
+		// to deal with multiple pointers (e.g. mouse+pen) and when only one pointer's out
+		el.addEventListener("pointermove",event=>{
+			EventDistributer.wheel._nowListener=el;
+			EventDistributer.wheel._nowFunction=callback;
 		},true);
-		// @TODO: Buggy! What if some events are missed or passed in the wrong order?
+		el.addEventListener("pointerout",event=>{ // pointerup pointercancel?
+			EventDistributer.wheel._nowListener=null;
+			//console.log("out",event.pointerType);
+		},true);
 	},
 	_onwheel:function(event){
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){

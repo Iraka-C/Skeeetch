@@ -103,6 +103,8 @@ LAYERS.set$ElementAsLayerContainer=function($el){
 		onUpdate:LAYERS.onOrderChanged, // group remains, order within group changed
 		onStart:()=>{
 			LAYERS.isDragging=true;
+			console.log("Drag");
+			
 			$("#layer-panel-drag-up").css("display","block");
 			$("#layer-panel-drag-down").css("display","block");
 		},
@@ -203,10 +205,11 @@ class Layer{
 		this.transformAmount=0;
 		// the latest image data in this layer: for history recording,
 		let cv=$cv[0];
-		this.latestImageData=cv.getContext("2d").createImageData(cv.width,cv.height);
+		// @TODO: for debug set this to null
+		this.latestImageData=RENDER.getImageData(cv);
 		// @TODO: will this affect WebGL content?
 		// According to https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-context-mode yes it will
-		// if resize (width=width), the context is set to null again
+		// if resize (width=width), the context WON'T set to null again
 
 		LAYERS.layerHash[this.id]=this; // submit to id hash table
 	}
@@ -287,7 +290,7 @@ class Layer{
 	updateSettings(imgData){
 		let cv=this.$div[0];
 		this.latestImageData=imgData; // record image data
-		CANVAS.setTargetCanvas(cv,imgData);
+		CANVAS.setTargetCanvas(cv,imgData); // update RENDERER image data
 		this.updateThumb();
 	}
 }
@@ -457,6 +460,8 @@ LAYERS.initFirstLayer=function(){
 	LAYERS.active.$ui.children(".layer-group-container").prepend(layer.$ui);
 	LAYERS.active.$div.append(layer.$div);
 	LAYERS.setActive(layer);
+	RENDER.fillColor([255,255,255,255],[0,ENV.paperSize.width,0,ENV.paperSize.height]);
+	layer.latestImageData=RENDER.getImageData(); // get filled image data
 }
 
 /**
@@ -537,7 +542,9 @@ LAYERS.initLayerPanelButtons=function(){
 		// Do not delete when only 1 child
 		if(LAYERS._checkIfOnlyOneLayerLeft(LAYERS.active.id))return;
 		LAYERS.deleteItem(LAYERS.active);
-		
+	});
+	$("#clear-button").on("click",event=>{
+		CANVAS.clearAll();
 	});
 }
 

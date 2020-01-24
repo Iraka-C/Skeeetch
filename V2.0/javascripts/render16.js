@@ -5,14 +5,20 @@ class CPURenderer{
 	constructor(param){
 		// context init
 		this.canvas=param.canvas;
-		this.ctx=this.canvas.getContext("2d",{
-			desynchronized: true
-		});
+		this.ctx=this.canvas.getContext("2d");
+		// @TODO: check ctx==null
 
-		const imgData=param.imgData||this.ctx.getImageData( // temp imgdata for buffer
-			0,0,param.canvas.width,param.canvas.height
-		);
-		const data=imgData.data; // Uint8[...]
+		// Under certain cases, the buffer could be disabled.
+		// get/putImageData is still available
+		if(!param.disableBuffer){
+			const imgData=param.imgData||this.ctx.getImageData( // temp imgdata for buffer
+				0,0,param.canvas.width,param.canvas.height
+			);
+			this._initBuffer(imgData.data); // Uint8[...]
+		}
+	}
+
+	_initBuffer(data){
 		this.buffer=new Uint16Array(data); // buffer containing 16bit data
 		const size=data.length;
 		for(let i=0;i<size;i++){ // 8bit->16bit: 0~255 -> 0~65535
@@ -20,13 +26,13 @@ class CPURenderer{
 		}
 	}
 
-	
-
 	// ====================== for each stroke =======================
 	/**
 	 * init before a stroke
 	 */
 	init(param){
+		if(!this.buffer)return; // do not init without buffer
+
 		// 16-bit color
 		this.rgba=new Uint16Array([ // fill all element to 0~65535
 			param.rgb[0]*257,
@@ -37,12 +43,12 @@ class CPURenderer{
 
 		// init operation function, there's a brush in param
 		this.brush=param.brush;
-		this.softness=1-param.brush.edgeHardness;
-		if(this.softness<1E-2){ // no soft edge
+		const softness=1-param.brush.edgeHardness;
+		if(softness<1E-2){ // no soft edge
 			this.softEdge=(()=>1); // always 1
 		}
 		else{ // normal soft edge
-			this.softEdge=this.softEdgeNormal;
+			this.softEdge=RENDER.softEdgeNormal;
 		}
 		this.blendFunction=(this.brush.blendMode==-1)? // Erase/draw
 			CPURenderer.blendDestOut:
@@ -63,6 +69,7 @@ class CPURenderer{
 	 * p_i=[x_i,y_i,pressure_i]
 	 */
 	strokeBezier(p0,p1,p2){
+		if(!this.buffer)return; // do not stroke without buffer
 		
 		const w=this.canvas.width;
 		const h=this.canvas.height;
@@ -177,6 +184,37 @@ class CPURenderer{
 		}
 	}
 
+	/**
+	 * Fill within the range=[wL,wH,hL,hH], color rgba=[r,g,b,a(0~255)]
+	 */
+	fillColor(rgba,range){
+		range[0]=Math.round(range[0]);
+		range[1]=Math.round(range[1]);
+		range[2]=Math.round(range[2]);
+		range[3]=Math.round(range[3]);
+		const rgba16=new Uint16Array([ // fill all element to 0~65535
+			rgba[0]*257,
+			rgba[1]*257,
+			rgba[2]*257,
+			rgba[3]*257
+		]);
+		this.ctx.fillStyle=PALETTE.getColorString(rgba);
+		this.ctx.fillRect(range[0],range[2],range[1]-range[0],range[3]-range[2]);
+		// Fill buffer
+		const w=this.canvas.width;
+		const buffer=this.buffer;
+		for(let j=range[2];j<range[3];j++){ // copy content
+			let idBuf=(j*w+range[0])<<2;
+			for(let i=range[0];i<range[1];i++){
+				buffer[idBuf]=rgba16[0];
+				buffer[idBuf+1]=rgba16[1];
+				buffer[idBuf+2]=rgba16[2];
+				buffer[idBuf+3]=rgba16[3];
+				idBuf+=4;
+			}
+		}
+	}
+
 	// =============== Displaying =================
 
 	/**
@@ -210,9 +248,9 @@ class CPURenderer{
 		// renew canvas
 		// create is 5x faster than get image data
 		// create square. smaller: faster
-		let imgData=this.ctx.createImageData(wH-wL+1,hH-hL+1);
-		let data=imgData.data;
-		let buffer=this.buffer;
+		const imgData=this.ctx.createImageData(wH-wL+1,hH-hL+1);
+		const data=imgData.data;
+		const buffer=this.buffer;
 		let idImg=0;
 		for(let j=hL;j<=hH;j++){ // copy content
 			let idBuf=(j*w+wL)<<2;
@@ -245,33 +283,21 @@ class CPURenderer{
 	/**
 	 * return ImageData
 	 */
-	getImageData(){
+	getImageData(x,y,w,h){
 		const cv=this.canvas;
+		if(typeof(x)=="number"){ // metrics provided
+			return this.ctx.getImageData(x,y,w,h);
+		}
 		return this.ctx.getImageData(0,0,cv.width,cv.height);
 	}
 
 	/**
-	 * draw ImageData
+	 * draw ImageData, must be the same size
 	 */
-	putImageData(imgData){
-		this.ctx.putImageData(imgData,0,0);
+	putImageData(data){
+		this.ctx.putImageData(data,0,0);
 	}
 	// ============= tools ==============
-	/**
-	 * soft edge distance calc
-	 * d is the distance to center (0~1)
-	 */
-	softEdgeNormal(d){ // 
-		let r=(1-d)/this.softness; // softness is not 0
-		if(r>0.5){
-			let r1=1-r;
-			return 1-2*r1*r1;
-		}
-		return 2*r*r;
-		//return r*r; // good for rendering considering convolution, sharp at the center
-		//return r; // a bit faster than quad? but quality is worse
-		//return (1-Math.cos(Math.PI*r))/2; // easier but slower
-	}
 
 	/**
 	 * p1[id1..id1+3],p2[id2..id2+3]=[r,g,b,a], all 16-bits

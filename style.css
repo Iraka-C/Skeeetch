@@ -291,7 +291,7 @@ body,div,p,canvas{
 	pointer-events: none;
 	transform-origin: 50% 50%;
 	/*background-color: #ffffff;*/
-	background-image: url('./transparent.png');
+	background-image: url("/transparent.png");
 	background-repeat: repeat;
 	box-shadow: 0px 0px 80px #808080;
 	display: none;

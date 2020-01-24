@@ -13,18 +13,15 @@ EVENTS.key={
 EVENTS.init=function(){
 	/**
 	 * @TODO: stylus won't drag on layer panel
-	 */
-	
-	/**
-	 * @TODO: Bug! after stylus draw the canvas won't zoom on scroll
+	 * // Browser action
 	 */
 
 	/**
 	 * @TODO: touch event / multitouch support
 	 */
 
-
-	//$("html").on("contextmenu",e=>false);
+	// disable pen long press => contesxt menu
+	$(window).on("contextmenu",e=>false);
 
 	/**
 	 * Window resize handler
@@ -44,19 +41,38 @@ EVENTS.init=function(){
 		CURSOR.showCursor();
 	});
 	$("#canvas-window").on("pointermove",event=>{
+		const oE=event.originalEvent;
+		if((oE.buttons>>1)&1){ // 2^1==2, right button doesn't move cursor
+			return;
+		}
+
 		CURSOR.showCursor(); // pen->mouse switching
 		CURSOR.moveCursor(event);
 	});
 	$("#canvas-window").on("pointerout",()=>{
-		// continue record drawing, so commented out
-		//CURSOR.isDown=false;
-		//CANVAS.updateCursor([NaN,NaN,0]);
 		// disable cursor
 		CURSOR.hideCursor(); // pen away
 	});
 
 	// DOWN / UP outside the window
 	$(window).on("pointerdown",event=>{
+		/**
+			0 : No button or un-initialized
+			1 : Primary button (usually the left button)
+			2 : Secondary button (usually the right button)
+			4 : Auxilary button (usually the mouse wheel button or middle button)
+			8 : 4th button (typically the "Browser Back" button)
+			16: 5th button (typically the "Browser Forward" button)
+		 */
+		const oE=event.originalEvent;
+		if((oE.buttons>>1)&1){ // 2^1==2, right button
+			const pix=CANVAS.pickColor(oE.offsetX,oE.offsetY);
+			PALETTE.setRGB(pix.slice(0,3));
+			PALETTE.drawPalette();
+			PALETTE.setCursor();
+			return;
+		}
+		CURSOR.moveCursor(event);
 		CURSOR.down(event);
 		$("#brush-menu-panel").css("pointer-events","none"); // do not enable menu operation
 		$("#settings-menu-panel").css("pointer-events","none");
@@ -69,6 +85,9 @@ EVENTS.init=function(){
 			CURSOR.moveCursor(event);
 		}
 		CURSOR.up(event);
+		// if(event.originalEvent.pointerType=="touch"){ // on touch up, at the same time, out
+		// 	CURSOR.hideCursor();
+		// }
 		CANVAS.strokeEnd();
 		$("#brush-menu-panel").css("pointer-events","all"); // after stroke, enable menus
 		$("#settings-menu-panel").css("pointer-events","all");
@@ -80,9 +99,20 @@ EVENTS.init=function(){
 
 	// Scroll on canvas
 	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx)=>{ // Scroll
-		let newTx=ENV.window.trans.x-dx*10;
-		let newTy=ENV.window.trans.y-dy*10;
-		ENV.translateTo(newTx,newTy);
+		if(EVENTS.key.alt){ // Alt pressed, zoom
+			let newS=SettingHandler.updateScale(dx,ENV.window.scale);
+			ENV.scaleTo(newS);
+		}
+		else if(EVENTS.key.shift){ // Shift pressed, pan horizontally
+			let newTx=ENV.window.trans.x-dy*10;
+			let newTy=ENV.window.trans.y-dx*10;
+			ENV.translateTo(newTx,newTy);
+		}
+		else{ // normal pan
+			let newTx=ENV.window.trans.x-dx*10;
+			let newTy=ENV.window.trans.y-dy*10;
+			ENV.translateTo(newTx,newTy);
+		}
 	});
 
 	$(window).on("keydown",EVENTS.keyDown);

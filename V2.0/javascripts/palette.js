@@ -92,6 +92,9 @@ function h2rgb(hue){ // hue to pure color
 
 // Draw the palette with a certain hue
 PALETTE.drawPalette=function(hue){ // 0 ~ 360
+	if(hue===undefined){
+		hue=PALETTE.hsv[0];
+	}
 	let pureRGB=h2rgb(hue);
 	let paletteImgData=PALETTE.ctx.getImageData(0,0,PALETTE.size,PALETTE.size);
 	let pix=paletteImgData.data;
@@ -266,11 +269,10 @@ PALETTE.init=function(){
 	$("#palette-button").on("click",event=>{
 		$("#palette-panel").slideToggle(300);
 	});
-	
 };
 
 PALETTE.initPaletteWindow=function(){
-	PALETTE.drawPalette(PALETTE.hsv[0]);
+	PALETTE.drawPalette();
 	PALETTE.setHSV(PALETTE.hsv); // draw all items
 	PALETTE.setCursor();
 

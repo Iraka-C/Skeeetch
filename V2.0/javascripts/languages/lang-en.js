@@ -10,7 +10,10 @@ LANG_EN={
 	"layer-opacity-label":"Change opacity. Click to hide this layer.",
 
 	"sys-info":"Information",
-	"sys-mem":"Memory Usage"
+	"sys-mem":"Memory Usage",
+
+	"stroke-smoothness":"Smoothness",
+	"stylus-pressure-sensitivity":"Sensitivity"
 };
 LANG_EN._id={
 	"filename-input":"Skeeetch",

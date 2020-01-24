@@ -1,4 +1,4 @@
-# SCOW Basic Functions
+# Basic Functions
 
 Sketch Canvas on Web
 

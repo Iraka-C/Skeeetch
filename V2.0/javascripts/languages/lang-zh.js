@@ -37,6 +37,9 @@ LANG_ZH={
 	"Pressure Controlled Opacity":"压感不透明度",
 	"Min Opacity":"最低不透明度",
 
+	"stylus-pressure-sensitivity":"笔压灵敏度",
+	"stroke-smoothness":"抖动修正",
+
 	// Layer
 	"layer-opacity-label":"调节图层不透明度，单击以隐藏此图层",
 	"Lock pixel / opacity":"锁定图层/不透明度",

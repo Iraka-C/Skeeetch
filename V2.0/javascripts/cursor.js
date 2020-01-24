@@ -10,7 +10,7 @@ CURSOR.p0=[NaN,NaN,NaN]; // latest point
 CURSOR.p1=[NaN,NaN,NaN]; // last point
 CURSOR.isShown=false; // is the pointer visible
 CURSOR.isDown=false; //is the pointer pressed on screen
-CURSOR.id=null;
+CURSOR.type=null;
 CURSOR.eventIdList=["","",""]; // a list to record now id
 
 /**
@@ -31,17 +31,17 @@ CURSOR.init=function(){
 
 CURSOR.moveCursor=function(event){
 	let type=event.originalEvent.pointerType;
+	
 	// push one id in
 	CURSOR.eventIdList[2]=CURSOR.eventIdList[1];
 	CURSOR.eventIdList[1]=CURSOR.eventIdList[0];
 	CURSOR.eventIdList[0]=type;
 
-	if(!CURSOR.isDown
-	 &&CURSOR.eventIdList[2]==CURSOR.eventIdList[1]
-	 &&CURSOR.eventIdList[1]==type){ // same and not drawing
-		CURSOR.id=type;
+	if(CURSOR.eventIdList[2]==CURSOR.eventIdList[1]
+	 &&CURSOR.eventIdList[1]==type){ // same for 3 events
+		CURSOR.type=type;
 	}
-	if(CURSOR.id!=type){ // not the present id, no moving
+	if(CURSOR.type!=type){ // not the present id, no moving
 		return;
 	}
 
@@ -125,18 +125,17 @@ CURSOR.showCursor=function(){
 };
 
 CURSOR.down=function(event){
-	
 	if(!CURSOR.isDown){
 		CURSOR.isDown=true;
-		//CURSOR.id=event.originalEvent.pointerId;
+		//CURSOR.type=event.originalEvent.pointerId;
 	}
 }
 
 CURSOR.up=function(event){
 	if(CURSOR.isDown&&(
-		CURSOR.id==event.originalEvent.pointerType // on the target leave
-		||CURSOR.id===null)){ // on init
+		CURSOR.type==event.originalEvent.pointerType // on the target leave
+		||CURSOR.type===null)){ // on init
 		CURSOR.isDown=false;
-		//CURSOR.id=NaN;
+		//CURSOR.type=NaN;
 	}
 }

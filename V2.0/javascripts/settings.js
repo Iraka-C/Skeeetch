@@ -53,8 +53,8 @@ class SettingManager{
 	// checkFunction returns true for success, or a string for warning
 	// updateFunc()=>val is a function to provide a value to upate the setting panel everytime SettingManager.update() is called
 	// valFunc provides how to refresh the display
-	addInstantNumberItem(name,val,unit,inputUpdateFunc,scrollUpdateFunc,dragUpdateFunc,valFunc){
-		let $input=$("<input class='value' value='"+val+"' type='text' maxLength='20' size='5'/>");
+	addInstantNumberItem(name,valFunc,unit,inputUpdateFunc,scrollUpdateFunc,dragUpdateFunc){
+		let $input=$("<input class='value' value='' type='text' maxLength='20' size='5'/>");
 		
 		let $row=$("<tr class='hoverable'>").append(
 			$("<td>"+name+"</td>"),
