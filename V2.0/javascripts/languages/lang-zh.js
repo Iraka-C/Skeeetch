@@ -45,6 +45,7 @@ LANG_ZH={
 	"Lock pixel / opacity":"锁定图层/不透明度",
 	"Switch blend mode":"混合模式",
 	"Set this layer as a clipping mask":"剪贴蒙版",
+	"Background":"背景",
 
 	// Workspace
 	"workspace-title":"纸张",

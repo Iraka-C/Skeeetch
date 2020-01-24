@@ -481,6 +481,7 @@ LAYERS.init=function(){
  */
 LAYERS.initFirstLayer=function(){
 	let layer=new Layer();
+	layer.$ui.children(".layer-name-label").val(Lang("Background"));
 	LAYERS.active.$ui.children(".layer-group-container").prepend(layer.$ui);
 	LAYERS.active.$div.append(layer.$div);
 	LAYERS.setActive(layer);
