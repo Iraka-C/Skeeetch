@@ -154,10 +154,21 @@
 .layer-panel-button{
 	flex: auto;
 	text-align: center;
-	transition: background 0.5s;
+	transition: background 0.5s, box-shadow 0.2s;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	padding: 0.2em 0em;
 }
 .layer-panel-button:hover{
 	background: #bbb;
+}
+.layer-panel-button:active{
+	box-shadow: 0px 0px 10px #00000022;
+}
+.layer-panel-button > img{
+	height: 1.25em;
+	display: block;
 }
 /* =================== Layer Item ==================== */
 .layer-item{

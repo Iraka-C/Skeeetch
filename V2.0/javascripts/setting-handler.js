@@ -3,6 +3,10 @@
  */
 
 SettingHandler={};
+SettingHandler.tempPaperSize={
+	width:0,
+	height:0
+};
 
 SettingHandler.init=function(){
 	SettingHandler.initTransformHandler();
@@ -98,14 +102,64 @@ SettingHandler.initSystemSetting=function(){
 		CANVAS.setTargetCanvas(CANVAS.nowCanvas);
 	});
 
-	sys.addSectionTitle(Lang("Display"));
-	sys.addHint(Lang("display-hint-1"));
+	// Workspace/paper setting
+	sys.addSectionTitle(Lang("workspace-title"));
+	sys.addInstantNumberItem(
+		Lang("Paper Width"),()=>SettingHandler.tempPaperSize.width,Lang("px"),
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=newVal.clamp(16,4096);
+				SettingHandler.tempPaperSize.width=newVal;
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			let newVal=(SettingHandler.tempPaperSize.width+dW).clamp(16,4096);
+			SettingHandler.tempPaperSize.width=newVal;
+		},
+		(dx,oldVal)=>{ // set on drag-x
+			let newVal=Math.round(oldVal+dx).clamp(16,4096);
+			SettingHandler.tempPaperSize.width=newVal;
+		}
+	);
+	sys.addInstantNumberItem(
+		Lang("Paper Height"),()=>SettingHandler.tempPaperSize.height,Lang("px"),
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=newVal.clamp(16,4096);
+				SettingHandler.tempPaperSize.height=newVal;
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			let newVal=(SettingHandler.tempPaperSize.height+dW).clamp(16,4096);
+			SettingHandler.tempPaperSize.height=newVal;
+		},
+		(dx,oldVal)=>{ // set on drag-x
+			let newVal=Math.round(oldVal+dx).clamp(16,4096);
+			SettingHandler.tempPaperSize.height=newVal;
+		}
+	);
+	$("#system-button").on("click",event=>{ // refresh when open
+		SettingHandler.tempPaperSize.width=ENV.paperSize.width;
+		SettingHandler.tempPaperSize.height=ENV.paperSize.height;
+	});
+	sys.addHint(Lang("workspace-hint-1"));
+	sys.addButton(Lang("Change Paper Size"),()=>{
+		if(SettingHandler.tempPaperSize.width==ENV.paperSize.width
+		&&SettingHandler.tempPaperSize.height==ENV.paperSize.height){ // not changed
+			return;
+		}
+		ENV.setPaperSize(SettingHandler.tempPaperSize.width,SettingHandler.tempPaperSize.height);
+	});
 	sys.addSwitch(Lang("Anti-Aliasing"),[Lang("On"),Lang("Off")],null,val=>{
 		switch(val){
 		case 1: ENV.setAntiAliasing(false);break;
 		default: ENV.setAntiAliasing(true);break;
 		}
 	});
+
+
+	sys.addSectionTitle(Lang("Display"));
+	//sys.addHint(Lang("display-hint-1"));
 	sys.addSwitch(Lang("Transform Animation"),[Lang("On"),Lang("Off")],null,val=>{
 		switch(val){
 		case 1: ENV.setTransformAnimation(false);break;

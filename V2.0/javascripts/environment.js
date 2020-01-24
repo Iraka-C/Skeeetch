@@ -154,6 +154,7 @@ ENV.setPaperSize=function(w,h){
 		// w or h invalid or =0
 		return;
 	}
+	HISTORY.clearAllHistory(); // remove histories
 	ENV.paperSize={width:w,height:h,diag:Math.sqrt(w*w+h*h)};
 	$("#canvas-container").css({
 		"width":w+"px",
@@ -167,11 +168,12 @@ ENV.setPaperSize=function(w,h){
 			continue;
 		}
 		let cv=item.$div[0];
-		let layerData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height); // image data
+		let layerData=RENDER.getImageData(cv); // image data
 		// do some zooming/interpolation work here...
+		// Notice: gl
 		cv.width=ENV.paperSize.width;
 		cv.height=ENV.paperSize.height;
-		cv.getContext("2d").putImageData(layerData,0,0);
+		RENDER.putImageData(cv,layerData);
 		item.updateThumb(); // update thumb image in layer panel
 	}
 

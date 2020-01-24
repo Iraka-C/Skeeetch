@@ -512,6 +512,7 @@ LAYERS._inactive=function(){
 // ======================= UI Settings =============================
 
 LAYERS.initLayerPanelButtons=function(){
+	// New Layer Button
 	$("#new-layer-button").on("click",event=>{ // new layer
 		let layer=new Layer();
 		// active type
@@ -530,6 +531,8 @@ LAYERS.initLayerPanelButtons=function(){
 		}
 		LAYERS.setActive(layer);
 	});
+
+
 	$("#new-group-button").on("click",event=>{ // new group
 		let group=new LayerGroup();
 		switch(LAYERS.active.type){

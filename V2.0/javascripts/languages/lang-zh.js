@@ -44,9 +44,14 @@ LANG_ZH={
 	"layer-opacity-label":"调节图层不透明度，单击以隐藏此图层",
 	"Lock pixel / opacity":"锁定图层/不透明度",
 	"Switch blend mode":"混合模式",
-	"Set this layer as a clipping mask":"剪贴蒙版"
+	"Set this layer as a clipping mask":"剪贴蒙版",
 
-	//
+	// Workspace
+	"workspace-title":"纸张",
+	"Paper Width":"宽度",
+	"Paper Height":"高度",
+	"Change Paper Size":"改变尺寸",
+	"workspace-hint-1":"改变纸张尺寸时会丢弃超出范围的像素并清除所有历史记录！"
 };
 LANG_ZH._id={
 	"filename-input":"Skeeetch",
