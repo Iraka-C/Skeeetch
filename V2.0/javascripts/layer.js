@@ -185,6 +185,30 @@ class Layer{
 				});
 			}
 		});
+		// Opacity label
+		const $opacityLabel=this.$ui.children(".layer-opacity-label");
+		const toOpacityString=()=>this.visible?
+			(this.opacity+"%").padEnd(4,"#").replace(/#/g,"&nbsp;"):
+			"----";
+		SettingManager.setInputInstantNumberInteraction(
+			$opacityLabel,
+			null,
+			null,
+			(dW,oldVal)=>{ // set on scroll
+				if(!this.visible)return; // only change on visible
+				let newVal=(this.opacity+dW).clamp(0,100);
+				this.opacity=newVal;
+				$cv.css("opacity",newVal/100);
+			},
+			null, // conflict with drag
+			()=>$opacityLabel.html(toOpacityString())
+		);
+		$opacityLabel.on("click",()=>{ // @TODO: do not draw when invisible
+			this.visible=!this.visible;
+			$cv.css("visibility",this.visible?"visible":"hidden");
+			$opacityLabel.html(toOpacityString());
+		});
+		
 
 		let $cv=$("<canvas class='layer-canvas pixelated'>");
 		$cv.attr({
@@ -193,7 +217,7 @@ class Layer{
 			"data-layer-id":this.id
 		});
 		
-		this.opacity=1;
+		this.opacity=100; // percentage
 		this.visible=true;
 		this.$div=$cv;
 		this.type="canvas";

@@ -197,7 +197,9 @@ CANVAS.clearAll=function(){
 CANVAS._takePixel=function($div,x,y,pix){
 	if($div.is("canvas")){ // a group
 		const data=RENDER.getImageData($div[0],x,y,1,1).data; // 2d way, not gl
-		return [data[0],data[1],data[2],data[3]/255]; // Uint8[4] => float
+		const layer=LAYERS.layerHash[$div.attr("data-layer-id")]; // get layer opacity
+		const opa=layer.visible?layer.opacity/100:0;
+		return [data[0],data[1],data[2],data[3]*opa/255]; // Uint8[4] => float
 	}
 	const cdiv=$div.children();
 	let tPix=[0,0,0,0];
