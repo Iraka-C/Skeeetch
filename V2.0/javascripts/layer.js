@@ -335,7 +335,7 @@ class Layer{
 		// Lock buttton
 		const $buttons=this.$ui.children(".layer-buttons");
 		const lockButton=$buttons.children(".layer-lock-button");
-		const setLockButtonStatus=v=>{
+		const setLockButtonStatus=v=>{ // separated function: do not change this.prevStatus
 			switch(v){
 			case 0: // no lock
 				this.isLocked=false;
@@ -534,11 +534,12 @@ LAYERS.initFirstLayer=function(){
 	LAYERS.active.$ui.children(".layer-group-container").prepend(layer.$ui);
 	LAYERS.active.$div.append(layer.$div);
 	LAYERS.setActive(layer);
-	RENDER.fillColor([255,255,255,255]);
+	RENDER.fillColor([255,255,255,255]); // Sync!
 	layer.latestImageData=RENDER.getImageData(); // get filled image data
 	layer._setButtonStatus({
 		lock:1
 	}); // lock background opacity
+	layer.prevStatus=layer._getButtonStatus(); // save first status
 }
 
 /**

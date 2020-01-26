@@ -102,6 +102,7 @@ EVENTS.init=function(){
 		if(EVENTS.key.alt){ // Alt pressed, zoom
 			let newS=SettingHandler.updateScale(dy,ENV.window.scale);
 			ENV.scaleTo(newS);
+			$("#scale-info-input").val(Math.round(newS*100));
 		}
 		else if(EVENTS.key.shift){ // Shift pressed, pan horizontally
 			let newTx=ENV.window.trans.x-dy*10;

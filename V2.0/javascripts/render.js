@@ -60,6 +60,7 @@ RENDER.strokeBezier=function(p0,p1,p2){
 }
 
 RENDER.fillColor=function(rgba,range,isOpacityLocked){
+	// The following method must renew canvas in a synchronized way
 	RENDER.renderer.fillColor(rgba,range,isOpacityLocked);
 }
 

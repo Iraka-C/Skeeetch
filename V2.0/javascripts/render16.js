@@ -210,11 +210,13 @@ class CPURenderer{
 		]);
 		
 		// Fill buffer
+		const wL=range[0],wH=range[1];
+		const hL=range[2],hH=range[3];
 		const w=this.canvas.width;
 		const buffer=this.buffer;
-		for(let j=range[2];j<range[3];j++){ // copy content
-			let idBuf=(j*w+range[0])<<2;
-			for(let i=range[0];i<range[1];i++){
+		for(let j=hL;j<hH;j++){ // copy content
+			let idBuf=(j*w+wL)<<2;
+			for(let i=wL;i<wH;i++){
 				buffer[idBuf]=rgba16[0];
 				buffer[idBuf+1]=rgba16[1];
 				buffer[idBuf+2]=rgba16[2];
@@ -222,8 +224,21 @@ class CPURenderer{
 				idBuf+=4;
 			}
 		}
-		// Put data
-		this.requestRefresh(range);
+
+		// Fill image data
+		const imgData=this.ctx.createImageData(wH-wL+1,hH-hL+1);
+		const data=imgData.data;
+		let idImg=0;
+		for(let j=hL;j<=hH;j++){ // copy content
+			for(let i=wL;i<=wH;i++){ // It's OK to keep it this way
+				data[idImg]=rgba[0]; // not that time consuming
+				data[idImg+1]=rgba[1];
+				data[idImg+2]=rgba[2];
+				data[idImg+3]=isOpacityLocked?data[idImg+3]:rgba[3];
+				idImg+=4; // Avoid mult
+			}
+		}
+		this.ctx.putImageData(imgData,wL,hL);
 	}
 
 	// =============== Displaying =================
