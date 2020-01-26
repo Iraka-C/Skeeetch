@@ -20,8 +20,8 @@ EVENTS.init=function(){
 	 * @TODO: touch event / multitouch support
 	 */
 
-	// disable pen long press => contesxt menu
-	//$(window).on("contextmenu",e=>false);
+	// disable pen long press => context menu
+	$(window).on("contextmenu",e=>false);
 
 	/**
 	 * Window resize handler
@@ -100,7 +100,7 @@ EVENTS.init=function(){
 	// Scroll on canvas
 	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx)=>{ // Scroll
 		if(EVENTS.key.alt){ // Alt pressed, zoom
-			let newS=SettingHandler.updateScale(dx,ENV.window.scale);
+			let newS=SettingHandler.updateScale(dy,ENV.window.scale);
 			ENV.scaleTo(newS);
 		}
 		else if(EVENTS.key.shift){ // Shift pressed, pan horizontally
@@ -141,11 +141,12 @@ EVENTS.keyDown=function(event){
 		EVENTS.key.alt=true;
 		functionKeyChanged=true;
 	}
-
+	
 	if(functionKeyChanged){ // shift|ctrl|alt pressed
 		// more actions related to key changed?
 		EventDistributer.footbarHint.update();
 	}
+	event.preventDefault();
 }
 
 // keyboard up handler
@@ -174,4 +175,5 @@ EVENTS.keyUp=function(event){
 	if(functionKeyChanged){ // shift|ctrl|alt leave
 		EventDistributer.footbarHint.update();
 	}
+	event.preventDefault();
 }

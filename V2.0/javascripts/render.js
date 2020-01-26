@@ -59,8 +59,8 @@ RENDER.strokeBezier=function(p0,p1,p2){
 	RENDER.renderer.strokeBezier(p0,p1,p2);
 }
 
-RENDER.fillColor=function(rgba,range){
-	RENDER.renderer.fillColor(rgba,range);
+RENDER.fillColor=function(rgba,range,isOpacityLocked){
+	RENDER.renderer.fillColor(rgba,range,isOpacityLocked);
 }
 
 /**

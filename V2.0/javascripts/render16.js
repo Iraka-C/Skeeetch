@@ -16,6 +16,9 @@ class CPURenderer{
 			);
 			this._initBuffer(imgData.data); // Uint8[...]
 		}
+
+		// init refresh range
+		this.refreshRange=[Infinity,0,Infinity,0];
 	}
 
 	_initBuffer(data){
@@ -196,19 +199,16 @@ class CPURenderer{
 	/**
 	 * Fill within the range=[wL,wH,hL,hH], color rgba=[r,g,b,a(0~255)]
 	 */
-	fillColor(rgba,range){
-		range[0]=Math.round(range[0]);
-		range[1]=Math.round(range[1]);
-		range[2]=Math.round(range[2]);
-		range[3]=Math.round(range[3]);
+	fillColor(rgba,range,isOpacityLocked){
+		isOpacityLocked=isOpacityLocked||false;
+		if(!range)range=[0,this.canvas.width,0,this.canvas.height];
 		const rgba16=new Uint16Array([ // fill all element to 0~65535
 			rgba[0]*257,
 			rgba[1]*257,
 			rgba[2]*257,
 			rgba[3]*257
 		]);
-		this.ctx.fillStyle=PALETTE.getColorString(rgba);
-		this.ctx.fillRect(range[0],range[2],range[1]-range[0],range[3]-range[2]);
+		
 		// Fill buffer
 		const w=this.canvas.width;
 		const buffer=this.buffer;
@@ -218,10 +218,12 @@ class CPURenderer{
 				buffer[idBuf]=rgba16[0];
 				buffer[idBuf+1]=rgba16[1];
 				buffer[idBuf+2]=rgba16[2];
-				buffer[idBuf+3]=rgba16[3];
+				buffer[idBuf+3]=isOpacityLocked?buffer[idBuf+3]:rgba16[3];
 				idBuf+=4;
 			}
 		}
+		// Put data
+		this.requestRefresh(range);
 	}
 
 	// =============== Displaying =================

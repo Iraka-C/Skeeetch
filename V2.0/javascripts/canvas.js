@@ -188,13 +188,19 @@ CANVAS.clearAll=function(){
 	if(!CANVAS.nowLayer.visible||CANVAS.nowLayer.isLocked){ // locked
 		return;
 	}
-	const cv=CANVAS.nowLayer.$div[0];
-	cv.width=cv.width;
-	RENDER.init({ // init after setActiveLayer || change renderer
-		canvas: cv,
-		method: CANVAS.settings.method,
-		onRefresh: CANVAS.onRefresh
-	});
+	
+	if(CANVAS.nowLayer.isOpacityLocked){ // do not change opacity
+		RENDER.fillColor([255,255,255,255],null,true);
+	}
+	else{
+		const cv=CANVAS.nowLayer.$div[0];
+		cv.width=cv.width;
+		RENDER.init({ // init after setActiveLayer || change renderer
+			canvas: cv,
+			method: CANVAS.settings.method,
+			onRefresh: CANVAS.onRefresh
+		});
+	}
 	requestAnimationFrame(()=>{
 		LAYERS.active.updateLatestImageData(RENDER.getImageData());
 		LAYERS.active.updateThumb();

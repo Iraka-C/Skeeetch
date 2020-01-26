@@ -35,7 +35,7 @@ LAYERS.$newLayerUI=function(name,id){
 	EventDistributer.footbarHint(blendModeButton,()=>Lang("Switch blend mode"));
 	EventDistributer.footbarHint(maskButton,()=>Lang("Set this layer as a clipping mask"));
 
-	var nameLabel=$("<input class='layer-name-label'>");
+	let nameLabel=$("<input class='layer-name-label'>");
 	nameLabel.attr({
 		"value":name,
 		"type":"text",
@@ -49,6 +49,11 @@ LAYERS.$newLayerUI=function(name,id){
 	let cv=$("<canvas class='layer-ui-canvas'>");
 	cv.attr({"width":1,"height":1});
 	cvUI.append(cv);
+
+	// prevent down event from influencing dragging
+	nameLabel.on("pointerdown",event=>event.stopPropagation());
+	buttons.on("pointerdown",event=>event.stopPropagation());
+	buttons.children().attr("draggable","false");
 
 	layerUI.append(cvUI,maskUI2,maskUI,opacityLabel,buttons,nameLabel);
 	return layerUI;
@@ -103,7 +108,6 @@ LAYERS.set$ElementAsLayerContainer=function($el){
 		onUpdate:LAYERS.onOrderChanged, // group remains, order within group changed
 		onStart:()=>{
 			LAYERS.isDragging=true;
-			console.log("Drag");
 			$("#layer-panel-drag-up").css("display","block");
 			$("#layer-panel-drag-down").css("display","block");
 		},
@@ -148,12 +152,8 @@ class Layer{
 		name=name||Lang("New Layer");
 		this.id=LAYERS.generateHash();
 		this.$ui=LAYERS.$newLayerUI(name,this.id);
-		this.$ui.on("pointerdown",event=>{
+		this.$ui.on("pointerdown",event=>{ // set active on clicking
 			LAYERS.setActive(this);
-			if(event.target==this.$ui.children("input")[0]){
-				// The event is from input selection, prevent drag
-				event.stopPropagation();
-			}
 		});
 
 		// Move thumb image
@@ -328,34 +328,34 @@ class Layer{
 	 * Set the locking status of current layer
 	 * 0: no lock, 1: opacity lock, 2: full lock
 	 */
-	_setLockButtonStatus(v){
-		const lockButton=this.$ui.children(".layer-buttons").children(".layer-lock-button");
-		switch(v){
-		case 0: // no lock
-			this.isLocked=false;
-			this.isOpacityLocked=false;
-			lockButton.attr("src","./resources/unlock.svg");
-			break;
-		case 1: // opacity lock
-			this.isLocked=false;
-			this.isOpacityLocked=true;
-			lockButton.attr("src","./resources/opacity-lock.svg");
-			break;
-		case 2: // full lock
-			this.isLocked=true;
-			this.isOpacityLocked=true;
-			lockButton.attr("src","./resources/all-lock.svg");
-			break;
-		}
-	}
+	
 
 	// for all buttons
 	_initButtons(){
 		// Lock buttton
 		const $buttons=this.$ui.children(".layer-buttons");
 		const lockButton=$buttons.children(".layer-lock-button");
-		SettingManager.setSwitchInteraction(lockButton,null,3,($el,v)=>{
-			this._setLockButtonStatus(v);
+		const setLockButtonStatus=v=>{
+			switch(v){
+			case 0: // no lock
+				this.isLocked=false;
+				this.isOpacityLocked=false;
+				lockButton.attr("src","./resources/unlock.svg");
+				break;
+			case 1: // opacity lock
+				this.isLocked=false;
+				this.isOpacityLocked=true;
+				lockButton.attr("src","./resources/opacity-lock.svg");
+				break;
+			case 2: // full lock
+				this.isLocked=true;
+				this.isOpacityLocked=true;
+				lockButton.attr("src","./resources/all-lock.svg");
+				break;
+			}
+		}
+		this._lockButtonUpdateFunc=SettingManager.setSwitchInteraction(lockButton,null,3,($el,v)=>{
+			setLockButtonStatus(v);
 		});
 	}
 	_getButtonStatus(){
@@ -364,7 +364,7 @@ class Layer{
 		};
 	}
 	_setButtonStatus(param){
-		this._setLockButtonStatus(param.lock);
+		if(param.lock!==undefined)this._lockButtonUpdateFunc(param.lock);
 	}
 }
 
@@ -534,9 +534,11 @@ LAYERS.initFirstLayer=function(){
 	LAYERS.active.$ui.children(".layer-group-container").prepend(layer.$ui);
 	LAYERS.active.$div.append(layer.$div);
 	LAYERS.setActive(layer);
-	RENDER.fillColor([255,255,255,255],[0,ENV.paperSize.width,0,ENV.paperSize.height]);
+	RENDER.fillColor([255,255,255,255]);
 	layer.latestImageData=RENDER.getImageData(); // get filled image data
-	layer._setLockButtonStatus(1); // lock background opacity
+	layer._setButtonStatus({
+		lock:1
+	}); // lock background opacity
 }
 
 /**

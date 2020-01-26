@@ -194,8 +194,9 @@ class SettingManager{
 		};
 		setVal(0); // Init target as 0
 
-		$parent.on("click",event=>{
+		$parent.on("pointerdown",event=>{
 			setVal(toggle+1); // call next selection
+			event.stopPropagation();
 		});
 
 		const _updateFunc=function(v){
