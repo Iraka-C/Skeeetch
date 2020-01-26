@@ -46,6 +46,10 @@ LANG_ZH={
 	"Switch blend mode":"混合模式",
 	"Set this layer as a clipping mask":"剪贴蒙版",
 	"Background":"背景",
+	"Add a new layer":"新建图层",
+	"Add a new layer group":"新建图层组",
+	"Delete current layer / group":"删除当前图层/图层组",
+	"Clear current layer":"清空当前图层",
 
 	// Workspace
 	"workspace-title":"纸张",

@@ -23,6 +23,8 @@ class HistoryItem{
 		 * 	id: layer id
 		 * 	data: imageData
 		 * 	prevData: the imageData before the change
+		 * 	status: the button status (locked, blend, clip) of the present layer
+		 * 	prevStatus: the button status (locked, blend, clip) before the change
 		 * }
 		 */
 		/**
@@ -35,6 +37,8 @@ class HistoryItem{
 		 * 	to: new container id
 		 * 	oldIndex: index in the old container
 		 * 	newIndex: index in the new container
+		 * 	status: the button status (locked, blend, clip) of the present layer
+		 * 	prevStatus: the button status (locked, blend, clip) before the change
 		 * }
 		 */
 	}
@@ -102,16 +106,17 @@ HISTORY.undoCanvasChange=function(info){
 	RENDER.putImageData(layer.$div[0],info.prevData); // use putImageData to ensure image quality
 	LAYERS.setActive(layer); // also update canvas buffer and latest image data
 	// @TODO: logic here
-	layer.updateSettings(info.prevData);
+	layer.updateSettings(info.prevData,info.prevStatus);
 }
 HISTORY.redoCanvasChange=function(info){
 	let layer=LAYERS.layerHash[info.id];
 	RENDER.putImageData(layer.$div[0],info.data); // use putImageData to ensure image quality
 	LAYERS.setActive(layer); // also update canvas buffer and latest image data
-	layer.updateSettings(info.data);
+	layer.updateSettings(info.data,info.status);
 }
 
 // "move-layer-item" type
+// @TODO: add layer / group status
 HISTORY.undoMoveItem=function(info){
 	let oldGroup=LAYERS.layerHash[info.from];
 	let obj=LAYERS.layerHash[info.id];

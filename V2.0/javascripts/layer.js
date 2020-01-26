@@ -24,10 +24,10 @@ LAYERS.$newLayerUI=function(name,id){
 	layerUI.attr("data-layer-id",id);
 
 	let opacityLabel=$("<div class='layer-opacity-label'>").text("100%");
-	let buttons=$("<div>").addClass("layer-buttons");
-	let lockButton=$("<div>").html("&para;");
-	let blendModeButton=$("<div>").html("&#9677;");
-	let maskButton=$("<div>").html("&#8628;");
+	let buttons=$("<div class='layer-buttons'>");
+	let lockButton=$("<img class='layer-lock-button'>");
+	let blendModeButton=$("<img class='layer-blend-mode-button'>");
+	let maskButton=$("<img class='layer-mask-button'>");
 	buttons.append(lockButton,blendModeButton,maskButton);
 	
 	EventDistributer.footbarHint(opacityLabel,()=>Lang("layer-opacity-label"));
@@ -104,7 +104,6 @@ LAYERS.set$ElementAsLayerContainer=function($el){
 		onStart:()=>{
 			LAYERS.isDragging=true;
 			console.log("Drag");
-			
 			$("#layer-panel-drag-up").css("display","block");
 			$("#layer-panel-drag-down").css("display","block");
 		},
@@ -156,41 +155,37 @@ class Layer{
 				event.stopPropagation();
 			}
 		});
+
+		// Move thumb image
+		const setThumbTransform=str=>this.$thumb.css("transform",str);
 		this.$ui.on("pointermove",event=>{ // move thumb image
 			let offset=this.$ui.offset();
 			let dx=event.pageX-offset.left,dy=event.pageY-offset.top;
 			let w=this.$ui.width(),h=this.$ui.height();
 			if(this.transformType=="X"){ // perform X transform
 				let tx=dx/w;
-				this.$thumb.css({
-					"transform":"translateX("+(this.transformAmount*tx)+"px)"
-				});
+				setThumbTransform("translateX("+(this.transformAmount*tx)+"px)");
 			}
 			else{ // perform Y transform
 				let ty=dy/h;
-				this.$thumb.css({
-					"transform":"translateY("+(this.transformAmount*ty)+"px)"
-				});
+				setThumbTransform("translateY("+(this.transformAmount*ty)+"px)");
 			}
 		});
 		this.$ui.on("pointerout",event=>{ // reset thumb image position
 			if(this.transformType=="X"){ // perform X transform
-				this.$thumb.css({
-					"transform":"translateX("+(this.transformAmount/2)+"px)"
-				});
+				setThumbTransform("translateX("+(this.transformAmount/2)+"px)");
 			}
 			else{ // perform Y transform
-				this.$thumb.css({
-					"transform":"translateY("+(this.transformAmount/2)+"px)"
-				});
+				setThumbTransform("translateY("+(this.transformAmount/2)+"px)");
 			}
 		});
+
 		// Opacity label
 		const $opacityLabel=this.$ui.children(".layer-opacity-label");
 		const toOpacityString=()=>this.visible?
 			(this.opacity+"%").padEnd(4,"#").replace(/#/g,"&nbsp;"):
 			"----";
-		SettingManager.setInputInstantNumberInteraction(
+		SettingManager.setInputInstantNumberInteraction( // @TODO: Add to history
 			$opacityLabel,
 			null,
 			null,
@@ -218,7 +213,9 @@ class Layer{
 		});
 		
 		this.opacity=100; // percentage
-		this.visible=true;
+		this.visible=true; // is this layer not hidden?
+		this.isLocked=false; // is this layer locked?
+		this.isOpacityLocked=false; // is the layer opacity locked?
 		this.$div=$cv;
 		this.type="canvas";
 
@@ -234,6 +231,9 @@ class Layer{
 		// @TODO: will this affect WebGL content?
 		// According to https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-context-mode yes it will
 		// if resize (width=width), the context WON'T set to null again
+		this.prevStatus=this._getButtonStatus(); // present button status
+
+		this._initButtons();
 
 		LAYERS.layerHash[this.id]=this; // submit to id hash table
 	}
@@ -260,13 +260,17 @@ class Layer{
 	 */
 	updateLatestImageData(imgData){
 		// update history @TODO: do not update history when no change is applied to the canvas
+		let currentStatus=this._getButtonStatus();
 		HISTORY.addHistory({
 			type: "canvas-change",
 			id: this.id,
 			data: imgData,
 			prevData: this.latestImageData,
+			status: currentStatus,
+			prevStatus: this.prevStatus
 		});
 		this.latestImageData=imgData;
+		this.prevStatus=currentStatus;
 	}
 	/**
 	 * Update the thumb image
@@ -310,12 +314,57 @@ class Layer{
 	}
 	/**
 	 * update all without recording history
+	 * including buttons status (lock, blend, clip, etc.)
 	 */
-	updateSettings(imgData){
-		let cv=this.$div[0];
+	updateSettings(imgData,status){
 		this.latestImageData=imgData; // record image data
-		CANVAS.setTargetCanvas(cv,imgData); // update RENDERER image data
+		CANVAS.setTargetLayer(this,imgData); // update RENDERER image data
+		this._setButtonStatus(status); // set button status
 		this.updateThumb();
+	}
+
+	// ================= init UI ==================
+	/**
+	 * Set the locking status of current layer
+	 * 0: no lock, 1: opacity lock, 2: full lock
+	 */
+	_setLockButtonStatus(v){
+		const lockButton=this.$ui.children(".layer-buttons").children(".layer-lock-button");
+		switch(v){
+		case 0: // no lock
+			this.isLocked=false;
+			this.isOpacityLocked=false;
+			lockButton.attr("src","./resources/unlock.svg");
+			break;
+		case 1: // opacity lock
+			this.isLocked=false;
+			this.isOpacityLocked=true;
+			lockButton.attr("src","./resources/opacity-lock.svg");
+			break;
+		case 2: // full lock
+			this.isLocked=true;
+			this.isOpacityLocked=true;
+			lockButton.attr("src","./resources/all-lock.svg");
+			break;
+		}
+	}
+
+	// for all buttons
+	_initButtons(){
+		// Lock buttton
+		const $buttons=this.$ui.children(".layer-buttons");
+		const lockButton=$buttons.children(".layer-lock-button");
+		SettingManager.setSwitchInteraction(lockButton,null,3,($el,v)=>{
+			this._setLockButtonStatus(v);
+		});
+	}
+	_getButtonStatus(){
+		return {
+			lock: this.isLocked?2:this.isOpacityLocked?1:0
+		};
+	}
+	_setButtonStatus(param){
+		this._setLockButtonStatus(param.lock);
 	}
 }
 
@@ -487,6 +536,7 @@ LAYERS.initFirstLayer=function(){
 	LAYERS.setActive(layer);
 	RENDER.fillColor([255,255,255,255],[0,ENV.paperSize.width,0,ENV.paperSize.height]);
 	layer.latestImageData=RENDER.getImageData(); // get filled image data
+	layer._setLockButtonStatus(1); // lock background opacity
 }
 
 /**
@@ -509,12 +559,12 @@ LAYERS.setActive=function(obj){ // layer or group or id
 		let cv=obj.$div[0];
 		obj.latestImageData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height); // record image data
 		// @TODO: what if gl
-		CANVAS.setTargetCanvas(cv,obj.latestImageData); // set CANVAS draw target
+		CANVAS.setTargetLayer(obj,obj.latestImageData); // set CANVAS draw target
 	}
 	else if(obj.type=="group"){ // group
 		obj.$ui.addClass("layer-group-ui-active");
 		// @TODO: Optimize when selecting the same canvas layer again
-		CANVAS.setTargetCanvas(null); // disable canvas
+		CANVAS.setTargetLayer(null); // disable canvas
 	}
 	LAYERS.active=obj;
 }
@@ -556,7 +606,7 @@ LAYERS.initLayerPanelButtons=function(){
 		}
 		LAYERS.setActive(layer);
 	});
-
+	EventDistributer.footbarHint($("#new-layer-button"),()=>Lang("Add a new layer"));
 
 	$("#new-group-button").on("click",event=>{ // new group
 		let group=new LayerGroup();
@@ -566,14 +616,19 @@ LAYERS.initLayerPanelButtons=function(){
 		}
 		LAYERS.setActive(group);
 	});
+	EventDistributer.footbarHint($("#new-group-button"),()=>Lang("Add a new layer group"));
+
 	$("#delete-button").on("click",event=>{
 		// Do not delete when only 1 child
 		if(LAYERS._checkIfOnlyOneLayerLeft(LAYERS.active.id))return;
 		LAYERS.deleteItem(LAYERS.active);
 	});
+	EventDistributer.footbarHint($("#delete-button"),()=>Lang("Delete current layer / group"));
+
 	$("#clear-button").on("click",event=>{
 		CANVAS.clearAll();
 	});
+	EventDistributer.footbarHint($("#clear-button"),()=>Lang("Clear current layer"));
 }
 
 LAYERS.deleteItem=function(obj){

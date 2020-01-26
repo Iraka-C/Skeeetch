@@ -184,7 +184,7 @@ ENV.setPaperSize=function(w,h){
 	$("#scale-info-input").val(Math.round(k*100));
 	ENV.displaySettings.enableTransformAnimation=isAnim; // recover animation setting
 	if(LAYERS.active&&LAYERS.active.type=="canvas"){ // if there is an active CV, refresh it
-		CANVAS.setTargetCanvas(LAYERS.active.$div[0]);
+		CANVAS.setTargetLayer(LAYERS.active);
 	}
 };
 // ====================== Tools functions ==========================

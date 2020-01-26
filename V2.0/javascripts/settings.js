@@ -178,6 +178,33 @@ class SettingManager{
 		this._updateFuncList.push(_updateFunc);
 		return _updateFunc;
 	}
+
+	/**
+	 * Set a div as switch / toggle
+	 * Click on $parent, change the value of $input
+	 * N is the number of selections of this switch
+	 * callback is the function called when switch pressed
+	 */
+	static setSwitchInteraction($el,$parent,N,callback){
+		$parent=$parent||$el; // if no parent provided, set as itself
+		let toggle=0; // Init as 0;
+		function setVal(v){ // set the status of this switch as v
+			toggle=Math.round(v)%N;
+			if(callback)callback($el,toggle);
+		};
+		setVal(0); // Init target as 0
+
+		$parent.on("click",event=>{
+			setVal(toggle+1); // call next selection
+		});
+
+		const _updateFunc=function(v){
+			if(typeof(v)=="number"){
+				setVal(v);
+			}
+		}
+		return _updateFunc;
+	}
 	// Add an info frame to show some data
 	// valFunc()=>v called when opening this setting
 	addInfo(name,unit,valFunc){

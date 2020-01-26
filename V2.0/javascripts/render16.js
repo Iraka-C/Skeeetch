@@ -50,9 +50,18 @@ class CPURenderer{
 		else{ // normal soft edge
 			this.softEdge=RENDER.softEdgeNormal;
 		}
-		this.blendFunction=(this.brush.blendMode==-1)? // Erase/draw
-			CPURenderer.blendDestOut:
-			CPURenderer.blendNormal;
+
+		// Assign render function
+		if(param.isOpacityLocked){
+			this.blendFunction=(this.brush.blendMode==-1)? // Erase/draw
+				CPURenderer.blendDestOutOpacityLocked:
+				CPURenderer.blendNormalOpacityLocked;
+		}
+		else{
+			this.blendFunction=(this.brush.blendMode==-1)? // Erase/draw
+				CPURenderer.blendDestOut:
+				CPURenderer.blendNormal;
+		}
 
 		this.quality=param.quality||24; // how many circles are overlayed to one pixel. 48 for good quality
 		// @TODO: auto quality
@@ -318,6 +327,21 @@ class CPURenderer{
 	}
 
 	/**
+	 * p1[id1..id1+3],p2[id2..id2+3]=[r,g,b,a], all 16-bits
+	 * Blend them in normal mode, p2 over p1, store in the same position p1
+	 * (renew p1[id1..id1+3])
+	 * The opacity of p1 doesn't change
+	 */
+	static blendNormalOpacityLocked(p1,id1,p2,id2){
+		const op1=p1[id1+3],op2=p2[id2+3];
+		const op=Math.min(op2+op1-((op2*op1)>>>16),0xFFFF);
+		const k=op2/op;
+		p1[id1]+=k*(p2[id2]-p1[id1]);
+		p1[id1+1]+=k*(p2[id2+1]-p1[id1+1]);
+		p1[id1+2]+=k*(p2[id2+2]-p1[id1+2]);
+	}
+
+	/**
 	 * Destination-out blend mode
 	 * for eraser
 	 */
@@ -328,5 +352,19 @@ class CPURenderer{
 		// no change to color params, has nothing to do with the color of p2
 		// op holds op>=0
 		p1[id1+3]=op; // only change opacity
+	}
+
+	/**
+	 * Destination-out blend mode
+	 * for eraser
+	 * Opacity doesn't change, mix with white color
+	 */
+	static blendDestOutOpacityLocked(p1,id1,p2,id2){
+		const op1=p1[id1+3],op2=p2[id2+3];
+		const op=Math.min(op2+op1-((op2*op1)>>>16),0xFFFF);
+		const k=op2/op;
+		p1[id1]+=k*(0xFFFF-p1[id1]);
+		p1[id1+1]+=k*(0xFFFF-p1[id1+1]);
+		p1[id1+2]+=k*(0xFFFF-p1[id1+2]);
 	}
 }

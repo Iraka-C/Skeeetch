@@ -24,26 +24,32 @@ CANVAS.isChanged=false;
  * Update the target canvas to draw
  * targetCV is a DOM canvas element!
  */
-CANVAS.setTargetCanvas=function(targetCV,imgData){ // imgData is the data in targetCV
-	CANVAS.nowCanvas=targetCV;
-	RENDER.init({ // init after setActiveLayer || change renderer
-		canvas: targetCV,
-		method: CANVAS.settings.method,
-		onRefresh: CANVAS.onRefresh,
-		imgData:imgData
-	});
-	CANVAS.updateSpeed(); // at init
+CANVAS.setTargetLayer=function(targetLayer,imgData){ // imgData is the data in targetLayer (if any)
+	CANVAS.nowLayer=targetLayer;
+	if(!targetLayer){ // no active target
+		RENDER.init(null);
+	}
+	else{
+		RENDER.init({ // init after setActiveLayer || change renderer
+			canvas: targetLayer.$div[0],
+			method: CANVAS.settings.method,
+			onRefresh: CANVAS.onRefresh,
+			imgData:imgData
+		});
+		CANVAS.updateSpeed(); // at init
+	}
 }
 
 /**
  * Set the canvas params before each stroke
  */
 CANVAS.setCanvasEnvironment=function(event){ // event="pointerdown"
-	if(!RENDER.renderer||!CANVAS.settings.enabled){
-		// No canvas or locked, can't draw on it
+	if(!CANVAS.nowLayer||!CANVAS.settings.enabled){ // No canvas, can't draw on it
 		return;
 	}
-
+	if(!CANVAS.nowLayer.visible||CANVAS.nowLayer.isLocked){ // locked
+		return;
+	}
 	/**
 	 * @TODO: for some wacom boards, the first 2/3 events appears not constant
 	 */
@@ -52,7 +58,8 @@ CANVAS.setCanvasEnvironment=function(event){ // event="pointerdown"
 	RENDER.initBeforeStroke({ // init renderer before stroke
 		brush: BrushManager.activeBrush,
 		rgb: PALETTE.rgb,
-		sensitivity: BrushManager.general.sensitivity
+		sensitivity: BrushManager.general.sensitivity,
+		isOpacityLocked: CANVAS.nowLayer.isOpacityLocked
 	});
 };
 
@@ -80,10 +87,6 @@ CANVAS.updateCursor=function(point){
 	// 	console.log(pT.p0);
 	// }
 
-	/**
-	 * @TODO: The moving event should also taken into consideration
-	 * or the drawing on starts at the third event, which introduces a lag
-	 */
 	pT.p2=pT.p1;
 	pT.p1=pT.p0;
 
@@ -109,7 +112,10 @@ CANVAS.updateCursor=function(point){
  * Stroke a curve (between two pointermoves) according to the settings
  */
 CANVAS.stroke=function(){
-	if(!RENDER.renderer||!CANVAS.settings.enabled){ // disabled
+	if(!CANVAS.nowLayer||!CANVAS.settings.enabled){ // disabled
+		return;
+	}
+	if(!CANVAS.nowLayer.visible||CANVAS.nowLayer.isLocked){ // locked
 		return;
 	}
 	
@@ -176,10 +182,13 @@ CANVAS.onRefresh=function(){
 
 CANVAS.clearAll=function(){
 	if(!RENDER.renderer||!CANVAS.settings.enabled){
-		// No canvas or locked, can't draw on it
+		// No canvas, can't draw on it
 		return;
 	}
-	const cv=CANVAS.nowCanvas;
+	if(!CANVAS.nowLayer.visible||CANVAS.nowLayer.isLocked){ // locked
+		return;
+	}
+	const cv=CANVAS.nowLayer.$div[0];
 	cv.width=cv.width;
 	RENDER.init({ // init after setActiveLayer || change renderer
 		canvas: cv,
