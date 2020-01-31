@@ -3,6 +3,7 @@
  * A Tool class for CANVAS, visits CANVAS directly
  */
 RENDER={};
+// @TODO: change into OOP: other renderers extends this
 
 RENDER._sBase=5; // power base 5^(sensitivity-1)
 /**

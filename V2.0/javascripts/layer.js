@@ -534,6 +534,7 @@ LAYERS.initFirstLayer=function(){
 	LAYERS.active.$ui.children(".layer-group-container").prepend(layer.$ui);
 	LAYERS.active.$div.append(layer.$div);
 	LAYERS.setActive(layer);
+	// @TODO: try registering Once handler list
 	RENDER.fillColor([255,255,255,255]); // Sync!
 	layer.latestImageData=RENDER.getImageData(); // get filled image data
 	layer._setButtonStatus({
