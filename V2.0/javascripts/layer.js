@@ -227,7 +227,7 @@ class Layer{
 		// the latest image data in this layer: for history recording,
 		let cv=$cv[0];
 		// @TODO: for debug set this to null
-		this.latestImageData=RENDER.getImageData(cv);
+		this.latestImageData=CANVAS.getNewRenderer(cv,{disableBuffer:true}).getImageData();
 		// @TODO: will this affect WebGL content?
 		// According to https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-context-mode yes it will
 		// if resize (width=width), the context WON'T set to null again
@@ -535,8 +535,8 @@ LAYERS.initFirstLayer=function(){
 	LAYERS.active.$div.append(layer.$div);
 	LAYERS.setActive(layer);
 	// @TODO: try registering Once handler list
-	RENDER.fillColor([255,255,255,255]); // Sync!
-	layer.latestImageData=RENDER.getImageData(); // get filled image data
+	CANVAS.nowRenderer.fillColor([255,255,255,255]); // Sync!
+	layer.latestImageData=CANVAS.nowRenderer.getImageData(); // get filled image data
 	layer._setButtonStatus({
 		lock:1
 	}); // lock background opacity
@@ -561,9 +561,9 @@ LAYERS.setActive=function(obj){ // layer or group or id
 		obj.$ui.addClass("layer-ui-active");
 		obj.$ui.children(".layer-ui-mask").addClass("layer-ui-mask-active");
 		let cv=obj.$div[0];
-		obj.latestImageData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height); // record image data
-		// @TODO: what if gl
 		CANVAS.setTargetLayer(obj,obj.latestImageData); // set CANVAS draw target
+		obj.latestImageData=CANVAS.nowRenderer.getImageData(0,0,cv.width,cv.height); // record image data
+		// @TODO: what if gl
 	}
 	else if(obj.type=="group"){ // group
 		obj.$ui.addClass("layer-group-ui-active");

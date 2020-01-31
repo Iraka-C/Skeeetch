@@ -103,14 +103,15 @@ HISTORY.redo=function(){ // redo 1 step
 // "canvas-change" type
 HISTORY.undoCanvasChange=function(info){
 	let layer=LAYERS.layerHash[info.id];
-	RENDER.putImageData(layer.$div[0],info.prevData); // use putImageData to ensure image quality
+	// use temp renderer without buffer (the buffer will be filled after set active)
+	CANVAS.getNewRenderer(layer.$div[0],{disableBuffer:true}).putImageData(info.prevData);
 	LAYERS.setActive(layer); // also update canvas buffer and latest image data
 	// @TODO: logic here
 	layer.updateSettings(info.prevData,info.prevStatus);
 }
 HISTORY.redoCanvasChange=function(info){
 	let layer=LAYERS.layerHash[info.id];
-	RENDER.putImageData(layer.$div[0],info.data); // use putImageData to ensure image quality
+	CANVAS.getNewRenderer(layer.$div[0],{disableBuffer:true}).putImageData(info.data);
 	LAYERS.setActive(layer); // also update canvas buffer and latest image data
 	layer.updateSettings(info.data,info.status);
 }

@@ -15,7 +15,8 @@ CANVAS.points={ // the points drawn on canvas, under paper coordinate
 	p1: [NaN,NaN,NaN],
 	p2: [NaN,NaN,NaN]
 };
-CANVAS.nowCanvas=null; // now operating canvas
+CANVAS.nowLayer=null; // now operating layer
+CANVAS.nowRenderer=null;
 CANVAS.pointCnt=0;
 CANVAS.isChanged=false;
 
@@ -23,17 +24,16 @@ CANVAS.isChanged=false;
 /**
  * Update the target canvas to draw
  * targetCV is a DOM canvas element!
+ * imgData is the data in targetLayer (if any), type: imgData from Renderer!
  */
-CANVAS.setTargetLayer=function(targetLayer,imgData){ // imgData is the data in targetLayer (if any)
+CANVAS.setTargetLayer=function(targetLayer,imgData){
 	CANVAS.nowLayer=targetLayer;
 	if(!targetLayer){ // no active target
-		RENDER.init(null);
+		CANVAS.nowRenderer=null;
 	}
 	else{
-		RENDER.init({ // init after setActiveLayer || change renderer
-			canvas: targetLayer.$div[0],
-			method: CANVAS.settings.method,
-			onRefresh: CANVAS.onRefresh,
+		CANVAS.nowRenderer=CANVAS.getNewRenderer(targetLayer.$div[0],{
+			onRefresh:CANVAS.onRefresh,
 			imgData:imgData
 		});
 		CANVAS.updateSpeed(); // at init
@@ -41,10 +41,17 @@ CANVAS.setTargetLayer=function(targetLayer,imgData){ // imgData is the data in t
 }
 
 /**
+ * get a new renderer based on present settings
+ */
+CANVAS.getNewRenderer=function(canvas,param){
+	return new CPURenderer(canvas,param);
+}
+
+/**
  * Set the canvas params before each stroke
  */
 CANVAS.setCanvasEnvironment=function(event){ // event="pointerdown"
-	if(!CANVAS.nowLayer||!CANVAS.settings.enabled){ // No canvas, can't draw on it
+	if(!CANVAS.nowRenderer||!CANVAS.settings.enabled){ // No canvas, can't draw on it
 		return;
 	}
 	if(!CANVAS.nowLayer.visible||CANVAS.nowLayer.isLocked){ // locked
@@ -55,7 +62,7 @@ CANVAS.setCanvasEnvironment=function(event){ // event="pointerdown"
 	 */
 	CANVAS.pointCnt=0; // count reset
 	CANVAS.isChanged=false; // change reset
-	RENDER.initBeforeStroke({ // init renderer before stroke
+	CANVAS.nowRenderer.init({ // init renderer before stroke
 		brush: BrushManager.activeBrush,
 		rgb: PALETTE.rgb,
 		sensitivity: BrushManager.general.sensitivity,
@@ -112,7 +119,7 @@ CANVAS.updateCursor=function(point){
  * Stroke a curve (between two pointermoves) according to the settings
  */
 CANVAS.stroke=function(){
-	if(!CANVAS.nowLayer||!CANVAS.settings.enabled){ // disabled
+	if(!CANVAS.nowRenderer||!CANVAS.settings.enabled){ // disabled
 		return;
 	}
 	if(!CANVAS.nowLayer.visible||CANVAS.nowLayer.isLocked){ // locked
@@ -145,14 +152,14 @@ CANVAS.stroke=function(){
 		let s1=[p0[0]+(p1[0]-p0[0])*dk,p0[1]+(p1[1]-p0[1])*dk,p1[2]];
 		let s2=[p2[0],p2[1],Math.min(Math.max(0,pM+(p1[2]-pM)*dk*2),p1[2])];
 
-		RENDER.strokeBezier(s2,s1,s0);
+		CANVAS.nowRenderer.strokeBezier(s2,s1,s0);
 		return;
 	}
 	
 	let s2=[(p1[0]+p2[0])/2,(p1[1]+p2[1])/2,(p1[2]+p2[2])/2];
 	let s1=[p1[0],p1[1],p1[2]];
 	let s0=[(p1[0]+p0[0])/2,(p1[1]+p0[1])/2,(p1[2]+p0[2])/2];
-	RENDER.strokeBezier(s2,s1,s0); // old->new
+	CANVAS.nowRenderer.strokeBezier(s2,s1,s0); // old->new
 };
 
 /**
@@ -167,7 +174,7 @@ CANVAS.strokeEnd=function(){
 		CANVAS.isChanged=false;
 		//console.log("end");
 		requestAnimationFrame(()=>{
-			LAYERS.active.updateLatestImageData(RENDER.getImageData());
+			LAYERS.active.updateLatestImageData(CANVAS.nowRenderer.getImageData());
 			LAYERS.active.updateThumb();
 		}); // pass in "this"
 	}
@@ -181,7 +188,7 @@ CANVAS.onRefresh=function(){
 }
 
 CANVAS.clearAll=function(){
-	if(!RENDER.renderer||!CANVAS.settings.enabled){
+	if(!CANVAS.nowRenderer||!CANVAS.settings.enabled){
 		// No canvas, can't draw on it
 		return;
 	}
@@ -190,19 +197,17 @@ CANVAS.clearAll=function(){
 	}
 	
 	if(CANVAS.nowLayer.isOpacityLocked){ // do not change opacity
-		RENDER.fillColor([255,255,255,255],null,true);
+		CANVAS.nowRenderer.fillColor([255,255,255,255],null,true);
 	}
 	else{
 		const cv=CANVAS.nowLayer.$div[0];
 		cv.width=cv.width;
-		RENDER.init({ // init after setActiveLayer || change renderer
-			canvas: cv,
-			method: CANVAS.settings.method,
+		CANVAS.nowRenderer=CANVAS.getNewRenderer(cv,{ // init after setActiveLayer || change renderer
 			onRefresh: CANVAS.onRefresh
 		});
 	}
 	requestAnimationFrame(()=>{
-		LAYERS.active.updateLatestImageData(RENDER.getImageData());
+		LAYERS.active.updateLatestImageData(CANVAS.nowRenderer.getImageData());
 		LAYERS.active.updateThumb();
 	});
 }
@@ -211,7 +216,10 @@ CANVAS.clearAll=function(){
 // Mixing pixels should be pre-order or **mid-order**? Not post-order certainly.
 CANVAS._takePixel=function($div,x,y,pix){
 	if($div.is("canvas")){ // a group
-		const data=RENDER.getImageData($div[0],x,y,1,1).data; // 2d way, not gl
+		const tmpRenderer=CANVAS.getNewRenderer($div[0],{
+			disableBuffer:true // do not construct whole buffer
+		})
+		const data=tmpRenderer.getImageData(x,y,1,1).data.data; // 2d way, not gl
 		const layer=LAYERS.layerHash[$div.attr("data-layer-id")]; // get layer opacity
 		const opa=layer.visible?layer.opacity/100:0;
 		return [data[0],data[1],data[2],data[3]*opa/255]; // Uint8[4] => float

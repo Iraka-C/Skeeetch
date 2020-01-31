@@ -141,13 +141,13 @@ EVENTS.keyDown=function(event){
 	if(alt&&!EVENTS.key.alt){
 		EVENTS.key.alt=true;
 		functionKeyChanged=true;
+		event.preventDefault(); // prevent browser menu
 	}
 	
 	if(functionKeyChanged){ // shift|ctrl|alt pressed
 		// more actions related to key changed?
 		EventDistributer.footbarHint.update();
 	}
-	event.preventDefault();
 }
 
 // keyboard up handler
@@ -176,5 +176,4 @@ EVENTS.keyUp=function(event){
 	if(functionKeyChanged){ // shift|ctrl|alt leave
 		EventDistributer.footbarHint.update();
 	}
-	event.preventDefault();
 }
