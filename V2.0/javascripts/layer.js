@@ -410,7 +410,7 @@ class LayerGroup{
 		$div.attr({
 			"data-layer-id":this.id
 		});
-		this.opacity=1;
+		this.opacity=100;
 		this.visible=true;
 		this.$div=$div;
 		this.type="group";

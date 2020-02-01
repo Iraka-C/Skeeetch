@@ -24,6 +24,9 @@ FILES.initImportDropHandler=function(){
 		if(e.type=="drop"){
 			let file=e.originalEvent.dataTransfer.files[0];
 			console.log(file);
+
+			if(!file)return; // dragging layer
+
 			// Check file type
 			if(file.name.endsWith(".psd")){
 				let reader=new FileReader();
@@ -32,14 +35,6 @@ FILES.initImportDropHandler=function(){
 					FILES.loadAsPsd(this.result);
 				}
 			}
-
-			// let reader=new FileReader();
-			// reader.readAsArrayBuffer(file);
-			// reader.onload=function(){
-			// 	let psd=readPsd(this.result);
-			// 	console.log(psd);
-			// 	$("#canvas_layers_container").append(psd.children[0].canvas);
-			// }
 		}
 	});
 }
@@ -50,8 +45,15 @@ FILES.initImportDropHandler=function(){
 FILES.loadAsPsd=function(data){
 	let psdFile=agPsd.readPsd(data); // ag-psd function
 	console.log(psdFile);
-	const w=psdFile.width,h=psdFile.height;
-	ENV.setPaperSize(w,h); // change paper size to fit the file
+	ENV.setPaperSize(psdFile.width,psdFile.height); // change paper size to fit the file, clear history
+
+	// clear all existing layers
+	for(let id in LAYERS.layerHash){ // LAYERS.layerHash not iterable
+		if(id=="root")continue; // except root
+		delete LAYERS.layerHash[id];
+	}
+	$("#layer-panel-inner").empty();
+	$("#canvas-layers-container").empty();
 	// init Layerhash, ui container, div container
 
 	FILES.loadPsdNode(psdFile,LAYERS.layerHash["root"]); // start with root
@@ -61,6 +63,7 @@ FILES.loadPsdNode=function(node,nowGroup){
 
 	// node is certainly a group, its equivalent layer object is nowGroup
 	const children=node.children;
+	let lastChild=null;
 	for(let i=0;i<children.length;i++){
 		let sNode=children[i];
 		let newElement;
@@ -89,5 +92,9 @@ FILES.loadPsdNode=function(node,nowGroup){
 			requestAnimationFrame(()=>newElement.updateThumb()); // Thumb, putImageData is Async ?
 		}
 		nowGroup.addInside(newElement,true);
+		lastChild=newElement;
+	}
+	if(nowGroup.id=="root"){ // the root, set the top child as active
+		LAYERS.setActive(lastChild);
 	}
 }
