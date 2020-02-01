@@ -12,7 +12,7 @@ EventDistributer.init=function(){
  */
 EventDistributer.wheel={
 	_init:function(){
-		$(window).on("wheel",EventDistributer.wheel._onwheel);
+		//window.addEventListener("wheel",EventDistributer.wheel._onwheel,false);
 	},
 	_nowListener:null, // a DOM Object
 	_nowFunction:()=>{}, // a function
@@ -36,16 +36,21 @@ EventDistributer.wheel={
 			EventDistributer.wheel._nowListener=null;
 			//console.log("out",event.pointerType);
 		},true);
+		el.onwheel=EventDistributer.wheel._onwheel;
 	},
 	_onwheel:function(event){
+		console.log(event.target);
+		
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){
-			let e=event.originalEvent;
-			let dx=e.wheelDeltaX;
-			let dy=e.wheelDeltaY;
-			let wX=dx>0?1:dx<0?-1:0;
-			let wY=dy>0?1:dy<0?-1:0;
+			let e=event;//.originalEvent;
+			let dx=e.deltaX;
+			let dy=e.deltaY;
+			let wX=dx<0?1:dx>0?-1:0;
+			let wY=dy<0?1:dy>0?-1:0;
 			EventDistributer.wheel._nowFunction(wY,wX); // Y first
+			event.stopPropagation(); // prevent scrolling
 		}
+		return false;
 	}
 };
 
