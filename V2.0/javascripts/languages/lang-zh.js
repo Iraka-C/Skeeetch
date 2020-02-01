@@ -21,6 +21,7 @@ LANG_ZH={
 	"Transform Animation":"过渡动画",
 	"sys-info":"系统信息",
 	"sys-mem":"内存使用",
+	"toggle-fullscreen":"切换全屏幕模式",
 
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",
@@ -56,7 +57,10 @@ LANG_ZH={
 	"Paper Width":"宽度",
 	"Paper Height":"高度",
 	"Change Paper Size":"改变尺寸",
-	"workspace-hint-1":"改变纸张尺寸时会丢弃超出范围的像素并清除所有历史记录！"
+	"workspace-hint-1":"改变纸张尺寸时会丢弃超出范围的像素并清除所有历史记录！",
+
+	// Files
+	"Files":"文件"
 };
 LANG_ZH._id={
 	"filename-input":"Skeeetch",

@@ -41,6 +41,7 @@
 		<script src="./javascripts/renderer-cpu.js"></script>
 		<script src="./javascripts/canvas.js"></script>
 		<script src="./javascripts/history.js"></script>
+		<script src="./javascripts/file-handler.js"></script>
 		<script src="./javascripts/performance.js"></script>
 		
 		<script type="text/javascript">
@@ -199,12 +200,22 @@
 						</div>
 					</div>
 
-					<!-- show setting mask menus -->
-					<div id="masked-panel">
-						<div id="brush-menu-panel" class="setting-panel-collapsed">
+					<!-- show setting menus -->
+					<div id="menu-panel">
+						<div id="left-menu-panels">
+							<div id="brush-menu-panel" class="setting-panel setting-panel-collapsed">
+							</div>
 						</div>
-						<div id="settings-menu-panel" class="setting-panel-collapsed">
+						<div id="right-menu-panels">
+							<div id="settings-menu-panel" class="setting-panel setting-panel-collapsed">
+							</div>
+							<div id="file-menu-panel" class="setting-panel setting-panel-collapsed">
+							</div>
 						</div>
+					</div>
+
+					<!-- show a mask before menus -->
+					<div id="mask-panel">
 					</div>
 
 					<!-- show info/button over setting menus -->

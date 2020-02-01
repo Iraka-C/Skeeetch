@@ -183,7 +183,7 @@ class Layer{
 		// Opacity label
 		const $opacityLabel=this.$ui.children(".layer-opacity-label");
 		const toOpacityString=()=>this.visible?
-			(this.opacity+"%").padEnd(4,"#").replace(/#/g,"&nbsp;"):
+			(Math.round(this.opacity)+"%").padEnd(4,"#").replace(/#/g,"&nbsp;"):
 			"----";
 		SettingManager.setInputInstantNumberInteraction( // @TODO: Add to history
 			$opacityLabel,
@@ -192,11 +192,12 @@ class Layer{
 			(dW,oldVal)=>{ // set on scroll
 				if(!this.visible)return; // only change on visible
 				let newVal=(this.opacity+dW).clamp(0,100);
-				this.opacity=newVal;
-				$cv.css("opacity",newVal/100);
+				this._setButtonStatus({
+					opacity:newVal
+				});
 			},
 			null, // conflict with drag
-			()=>$opacityLabel.html(toOpacityString())
+			()=>{} // handled in set status
 		);
 		$opacityLabel.on("click",()=>{ // @TODO: do not draw when invisible
 			this.visible=!this.visible;
@@ -240,18 +241,20 @@ class Layer{
 	/**
 	 * Add the layer/group object element before
 	 */
-	addBefore(obj){
+	addBefore(obj,isOmitHistory){
 		this.$ui.before(obj.$ui);
 		this.$div.after(obj.$div);
-		HISTORY.addHistory({ // add a create new layer history item
-			type:"move-layer-item",
-			subType:"new",
-			id:obj.id,
-			from:null,
-			to:obj.$ui.parent()[0].getAttribute("data-layer-id"),
-			oldIndex:null,
-			newIndex:obj.$ui.index()
-		});
+		if(!isOmitHistory){
+			HISTORY.addHistory({ // add a create new layer history item
+				type:"move-layer-item",
+				subType:"new",
+				id:obj.id,
+				from:null,
+				to:obj.$ui.parent()[0].getAttribute("data-layer-id"),
+				oldIndex:null,
+				newIndex:obj.$ui.index()
+			});
+		}
 	}
 	/**
 	 * Update the latest imgData
@@ -360,11 +363,22 @@ class Layer{
 	}
 	_getButtonStatus(){
 		return {
-			lock: this.isLocked?2:this.isOpacityLocked?1:0
+			lock: this.isLocked?2:this.isOpacityLocked?1:0,
+			opacity: this.opacity
 		};
 	}
-	_setButtonStatus(param){
+	_setButtonStatus(param){ // @TODO: visibility
+		if(!param)return;
 		if(param.lock!==undefined)this._lockButtonUpdateFunc(param.lock);
+		// opacity setting
+		const toOpacityString=()=>this.visible?
+			(Math.round(this.opacity)+"%").padEnd(4,"#").replace(/#/g,"&nbsp;"):
+			"----";
+		if(param.opacity!==undefined){
+			this.opacity=param.opacity; // inner value
+			this.$div.css("opacity",param.opacity/100); // css display
+			this.$ui.children(".layer-opacity-label").html(toOpacityString()); // label value
+		}
 	}
 }
 
@@ -400,7 +414,7 @@ class LayerGroup{
 		this.visible=true;
 		this.$div=$div;
 		this.type="group";
-		LAYERS.layerHash[this.id]=this;
+		LAYERS.layerHash[this.id]=this; // Register to hash table
 	}
 	/**
 	 * insert the $ui element to the i-th position of this group (as a result)
@@ -435,34 +449,38 @@ class LayerGroup{
 	/**
 	 * Add the layer/group object element before
 	 */
-	addBefore(obj){
+	addBefore(obj,isOmitHistory){
 		this.$ui.before(obj.$ui);
 		this.$div.after(obj.$div);
-		HISTORY.addHistory({ // add a create new layer history item
-			type:"move-layer-item",
-			subType:"new",
-			id:obj.id,
-			from:null,
-			to:obj.$ui.parent()[0].getAttribute("data-layer-id"),
-			oldIndex:null,
-			newIndex:obj.$ui.index()
-		});
+		if(!isOmitHistory){
+			HISTORY.addHistory({ // add a create new layer history item
+				type:"move-layer-item",
+				subType:"new",
+				id:obj.id,
+				from:null,
+				to:obj.$ui.parent()[0].getAttribute("data-layer-id"),
+				oldIndex:null,
+				newIndex:obj.$ui.index()
+			});
+		}
 	}
 	/**
 	 * Add the layer/group object element at the first ([0]) position
 	 */
-	addInside(obj){
+	addInside(obj,isOmitHistory){
 		this.$ui.children(".layer-group-container").prepend(obj.$ui);
 		this.$div.append(obj.$div);
-		HISTORY.addHistory({ // add a create new layer history item
-			type:"move-layer-item",
-			subType:"new",
-			id:obj.id,
-			from:null,
-			to:this.id,
-			oldIndex:null,
-			newIndex:0
-		});
+		if(!isOmitHistory){
+			HISTORY.addHistory({ // add a create new layer history item
+				type:"move-layer-item",
+				subType:"new",
+				id:obj.id,
+				from:null,
+				to:this.id,
+				oldIndex:null,
+				newIndex:0
+			});
+		}
 	}
 
 	/**
@@ -473,7 +491,8 @@ class LayerGroup{
 		let $ct=this.$ui.children(".layer-group-container");
 		let $button=$panel.children(".group-title-expand-button");
 		$button.toggleClass("group-expanded");
-		$ct.fadeToggle(250);
+		$ct.toggleClass("layer-group-container-collapsed");
+		$ct.slideToggle(250);
 	}
 }
 
@@ -511,6 +530,21 @@ LAYERS.init=function(){
 				let $children=ct.children();
 				let cnt=$children.length;
 				$children.eq(cnt-i).before($el);
+			}
+		},
+		addInside:(obj,isOmitHistory)=>{ //Add the layer/group object element at the first ([0]) position
+			$("#layer-panel-inner").prepend(obj.$ui);
+			$("#canvas-layers-container").append(obj.$div);
+			if(!isOmitHistory){
+				HISTORY.addHistory({ // add a create new layer history item
+					type:"move-layer-item",
+					subType:"new",
+					id:obj.id,
+					from:null,
+					to:this.id,
+					oldIndex:null,
+					newIndex:0
+				});
 			}
 		}
 	};

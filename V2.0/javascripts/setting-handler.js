@@ -166,6 +166,17 @@ SettingHandler.initSystemSetting=function(){
 		default: ENV.setTransformAnimation(true);break;
 		}
 	});
+	sys.addButton(Lang("toggle-fullscreen"),()=>{
+		if(!document.fullscreenElement){
+			document.documentElement.requestFullscreen();
+		}
+		else{
+			if(document.exitFullscreen){
+				document.exitFullscreen();
+			}
+		}
+	});
+
 	sys.setOpenButton($("#system-button"));
 
 	sys.addSectionTitle(Lang("sys-info"));

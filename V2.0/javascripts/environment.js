@@ -46,6 +46,7 @@ ENV.init=function(){ // When the page is loaded
 	BrushManager.init();
 	CURSOR.init();
 	HISTORY.init();
+	FILES.init();
 	PERFORMANCE.init();
 
 	/**
@@ -146,6 +147,8 @@ ENV.transformTo=function(x,y,r,s){ // four values, with hint
 
 /**
  * set the current canvas sizes to w*h pixels
+ * Will remove all histories!
+ * @TODO: limit size into 4096^2
  */
 ENV.setPaperSize=function(w,h){
 	let isAnim=ENV.displaySettings.enableTransformAnimation;
@@ -168,12 +171,13 @@ ENV.setPaperSize=function(w,h){
 			continue;
 		}
 		let cv=item.$div[0];
-		let layerData=RENDER.getImageData(cv); // image data
+		let tmpRenderer=CANVAS.getNewRenderer(cv,{disableBuffer:true});
+		let layerData=tmpRenderer.getImageData(); // image data
 		// do some zooming/interpolation work here...
 		// Notice: gl
 		cv.width=ENV.paperSize.width;
 		cv.height=ENV.paperSize.height;
-		RENDER.putImageData(cv,layerData);
+		tmpRenderer.putImageData(layerData);
 		item.updateThumb(); // update thumb image in layer panel
 	}
 

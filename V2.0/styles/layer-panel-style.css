@@ -260,6 +260,11 @@
 	transform: rotate(90deg);
 }
 .layer-group-container{
+	opacity: 1;
+	transition: opacity 0.5s;
+}
+.layer-group-container-collapsed{
+	opacity: 0;
 }
 .group-title-panel{
 	display: flex;

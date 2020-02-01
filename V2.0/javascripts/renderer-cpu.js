@@ -208,7 +208,7 @@ class CPURenderer extends BasicRenderer{
 		}
 
 		// Fill image data
-		const imgData=this.ctx.createImageData(wH-wL+1,hH-hL+1);
+		const imgData=this.ctx.getImageData(wL,hL,wH-wL+1,hH-hL+1);
 		const data=imgData.data;
 		let idImg=0;
 		for(let j=hL;j<=hH;j++){ // copy content
@@ -246,6 +246,18 @@ class CPURenderer extends BasicRenderer{
 	putImageData(imgData,x,y){
 		if(imgData.type=="CPURenderer"){
 			this.ctx.putImageData(imgData.data,x||0,y||0);
+			if(this.buffer){ // buffer enabled
+				const cv=this.canvas;
+				this._initBuffer(this.ctx.getImageData(0,0,cv.width,cv.height));
+			}
+		}
+	}
+
+	putImageData8bit(imgData,x,y){ // imgData is a image data from context2d
+		this.ctx.putImageData(imgData,x||0,y||0);
+		if(this.buffer){ // buffer enabled
+			const cv=this.canvas;
+			this._initBuffer(this.ctx.getImageData(0,0,cv.width,cv.height));
 		}
 	}
 

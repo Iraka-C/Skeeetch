@@ -16,6 +16,7 @@ class HistoryItem{
 		 * move-layer-item: moved a layer item from one place to another (including add/delete)
 		 * change-layer-item-property: changed a property of a layer item
 		 */
+
 		/**
 		 * "canvas-change" type:
 		 * info={
@@ -27,6 +28,7 @@ class HistoryItem{
 		 * 	prevStatus: the button status (locked, blend, clip) before the change
 		 * }
 		 */
+
 		/**
 		 * "move-layer-item" type:
 		 * info={
@@ -40,6 +42,13 @@ class HistoryItem{
 		 * 	status: the button status (locked, blend, clip) of the present layer
 		 * 	prevStatus: the button status (locked, blend, clip) before the change
 		 * }
+		 */
+
+		/**
+		 * "change-layer-button-status" type:
+		 */
+		/**
+		 * "history-group" type: a group of actions as a bunch
 		 */
 	}
 }

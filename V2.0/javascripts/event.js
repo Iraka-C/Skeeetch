@@ -54,6 +54,11 @@ EVENTS.init=function(){
 		CURSOR.hideCursor(); // pen away
 	});
 
+	// do sth to each menu panel
+	const menuPanels=$("#masked-panel").find(".setting-panel");
+	const eachMenuPanelFunc=function(callback){ // callback($el)
+		menuPanels.each(function(){callback($(this));});
+	}
 	// DOWN / UP outside the window
 	$(window).on("pointerdown",event=>{
 		/**
@@ -74,8 +79,7 @@ EVENTS.init=function(){
 		}
 		CURSOR.moveCursor(event);
 		CURSOR.down(event);
-		$("#brush-menu-panel").css("pointer-events","none"); // do not enable menu operation
-		$("#settings-menu-panel").css("pointer-events","none");
+		eachMenuPanelFunc($el=>$el.css("pointer-events","none")); // do not enable menu operation
 		CANVAS.setCanvasEnvironment(event); // init canvas here
 	});
 	$(window).on("pointerup",event=>{
@@ -89,13 +93,11 @@ EVENTS.init=function(){
 		// 	CURSOR.hideCursor();
 		// }
 		CANVAS.strokeEnd();
-		$("#brush-menu-panel").css("pointer-events","all"); // after stroke, enable menus
-		$("#settings-menu-panel").css("pointer-events","all");
+		eachMenuPanelFunc($el=>$el.css("pointer-events","all")); // after stroke, enable menus
 	});
 	// When menus enabled, disable canvas operation
 	// This also disables drawing on canvas when the cursor moves out of the menu part
-	$("#brush-menu-panel").on("pointerdown",event=>event.stopPropagation());
-	$("#settings-menu-panel").on("pointerdown",event=>event.stopPropagation());
+	eachMenuPanelFunc($el=>$el.on("pointerdown",e=>e.stopPropagation()));
 
 	// Scroll on canvas
 	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx)=>{ // Scroll

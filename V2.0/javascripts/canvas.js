@@ -172,11 +172,7 @@ CANVAS.strokeEnd=function(){
 	 */
 	if(CANVAS.isChanged){ // the place that calls LAYER
 		CANVAS.isChanged=false;
-		//console.log("end");
-		requestAnimationFrame(()=>{
-			LAYERS.active.updateLatestImageData(CANVAS.nowRenderer.getImageData());
-			LAYERS.active.updateThumb();
-		}); // pass in "this"
+		CANVAS.onEndRefresh.isToRefresh=true; // canvas changed, refresh layer info
 	}
 }
 
@@ -184,8 +180,20 @@ CANVAS.strokeEnd=function(){
  * On refreshing canvas, after animation frame (Notice: canvas already refreshed!)
  */
 CANVAS.onRefresh=function(){
-	//console.log("refreshed");
+	if(CANVAS.onEndRefresh.isToRefresh){
+		CANVAS.onEndRefresh();
+	}
 }
+
+/**
+ * refresh corresponding layer settings
+ */
+CANVAS.onEndRefresh=function(){
+	LAYERS.active.updateLatestImageData(CANVAS.nowRenderer.getImageData());
+	LAYERS.active.updateThumb();
+	CANVAS.onEndRefresh.isToRefresh=false;
+}
+CANVAS.onEndRefresh.isToRefresh=false;
 
 CANVAS.clearAll=function(){
 	if(!CANVAS.nowRenderer||!CANVAS.settings.enabled){
@@ -206,10 +214,7 @@ CANVAS.clearAll=function(){
 			onRefresh: CANVAS.onRefresh
 		});
 	}
-	requestAnimationFrame(()=>{
-		LAYERS.active.updateLatestImageData(CANVAS.nowRenderer.getImageData());
-		LAYERS.active.updateThumb();
-	});
+	requestAnimationFrame(CANVAS.onEndRefresh);
 }
 
 // ================ Other tools ==================

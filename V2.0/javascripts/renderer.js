@@ -112,7 +112,15 @@ class BasicRenderer{
 		// abstract
 	}
 
+	getImageData8bit(x,y,w,h){
+		// abstract
+	}
+
 	putImageData(imgData,x,y){
+		// abstract, check if same type
+	}
+
+	putImageData8bit(imgData,x,y){
 		// abstract, check if same type
 	}
 
