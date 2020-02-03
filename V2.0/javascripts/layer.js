@@ -378,16 +378,20 @@ class Layer{
 	_getButtonStatus(){
 		return {
 			lock: this.isLocked?2:this.isOpacityLocked?1:0,
-			opacity: this.opacity
+			opacity: this.opacity,
+			visible: this.visible
 		};
 	}
 	_setButtonStatus(param){ // @TODO: visibility
 		if(!param)return;
 		if(param.lock!==undefined)this._lockButtonUpdateFunc(param.lock);
 		// opacity setting
+		if(param.visible!==undefined){
+			this.visible=param.visible;
+			this.$div.css("visibility",this.visible?"visible":"hidden");
+		}
 		const toOpacityString=()=>this.visible?
-			(Math.round(this.opacity)+"%").padEnd(4,"#").replace(/#/g,"&nbsp;"):
-			"----";
+			(Math.round(this.opacity)+"%").padEnd(4,"#").replace(/#/g,"&nbsp;"):"----";
 		if(param.opacity!==undefined){
 			this.opacity=param.opacity; // inner value
 			this.$div.css("opacity",param.opacity/100); // css display
@@ -507,7 +511,7 @@ class LayerGroup{
 		$button.toggleClass("group-expanded");
 		$ct.toggleClass("layer-group-container-collapsed");
 		$ct.slideToggle(250,()=>{ // update scrollbar after toggle
-			LAYERS._updateScrollBar();
+			LAYERS._updateScrollBar(true);
 		});
 	}
 }

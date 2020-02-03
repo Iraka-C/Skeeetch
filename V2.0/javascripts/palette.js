@@ -267,7 +267,7 @@ PALETTE.init=function(){
 
 	// Palette top button
 	EventDistributer.setClick($("#palette-button"),event=>{
-		$("#palette-panel").slideToggle(300);
+		$("#palette-panel").animate({"height":"toggle"},300); // == .slideToggle(300)
 	});
 };
 

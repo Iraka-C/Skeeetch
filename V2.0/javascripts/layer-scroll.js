@@ -59,7 +59,7 @@ LAYERS.initScrollbar=function(){
 	});
 }
 
-LAYERS._updateScrollBar=function(){
+LAYERS._updateScrollBar=function(isAnimate){
 	const scroll=LAYERS._updateScrollBar.scrollbar;
 	const $scrollButton=LAYERS._updateScrollBar.$scrollButton;
 
@@ -68,5 +68,10 @@ LAYERS._updateScrollBar=function(){
 	const sT=scroll.scrollTop;
 	const scrollRatio=Math.min(sT/(sH-cH),1); // why can it exceed 1.0?
 	$scrollButton.css("display",Math.abs(sH-cH)<1E-3?"none":"block"); // show scrollbar when needed
-	$scrollButton.css("top",(isNaN(scrollRatio)?0:scrollRatio*(cH-16))+"px");
+	if(isAnimate){
+		$scrollButton.animate({"top":(isNaN(scrollRatio)?0:scrollRatio*(cH-16))+"px"},300);
+	}
+	else{ // normal update
+		$scrollButton.css("top",(isNaN(scrollRatio)?0:scrollRatio*(cH-16))+"px");
+	}
 }
