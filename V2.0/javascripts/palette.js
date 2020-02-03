@@ -266,7 +266,7 @@ PALETTE.init=function(){
 	PALETTE.initPaletteWindow();
 
 	// Palette top button
-	$("#palette-button").on("click",event=>{
+	EventDistributer.setClick($("#palette-button"),event=>{
 		$("#palette-panel").slideToggle(300);
 	});
 };
@@ -312,15 +312,10 @@ PALETTE.initPaletteWindow=function(){
 	});
 
 	// Hue selector
-	$("#palette-hue-info").on("pointerdown pointermove",event=>{
-		if(CURSOR.isDown){ // is drawing
-			return false;
-		}
+	$("#palette-hue-selector-canvas").on("pointerdown pointermove",event=>{
 		let e=event.originalEvent;
-		// @TODO: change here from hard coded number to a div
-		if(!PALETTE.isSelectingHue&&!PALETTE.isSelectingSV&&e.offsetY<=24){
+		if(!PALETTE.isSelectingHue&&!PALETTE.isSelectingSV){
 			PALETTE.isSelectingHue=true;
-			$("#palette-hue-selector-canvas").fadeIn(500);
 		}
 		if(e.buttons&&PALETTE.isSelectingHue){ // is selecting
 			e.stopPropagation(); // do not pass this event to SV selector
@@ -331,16 +326,13 @@ PALETTE.initPaletteWindow=function(){
 		}
 		
 	});
-	$("#palette-hue-info").on("pointerup",event=>{
+	$("#palette-hue-selector-canvas").on("pointerup",event=>{
+		// recover solid selector
 		PALETTE.drawHueSelector();
 	});
-	/**
-	 * @TODO: fix bug: waving the mouse through canvas many times causes lots of animation
-	 */
-	$("#palette-hue-info").on("pointerout pointercancel",event=>{
+	$("#palette-hue-selector-canvas").on("pointerout pointercancel",event=>{
 		PALETTE.isSelectingHue=false;
 		PALETTE.drawHueSelector();
-		$("#palette-hue-selector-canvas").fadeOut(500);
 	});
 
 	PALETTE.initHueSelector();

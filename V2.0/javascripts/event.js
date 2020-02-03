@@ -21,7 +21,7 @@ EVENTS.init=function(){
 	 */
 
 	// disable pen long press => context menu
-	$(window).on("contextmenu",e=>false);
+	//$(window).on("contextmenu",e=>false);
 
 	/**
 	 * Window resize handler
@@ -101,7 +101,8 @@ EVENTS.init=function(){
 
 	// Scroll on canvas
 	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx)=>{ // Scroll
-		if(EVENTS.key.alt){ // Alt pressed, zoom
+		if(EVENTS.key.alt||EVENTS.key.ctrl){ // Alt/Ctrl pressed, zoom
+			// Alt menu cannot be prevented in Firefox
 			let newS=SettingHandler.updateScale(dy,ENV.window.scale);
 			ENV.scaleTo(newS);
 			$("#scale-info-input").val(Math.round(newS*100));
@@ -173,9 +174,17 @@ EVENTS.keyUp=function(event){
 	if(!alt&&EVENTS.key.alt){
 		EVENTS.key.alt=false;
 		functionKeyChanged=true;
+		event.preventDefault(); // prevent browser menu
 	}
 
 	if(functionKeyChanged){ // shift|ctrl|alt leave
 		EventDistributer.footbarHint.update();
 	}
+}
+
+EVENTS.disableInputSelection=function($input){
+	let ci=$input[0];
+	ci.addEventListener("select",event=>{
+		ci.selectionStart=ci.selectionEnd;
+	},false);
 }

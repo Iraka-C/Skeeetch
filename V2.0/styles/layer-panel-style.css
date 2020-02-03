@@ -67,9 +67,10 @@
 	display: flex;
 	flex-direction: row;
 	padding: 0.5em;
+	pointer-events: none;
 }
 #palette-hue-info > *{
-	pointer-events: none;
+	
 }
 #palette-hue-value{
 	vertical-align: super;
@@ -80,16 +81,20 @@
 #palette-hue-selector{ /* Up-Right */
 	position: absolute;
 	width: 100%;
-}
-#palette-hue-selector-trigger{
-	position: absolute;
-	width: 100%;
-	height: 1.5em;
+	height: 1em;
+	pointer-events: all;
 }
 #palette-hue-selector-canvas{
 	margin: 0em;
-	display: none;
+	opacity: 0;
+	transition: opacity 0.5s;
+	pointer-events: none;
 }
+#palette-hue-selector:hover > #palette-hue-selector-canvas{
+	opacity: 1;
+	pointer-events: all;
+}
+
 #palette-color-info{
 	font-size: 125%;
 	position: absolute;
@@ -110,7 +115,6 @@
 	flex: 1;
 	height: 0px;
 	position: relative;
-	overflow-x: hidden;
 }
 #layer-panel-title{
 	flex: none;
@@ -119,6 +123,12 @@
 	flex-direction: row;
 	justify-content: space-between;
 	padding: 0.5em;
+}
+#layer-panel-scroll-outer{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	overflow-x: hidden;
 }
 #layer-panel-scroll{
 	width: 50em; /* Hide the scroll bar */
@@ -131,7 +141,7 @@
 	position: absolute;
 	width: 100%;
 	height: 1em;
-	/*background: #00000088;*/
+	/* background: #00000088; */
 	display: none;
 }
 #layer-panel-drag-down{
@@ -276,4 +286,19 @@
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
+}
+
+/* ======= Scrollbar items ========= */
+#layer-panel-scrollbar{
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	transform: translateX(50%);
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.5s;
+}
+#layer-panel-container:hover > #layer-panel-scrollbar{ /* Show scrollbar */
+	pointer-events: all;
+	opacity: 1;
 }

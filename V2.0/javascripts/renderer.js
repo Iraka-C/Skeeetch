@@ -14,11 +14,18 @@ class BasicRenderer{
 		this.sensitivity=param.sensitivity||1.0;
 		this._sPower=Math.pow(BasicRenderer._sBase,this.sensitivity-1);
 		this.brush=param.brush;
-		this.softness=this.brush?1-this.brush.edgeHardness:0;
+		this.antiAlias=param.antiAlias||false; // false in default
+		this.hardness=this.brush?this.brush.edgeHardness:1;
+		this.softness=1-this.hardness;
+		
 
 		// ====== params for bezier curve =======
-		this.quality=param.quality||24; // how many circles are overlayed to one pixel. 48 for good quality
-		// @TODO: auto quality
+		// Auto quality: 5~50 circles
+		// how many circles are overlayed to one pixel. 50 for good quality
+		// 2/(this.softness+0.01)+16 adjusts the quality according to softness
+		// this.brush.size guarantees that the neighboring circles with 2px interval at least
+		this.quality=Math.min(2/(this.softness+0.01)+16,80,Math.max(this.brush.size,5));
+		
 		this._invQuality=1/this.quality;
 		this.bezierRemDis=0; // distance remain = 0 at first
 	}
@@ -158,8 +165,7 @@ class BasicRenderer{
 	 * soft edge distance calc
 	 * d is the distance to center (0~1)
 	 */
-	softEdgeNormal(d){
-		let r=(1-d)/this.softness; // softness is not 0
+	softEdgeNormal(r){ // softness is not 0
 		if(r>0.5){
 			let r1=1-r;
 			return 1-2*r1*r1;

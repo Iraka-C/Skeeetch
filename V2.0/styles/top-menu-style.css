@@ -56,6 +56,7 @@
 
 #brush-size{
 	font-size: 80%;
+	pointer-events: none;
 }
 
 #palette-button{

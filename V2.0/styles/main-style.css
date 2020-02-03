@@ -99,3 +99,8 @@ canvas{
 svg{
 	display: block;
 }
+
+/* prevent image dragging */
+img{
+	pointer-events: none;
+}

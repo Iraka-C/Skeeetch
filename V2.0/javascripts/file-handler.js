@@ -56,45 +56,57 @@ FILES.loadAsPsd=function(data){
 	$("#canvas-layers-container").empty();
 	// init Layerhash, ui container, div container
 
-	FILES.loadPsdNode(psdFile,LAYERS.layerHash["root"]); // start with root
+	FILES.loadPsdNode.isSetActive=false;
+	FILES.loadPsdNode.progress=0;
+	FILES.loadPsdNode(psdFile,LAYERS.layerHash["root"],1); // start with root
 }
-FILES.loadPsdNode=function(node,nowGroup){
+FILES.loadPsdNode=function(node,nowGroup,progressAmount){
 	//if(node.mask) // masking layer
 
 	// node is certainly a group, its equivalent layer object is nowGroup
 	const children=node.children;
-	let lastChild=null;
+	const progressFrac=progressAmount/children.length;
+	// For each child
 	for(let i=0;i<children.length;i++){
-		let sNode=children[i];
-		let newElement;
-		if(sNode.children){ // has children, is a group
-			newElement=new LayerGroup();
-			newElement.$ui.children(".group-title-panel").children(".group-name-label").val(sNode.name); // sNode.name
-			FILES.loadPsdNode(sNode,newElement); // iteratively
-		}
-		else{
-			newElement=new Layer();
-			let cv=sNode.canvas;
-			let imgData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height); // get imagedata from canvas
-			
-			let tmpRenderer=CANVAS.getNewRenderer(newElement.$div[0],{disableBuffer:true});
-			tmpRenderer.putImageData8bit(imgData,sNode.left,sNode.top); // put in data
-			newElement.latestImageData=tmpRenderer.getImageData(); // update ImageData for history
-			
-			// UI/status settings
-			let lockStatus=sNode.transparencyProtected?sNode.protected.transparency?1:2:0;
-			newElement._setButtonStatus({lock:lockStatus}); // lock background opacity
-			newElement._setButtonStatus({opacity:sNode.opacity*100/255}); // set opacity
-			newElement.prevStatus=newElement._getButtonStatus(); // update prev status for history
+		const sNode=children[i];
+		setTimeout(event=>{ // in 'parallel' (Tree structure, order irrelevant)
+			let newElement;
+			if(sNode.children){ // has children, is a group
+				newElement=new LayerGroup();
+				newElement.$ui.children(".group-title-panel").children(".group-name-label").val(sNode.name); // sNode.name
+				FILES.loadPsdNode(sNode,newElement,progressFrac); // iteratively
+				// load the progress in all: progressFrac
+			}
+			else{
+				newElement=new Layer();
+				let cv=sNode.canvas;
+				let imgData=cv.getContext("2d").getImageData(0,0,cv.width,cv.height); // get imagedata from canvas
+				
+				let tmpRenderer=CANVAS.getNewRenderer(newElement.$div[0],{disableBuffer:true});
+				tmpRenderer.putImageData8bit(imgData,sNode.left,sNode.top); // put in data
+				newElement.latestImageData=tmpRenderer.getImageData(); // update ImageData for history
+				
+				// UI/status settings
+				let lockStatus=sNode.transparencyProtected?sNode.protected.transparency?1:2:0;
+				newElement._setButtonStatus({lock:lockStatus}); // lock background opacity
+				newElement._setButtonStatus({opacity:sNode.opacity*100/255}); // set opacity
+				newElement.prevStatus=newElement._getButtonStatus(); // update prev status for history
+	
+				// sNode.blendMode
+				newElement.$ui.children(".layer-name-label").val(sNode.name); // sNode.name
+				requestAnimationFrame(()=>newElement.updateThumb()); // Thumb, putImageData is Async ?
 
-			// sNode.blendMode
-			newElement.$ui.children(".layer-name-label").val(sNode.name); // sNode.name
-			requestAnimationFrame(()=>newElement.updateThumb()); // Thumb, putImageData is Async ?
-		}
-		nowGroup.addInside(newElement,true);
-		lastChild=newElement;
-	}
-	if(nowGroup.id=="root"){ // the root, set the top child as active
-		LAYERS.setActive(lastChild);
+				// add progress on non-group element
+				FILES.loadPsdNode.progress+=progressFrac;
+				EventDistributer.footbarHint.showInfo(
+					"Loading "+(FILES.loadPsdNode.progress*100).toFixed(2)+"% ...");
+			}
+			nowGroup.addInside(newElement,true);
+
+			if(!FILES.loadPsdNode.isSetActive){ // set the first active
+				FILES.loadPsdNode.isSetActive=true;
+				LAYERS.setActive(newElement);
+			}
+		},0);
 	}
 }

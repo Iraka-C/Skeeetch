@@ -13,7 +13,7 @@ class CPURenderer extends BasicRenderer{
 			else{
 				this._initBuffer(this.ctx.getImageData( // temp imgdata for buffer
 					0,0,canvas.width,canvas.height
-				));
+				).data);
 			}
 		}
 
@@ -46,7 +46,7 @@ class CPURenderer extends BasicRenderer{
 			]);
 		}
 		
-		if(this.softness<1E-2){ // no soft edge
+		if(!this.antiAlias&&this.softness<1E-5){ // no soft edge
 			this.softEdge=(()=>1); // always 1
 		}
 		else{ // normal soft edge
@@ -75,38 +75,42 @@ class CPURenderer extends BasicRenderer{
 	 * Slowest! @TODO: speed up
 	 */
 	renderPoints(wL,wH,hL,hH,w,kPoints){
-		let qK=this._invQuality; // 1/quality
+		const qK=this._invQuality; // 1/quality
 		let rgba=[...this.rgba]; // spread is the fastest
-		let hd=this.brush.edgeHardness;
+		const hd=this.hardness;
+		const fixedSoftEdge=this.antiAlias?2:0;
 	
 		// first sqrt
 		for(let k=0;k<kPoints.length;k++){ // each circle in sequence
 			const p=kPoints[k];
 			const r2=p[2]*p[2];
-			const rIn=p[2]*hd; // solid radius range
-			const rI2=rIn*rIn;
+			const rIn=p[2]*hd-fixedSoftEdge; // solid radius range, may be Negative!
+			const softRange=this.softness+fixedSoftEdge/p[2];
+			const rI2=rIn>0?rIn*rIn:0; // if rIn is negative: all soft
 	
 			const jL=Math.max(Math.ceil(p[1]-p[2]),hL); // y lower bound
 			const jH=Math.min(Math.floor(p[1]+p[2]),hH); // y upper bound
-			const opa=(1-Math.pow(1-p[3],qK))*0xFFFF; // plate opacity 0~65535
+			// The 2-hd is to compensate the soft edge opacity
+			const opa=(1-Math.pow(1-p[3],qK))*(2-hd)*0xFFFF; // plate opacity 0~65535
+
 			const x=p[0];
 			for(let j=jL;j<=jH;j++){ // y-axis
 				const dy=j-p[1];
 				const dy2=dy*dy;
 				const sx=Math.sqrt(r2-dy2);
-				const solidDx=rIn>dy?Math.sqrt(rI2-dy2):0; // dx range of not soft edge
+				const solidDx=rI2>dy2?Math.sqrt(rI2-dy2):0; // dx range of not soft edge
 				const iL=Math.max(Math.ceil(x-sx),wL); // x lower bound
 				const iH=Math.min(Math.floor(x+sx),wH); // x upper bound
 				let idBuf=(j*w+iL)<<2;
 				for(let i=iL;i<=iH;i++){ // x-axis, this part is the most time consuming
 					const dx=i-x;
 					if(dx<solidDx&&dx>-solidDx){ // must be solid
-						rgba[3]=Math.round(opa); // opacity of this point
+						rgba[3]=Math.min(Math.round(opa),0xFFFF); // opacity of this point
 					}
 					else{ // this part is also time-consuming
 						// distance to center(0~1)
 						const dis2Center=Math.sqrt((dx*dx+dy2)/r2);
-						rgba[3]=Math.round(this.softEdge(dis2Center)*opa);
+						rgba[3]=Math.min(Math.round(this.softEdge((1-dis2Center)/softRange)*opa),0xFFFF);
 					}
 					this.blendFunction(this.buffer,idBuf,rgba,0);
 					idBuf+=4; // avoid mult

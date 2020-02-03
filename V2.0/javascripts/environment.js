@@ -49,6 +49,8 @@ ENV.init=function(){ // When the page is loaded
 	FILES.init();
 	PERFORMANCE.init();
 
+	EVENTS.disableInputSelection($("#filename-input"));
+
 	/**
 	 * Debug part
 	 */
@@ -347,6 +349,12 @@ function pArrInterpolate(p1,p2,k){
 ENV.setAntiAliasing=function(isAntiAlias){
 	ENV.displaySettings.antiAlias=isAntiAlias;
 	// change the setting of each layer
+	if(isAntiAlias){
+		$("#canvas-container").find("canvas").removeClass("pixelated");
+	}
+	else{
+		$("#canvas-container").find("canvas").addClass("pixelated");
+	}
 }
 
 /**
@@ -383,33 +391,6 @@ function initSettingSample_DEBUG(){
 	brush.addButton("M agree <br>to the",()=>console.log("Yes"));
 	brush.addButton("M agree <br>to<br> the",()=>console.log("Yes"));
 	brush.update();
-}
-
-function testPsd_DEBUG(){
-	let readPsd=agPsd.readPsd;
-	$("body").on("dragenter dragleave dragover drop",e=>{
-		e.preventDefault();
-		if(e.type=="drop"){
-			let file=e.originalEvent.dataTransfer.files[0];
-			console.log(file);
-			// Check file type
-
-			let reader=new FileReader();
-			reader.readAsArrayBuffer(file);
-			reader.onload=function(){
-				let psd=readPsd(this.result);
-				console.log(psd);
-				$("#canvas_layers_container").append(psd.children[0].canvas);
-			}
-		}
-	});
-		
-		
-		
-		//if(!file||!file.type||!file.type.match(/image*/))continue;
-
-		
-	
 }
 
 // ============ load text test ===============

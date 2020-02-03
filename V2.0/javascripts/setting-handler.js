@@ -21,8 +21,10 @@ SettingHandler.init=function(){
 // init the transform handlers on the right-bottom
 SettingHandler.initTransformHandler=function(){
 	// rotate input
+	const $rotate=$("#rotate-info-input");
+	EVENTS.disableInputSelection($rotate);
 	SettingManager.setInputInstantNumberInteraction(
-		$("#rotate-info-input"),$("#rotate-info"),
+		$rotate,$("#rotate-info"),
 		newVal=>{ // input update
 			if(isNaN(newVal)){ // not a number, return initial rotation
 				return;
@@ -48,15 +50,17 @@ SettingHandler.initTransformHandler=function(){
 			newA=Math.round(newA); // only int
 			ENV.rotateTo(newA);
 		},
-		()=>$("#rotate-info-input").val(Math.round(ENV.window.rot))
+		()=>$rotate.val(Math.round(ENV.window.rot))
 	);
 
 	// scaling input
 	// The ENV accept 0.1~8 while functions return 10%~800%
 	// Scale factor: 10% to 800%
 	// Scale modify factor in changeScaleOnScroll()
+	const $scale=$("#scale-info-input");
+	EVENTS.disableInputSelection($scale);
 	SettingManager.setInputInstantNumberInteraction(
-		$("#scale-info-input"),$("#scale-info"),
+		$scale,$("#scale-info"),
 		newVal=>{ // input update
 			if(isNaN(newVal)){ // not a number, return initial rotation
 				return;
@@ -72,7 +76,7 @@ SettingHandler.initTransformHandler=function(){
 			let newS=SettingHandler.updateScale(dx/2,oldVal/100);
 			ENV.scaleTo(newS);
 		},
-		()=>$("#scale-info-input").val(Math.round(ENV.window.scale*100))
+		()=>$scale.val(Math.round(ENV.window.scale*100))
 	);
 	
 	// Reset all transform
@@ -81,8 +85,8 @@ SettingHandler.initTransformHandler=function(){
 		let k2=ENV.window.SIZE.height/ENV.paperSize.height;
 		let k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
 		ENV.transformTo(0,0,0,k);
-		$("#scale-info-input").val(Math.round(k*100));
-		$("#rotate-info-input").val("0");
+		$scale.val(Math.round(k*100));
+		$rotate.val("0");
 	});
 }
 
@@ -138,7 +142,7 @@ SettingHandler.initSystemSetting=function(){
 			SettingHandler.tempPaperSize.height=newVal;
 		}
 	);
-	$("#system-button").on("click",event=>{ // refresh when open
+	EventDistributer.setClick($("#system-button"),event=>{ // refresh when open
 		SettingHandler.tempPaperSize.width=ENV.paperSize.width;
 		SettingHandler.tempPaperSize.height=ENV.paperSize.height;
 	});

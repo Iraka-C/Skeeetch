@@ -39,8 +39,6 @@ EventDistributer.wheel={
 		el.onwheel=EventDistributer.wheel._onwheel;
 	},
 	_onwheel:function(event){
-		console.log(event.target);
-		
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){
 			let e=event;//.originalEvent;
 			let dx=e.deltaX;
@@ -61,49 +59,118 @@ EventDistributer.wheel={
  * pointerchange: {dx,dy} in pixel
  */
 EventDistributer.button={
-	// @TODO: Buggy! What if multitouch?
-	// @TODO: Buggy! moving from one div to another while pressing also changes listener target
 	_init:function(){
-		$(window).on("pointermove",EventDistributer.button._onpointermove);
-		$(window).on("pointerup pointercancel",EventDistributer.button._onpointerup);
 	},
-	isDragging:false,
-	_origin:{x:NaN,y:NaN},
-	_nowListener:null, // a DOM Object
-	_nowFunction:()=>{}, // a function
-	_nowInitValue:null,
 	addListener:function($element,callback,initFunc){ // $element is a jQuery Object
-		let el=$element[0];
-		el.addEventListener("pointerdown",event=>{
-			EventDistributer.button._nowListener=el;
-			EventDistributer.button._nowFunction=callback;
-			EventDistributer.button._nowInitValue=initFunc();
-			EventDistributer.button._origin={x:event.clientX,y:event.clientY};
-			EventDistributer.button.isDragging=true;
-		},true);
-	},
-	_onpointermove:function(event){ // send the {dx,dy}
-		if(EventDistributer.button._nowListener&&EventDistributer.button._nowFunction){
-			// There is a pointer down
-			// @TODO: disable drawing when dragging here
-			let e=event.originalEvent;
-			let dx=e.clientX-EventDistributer.button._origin.x;
-			let dy=e.clientY-EventDistributer.button._origin.y;
-			EventDistributer.button._nowFunction({x:dx,y:dy,initVal:EventDistributer.button._nowInitValue});
-		}
-	},
-	_onpointerup:function(event){
-		EventDistributer.button._nowListener=null;
-		EventDistributer.button._origin={x:NaN,y:NaN};
-		EventDistributer.button._nowInitValue={};
-		EventDistributer.button.isDragging=false;
+		const el=$element[0];
+		let isDown=false;
+		let origin={};
+		let initVal={};
+		$element.on("pointerdown",event=>{
+			const e=event.originalEvent;
+			initVal=initFunc();
+			origin={x:e.clientX,y:e.clientY};
+			el.setPointerCapture(e.pointerId); // fix pointer to this element
+			isDown=true;
+		});
+		$element.on("pointermove",event=>{
+			if(!isDown)return; // call callback when down
+			const e=event.originalEvent;
+			const dx=e.clientX-origin.x;
+			const dy=e.clientY-origin.y;
+			callback({x:dx,y:dy,initVal:initVal});
+		});
+		$element.on("pointerup pointercancel",event=>{
+			const e=event.originalEvent;
+			el.releasePointerCapture(e.pointerId); // release pointer from this element
+			origin={};
+			initVal={};
+			isDown=false;
+		});
 	}
 };
+
+EventDistributer.setClick=function($element,callback){
+	let origin={};
+	let isToClick=true;
+	$($element).on("pointerdown",event=>{
+		const e=event.originalEvent;
+		origin={x:e.clientX,y:e.clientY};
+		isToClick=true;
+	});
+	$($element).on("pointermove",event=>{
+		if(!isToClick)return; // no more click
+		const e=event.originalEvent;
+		const dx=e.clientX-origin.x;
+		const dy=e.clientY-origin.y;
+		if(dx*dx+dy*dy>5){ // moved too far
+			isToClick=false;
+		}
+	});
+	$($element).on("pointerup pointercancel",event=>{
+		if(isToClick){ // not moved
+			callback(event);
+		}
+		origin={};
+	});
+};
+
+// ========= Another verision of button ===========
+// A button that can detect down-and-drag to its outside
+/**
+ * addListener($DOMElement, callback)
+ * callback function format: callback(pointerchange)
+ * pointerchange: {dx,dy} in pixel
+ */
+// EventDistributer.button={
+// 	// @TODO: Buggy! What if multitouch?
+// 	// @TODO: Buggy! moving from one div to another while pressing also changes listener target
+// 	_init:function(){
+// 		$(window).on("pointermove",EventDistributer.button._onpointermove);
+// 		$(window).on("pointerup pointercancel",EventDistributer.button._onpointerup);
+// 	},
+// 	isDragging:false,
+// 	_origin:{x:NaN,y:NaN},
+// 	_nowListener:null, // a DOM Object
+// 	_nowFunction:()=>{}, // a function
+// 	_nowInitValue:null,
+// 	addListener:function($element,callback,initFunc){ // $element is a jQuery Object
+// 		let el=$element[0];
+// 		el.addEventListener("pointerdown",event=>{
+// 			EventDistributer.button._nowListener=el;
+// 			EventDistributer.button._nowFunction=callback;
+// 			EventDistributer.button._nowInitValue=initFunc();
+// 			EventDistributer.button._origin={x:event.clientX,y:event.clientY};
+// 			EventDistributer.button.isDragging=true;
+// 		},true);
+// 	},
+// 	_onpointermove:function(event){ // send the {dx,dy}
+// 		if(EventDistributer.button._nowListener&&EventDistributer.button._nowFunction){
+// 			// There is a pointer down
+// 			// @TODO: disable drawing when dragging here
+// 			let e=event.originalEvent;
+// 			let dx=e.clientX-EventDistributer.button._origin.x;
+// 			let dy=e.clientY-EventDistributer.button._origin.y;
+// 			EventDistributer.button._nowFunction({x:dx,y:dy,initVal:EventDistributer.button._nowInitValue});
+// 		}
+// 	},
+// 	_onpointerup:function(event){
+// 		EventDistributer.button._nowListener=null;
+// 		EventDistributer.button._origin={x:NaN,y:NaN};
+// 		EventDistributer.button._nowInitValue={};
+// 		EventDistributer.button.isDragging=false;
+// 	}
+// };
+// ============= END ============
 
 // System hint
 // Show a hint from infoFunc() when mouse over $el
 EventDistributer.footbarHint=function($el,infoFunc){ // infoFunc put in closure
 	$el.on("pointerover",event=>{
+		if(EventDistributer.footbarHint.timer){ // clear previous timeout
+			clearTimeout(EventDistributer.footbarHint.timer);
+			EventDistributer.footbarHint.timer=null;
+		}
 		EventDistributer.footbarHint.infoFunc=infoFunc; // record this function
 		$("#front-info-box").html(EventDistributer.footbarHint.infoFunc());
 		$("#front-info-panel").css("opacity","1");
@@ -114,11 +181,25 @@ EventDistributer.footbarHint=function($el,infoFunc){ // infoFunc put in closure
 	});
 };
 EventDistributer.footbarHint.infoFunc=null;
+EventDistributer.footbarHint.timer=null;
 EventDistributer.footbarHint.update=function(){ // update when environment changes i.e. a key pressed
 	if(EventDistributer.footbarHint.infoFunc){ // there's a function registered
 		$("#front-info-box").html(EventDistributer.footbarHint.infoFunc());
 	}
 };
+EventDistributer.footbarHint.showInfo=function(text,time){
+	if(EventDistributer.footbarHint.timer){ // clear previous timeout
+		clearTimeout(EventDistributer.footbarHint.timer);
+		EventDistributer.footbarHint.timer=null;
+	}
+	EventDistributer.footbarHint.infoFunc=null;
+	$("#front-info-box").text(text);
+	$("#front-info-panel").css("opacity","1");
+	EventDistributer.footbarHint.timer=setTimeout(event=>{
+		$("#front-info-panel").css("opacity","0");
+		EventDistributer.footbarHint.timer=null;
+	},time||1000);
+}
 
 /**
  * keyboard operation, hot keys

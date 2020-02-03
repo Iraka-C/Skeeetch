@@ -30,7 +30,7 @@ class SettingManager{
 	}
 	// Assign a button to expand / collapse this setting panel
 	setOpenButton($div){
-		$div.on("click",event=>{
+		EventDistributer.setClick($div,event=>{
 			if(this.$frame.hasClass("setting-panel-collapsed")){ // not opened
 				this.update();
 				this.$frame.removeClass("setting-panel-collapsed");

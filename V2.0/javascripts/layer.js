@@ -25,9 +25,9 @@ LAYERS.$newLayerUI=function(name,id){
 
 	let opacityLabel=$("<div class='layer-opacity-label'>").text("100%");
 	let buttons=$("<div class='layer-buttons'>");
-	let lockButton=$("<img class='layer-lock-button'>");
-	let blendModeButton=$("<img class='layer-blend-mode-button'>");
-	let maskButton=$("<img class='layer-mask-button'>");
+	let lockButton=$("<div class='layer-lock-button'>").append($("<img>"));
+	let blendModeButton=$("<div class='layer-blend-mode-button'>");
+	let maskButton=$("<div class='layer-mask-button'>");
 	buttons.append(lockButton,blendModeButton,maskButton);
 	
 	EventDistributer.footbarHint(opacityLabel,()=>Lang("layer-opacity-label"));
@@ -42,6 +42,7 @@ LAYERS.$newLayerUI=function(name,id){
 		"maxLength":"256",
 		"size":"16"
 	});
+	EVENTS.disableInputSelection(nameLabel); // disable selection, prevent from dragging text
 	let maskUI=$("<div class='layer-ui-mask'>");
 	let maskUI2=$("<div class='layer-ui-mask2'>");
 	let cvUI=$("<div class='layer-ui-canvas-container'>");
@@ -56,6 +57,14 @@ LAYERS.$newLayerUI=function(name,id){
 	buttons.children().attr("draggable","false");
 
 	layerUI.append(cvUI,maskUI2,maskUI,opacityLabel,buttons,nameLabel);
+
+	// prevent layerUI from dragging on pen: causes freezing in Firefox
+	// causes stuck in Chrome
+	layerUI.on("pointerdown",event=>{
+		if(event.originalEvent.pointerType=="pen"){
+			event.stopPropagation(); // cancel the following "drag" event on pen
+		}
+	});
 	return layerUI;
 }
 
@@ -74,6 +83,7 @@ LAYERS.$newLayerGroupUI=function(name,id){
 		"maxLength":"256",
 		"size":"10"
 	});
+	EVENTS.disableInputSelection(nameLabel);
 	groupTitle.append(nameLabel);
 	layerGroupUI.append(groupTitle);
 
@@ -90,7 +100,11 @@ LAYERS.$newLayerGroupUI=function(name,id){
 	layerContainer.attr("data-layer-id",id); // Same id as UI
 	LAYERS.set$ElementAsLayerContainer(layerContainer);
 	layerGroupUI.append(layerContainer);
-
+	layerGroupUI.on("pointerdown",event=>{
+		if(event.originalEvent.pointerType=="pen"){
+			event.stopPropagation(); // cancel the following "drag" event on pen
+		}
+	});
 	return layerGroupUI;
 }
 
@@ -204,9 +218,8 @@ class Layer{
 			$cv.css("visibility",this.visible?"visible":"hidden");
 			$opacityLabel.html(toOpacityString());
 		});
-		
 
-		let $cv=$("<canvas class='layer-canvas pixelated'>");
+		let $cv=$("<canvas class='layer-canvas'>"); // No .pixelated at first
 		$cv.attr({
 			"width":ENV.paperSize.width,
 			"height":ENV.paperSize.height,
@@ -337,27 +350,28 @@ class Layer{
 	_initButtons(){
 		// Lock buttton
 		const $buttons=this.$ui.children(".layer-buttons");
-		const lockButton=$buttons.children(".layer-lock-button");
+		const $lockButton=$buttons.children(".layer-lock-button");
+		const $lockButtonImg=$lockButton.children("img");
 		const setLockButtonStatus=v=>{ // separated function: do not change this.prevStatus
 			switch(v){
 			case 0: // no lock
 				this.isLocked=false;
 				this.isOpacityLocked=false;
-				lockButton.attr("src","./resources/unlock.svg");
+				$lockButtonImg.attr("src","./resources/unlock.svg");
 				break;
 			case 1: // opacity lock
 				this.isLocked=false;
 				this.isOpacityLocked=true;
-				lockButton.attr("src","./resources/opacity-lock.svg");
+				$lockButtonImg.attr("src","./resources/opacity-lock.svg");
 				break;
 			case 2: // full lock
 				this.isLocked=true;
 				this.isOpacityLocked=true;
-				lockButton.attr("src","./resources/all-lock.svg");
+				$lockButtonImg.attr("src","./resources/all-lock.svg");
 				break;
 			}
 		}
-		this._lockButtonUpdateFunc=SettingManager.setSwitchInteraction(lockButton,null,3,($el,v)=>{
+		this._lockButtonUpdateFunc=SettingManager.setSwitchInteraction($lockButton,null,3,($el,v)=>{
 			setLockButtonStatus(v);
 		});
 	}
@@ -492,7 +506,9 @@ class LayerGroup{
 		let $button=$panel.children(".group-title-expand-button");
 		$button.toggleClass("group-expanded");
 		$ct.toggleClass("layer-group-container-collapsed");
-		$ct.slideToggle(250);
+		$ct.slideToggle(250,()=>{ // update scrollbar after toggle
+			LAYERS._updateScrollBar();
+		});
 	}
 }
 
@@ -711,27 +727,3 @@ LAYERS._checkIfOnlyOneLayerLeft=function(toDeleteId){
 	}
 	return false;
 };
-
-LAYERS.initScrollbar=function(){
-	/**
-	 * When dragging in the layer list, it does not automatically scroll
-	 * Add two divs that controls scrolling up/down
-	 */
-	
-	let $scrollbar=$("#layer-panel-scroll");
-	let scrollbar=$scrollbar[0];
-	$("#layer-panel-drag-up").on("dragover",event=>{ // scroll upwards
-		let sT=scrollbar.scrollTop;
-		if(sT>0){ // space at the top
-			$scrollbar.scrollTop(sT-8);
-		}
-	});
-	$("#layer-panel-drag-down").on("dragover",event=>{ // scroll downwards
-		let sH=scrollbar.scrollHeight;
-		let cH=scrollbar.clientHeight;
-		let sT=scrollbar.scrollTop;
-		if(sH>sT+cH){ // space at the bottom
-			$scrollbar.scrollTop(sT+8);
-		}
-	});
-}

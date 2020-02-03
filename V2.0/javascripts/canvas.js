@@ -66,7 +66,8 @@ CANVAS.setCanvasEnvironment=function(event){ // event="pointerdown"
 		brush: BrushManager.activeBrush,
 		rgb: PALETTE.rgb,
 		sensitivity: BrushManager.general.sensitivity,
-		isOpacityLocked: CANVAS.nowLayer.isOpacityLocked
+		isOpacityLocked: CANVAS.nowLayer.isOpacityLocked,
+		antiAlias:ENV.displaySettings.antiAlias
 	});
 };
 
@@ -187,6 +188,7 @@ CANVAS.onRefresh=function(){
 
 /**
  * refresh corresponding layer settings
+ * register history
  */
 CANVAS.onEndRefresh=function(){
 	LAYERS.active.updateLatestImageData(CANVAS.nowRenderer.getImageData());

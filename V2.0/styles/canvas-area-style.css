@@ -179,11 +179,14 @@ table{
 	flex-direction: row;
 }
 #bottom-info-box > div{
-	/*margin: 0em 0.5em;*/
+	/*margin: 0em 1em;*/
 }
 #bottom-info-box input{
 	text-align: right;
 	color: #cc6735;
+}
+#bottom-general-info{
+	margin-right: 1em;
 }
 /* ==================== Canvas panels ==================== */
 #brush-cursor-layer{
@@ -214,4 +217,16 @@ table{
 	position: absolute;
 	width: 100%;
 	height: 100%;
+}
+
+.pixelated{
+	/* Pixel Scale */
+	image-rendering: optimizeSpeed;             /* Legal fallback */
+	image-rendering: -moz-crisp-edges;          /* Firefox        */
+	image-rendering: -o-crisp-edges;            /* Opera          */
+	image-rendering: -webkit-optimize-contrast; /* Safari         */
+	image-rendering: optimize-contrast;         /* CSS3 Proposed  */
+	image-rendering: crisp-edges;               /* CSS4 Proposed  */
+	image-rendering: pixelated;                 /* CSS4 Proposed  */
+	-ms-interpolation-mode: nearest-neighbor;   /* IE8+           */
 }

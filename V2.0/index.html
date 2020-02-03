@@ -30,6 +30,7 @@
 		<script src="./javascripts/brush.js"></script>
 		<script src="./javascripts/cursor.js"></script>
 		<script src="./javascripts/layer.js"></script>
+		<script src="./javascripts/layer-scroll.js"></script>
 		<script src="./javascripts/palette.js"></script>
 		<script src="./javascripts/settings.js"></script>
 		<script src="./javascripts/setting-handler.js"></script>
@@ -146,16 +147,23 @@
 							</div>
 						</div>
 						<div id="layer-panel-container">
-							<div id="layer-panel-scroll">
-								<div id="layer-panel-inner" class="layer-panel-block layer-group-container" data-layer-id="root">
-									<!-- Here are the layers & layer groups -->
+							<div id="layer-panel-scroll-outer">
+								<div id="layer-panel-scroll">
+									<div id="layer-panel-inner" class="layer-panel-block layer-group-container" data-layer-id="root">
+										<!-- Here are the layers & layer groups -->
+									</div>
+									
 								</div>
-								
 							</div>
 							<!-- Dragging control -->
 							<div id="layer-panel-drag-up">
 							</div>
 							<div id="layer-panel-drag-down">
+							</div>
+							<div id="layer-panel-scrollbar">
+								<svg id="layer-panel-scrollbar-svg" width="16" height="16" xmlns="http://www.w3.org/2000/svg" version="1.1">
+									<circle id="layer-panel-scrollbar-cursor" cx="8" cy="8" r="8" stroke="none" fill="#00000088" />
+								</svg>
 							</div>
 						</div>
 					</div>
@@ -174,8 +182,8 @@
 								</div>
 							</div>
 						</div>
+						<!-- SVG doesn't transform -->
 						<svg id="brush-cursor-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
-							<!-- SVG doesn't transform -->
 							<g id="brush-cursor" stroke-width="2" fill="none">
 								<circle id="brush-cursor-outer" cx="-10" cy="-10" r="2" stroke="#000000"/>
 								<circle id="brush-cursor-round" cx="-10" cy="-10" r="2" stroke="#000000"/>
@@ -186,6 +194,8 @@
 					<!-- show info/button over canvas -->
 					<div id="bottom-info-panel">
 						<div id="bottom-info-box">
+							<div id="bottom-general-info">
+							</div>
 							<div id="reset-info">
 								[&bull;]
 							</div>

@@ -13,7 +13,7 @@ BrushManager.brushes=[
 		alpha:1.0, // opacity 0~1 (0~100%)
 		minAlpha:1.0, // 0~1 (0~100%) of alpha
 		isAlphaPressure:0,
-		edgeHardness:0.9, // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
+		edgeHardness:1.0, // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
 		blendMode:0 // 0: normal, -1: eraser, see RENDER/RENDER16
 	},
 	{
@@ -38,7 +38,7 @@ BrushManager.brushes=[
 		alpha:1,
 		minAlpha:1.0,
 		isAlphaPressure:0,
-		edgeHardness:0.9,
+		edgeHardness:1.0,
 		blendMode:-1
 	}
 ];
@@ -284,9 +284,8 @@ BrushManager.initBrushSelector=function(){
 	let menu=$("#brush-selector-menu");
 	for(let brush of BrushManager.brushes){
 		let block=$("<div class='brush-selector-item'>").text(brush.name);
-		block.on("click",event=>{
+		EventDistributer.setClick(block,event=>{
 			BrushManager.setActiveBrush(brush);
-
 		});
 		menu.append(block);
 	}
