@@ -26,8 +26,8 @@ LAYERS.$newLayerUI=function(name,id){
 	let opacityLabel=$("<div class='layer-opacity-label'>").text("100%");
 	let buttons=$("<div class='layer-buttons'>");
 	let lockButton=$("<div class='layer-lock-button'>").append($("<img>"));
-	let blendModeButton=$("<div class='layer-blend-mode-button'>");
-	let maskButton=$("<div class='layer-mask-button'>");
+	let blendModeButton=$("<div class='layer-blend-mode-button'>").append($("<img>"));
+	let maskButton=$("<div class='layer-mask-button'>").append($("<img>"));
 	buttons.append(lockButton,blendModeButton,maskButton);
 	
 	EventDistributer.footbarHint(opacityLabel,()=>Lang("layer-opacity-label"));
@@ -230,6 +230,7 @@ class Layer{
 		this.visible=true; // is this layer not hidden?
 		this.isLocked=false; // is this layer locked?
 		this.isOpacityLocked=false; // is the layer opacity locked?
+		this.isClip=false; // is clipping mask?
 		this.$div=$cv;
 		this.type="canvas";
 
@@ -348,7 +349,7 @@ class Layer{
 
 	// for all buttons
 	_initButtons(){
-		// Lock buttton
+		// Lock button
 		const $buttons=this.$ui.children(".layer-buttons");
 		const $lockButton=$buttons.children(".layer-lock-button");
 		const $lockButtonImg=$lockButton.children("img");
@@ -374,16 +375,36 @@ class Layer{
 		this._lockButtonUpdateFunc=SettingManager.setSwitchInteraction($lockButton,null,3,($el,v)=>{
 			setLockButtonStatus(v);
 		});
+		// Clipping Mask
+		const $clipMaskButton=$buttons.children(".layer-mask-button");
+		const $clipMaskButtonImg=$clipMaskButton.children("img");
+		const setClipMaskButtonStatus=v=>{
+			switch(v){
+			case 0: // no clip
+				this.isClip=false;
+				$clipMaskButtonImg.attr("src","./resources/unlock.svg");
+				break;
+			case 1: // clip
+				this.isClip=true;
+				$clipMaskButtonImg.attr("src","./resources/opacity-lock.svg");
+				break;
+			}
+		}
+		this._clipMaskButtonUpdateFunc=SettingManager.setSwitchInteraction($clipMaskButton,null,2,($el,v)=>{
+			setClipMaskButtonStatus(v);
+		});
 	}
 	_getButtonStatus(){
 		return {
 			lock: this.isLocked?2:this.isOpacityLocked?1:0,
 			opacity: this.opacity,
-			visible: this.visible
+			visible: this.visible,
+			clip: this.isClip
 		};
 	}
 	_setButtonStatus(param){ // @TODO: visibility
 		if(!param)return;
+		// lock status
 		if(param.lock!==undefined)this._lockButtonUpdateFunc(param.lock);
 		// opacity setting
 		if(param.visible!==undefined){
@@ -396,6 +417,11 @@ class Layer{
 			this.opacity=param.opacity; // inner value
 			this.$div.css("opacity",param.opacity/100); // css display
 			this.$ui.children(".layer-opacity-label").html(toOpacityString()); // label value
+		}
+		// clipping mask
+		if(param.clip!==undefined){
+			this.isClip=param.clip;
+			this._clipMaskButtonUpdateFunc(this.isClip?1:0);
 		}
 	}
 }
@@ -600,6 +626,7 @@ LAYERS.initFirstLayer=function(){
 /**
  * Set a layer / group as the present active object
  * Also set the canvas target to this object
+ * but WON'T update latest image data: in fact it uses this data
  */
 LAYERS.setActive=function(obj){ // layer or group or id
 	if(typeof(obj)=="string"){ // id
@@ -614,9 +641,7 @@ LAYERS.setActive=function(obj){ // layer or group or id
 	if(obj.type=="canvas"){ // canvas layer
 		obj.$ui.addClass("layer-ui-active");
 		obj.$ui.children(".layer-ui-mask").addClass("layer-ui-mask-active");
-		let cv=obj.$div[0];
 		CANVAS.setTargetLayer(obj,obj.latestImageData); // set CANVAS draw target
-		obj.latestImageData=CANVAS.nowRenderer.getImageData(0,0,cv.width,cv.height); // record image data
 		// @TODO: what if gl
 	}
 	else if(obj.type=="group"){ // group

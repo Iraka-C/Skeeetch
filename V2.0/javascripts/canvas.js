@@ -23,10 +23,10 @@ CANVAS.isChanged=false;
 // ========================= Functions ===========================
 /**
  * Update the target canvas to draw
- * targetCV is a DOM canvas element!
- * imgData is the data in targetLayer (if any), type: imgData from Renderer!
+ * targetCV is a DOM canvas element! with "webgl" context
+ * layerParams is the parameters (lock, blend, ...) of the layer
  */
-CANVAS.setTargetLayer=function(targetLayer,imgData){
+CANVAS.setTargetLayer=function(targetLayer,layerParams){
 	CANVAS.nowLayer=targetLayer;
 	if(!targetLayer){ // no active target
 		CANVAS.nowRenderer=null;
@@ -34,7 +34,7 @@ CANVAS.setTargetLayer=function(targetLayer,imgData){
 	else{
 		CANVAS.nowRenderer=CANVAS.getNewRenderer(targetLayer.$div[0],{
 			onRefresh:CANVAS.onRefresh,
-			imgData:imgData
+			imgData:layerParams.imgData
 		});
 		CANVAS.updateSpeed(); // at init
 	}

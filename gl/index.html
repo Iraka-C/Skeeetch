@@ -1,0 +1,253 @@
+<!DOCTYPE HTML>
+<!--
+	Written By Iraka
+	Main user interface
+	2019.12.27
+-->
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<link rel="stylesheet" type="text/css" href="./styles/main-style.css" />
+		<link rel="stylesheet" type="text/css" href="./styles/top-menu-style.css" />
+		<link rel="stylesheet" type="text/css" href="./styles/layer-panel-style.css" />
+		<link rel="stylesheet" type="text/css" href="./styles/canvas-area-style.css" />
+		<!-- load static libraries -->
+		<script src="./javascripts/jquery-3.4.1.min.js"></script>
+		<script src="./javascripts/Sortable.min.js"></script>
+		<script src="./javascripts/ag-psd.js"></script>
+		<script src="./javascripts/js.cookie.min.js"></script>
+		<script src="./javascripts/math.js"></script>
+		<script src="./javascripts/q-bezier.js"></script>
+
+		<!-- load languages -->
+		<script src="./javascripts/languages/lang-zh.js"></script>
+		<script src="./javascripts/languages/lang-en.js"></script>
+		<script src="./javascripts/lang.js"></script>
+
+		<!-- load page handlers -->
+		<script src="./javascripts/event-distributer.js"></script>
+		<script src="./javascripts/event.js"></script>
+		<script src="./javascripts/brush.js"></script>
+		<script src="./javascripts/cursor.js"></script>
+
+		<!-- Layer managements -->
+		<script src="./javascripts/layer.js"></script>
+		<script src="./javascripts/layer-node-content.js"></script>
+		<script src="./javascripts/layer-node-canvas.js"></script>
+		<script src="./javascripts/layer-node-group.js"></script>
+		<script src="./javascripts/layer-node-root.js"></script>
+		<script src="./javascripts/layer-scroll.js"></script>
+
+		<!-- Settings -->
+		<script src="./javascripts/palette.js"></script>
+		<script src="./javascripts/settings.js"></script>
+		<script src="./javascripts/setting-handler.js"></script>
+		<script src="./javascripts/environment.js"></script>
+		
+		<!--script src="./javascripts/render.js"></script>
+		<script src="./javascripts/render16.js"></script-->
+		<script src="./javascripts/renderer.js"></script>
+		<script src="./javascripts/renderer-gl.js"></script>
+		<script src="./javascripts/renderer-gl-utils.js"></script>
+		<script src="./javascripts/canvas.js"></script>
+		<script src="./javascripts/history.js"></script>
+		<script src="./javascripts/file-handler.js"></script>
+		<script src="./javascripts/performance.js"></script>
+		
+		<script type="text/javascript">
+			const glsl=s=>s; // string conversion, for glsl tag linting.
+			$(ENV.init);
+		</script>
+		<title>Skeeetch</title>
+	</head>
+
+	<body class="noselect">
+		<div id="ui-panel">
+			<div id="top-menu-panel"> <!-- Header banner -->
+				<div id="top-menu-left-panel">
+					<div id="palette-button" class="top-block">Palette</div>
+					<div id="brush-selector-panel">
+						<div id="brush-button" class="top-block">
+							<div id="brush-name">Pencil</div>
+							<div>&middot;</div>
+							<input id="brush-size" value="0" type="text" maxLength="3" size="3"/>
+						</div>
+						<div id="brush-selector-menu">
+						</div>
+					</div>
+				</div>
+				<div id="top-menu-center-panel">
+					<input class="top-block" id="filename-input" value="Skeeetch" type="text" maxLength="256" size="20"/>
+				</div>
+				<div id="top-menu-right-panel">
+					<div id="system-button" class="top-block">Settings</div>
+					<div id="file-button" class="top-block">Export</div>
+				</div>
+			</div>
+
+			<div id="column-panel"> <!-- Column panels -->
+				<div id="layer-area-panel"> <!-- palette's also here -->
+					<div id="layer-area-width-panel" class="layer-panel-block"></div>
+					<div id="palette-panel">
+						<div id="palette-title">
+							<div id="palette-hue-selector">
+								<canvas id="palette-hue-selector-canvas" width="180" height="60"></canvas>
+							</div>
+							<div id="palette-color-info">
+								Test
+							</div>
+							<div id="palette-hue-info">
+								<div id="palette-hue-sign">Hue</div>
+								<div>&middot;</div>
+								<div id="palette-hue-value">200</div>
+							</div>
+						</div>
+						<div id="palette-selector">
+							<!-- svg palette gradient definition -->
+							<!--
+								NOT USED BECAUSE THE EFFECT IS NOT AS GOOD AS CANVAS
+								VERTICAL STRIPS CAN BE SEEN WHILE CANVAS DOESN'T
+							-->
+							<!--svg width="256" height="256" id="palette-background" xmlns="http://www.w3.org/2000/svg" version="1.1" viewbox="0 0 100 100">
+								<defs>
+									<linearGradient id="gradient-h" x1="0" x2="1" y1="0" y2="0">
+										<stop offset="0%" stop-color="var(--color-h-1)" />
+										<stop offset="100%" stop-color="var(--color-h-2)" />
+									</linearGradient>
+									<linearGradient id="gradient-v" x1="0" x2="0" y1="0" y2="1">
+										<stop offset="0%" stop-color="var(--color-v-1)" />
+										<stop offset="100%" stop-color="var(--color-v-2)" />
+									</linearGradient>
+								</defs>
+								<rect x="0" y="0" width="256" height="256" fill="url(#gradient-h)"/>
+								<rect x="0" y="0" width="256" height="256" fill="url(#gradient-v)"/>
+								<circle id="palette-cursor" cx="10" cy="10" r="2" stroke="#000000" stroke-width="1" fill="none" />
+							</svg-->
+							<svg id="palette-svg" class="layer-panel-block" width="256" height="256" xmlns="http://www.w3.org/2000/svg" version="1.1">
+								<circle id="palette-cursor" cx="0" cy="0" r="3" stroke="#000000" stroke-width="2" fill="none" />
+							</svg>
+							<canvas id="palette-canvas" class="layer-panel-block" width="256" height="256"></canvas>
+							
+						</div>
+					</div>
+					<div id="layer-panel">
+						<div id="layer-panel-title">
+							<div id="layer-panel-name">
+								Layers
+							</div>
+							<div id="layer-panel-right-menu">
+								&times;
+							</div>
+						</div>
+						<div id="layer-panel-button-panel">
+							<div id="new-layer-button" class="layer-panel-button">
+								<img src="./resources/new-layer.svg"/>
+							</div>
+							<div id="new-group-button" class="layer-panel-button">
+								<img src="./resources/new-group.svg"/>
+							</div>
+							<div id="delete-button" class="layer-panel-button">
+								<img src="./resources/delete.svg"/>
+							</div>
+							<div id="clear-button" class="layer-panel-button">
+								<img src="./resources/clear-layer.svg"/>
+							</div>
+							<div id="copy-button" class="layer-panel-button">
+								<img src="./resources/copy-layer.svg"/>
+							</div>
+						</div>
+						<div id="layer-panel-container">
+							<div id="layer-panel-scroll-outer">
+								<div id="layer-panel-scroll">
+									<div id="layer-panel-inner" class="layer-panel-block layer-group-container" data-layer-id="root">
+										<!-- Here are the layers & layer groups -->
+									</div>
+									
+								</div>
+							</div>
+							<!-- Dragging control -->
+							<div id="layer-panel-drag-up">
+							</div>
+							<div id="layer-panel-drag-down">
+							</div>
+							<div id="layer-panel-scrollbar">
+								<svg id="layer-panel-scrollbar-svg" width="16" height="16" xmlns="http://www.w3.org/2000/svg" version="1.1">
+									<circle id="layer-panel-scrollbar-cursor" cx="8" cy="8" r="8" stroke="none" fill="#00000088" />
+								</svg>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="canvas-area-panel">
+					<!-- contains canvas -->
+					<div id="canvas-layers-panel">
+						<div id="canvas-window">
+							<!-- Window won't move -->
+							<div id="canvas-container">
+								<!-- Container may transform -->
+								<!-- Front div: at the bottom -->
+								<canvas id="main-canvas" width="0" height="0"></canvas>
+							</div>
+						</div>
+						<!-- SVG doesn't transform -->
+						<svg id="brush-cursor-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
+							<g id="brush-cursor" stroke-width="2" fill="none">
+								<circle id="brush-cursor-outer" cx="-10" cy="-10" r="2" stroke="#000000"/>
+								<circle id="brush-cursor-round" cx="-10" cy="-10" r="2" stroke="#000000"/>
+							</g>
+						</svg>
+					</div>
+
+					<!-- show info/button over canvas -->
+					<div id="bottom-info-panel">
+						<div id="bottom-info-box">
+							<div id="bottom-general-info">
+							</div>
+							<div id="reset-info">
+								[&bull;]
+							</div>
+							<div id="scale-info">
+								<input id="scale-info-input" value="" type="text" maxLength="4" size="4"/>
+								<div>%</div>
+							</div>
+							<div id="rotate-info">
+								<input id="rotate-info-input" value="0" type="text" maxLength="4" size="4"/>
+								<div>&deg;</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- show setting menus -->
+					<div id="menu-panel">
+						<div id="left-menu-panels">
+							<div id="brush-menu-panel" class="setting-panel setting-panel-collapsed">
+							</div>
+						</div>
+						<div id="right-menu-panels">
+							<div id="settings-menu-panel" class="setting-panel setting-panel-collapsed">
+							</div>
+							<div id="file-menu-panel" class="setting-panel setting-panel-collapsed">
+							</div>
+						</div>
+					</div>
+
+					<!-- show a mask before menus -->
+					<div id="mask-panel">
+					</div>
+
+					<!-- show info/button over setting menus -->
+					<div id="front-info-panel">
+						<div id="front-info-box">
+							DEBUG
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="mask">
+			<div id="mask-item">
+			</div>
+		</div>
+	</body>
+</html>

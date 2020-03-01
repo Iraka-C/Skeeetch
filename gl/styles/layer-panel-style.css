@@ -1,0 +1,319 @@
+#layer-area-panel{
+	display: flex;
+	flex-direction: column;
+}
+
+#layer-area-width-panel{
+	flex: none;
+	height: 0em;
+	margin: 0em 1em;
+}
+
+#palette-panel{
+	position: relative;
+	background: #888;
+	flex: none;
+	overflow: hidden;
+}
+
+.layer-panel-block{ /* The width of all elements in layer block */
+	width: 10em;
+}
+
+/*.palette-block{
+	font-size: 125%;
+	padding: 0.5em;
+	transition: background 0.5s;
+}
+.palette-block:hover{
+	background: #777;
+}*/
+
+
+#gradient-h{
+	--color-h-1: #ffffff;
+	--color-h-2: #00a2ff;
+}
+#gradient-v{
+	--color-v-1: #00000000;
+	--color-v-2: #000000ff;
+}
+
+#palette-selector{
+	box-shadow: 0px 0px 20px #666;
+	margin: 0em 1em 1em 1em;
+}
+/*#palette-background{
+	width: 12em;
+	height: auto;
+}
+#palette-background *{
+	height: 100%;
+}*/
+#palette-canvas{
+	height: auto;
+}
+#palette-svg{
+	position: absolute;
+	height: auto;
+}
+
+#palette-title{
+	position: relative;
+}
+#palette-hue-info{
+	font-size: 125%;
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	padding: 0.5em;
+	pointer-events: none;
+}
+#palette-hue-info > *{
+	
+}
+#palette-hue-value{
+	vertical-align: super;
+	font-size: 80%;
+	margin-left: 0.1em;
+	width: 2em;
+}
+#palette-hue-selector{ /* Up-Right */
+	position: absolute;
+	width: 100%;
+	height: 1em;
+	pointer-events: all;
+}
+#palette-hue-selector-canvas{
+	margin: 0em;
+	opacity: 0;
+	transition: opacity 0.5s;
+	pointer-events: none;
+}
+#palette-hue-selector:hover > #palette-hue-selector-canvas{
+	opacity: 1;
+	pointer-events: all;
+}
+
+#palette-color-info{
+	font-size: 125%;
+	position: absolute;
+	padding: 0.5em;
+	display: none;
+}
+
+/* =================== Layer Panels =================== */
+#layer-panel{
+	background: #aaa;
+	flex: auto;
+	display: flex;
+	flex-direction: column;
+	height: 0px;
+}
+
+#layer-panel-container{
+	flex: 1;
+	height: 0px;
+	position: relative;
+}
+#layer-panel-title{
+	flex: none;
+	font-size: 125%;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	padding: 0.5em;
+}
+#layer-panel-scroll-outer{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	overflow-x: hidden;
+}
+#layer-panel-scroll{
+	width: 50em; /* Hide the scroll bar */
+	height: 100%;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	position: absolute;
+}
+#layer-panel-drag-up,#layer-panel-drag-down{
+	position: absolute;
+	width: 100%;
+	height: 1em;
+	/* background: #00000088; */
+	display: none;
+}
+#layer-panel-drag-down{
+	bottom: 0em;
+}
+
+
+#layer-panel-inner{
+	margin: 1em;
+	padding-top: 0em;
+}
+
+#layer-panel-button-panel{
+	flex: none;
+	font-size: 125%;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+.layer-panel-button{
+	flex: auto;
+	text-align: center;
+	transition: background 0.5s, box-shadow 0.2s;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	padding: 0.2em 0em;
+}
+.layer-panel-button:hover{
+	background: #bbb;
+}
+.layer-panel-button:active{
+	box-shadow: 0px 0px 10px #00000022;
+}
+.layer-panel-button > img{
+	height: 1.25em;
+	display: block;
+}
+/* =================== Layer Item ==================== */
+.layer-item{
+	margin: 0em 0em 1em 0em;
+	padding: 0em 0em 0.1px 0em; /* Prevent margin overlap */
+	position: relative;
+	background: #00000018;
+}
+.layer-ui{ /* layer icon */
+	color: #000;
+	height: 5em;
+	background: #fff;
+	box-shadow: 0em 0em 1em #00000066;
+	transition: box-shadow 0.5s;
+}
+.layer-ui-active{
+	box-shadow: 0em 0em 1em #ffffff88;
+}
+.layer-name-label{
+	position: absolute;
+	left: 0em;
+	bottom: 0em;
+	margin: 0.3em;
+}
+.layer-name-label:focus{
+	/* Use box shadow instead of border to avoid size change */
+	box-shadow: 0em 0.05em 0em 0em #aaa;
+}
+.layer-opacity-label{
+	font-size: 125%;
+	position: absolute;
+	color: #86c2e0;
+	mix-blend-mode: multiply;
+	left: 0em;
+	top: 0em;
+	margin: 0.2em;
+	display: flex;
+	flex-direction: row;
+}
+.layer-opacity-input{
+	color: #86c2e0;
+}
+.layer-buttons{
+	position: absolute;
+	width: 1em;
+	right: 0em;
+	top: 0em;
+	margin: 0.3em;
+}
+.layer-ui-mask{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: #00000018;
+	transition: opacity 0.5s;
+}
+.layer-ui-mask2{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: #ffffff66;
+}
+.layer-ui-mask-active{
+	opacity: 0;
+}
+.layer-ui-canvas-container{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	overflow: hidden;
+}
+.layer-ui-canvas{ /* pointer over transition animation */
+	transform: scaleY(-1);
+	transition: transform 0.25s ease-out;
+}
+
+
+.layer-group-ui{ /* layer groups */
+	color: #222;
+	transition: color 0.5s;
+}
+.layer-group-ui-active{
+	color: #fff;
+}
+.group-opacity-label{
+	color: #4a89a8;
+	mix-blend-mode: multiply;
+	display: flex;
+	flex-direction: row;
+}
+.group-opacity-input{
+	color: #4a89a8;
+}
+.group-name-label{
+	color: #000;
+	margin: 0.3em;
+}
+.group-title-expand-button{
+	padding: 0.3em 0.5em 0.3em 0.5em;
+	transition: transform 0.5s;
+}
+.group-expanded{
+	transform: rotate(90deg);
+}
+.layer-group-container{
+	opacity: 1;
+	transition: opacity 0.5s;
+}
+.layer-group-container-collapsed{
+	opacity: 0;
+}
+.group-title-panel{
+	display: flex;
+	flex-direction: row;
+}
+.group-button-panel{
+	color: #000;
+	margin: 0.3em;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+/* ======= Scrollbar items ========= */
+#layer-panel-scrollbar{
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	transform: translateX(50%);
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.5s, top 0.05s;
+}
+#layer-panel-container:hover > #layer-panel-scrollbar{ /* Show scrollbar */
+	pointer-events: all;
+	opacity: 1;
+}

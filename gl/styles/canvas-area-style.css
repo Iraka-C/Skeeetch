@@ -25,6 +25,9 @@
 	position: absolute;
 	height: 100%;
 }
+#left-menu-panels .setting-table-container{
+	right: 0em; /* slipping in/out effect sick to right edge */
+}
 #right-menu-panels{
 	position: absolute;
 	right: 0em;
@@ -34,6 +37,7 @@
 }
 
 .setting-panel{
+	position: relative;
 	pointer-events: all; /* Clickable */
 	overflow-x: hidden;
 	overflow-y: auto;
@@ -53,7 +57,7 @@
 	width: 0em;
 }
 .setting-table-container{
-	position: relative;
+	position: absolute;
 	margin: 1em;
 }
 /* ===================== General setting styles ======================= */
@@ -153,6 +157,11 @@ table{
 	box-shadow: 0px 0px 10px #ffffff88;
 }
 
+/* File Menu */
+#file-menu-panel{
+	background: #000000cc;
+}
+
 /* =================== Info Panel ==================== */
 #front-info-panel, #bottom-info-panel{
 	position: absolute;
@@ -207,7 +216,8 @@ table{
 	pointer-events: none;
 	transform-origin: 50% 50%;
 	/*background-color: #fff;*/
-	background-image: url("../resources/transparent.png");
+	background-image: url("../resources/transparent.svg");
+	background-size: 4em;
 	box-shadow: 0px 0px 0em #808080;
 	/* will-change: transform; */ /* Never use this: may crash the browser (Chrome) */
 }

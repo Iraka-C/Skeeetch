@@ -12,6 +12,3 @@
 * Firefox: doesn't allow text cursor positioning on click
 * @TODO: In Firefox, pen could not draw into under the menu
 
-## New GL Version under construction!
-
-Feature: only one WebGL canvas

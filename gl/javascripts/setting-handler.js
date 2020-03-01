@@ -26,6 +26,7 @@ SettingHandler.initTransformHandler=function(){
 	SettingManager.setInputInstantNumberInteraction(
 		$rotate,$("#rotate-info"),
 		newVal=>{ // input update
+			newVal-=0; // string to number
 			if(isNaN(newVal)){ // not a number, return initial rotation
 				return;
 			}
@@ -43,7 +44,7 @@ SettingHandler.initTransformHandler=function(){
 			ENV.rotateTo(newA);
 		},
 		(dx,oldVal)=>{ // drag update
-			let newA=oldVal+dx;
+			let newA=(oldVal-0)+dx; // string to number
 			// mod to -180~180
 			if(newA>180)newA-=360;
 			if(newA<=-180)newA+=360;
@@ -62,6 +63,7 @@ SettingHandler.initTransformHandler=function(){
 	SettingManager.setInputInstantNumberInteraction(
 		$scale,$("#scale-info"),
 		newVal=>{ // input update
+			newVal-=0; // string to number
 			if(isNaN(newVal)){ // not a number, return initial rotation
 				return;
 			}
@@ -73,7 +75,7 @@ SettingHandler.initTransformHandler=function(){
 			ENV.scaleTo(newS);
 		},
 		(dx,oldVal)=>{ // drag update
-			let newS=SettingHandler.updateScale(dx/2,oldVal/100);
+			let newS=SettingHandler.updateScale(dx/2,(oldVal-0)/100); // string to number
 			ENV.scaleTo(newS);
 		},
 		()=>$scale.val(Math.round(ENV.window.scale*100))

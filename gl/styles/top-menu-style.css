@@ -1,0 +1,85 @@
+#top-menu-panel{
+	display: flex;
+	flex-direction: row;
+	background: #ccc;
+}
+
+#top-menu-left-panel,#top-menu-right-panel{
+	flex: none;
+	display: flex;
+	flex-direction: row;
+}
+
+#top-menu-center-panel{
+	flex: auto;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+}
+
+.top-block{
+	font-size: 125%;
+	padding: 0.5em;
+	transition: background 0.5s;
+}
+.top-block:hover{
+	background: #bbb;
+}
+
+#filename-input{
+	color: #000000;
+	text-align: center;
+}
+#filename-input:focus{
+	background: #bbb;
+}
+#filename-input:hover{
+	background: #bbb;
+}
+
+#file-button{
+	background: #aaa;
+}
+#file-button:hover{
+	background: #bbb;
+}
+
+#brush-selector-panel{
+
+}
+#brush-button{
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	width: 5.5em;
+}
+
+#brush-size{
+	font-size: 80%;
+	pointer-events: none;
+}
+
+#palette-button{
+	transition: color 0.25s ease-out;
+}
+
+/* ===================== Brush Selector ======================== */
+#brush-selector-menu{
+	position: absolute;
+	border-radius: 0em 0em 1em 1em;
+	color: #fff;
+	background: #000000bb;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.5s;
+}
+
+#brush-selector-panel:hover > #brush-selector-menu{
+	pointer-events: all;
+	opacity: 1;
+}
+
+.brush-selector-item{
+	margin: 1em;
+	display: inline-block;
+}
