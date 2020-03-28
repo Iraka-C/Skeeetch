@@ -41,12 +41,13 @@ class LayerNode{
 		this.children=[]; // not specified, should be an array of nodes
 		this.index=NaN; // the index in parent node. NaN for no parent
 		// Not -1. some index-based selectors accept negative number
+		this.name=""; // displayed name
 	}
 	setActiveUI(isActive){
 		// Expected: set the UI effect of this node
 	}
 	delete(){
-		console.log("Delete "+this.id);
+		//console.log("Delete "+this.id);
 		
 		// Expected: called when deleting this node, release resource
 		// implementation: throw layer contents, detach DOM elements, ...
@@ -75,7 +76,7 @@ class LayerNode{
 		this.parent.removeNode(this.getIndex()); // the return value is 'this'
 	}
 	insertNode(node,pos){ // insert a new node reference into children at pos
-		if(pos===undefined)throw new Error("Cannot insert at undefined");
+		if(typeof(pos)!="number")throw new Error("Cannot insert at not a number position");
 		// put node at pos, shift +1 the original nodes from pos
 		const children=this.children;
 		children.splice(pos,0,node);
@@ -116,6 +117,10 @@ class LayerNode{
 			str+=v._getTreeNodeString(_depth+1);
 		}
 		return str;
+	}
+	// get a JSON object that is writable by ag-psd
+	getAgPSDCompatibleJSON(){
+		// abstract
 	}
 }
 
@@ -197,7 +202,7 @@ LAYERS.init=function(){
  */
 LAYERS.initFirstLayer=function(){
 	let layer=new CanvasNode();
-	LAYERS.layerTree.insertNode$UI(layer); 
+	LAYERS.layerTree.insertNode$UI(layer.$ui); 
 	LAYERS.layerTree.insertNode(layer,0); // append the contents to layerTree
 	//layer.setName(Lang("Background"));
 	LAYERS.setActive(layer);
@@ -231,11 +236,13 @@ LAYERS.setActive=function(obj){ // layer or group or id
 	obj.setActiveUI(true);
 	LAYERS.active=obj;
 	if(obj instanceof CanvasNode){ // canvas layer
-		CANVAS.setTargetLayer(obj,obj.rawImageData); // set CANVAS draw target
+		CANVAS.setTargetLayer(obj); // set CANVAS draw target
+		$("#clear-button").children("img").attr("src","./resources/clear-layer.svg"); // clear
 	}
 	else if(obj instanceof LayerGroupNode){ // group
 		// @TODO: Optimize when selecting the same canvas layer again
 		CANVAS.setTargetLayer(null); // disable canvas
+		$("#clear-button").children("img").attr("src","./resources/merge-group.svg"); // merge
 	}
 }
 
@@ -253,27 +260,13 @@ LAYERS._inactive=function(){
 LAYERS.initLayerPanelButtons=function(){
 	// New Layer Button
 	$("#new-layer-button").on("click",event=>{ // new layer
-		let layer=new CanvasNode();
-		// active type
-		// @TODO: add history record in each type
-		if(LAYERS.active instanceof CanvasNode){
-			LAYERS.active.addNodeBefore(layer);
-			LAYERS.active.$ui.before(layer.$ui);
-		}
-		else if(LAYERS.active instanceof LayerGroupNode){
-			if(LAYERS.active.isExpanded){ // put new layer at first
-				LAYERS.active.insertNode(layer,0);
-				LAYERS.active.insertNode$UI(layer.$ui,0);
-			}
-			else{
-				LAYERS.active.addNodeBefore(layer);
-				LAYERS.active.$ui.before(layer.$ui);
-			}
-		}
+		const layer=LAYERS.addNewCanvasNode();
 		LAYERS.setActive(layer);
+		// No need to refresh canvas: a transparent layer
 	});
 	EventDistributer.footbarHint($("#new-layer-button"),()=>Lang("Add a new layer"));
 
+	// New group button
 	$("#new-group-button").on("click",event=>{ // new group
 		let group=new LayerGroupNode();
 		// Always add group before
@@ -283,15 +276,66 @@ LAYERS.initLayerPanelButtons=function(){
 	});
 	EventDistributer.footbarHint($("#new-group-button"),()=>Lang("Add a new layer group"));
 
+	// Delete layer / group button
 	$("#delete-button").on("click",event=>{
 		LAYERS.deleteItem(LAYERS.active);
 	});
 	EventDistributer.footbarHint($("#delete-button"),()=>Lang("Delete current layer / group"));
 
+	// Clear layer content button
 	$("#clear-button").on("click",event=>{
-		CANVAS.clearAll();
+		if(LAYERS.active instanceof LayerGroupNode){ // group
+			LAYERS.replaceGroupWithLayer(LAYERS.active);
+		}
+		else{ // canvas
+			CANVAS.clearAll();
+		}
 	});
-	EventDistributer.footbarHint($("#clear-button"),()=>Lang("Clear current layer"));
+	EventDistributer.footbarHint($("#clear-button"),()=>{
+		if(LAYERS.active instanceof LayerGroupNode){ // group
+			return Lang("Merge group contents into one layer");
+		}
+		else{ // canvas
+			return Lang("Clear current layer");
+		}
+	});
+
+	// Expand / Collapse button
+	LAYERS.isUIExpanded=true;
+	$("#layer-panel-right-menu").on("click",event=>{
+		LAYERS.isUIExpanded=!LAYERS.isUIExpanded;
+		if(LAYERS.isUIExpanded){
+			LAYERS.expandUI();
+		}
+		else{
+			LAYERS.shrinkUI();
+		}
+	});
+}
+
+/**
+ * add a new canvas layer in the ui & layerTree
+ * This function does not refresh canvas.
+ */
+LAYERS.addNewCanvasNode=function(){
+	const layer=new CanvasNode();
+	// active type
+	// @TODO: add history record in each type
+	if(LAYERS.active instanceof CanvasNode){
+		LAYERS.active.addNodeBefore(layer);
+		LAYERS.active.$ui.before(layer.$ui);
+	}
+	else if(LAYERS.active instanceof LayerGroupNode){
+		if(LAYERS.active.isExpanded){ // put new layer at the first position
+			LAYERS.active.insertNode(layer,0);
+			LAYERS.active.insertNode$UI(layer.$ui,0);
+		}
+		else{ // put new layer before
+			LAYERS.active.addNodeBefore(layer);
+			LAYERS.active.$ui.before(layer.$ui);
+		}
+	}
+	return layer; // return the new node
 }
 
 /**
@@ -311,6 +355,7 @@ LAYERS.deleteItem=function(obj){
 		newActive=obj.parent;
 	}
 	if(newActive==LAYERS.layerTree){ // only the root remains
+		EventDistributer.footbarHint.showInfo(Lang("Cannot delete the only layer/group."));
 		return; // cannot delete
 	}
 	LAYERS._inactive();
@@ -327,12 +372,62 @@ LAYERS.deleteItem=function(obj){
 	// });
 
 	obj.$ui.detach(); // remove layer ui
-
-	obj.parent.setImageDataInvalid(); // the content of parent is changed
-	obj.detach(); // remove from layer tree
-	CANVAS.refreshScreen(); // recomposite immediately
+	obj.detach(); // remove from layer tree, also handles data/clip order invalidation
+	
+	CANVAS.requestRefresh(); // recomposite
 
 	// remove from hash: in HISTORY.addHistory when this layer won't be retrieved
 	// The followings are only for debugging delete
 	obj.delete();
+}
+
+/**
+ * Replace group with a layer containing the composited contents
+ * Only replace contents. Do not change the properties including masks.
+ */
+LAYERS.replaceGroupWithLayer=function(group){
+	// insert new node before
+	const layer=new CanvasNode();
+	group.addNodeBefore(layer);
+	group.$ui.before(layer.$ui);
+
+	// transfer image data
+	layer.rawImageData=group.rawImageData;
+	layer.maskImageData=group.maskImageData;
+	layer.maskedImageData=group.maskedImageData;
+	layer.imageData=group.imageData;
+	group.rawImageData=null;
+	group.maskImageData=null;
+	group.maskedImageData=null;
+	group.imageData=null;
+	if(group.cachedImageData){ // if group has a cache image data, remove it
+		CANVAS.renderer.deleteImageData(group.cachedImageData);
+	}
+	layer.setMaskedImageDataInvalid();
+	LAYERS.setActive(layer);
+
+	// remove group from ui
+	group.$ui.detach(); // remove layer ui
+	group.detach(); // remove from layer tree, also handles data/clip order invalidation
+
+	// copy properties
+	const prop=group.getProperties();
+	layer.setProperties(prop);
+
+	// recomposite
+	CANVAS.requestRefresh();
+	layer.updateThumb();
+
+	// remove group from memory @TODO: add to history
+	group.delete();
+}
+
+LAYERS.updateAllThumbs=function(){
+	// refresh layer UI display
+	for(const k in LAYERS.layerHash){
+		const layer=LAYERS.layerHash[k];
+		if(layer instanceof CanvasNode){
+			layer.updateThumb();
+		}
+	}
 }

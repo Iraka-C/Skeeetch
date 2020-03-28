@@ -127,9 +127,13 @@ PALETTE.drawPalette=function(hue){ // 0 ~ 360
  * draw hue selector
  */
 PALETTE.drawHueSelector=function(x){
-	let sctx=PALETTE.hctx;
 	let sW=PALETTE.hueWidth;
-	let sH=PALETTE.hueHeight;
+	let sH=sW/3;
+	if(!sW)return; // the palette is invisible
+	PALETTE.scvp.width=sW;
+	PALETTE.scvp.height=sH;
+
+	let sctx=PALETTE.hctx;
 	
 	let hueImgData=sctx.getImageData(0,0,sW,sH);
 	let pix=hueImgData.data;
@@ -238,26 +242,18 @@ PALETTE.onSelectSV=function(x,y){ // do not change hue, no palette canvas renew
 }
 // ================== init ======================
 PALETTE.init=function(){
-	/**
-	 * @TODO: hue selector cursor
-	 */
-	
-	PALETTE.rgb=[134.0,194.0,224.0];
+	PALETTE.rgb=[134.0,194.0,224.0]; // initRGB
 	PALETTE.hsv=rgb2hsv(PALETTE.rgb);
 
-	let cvp=$("#palette-canvas"); // Fixed 256x256. Larger palette UI can be operated by css zooming.
+	// SV selector
+	PALETTE.refreshUIParam();
+	const cvp=$("#palette-canvas"); // Fixed 256x256. Larger palette UI can be operated by css zooming.
 	PALETTE.ctx=cvp[0].getContext("2d");
 	PALETTE.size=256;
-	PALETTE.width=cvp.width();
-	PALETTE.height=cvp.height();
-	PALETTE.offset=cvp.offset();
 
 	// hue selector
-	let scvp=$("#palette-hue-selector-canvas");
-	scvp[0].width=$("#palette-title").width();
-	PALETTE.hctx=scvp[0].getContext("2d");
-	PALETTE.hueWidth=scvp.width();
-	PALETTE.hueHeight=scvp.height();
+	PALETTE.scvp=$("#palette-hue-selector-canvas")[0];
+	PALETTE.hctx=PALETTE.scvp.getContext("2d");
 
 	// Flags
 	PALETTE.isSelectingSV=false;
@@ -268,6 +264,10 @@ PALETTE.init=function(){
 	// Palette top button
 	EventDistributer.setClick($("#palette-button"),event=>{
 		$("#palette-panel").animate({"height":"toggle"},300); // == .slideToggle(300)
+		// The params may be changed before expanding, redraw the items
+		PALETTE.refreshUIParam();
+		PALETTE.drawHueSelector();
+		PALETTE.setCursor();
 	});
 };
 
@@ -276,6 +276,7 @@ PALETTE.initPaletteWindow=function(){
 	PALETTE.setHSV(PALETTE.hsv); // draw all items
 	PALETTE.setCursor();
 
+	let cvp=$("#palette-canvas"); // Fixed 256x256. Larger palette UI can be operated by css zooming.
 	// Not a global event: handle by palette itself
 	$("#palette-panel").on("pointerdown pointermove",event=>{
 		if(CURSOR.isDown){ // is drawing
@@ -349,4 +350,12 @@ PALETTE.hueSelectorFunc=function(x){
 
 PALETTE.initHueSelector=function(){
 	PALETTE.drawHueSelector();
+}
+
+PALETTE.refreshUIParam=function(){
+	const cvp=$("#palette-canvas"); // Fixed 256x256. Larger palette UI can be operated by css zooming.
+	PALETTE.width=cvp.width();
+	PALETTE.height=cvp.height();
+	PALETTE.offset=cvp.offset();
+	PALETTE.hueWidth=$("#palette-title").width();
 }

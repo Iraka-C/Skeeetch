@@ -114,34 +114,37 @@ SettingHandler.initSystemSetting=function(){
 	sys.addInstantNumberItem(
 		Lang("Paper Width"),()=>SettingHandler.tempPaperSize.width,Lang("px"),
 		newVal=>{ // set on input
+			newVal-=0;
 			if(newVal){
 				newVal=newVal.clamp(16,4096);
 				SettingHandler.tempPaperSize.width=newVal;
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
-			let newVal=(SettingHandler.tempPaperSize.width+dW).clamp(16,4096);
+			let newVal=(SettingHandler.tempPaperSize.width+dW*20).clamp(16,4096);
 			SettingHandler.tempPaperSize.width=newVal;
 		},
 		(dx,oldVal)=>{ // set on drag-x
-			let newVal=Math.round(oldVal+dx).clamp(16,4096);
+			let newVal=Math.round((oldVal-0)+dx).clamp(16,4096);
 			SettingHandler.tempPaperSize.width=newVal;
 		}
 	);
 	sys.addInstantNumberItem(
 		Lang("Paper Height"),()=>SettingHandler.tempPaperSize.height,Lang("px"),
 		newVal=>{ // set on input
+			newVal-=0;
 			if(newVal){
 				newVal=newVal.clamp(16,4096);
 				SettingHandler.tempPaperSize.height=newVal;
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
-			let newVal=(SettingHandler.tempPaperSize.height+dW).clamp(16,4096);
+			let newVal=(SettingHandler.tempPaperSize.height+dW*20).clamp(16,4096);
 			SettingHandler.tempPaperSize.height=newVal;
 		},
 		(dx,oldVal)=>{ // set on drag-x
-			let newVal=Math.round(oldVal+dx).clamp(16,4096);
+
+			let newVal=Math.round((oldVal-0)+dx).clamp(16,4096);
 			SettingHandler.tempPaperSize.height=newVal;
 		}
 	);
@@ -151,11 +154,11 @@ SettingHandler.initSystemSetting=function(){
 	});
 	sys.addHint(Lang("workspace-hint-1"));
 	sys.addButton(Lang("Change Paper Size"),()=>{
-		if(SettingHandler.tempPaperSize.width==ENV.paperSize.width
-		&&SettingHandler.tempPaperSize.height==ENV.paperSize.height){ // not changed
-			return;
+		if(SettingHandler.tempPaperSize.width!=ENV.paperSize.width
+		||SettingHandler.tempPaperSize.height!=ENV.paperSize.height){ // size changed
+			ENV.setPaperSize(SettingHandler.tempPaperSize.width,SettingHandler.tempPaperSize.height);
 		}
-		ENV.setPaperSize(SettingHandler.tempPaperSize.width,SettingHandler.tempPaperSize.height);
+		sys.toggleExpand();
 	});
 	sys.addSwitch(Lang("Anti-Aliasing"),[Lang("On"),Lang("Off")],null,val=>{
 		switch(val){
@@ -182,12 +185,31 @@ SettingHandler.initSystemSetting=function(){
 				document.exitFullscreen();
 			}
 		}
+		sys.toggleExpand();
 	});
+
+	sys.addSectionTitle(Lang("Developers"));
+	sys.addSwitch(Lang("Draw Layer Border"),[Lang("Off"),Lang("On")],null,val=>{
+		switch(val){
+		case 1: PERFORMANCE.debugger.isDrawingLayerBorder=true;break;
+		default: PERFORMANCE.debugger.isDrawingLayerBorder=false;break;
+		}
+		for(const k in LAYERS.layerHash){ // Redraw all layers
+			const layer=LAYERS.layerHash[k];
+			if(layer instanceof CanvasNode){
+				layer.setImageDataInvalid();
+			}
+		}
+		CANVAS.requestRefresh(); // draw/erase the layer borders
+	}); // Off at first
 
 	sys.setOpenButton($("#system-button"));
 
 	sys.addSectionTitle(Lang("sys-info"));
-	sys.addInfo(Lang("sys-mem"),"MB",()=>PERFORMANCE.getMemoryEstimation().toFixed(1));
+	sys.addInfo(Lang("sys-mem"),"MB",()=>{
+		const mem=PERFORMANCE.getMemoryEstimation();
+		return mem.toFixed(mem>2000?0:1);
+	});
 
 	return sys;
 }

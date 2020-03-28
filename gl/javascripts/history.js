@@ -7,6 +7,11 @@ HISTORY.list=[];
 HISTORY.nowId=-1; // no history yet
 HISTORY.MAX_HISTORY=20; // at most 20 steps
 
+/**
+ * Strategy to save graphics memory:
+ * Move History items to CPU memory when idle
+ */
+
 class HistoryItem{
 	constructor(info){
 		this.info=info;

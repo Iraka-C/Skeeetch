@@ -21,6 +21,17 @@ class SettingManager{
 		container.append(table);
 		$frame.append(container);
 		$frame.addClass("setting-panel");
+
+		// set a button to control the expansion
+		this.toggleExpand=()=>{
+			if(this.$frame.hasClass("setting-panel-collapsed")){ // not opened
+				this.update();
+				this.$frame.removeClass("setting-panel-collapsed");
+			}
+			else{ // opened
+				this.$frame.addClass("setting-panel-collapsed");
+			}
+		};
 	}
 	// Calls when opening this setting panel
 	update(){
@@ -30,15 +41,7 @@ class SettingManager{
 	}
 	// Assign a button to expand / collapse this setting panel
 	setOpenButton($div){
-		EventDistributer.setClick($div,event=>{
-			if(this.$frame.hasClass("setting-panel-collapsed")){ // not opened
-				this.update();
-				this.$frame.removeClass("setting-panel-collapsed");
-			}
-			else{ // opened
-				this.$frame.addClass("setting-panel-collapsed");
-			}
-		});
+		EventDistributer.setClick($div,this.toggleExpand);
 	}
 // ====================== UI Management ========================
 	// Add a section with the name title
@@ -166,12 +169,27 @@ class SettingManager{
 			item.append($("<td class='value' colspan='2'>"+valArr[toggle]+"</td>"));
 		}
 
-		item.on("click",event=>{
-			toggle++;
-			if(toggle>=valArr.length)toggle-=valArr.length;
-			item.find(".value").text(valArr[toggle]);
-			if(callback)callback(toggle);
+		/**
+		 * **NOTE** In some browsers, the following listener may be
+		 * triggered twice when using a pen. (possibly a bug?)
+		 * Add interval restriction to prevent double-clicking
+		 * 
+		 * Also implemented in setSwitchInteraction()
+		 */
+		let lastClickTime=-10000;
+		item.on("pointerdown",event=>{
+			if(event.timeStamp-lastClickTime>=100){ // 100ms works in tested browsers
+				toggle++;
+				if(toggle>=valArr.length)toggle-=valArr.length;
+				item.find(".value").text(valArr[toggle]);
+				if(callback)callback(toggle);
+			}
+			event.stopPropagation(); // only click on this switch
 		});
+		item.on("pointerup pointercancel",event=>{
+			lastClickTime=event.timeStamp; // record the last time pointer leaving the button
+		});
+
 		this.$frame.find("tbody").append(item);
 
 		let _updateFunc=function(){
@@ -199,9 +217,20 @@ class SettingManager{
 		};
 		setVal(0); // Init target as 0
 
+		/**
+		 * **NOTE** In some browsers, the following listener may be
+		 * triggered twice when using a pen. (possibly a bug?)
+		 * Add interval restriction to prevent double-clicking
+		 */
+		let lastClickTime=-10000;
 		$parent.on("pointerdown",event=>{
-			setVal(toggle+1); // call next selection
+			if(event.timeStamp-lastClickTime>=100){ // not too near
+				setVal(toggle+1); // call next selection
+			}
 			event.stopPropagation();
+		});
+		$parent.on("pointerup pointercancel",event=>{
+			lastClickTime=event.timeStamp; // record the last time pointer leaving the button
 		});
 
 		const _updateFunc=function(v){
@@ -230,9 +259,11 @@ class SettingManager{
 	}
 	// Add a single click button with callback
 	addButton(text,callback){
-		let $button=$("<td colspan='4' class='setting-button-container'><div class='setting-button'>"+text+"</div></td>");
-		$button.on("click",event=>{if(callback)callback();});
-		this.$frame.find("tbody").append($("<tr>").append($button));
+		const $button=$("<div class='setting-button'>"+text+"</div>");
+		const $buttonField=$("<td colspan='4' class='setting-button-container'></td>");
+		$buttonField.append($button);
+		$button.on("click",event=>callback?callback():null);
+		this.$frame.find("tbody").append($("<tr>").append($buttonField));
 	}
 
 	// @TODO: API detail design

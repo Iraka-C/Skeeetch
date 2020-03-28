@@ -34,7 +34,7 @@ CANVAS.setTargetLayer=function(targetLayer,layerParams){
 	else{
 		CANVAS.nowRenderer=CANVAS.getNewRenderer(targetLayer.$div[0],{
 			onRefresh:CANVAS.onRefresh,
-			imgData:layerParams.imgData
+			imgData:layerParams?layerParams.imgData:null
 		});
 		CANVAS.updateSpeed(); // at init
 	}

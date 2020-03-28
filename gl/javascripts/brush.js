@@ -215,6 +215,7 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
+			oldVal-=0;
 			let newVal=(oldVal+dW/20).clamp(0,1);
 			BrushManager.activeBrush.edgeHardness=newVal;
 		}, // set
@@ -267,9 +268,6 @@ BrushManager.initPenSetting=function(brushMenu){
 			CANVAS.updateSpeed();
 		} // set
 	);
-	brushMenu.addSwitch(Lang("Stroke-Down Rectification"),[Lang("Disabled"),Lang("Enabled")],null,id=>{
-		CANVAS.settings.strokeRectification=id?true:false;
-	},()=>CANVAS.settings.strokeRectification+0);
 }
 
 BrushManager.setActiveBrush=function(v){

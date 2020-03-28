@@ -10,7 +10,12 @@ ENV={}; // Environment
 ENV.paperSize={width:0,height:0,diag:0}; // diag == sqrt(x^2+y^2)
 ENV.window={
 	SIZE:{width:0,height:0}, // window size, unit: window pixel *** NOW READ ONLY! ***
-	trans:{x:0,y:0}, // translate from the window center. unit: window pixel (y)v >(x)cooedinate
+	/**
+	 * Transform of the paper canvas related to the canvas window
+	 * all in window pixels
+	 * order: trans -> rot CW(paper center) -> scale(paper center)
+	 */
+	trans:{x:0,y:0}, // paper center translate from the window center. unit: window pixel (y)v >(x)coordinate
 	rot:0.0, // 0 degree CW
 	flip:false, // not flipped
 	scale:1.0, // not zoomed
@@ -41,7 +46,7 @@ ENV.init=function(){ // When the page is loaded
 	EVENTS.init();
 	EventDistributer.init();
 	PALETTE.init();
-	CANVAS.init(); // Before LAYERS
+	//CANVAS.init(); // Before LAYERS, in setPaperSize
 	LAYERS.init();
 	SettingHandler.init();
 	BrushManager.init();
@@ -79,6 +84,7 @@ ENV.refreshTransform=function(){
 
 /**
  * Set the scale to ratio (default 1.0)
+ * center at the window center
  */
 ENV.scaleTo=function(ratio){
 	let s=ENV.window.scale;
@@ -131,8 +137,6 @@ ENV.transformTo=function(x,y,r,s){ // four values, with hint
 	s=s.clamp(0.1,8.0);
 	ENV.window.rot=r;
 	ENV.window.scale=s;
-	x*=s;
-	y*=s;
 
 	let borderSize=ENV.paperSize.diag*s;
 	if(Math.abs(x)>borderSize||Math.abs(y)>borderSize){
@@ -152,29 +156,52 @@ ENV.transformTo=function(x,y,r,s){ // four values, with hint
 /**
  * set the current canvas sizes to w*h pixels
  * Will remove all histories!
- * @TODO: limit size into 4096^2
+ * @TODO: There's GPU memory leak!
+ * @TODO: Doesn't seem like memory leak, more like a memory allocation policy
  */
 ENV.setPaperSize=function(w,h){
-	let isAnim=ENV.displaySettings.enableTransformAnimation;
-	ENV.displaySettings.enableTransformAnimation=false; // disable animation when changing size
-	if(!(w&&h)){ 
-		// w or h invalid or =0
+	if(!(w&&h)){ // w or h invalid or is 0
 		return;
 	}
-	HISTORY.clearAllHistory(); // remove histories
+	let isAnim=ENV.displaySettings.enableTransformAnimation; // store animation
+	ENV.displaySettings.enableTransformAnimation=false; // disable animation when changing size
+	//HISTORY.clearAllHistory(); // remove histories
 	ENV.paperSize={width:w,height:h,diag:Math.sqrt(w*w+h*h)};
-	$("#canvas-container").css({"width":w+"px","height":h+"px"}); // set canvas size
-	$("#main-canvas").attr({"width":w,"height":h}); // set canvas size
+	$("#canvas-container").css({"width":w+"px","height":h+"px"}); // set canvas view size
+	$("#main-canvas").attr({"width":w,"height":h}); // set canvas pixel size
+	$("#overlay-canvas").attr({"width":w,"height":h}); // set canvas pixel size
+	CANVAS.init();
+
+	for(let k in LAYERS.layerHash){ // @TODO: copy image data
+		let layer=LAYERS.layerHash[k];
+		if(layer instanceof RootNode){ // root
+			layer.assignNewRawImageData(w,h,0,0);
+			layer.assignNewMaskedImageData(w,h,0,0);
+			layer.assignNewImageData(w,h,0,0);
+		}
+		else{ // contains renderable texture, delete
+			layer.assignNewRawImageData(0,0);
+			layer.assignNewMaskedImageData(0,0);
+			layer.assignNewImageData(0,0);
+
+			layer.setRawImageDataInvalid();
+		}
+	}
 
 	let k1=ENV.window.SIZE.width/w;
 	let k2=ENV.window.SIZE.height/h;
 	let k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
 	ENV.transformTo(0,0,0,k);
 	$("#scale-info-input").val(Math.round(k*100));
-	ENV.displaySettings.enableTransformAnimation=isAnim; // recover animation setting
-	if(LAYERS.active&&LAYERS.active.type=="canvas"){ // if there is an active CV, refresh it
-		CANVAS.setTargetLayer(LAYERS.active);
+
+	ENV.displaySettings.enableTransformAnimation=isAnim; // restore animation setting
+
+	const aL=LAYERS.active;
+	if(aL instanceof CanvasNode){ // if there is an active CV, refresh it
+		CANVAS.setTargetLayer(aL);
 	}
+	CANVAS.requestRefresh();
+	LAYERS.updateAllThumbs();
 };
 // ====================== Tools functions ==========================
 /**
@@ -275,7 +302,8 @@ ENV._transformAnimation=function(){
 		let tP=anim.target;
 		let sP=anim.start; 
 		// if shift pressed, run animation 10x faster to reduce latency on dragging
-		let nextFps=PERFORMANCE.fpsCounter.fps/(EVENTS.key.shift?10:1);
+		let targetFPS=PERFORMANCE.fpsCounter.fps.clamp(30,300);
+		let nextFps=targetFPS/(CURSOR.isDragging?10:1);
 		let step=1/(anim.time*nextFps);
 		p+=step;
 		if(p>1)p=1; // end
@@ -345,6 +373,14 @@ ENV.setAntiAliasing=function(isAntiAlias){
  */
 ENV.setTransformAnimation=function(isAnimate){
 	ENV.displaySettings.enableTransformAnimation=isAnimate;
+}
+
+ENV.setFileTitle=function(title){
+	$("#filename-input").val(title);
+}
+
+ENV.getFileTitle=function(){
+	return $("#filename-input").val();
 }
 // ====================== For Debugging ==========================
 /**

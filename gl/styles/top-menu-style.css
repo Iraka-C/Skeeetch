@@ -44,9 +44,6 @@
 	background: #bbb;
 }
 
-#brush-selector-panel{
-
-}
 #brush-button{
 	display: flex;
 	flex-direction: row;
@@ -64,10 +61,15 @@
 }
 
 /* ===================== Brush Selector ======================== */
+#brush-selector-panel{
+	position: relative;
+}
 #brush-selector-menu{
 	position: absolute;
+	width: 100%;
+	padding-bottom: 0.2em;
 	border-radius: 0em 0em 1em 1em;
-	color: #fff;
+	color: #ddd;
 	background: #000000bb;
 	pointer-events: none;
 	opacity: 0;
@@ -80,6 +82,9 @@
 }
 
 .brush-selector-item{
-	margin: 1em;
-	display: inline-block;
+	margin: 0.5em 0em 0.5em 0.7em;
+	transition: color 0.25s;
+}
+.brush-selector-item:hover{
+	color: #fff;
 }

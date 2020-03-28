@@ -12,16 +12,11 @@ EVENTS.key={
 
 EVENTS.init=function(){
 	/**
-	 * @TODO: stylus won't drag on layer panel
-	 * // Browser action
-	 */
-
-	/**
 	 * @TODO: touch event / multitouch support
 	 */
 
 	// disable pen long press => context menu
-	//$(window).on("contextmenu",e=>false);
+	$(window).on("contextmenu",e=>false);
 
 	/**
 	 * Window resize handler
@@ -47,7 +42,8 @@ EVENTS.init=function(){
 		}
 
 		CURSOR.showCursor(); // pen->mouse switching
-		CURSOR.moveCursor(event);
+		CURSOR.moveCursor(event); // may be stroke or pan
+		CURSOR.updateAppearance();
 	});
 	$("#canvas-window").on("pointerout",()=>{
 		// disable cursor
@@ -79,13 +75,14 @@ EVENTS.init=function(){
 			PALETTE.setCursor();
 			return;
 		}
+		
 		CURSOR.moveCursor(event);
 		CURSOR.down(event);
 		eachMenuPanelFunc($el=>$el.css("pointer-events","none")); // do not enable menu operation
 		CANVAS.setCanvasEnvironment(event); // init canvas here
+		CURSOR.updateAppearance();
 	});
 	$(window).on("pointerup",event=>{
-		// no need to paint the last event because there's no pressure info (=0)
 		if(event.target==$("#canvas-window")[0]){
 			// on canvas
 			CURSOR.moveCursor(event);
@@ -96,6 +93,7 @@ EVENTS.init=function(){
 		// }
 		CANVAS.strokeEnd();
 		eachMenuPanelFunc($el=>$el.css("pointer-events","all")); // after stroke, enable menus
+		CURSOR.updateAppearance();
 	});
 	// When menus enabled, disable canvas operation
 	// This also disables drawing on canvas when the cursor moves out of the menu part
@@ -103,21 +101,32 @@ EVENTS.init=function(){
 
 	// Scroll on canvas
 	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx)=>{ // Scroll
-		if(EVENTS.key.alt||EVENTS.key.ctrl){ // Alt/Ctrl pressed, zoom
-			// Alt menu cannot be prevented in Firefox
-			let newS=SettingHandler.updateScale(dy,ENV.window.scale);
-			ENV.scaleTo(newS);
-			$("#scale-info-input").val(Math.round(newS*100));
+		if(EVENTS.key.alt||EVENTS.key.ctrl){ // normal pan
+			let newTx=ENV.window.trans.x-dx*10;
+			let newTy=ENV.window.trans.y-dy*10;
+			ENV.translateTo(newTx,newTy);
 		}
 		else if(EVENTS.key.shift){ // Shift pressed, pan horizontally
 			let newTx=ENV.window.trans.x-dy*10;
 			let newTy=ENV.window.trans.y-dx*10;
 			ENV.translateTo(newTx,newTy);
 		}
-		else{ // normal pan
-			let newTx=ENV.window.trans.x-dx*10;
-			let newTy=ENV.window.trans.y-dy*10;
-			ENV.translateTo(newTx,newTy);
+		else{ // no key: zoom
+			// Alt menu cannot be prevented in Firefox
+			// zooming center is the cursor
+			let newS=SettingHandler.updateScale(dy,ENV.window.scale); // 0.1~8.0 clamped
+			const cursorX=CURSOR.p0[0];
+			const cursorY=CURSOR.p0[1];
+			const W2=ENV.window.SIZE.width/2;
+			const H2=ENV.window.SIZE.height/2;
+			const dX=ENV.window.trans.x+W2-cursorX;
+			const dY=ENV.window.trans.y+H2-cursorY;
+			const k=newS/ENV.window.scale;
+			const newX=cursorX+dX*k-ENV.window.SIZE.width/2;
+			const newY=cursorY+dY*k-ENV.window.SIZE.height/2;
+			ENV.transformTo(newX,newY,ENV.window.rot,newS);
+			$("#scale-info-input").val(Math.round(newS*100));
+
 		}
 	});
 
@@ -135,13 +144,14 @@ EVENTS.keyDown=function(event){
 	if(shift&&!EVENTS.key.shift){ // long pressing a key may fire several events
 		EVENTS.key.shift=true;
 		functionKeyChanged=true;
-		// change cursor
-		$("#canvas-area-panel").css("cursor","move");
-		$("#brush-cursor").css("display","none");
+		// change cursor on panning whole canvas
+		CURSOR.updateAppearance();
 	}
 	if(ctrl&&!EVENTS.key.ctrl){
 		EVENTS.key.ctrl=true;
 		functionKeyChanged=true;
+		// change cursor on panning layer
+		CURSOR.updateAppearance();
 	}
 	if(alt&&!EVENTS.key.alt){
 		EVENTS.key.alt=true;
@@ -166,12 +176,13 @@ EVENTS.keyUp=function(event){
 		EVENTS.key.shift=false;
 		functionKeyChanged=true;
 		// change cursor
-		$("#canvas-area-panel").css("cursor","none");
-		$("#brush-cursor").css("display","block");
+		CURSOR.updateAppearance();
 	}
 	if(!ctrl&&EVENTS.key.ctrl){
 		EVENTS.key.ctrl=false;
 		functionKeyChanged=true;
+		// change cursor
+		CURSOR.updateAppearance();
 	}
 	if(!alt&&EVENTS.key.alt){
 		EVENTS.key.alt=false;

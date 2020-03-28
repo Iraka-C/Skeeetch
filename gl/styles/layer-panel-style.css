@@ -16,10 +16,6 @@
 	overflow: hidden;
 }
 
-.layer-panel-block{ /* The width of all elements in layer block */
-	width: 10em;
-}
-
 /*.palette-block{
 	font-size: 125%;
 	padding: 0.5em;
@@ -62,15 +58,13 @@
 	position: relative;
 }
 #palette-hue-info{
-	font-size: 125%;
 	position: relative;
 	display: flex;
 	flex-direction: row;
-	padding: 0.5em;
+	padding: 0.5em 0.5em 0em 0.5em;
+	margin-bottom: 0.5em;
 	pointer-events: none;
-}
-#palette-hue-info > *{
-	
+	overflow: hidden;
 }
 #palette-hue-value{
 	vertical-align: super;
@@ -155,11 +149,11 @@
 }
 
 #layer-panel-button-panel{
-	flex: none;
-	font-size: 125%;
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
+	flex: none;
+	font-size: 125%;
 }
 .layer-panel-button{
 	flex: auto;
@@ -189,13 +183,12 @@
 }
 .layer-ui{ /* layer icon */
 	color: #000;
-	height: 5em;
 	background: #fff;
 	box-shadow: 0em 0em 1em #00000066;
 	transition: box-shadow 0.5s;
 }
 .layer-ui-active{
-	box-shadow: 0em 0em 1em #ffffff88;
+	box-shadow: 0em 0em 1em #ffffffff;
 }
 .layer-name-label{
 	position: absolute;
@@ -215,19 +208,33 @@
 	left: 0em;
 	top: 0em;
 	margin: 0.2em;
-	display: flex;
-	flex-direction: row;
 }
 .layer-opacity-input{
 	color: #86c2e0;
 }
 .layer-buttons{
 	position: absolute;
-	width: 1em;
 	right: 0em;
 	top: 0em;
-	margin: 0.3em;
+	margin: 0.2em;
 }
+.layer-buttons td{
+	padding: 0em;
+}
+.layer-buttons img{
+	display: block;
+	width: 1em;
+	margin: 0.15em;
+}
+/* show/hide effect of some layer buttons */
+.layer-buttons .layer-button-to-hide{
+	opacity: 0;
+	transition: opacity 0.5s;
+}
+.layer-ui:hover .layer-button-to-hide{
+	opacity: 1;
+}
+
 .layer-ui-mask{
 	position: absolute;
 	width: 100%;
@@ -252,12 +259,20 @@
 	overflow: hidden;
 }
 .layer-ui-canvas{ /* pointer over transition animation */
-	transform: scaleY(-1);
 	transition: transform 0.25s ease-out;
 }
 
+.layer-clip-mask-hint{
+	position: absolute;
+	width: 1em;
+	opacity: 0.2;
+	right: 0em;
+	bottom: 0em;
+	display: block;
+}
 
-.layer-group-ui{ /* layer groups */
+/* ========================== layer groups ========================= */
+.layer-group-ui{ 
 	color: #222;
 	transition: color 0.5s;
 }
@@ -298,9 +313,10 @@
 .group-button-panel{
 	color: #000;
 	margin: 0.3em;
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
+}
+.group-button-panel img{
+	display: block;
+	width: 1em;
 }
 
 /* ======= Scrollbar items ========= */

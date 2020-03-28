@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 22.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="图层_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 28.3 28.3" enable-background="new 0 0 28.3 28.3" xml:space="preserve">
-<rect x="5.7" y="14.2" fill="#231815" stroke="#231815" stroke-width="2" stroke-miterlimit="10" width="17" height="11.3"/>
-<path fill="none" stroke="#231815" stroke-width="2" stroke-miterlimit="10" d="M8.5,8.5c0-3.1,2.5-5.7,5.7-5.7s5.7,2.5,5.7,5.7"/>
-<line fill="none" stroke="#231815" stroke-width="2" stroke-miterlimit="10" x1="19.8" y1="8.5" x2="19.8" y2="14.2"/>
-<line fill="none" stroke="#231815" stroke-width="2" stroke-miterlimit="10" x1="8.5" y1="8.5" x2="8.5" y2="14.2"/>
+	 viewBox="0 0 28.3 28.3" style="enable-background:new 0 0 28.3 28.3;" xml:space="preserve">
+<style type="text/css">
+	.st0{stroke:#000000;stroke-width:2;stroke-miterlimit:10;}
+	.st1{fill:none;stroke:#000000;stroke-width:2;stroke-miterlimit:10;}
+</style>
+<rect x="5.7" y="14.2" class="st0" width="17" height="11.3"/>
+<path class="st1" d="M8.5,8.5c0-3.1,2.5-5.7,5.7-5.7s5.7,2.5,5.7,5.7"/>
+<line class="st1" x1="19.9" y1="8.5" x2="19.9" y2="14.2"/>
+<line class="st1" x1="8.5" y1="8.5" x2="8.5" y2="14.2"/>
 </svg>

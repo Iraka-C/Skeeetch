@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 22.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="图层_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 28.346 28.346" style="enable-background:new 0 0 28.346 28.346;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;stroke:#000000;stroke-width:2;stroke-miterlimit:10;}
+	.st1{display:none;}
+	.st2{display:inline;fill:none;stroke:#000000;stroke-miterlimit:10;}
+	.st3{fill:none;stroke:#000000;stroke-miterlimit:10;}
+</style>
+<g id="图层_2_1_">
+	<circle class="st0" cx="14.173" cy="14.173" r="11.339"/>
+</g>
+<g id="图层_3" class="st1">
+	<line class="st2" x1="0" y1="0" x2="28.346" y2="28.346"/>
+	<line class="st2" x1="0" y1="-4.252" x2="28.346" y2="24.094"/>
+	<line class="st2" x1="0" y1="-8.504" x2="28.346" y2="19.842"/>
+	<line class="st2" x1="0" y1="-12.756" x2="28.346" y2="15.59"/>
+	<line class="st2" x1="0" y1="4.252" x2="28.346" y2="32.598"/>
+	<line class="st2" x1="0" y1="8.504" x2="28.346" y2="36.85"/>
+	<line class="st2" x1="0" y1="12.756" x2="28.346" y2="41.102"/>
+</g>
+<g id="图层_4">
+	<line class="st3" x1="6.156" y1="6.156" x2="22.189" y2="22.189"/>
+	<line class="st3" x1="8.568" y1="4.316" x2="24.03" y2="19.778"/>
+	<line class="st3" x1="11.626" y1="3.122" x2="25.223" y2="16.72"/>
+	<line class="st3" x1="15.591" y1="2.835" x2="25.41" y2="12.654"/>
+	<line class="st3" x1="4.316" y1="8.568" x2="19.778" y2="24.03"/>
+	<line class="st3" x1="3.123" y1="11.627" x2="16.72" y2="25.223"/>
+	<line class="st3" x1="2.937" y1="15.693" x2="12.654" y2="25.41"/>
+</g>
+</svg>

@@ -94,11 +94,11 @@ EventDistributer.button={
 
 EventDistributer.setClick=function($element,callback){
 	let origin={};
-	let isToClick=true;
+	let isToClick=false;
 	$($element).on("pointerdown",event=>{
 		const e=event.originalEvent;
 		origin={x:e.clientX,y:e.clientY};
-		isToClick=true;
+		isToClick=true; // ready to click
 	});
 	$($element).on("pointermove",event=>{
 		if(!isToClick)return; // no more click
@@ -112,6 +112,7 @@ EventDistributer.setClick=function($element,callback){
 	$($element).on("pointerup pointercancel",event=>{
 		if(isToClick){ // not moved
 			callback(event);
+			isToClick=false; // reset
 		}
 		origin={};
 	});
@@ -174,8 +175,11 @@ EventDistributer.footbarHint=function($el,infoFunc){ // infoFunc put in closure
 			EventDistributer.footbarHint.timer=null;
 		}
 		EventDistributer.footbarHint.infoFunc=infoFunc; // record this function
-		$("#front-info-box").html(EventDistributer.footbarHint.infoFunc());
-		$("#front-info-panel").css("opacity","1");
+		const content=EventDistributer.footbarHint.infoFunc();
+		if(content){
+			$("#front-info-box").html(content);
+			$("#front-info-panel").css("opacity","1");
+		}
 	});
 	$el.on("pointerout",event=>{
 		EventDistributer.footbarHint.infoFunc=null;
@@ -186,7 +190,10 @@ EventDistributer.footbarHint.infoFunc=null;
 EventDistributer.footbarHint.timer=null;
 EventDistributer.footbarHint.update=function(){ // update when environment changes i.e. a key pressed
 	if(EventDistributer.footbarHint.infoFunc){ // there's a function registered
-		$("#front-info-box").html(EventDistributer.footbarHint.infoFunc());
+		const content=EventDistributer.footbarHint.infoFunc();
+		if(content){
+			$("#front-info-box").html(content);
+		}
 	}
 };
 EventDistributer.footbarHint.showInfo=function(text,time){

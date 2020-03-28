@@ -1,4 +1,5 @@
 LAYERS.initScrollbar=function(){
+	// @TODO: scroll to active layer when add/delete
 	/**
 	 * When dragging in the layer list, it does not automatically scroll
 	 * Add two divs that controls scrolling up/down
@@ -79,4 +80,65 @@ LAYERS._updateScrollBar=function(isAnimate){
 // For Debugging!
 LAYERS.toString=function(){
 	return "\n"+LAYERS.layerTree._getTreeNodeString();
+}
+
+// ================= LAYER panels as a whole =================
+LAYERS.shrinkUI=function(){
+	const initWidth=$("#layer-panel").width();
+	$("#layer-panel-style-collapsed").attr("rel","stylesheet");
+
+	const mutate=event=>{ // after css rendered
+		const nowWidth=$("#layer-panel").width(); // Test if the style's changed
+		if(nowWidth==initWidth){ // continue waiting
+			requestAnimationFrame(mutate);
+			return;
+		}
+
+		$("#layer-panel-right-menu").text(">");
+
+		// refresh palette window
+		PALETTE.refreshUIParam();
+		PALETTE.drawHueSelector();
+		PALETTE.setCursor();
+
+		// refresh canvas window
+		ENV.window.SIZE.width=$("#canvas-window").width();
+		ENV.window.SIZE.height=$("#canvas-window").height();
+		ENV.refreshTransform();
+
+		LAYERS.updateAllThumbs();
+	};
+
+	requestAnimationFrame(mutate); // Kick!
+}
+
+// @TODO: change these into .class operation: no need to operate when new/del layer
+// This is crucial when undo/redo in HISTORY
+LAYERS.expandUI=function(){
+	const initWidth=$("#layer-panel").width();
+	$("#layer-panel-style-collapsed").attr("rel","alternate stylesheet");
+
+	const mutate=event=>{ // after css rendered
+		const nowWidth=$("#layer-panel").width(); // Test if the style's changed
+		if(nowWidth==initWidth){ // continue waiting
+			requestAnimationFrame(mutate);
+			return;
+		}
+
+		$("#layer-panel-right-menu").text("<");
+
+		// refresh palette window
+		PALETTE.refreshUIParam();
+		PALETTE.drawHueSelector();
+		PALETTE.setCursor();
+	
+		// refresh canvas window
+		ENV.window.SIZE.width=$("#canvas-window").width();
+		ENV.window.SIZE.height=$("#canvas-window").height();
+		ENV.refreshTransform();
+
+		LAYERS.updateAllThumbs();
+	};
+
+	requestAnimationFrame(mutate); // Kick!
 }

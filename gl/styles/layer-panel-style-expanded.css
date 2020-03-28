@@ -1,0 +1,38 @@
+.layer-panel-block{ /* The width of all elements in layer block */
+	width: 10em;
+}
+
+.layer-panel-button-to-collapse{
+	display: auto;
+}
+
+#palette-hue-info{
+	font-size: 125%;
+}
+
+#palette-hue-info *{
+	display: block;
+}
+
+.layer-ui{
+	height: 5em;
+}
+
+.layer-opacity-label{
+	display: flex;
+	flex-direction: row;
+}
+.layer-buttons{
+	display: block;
+}
+.layer-name-label{
+	display: block;
+}
+.group-name-label{
+	display: block;
+}
+.group-button-panel{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}

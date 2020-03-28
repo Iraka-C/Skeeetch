@@ -92,7 +92,12 @@ function getPointToLineDis(x1,y1,x2,y2,x0,y0){
 }
 
 // ========================= color blends ===========================
-SMath.blendNormal=function(p1,p2){ // [r,g,b,a], p2 over p1
+/**
+ * Blend two alpha none-prenultiplied pixels in normal mode
+ * p1,p2=[r,g,b,a], p2 over p1
+ * r,g,b (0~255), a(0~1)
+ */
+SMath.blendNormal=function(p1,p2){
 	const op1=p1[3],op2=p2[3];
 	const op=op1+op2-op1*op2;
 	if(op<1E-10){ // fully transparent

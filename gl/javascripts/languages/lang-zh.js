@@ -42,7 +42,8 @@ LANG_ZH={
 	"stroke-smoothness":"抖动修正",
 
 	// Layer
-	"layer-opacity-label":"调节图层不透明度，单击以隐藏图层",
+	"layer-opacity-label-shown":"调节图层不透明度。右键隐藏图层",
+	"layer-opacity-label-hidden":"右键显示图层",
 	"Lock pixel / opacity":"锁定图层/像素不透明度",
 	"Switch blend mode":"混合模式",
 	"Set this layer as a clipping mask":"剪贴蒙版",
@@ -51,6 +52,8 @@ LANG_ZH={
 	"Add a new layer group":"新建图层组",
 	"Delete current layer / group":"删除当前图层/图层组",
 	"Clear current layer":"清空当前图层",
+	"Activate the mask layer":"切换蒙版编辑",
+	"Merge group contents into one layer":"合并图层组",
 
 	// Workspace
 	"workspace-title":"纸张",

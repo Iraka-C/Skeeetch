@@ -10,9 +10,20 @@
   * All methods shall be synchronized.
   */
 class BasicRenderer{
+	
+	// Mode enums
+	static NORMAL=0;
+	static SOURCE=1;
+	static MULTIPLY=2;
+	static SCREEN=3;
+	static EXCLUSION=10;
+
+	static _sBase=5; // power base 5^(sensitivity-1)
+
 	constructor(param){
 		this.canvas=param.canvas; // the target canvas to be rendered !MUST be uninitialized context!
 		this.isRefreshRequested=false; // refresing requested?
+		this.bitDepth=param.bitDepth||8; // init 8-bit, may be modified
 	}
 
 	init(param){
@@ -30,14 +41,16 @@ class BasicRenderer{
 		this.antiAlias=param.antiAlias||false; // false in default
 		this.hardness=this.brush?this.brush.edgeHardness:1;
 		this.softness=1-this.hardness;
-		
 
 		// ====== params for bezier curve =======
-		// Auto quality: 5~50 circles
+		// Auto quality: 5~100 circles
 		// how many circles are overlayed to one pixel. 50 for good quality
 		// 2/(this.softness+0.01)+16 adjusts the quality according to softness
 		// this.brush.size guarantees that the neighboring circles with 2px interval at least
-		this.quality=Math.min(2/(this.softness+0.01)+16,100,Math.max(this.brush.size,5));
+		// @TODO: quality based on alpha?
+		// @TODO: ripples reduction?
+		const MAX=this.bitDepth==32?100:this.bitDepth==16?20:10;
+		this.quality=Math.min(2/(this.softness+0.01)+16,MAX,Math.max(this.brush.size,5));
 		
 		this._invQuality=1/this.quality;
 		this.bezierRemDis=0; // distance remain = 0 at first
@@ -56,12 +69,16 @@ class BasicRenderer{
 		const r1=this.pressureToStrokeRadius(p1[2]);
 		const r2=this.pressureToStrokeRadius(p2[2]);
 		
+		// edge pixel & hardness compensation
+		const tHardness=3-2*this.hardness; // opacity compensation under low hardness
+		const softRadiusCompensation=1+this.softness/2; // radius compensation on soft edge, experimental value
 	
-		const maxR=Math.ceil(Math.max(r0,r1,r2));
-		const wL=Math.floor(Math.min(p0[0],p1[0],p2[0])-maxR).clamp(0,w-1);
-		const wH=Math.ceil(Math.max(p0[0],p1[0],p2[0])+maxR).clamp(0,w-1);
-		const hL=Math.floor(Math.min(p0[1],p1[1],p2[1])-maxR).clamp(0,h-1);
-		const hH=Math.ceil(Math.max(p0[1],p1[1],p2[1])+maxR).clamp(0,h-1);
+		// All rendering happens within [wL,wH)*[hL,hH)
+		const maxR=Math.ceil(Math.max(r0,r1,r2))*softRadiusCompensation;
+		const wL=Math.floor(Math.min(p0[0],p1[0],p2[0])-maxR)-2;
+		const wH=Math.ceil(Math.max(p0[0],p1[0],p2[0])+maxR)+3;
+		const hL=Math.floor(Math.min(p0[1],p1[1],p2[1])-maxR)-2;
+		const hH=Math.ceil(Math.max(p0[1],p1[1],p2[1])+maxR)+3;
 	
 		// density according to pressure: 0 <= minAlpha ~ alpha <= 1
 		const d0=this.pressureToStrokeOpacity(p0[2]);
@@ -93,8 +110,6 @@ class BasicRenderer{
 		}
 		bLen-=remL;
 
-		const tHardness=3-2*this.hardness; // opacity compensation under low hardness
-		const softRadiusCompensation=1+this.softness/2; // radius compensation on soft edge, experimental value
 		for(let t=bc.getTWithLength(remL,0);!isNaN(t);){
 			// draw one plate at tstart
 			const t2=t*t;
@@ -107,7 +122,8 @@ class BasicRenderer{
 			const na=(1-Math.pow(1-nd,this._invQuality))*tHardness;
 			nr*=softRadiusCompensation;
 			// Note that na may > 1
-			kPoints.push([nx,ny,nr,na.clamp(0,1)]); // add one key point
+			const data=[nx,ny,nr,na.clamp(0,1)];
+			kPoints.push(data); // add one key point
 
 			// interval is the pixel length between two circle centers
 			let interval=Math.max(2*nr/this.quality,1);
@@ -119,7 +135,8 @@ class BasicRenderer{
 			bLen-=interval; // new length
 		}
 
-		this.renderPoints(wL,wH,hL,hH,kPoints);
+		//this.renderPoints(wL,wH,hL,hH,kPoints);
+		return [wL,wH,hL,hH,kPoints];
 	}
 
 	/**
@@ -214,6 +231,23 @@ class BasicRenderer{
 		//return r; // a bit faster than quad? but quality is worse
 		//return (1-Math.cos(Math.PI*r))/2; // easier but slower
 	}
-}
 
-BasicRenderer._sBase=5; // power base 5^(sensitivity-1)
+	static blendModeNameToEnum(name){
+		switch(name){
+			case "normal": return BasicRenderer.NORMAL;
+			case "source": return BasicRenderer.SOURCE;
+			case "multiply": return BasicRenderer.MULTIPLY;
+			case "screen": return BasicRenderer.SCREEN;
+			case "exclusion": return BasicRenderer.EXCLUSION;
+		}
+	}
+	static blendModeEnumToName(mode){
+		switch(mode){
+			case BasicRenderer.NORMAL: return "normal";
+			case BasicRenderer.SOURCE: return "source";
+			case BasicRenderer.MULTIPLY: return "multiply";
+			case BasicRenderer.SCREEN: return "screen";
+			case BasicRenderer.EXCLUSION: return "exclusion";
+		}
+	}
+}
