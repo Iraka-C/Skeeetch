@@ -78,8 +78,8 @@ class CanvasNode extends ContentNode {
 		// thumb image canvas
 		this.$thumb=this.$ui.children(".layer-ui-canvas-container").children("canvas");
 
-		this.setName(this.id);
-		this.name=this.id;
+		this.name=Lang("New Layer");
+		this.setName(this.name);
 		this.$ui.on("pointerdown",event => { // set active on clicking
 			LAYERS.setActive(this);
 		});

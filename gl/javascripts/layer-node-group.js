@@ -47,7 +47,7 @@ class LayerGroupNode extends ContentNode {
 		// Properties
 		this.isExpanded=true; // is the container of this group expanded?
 		
-		this.setName(this.id); // For DEBUG
+		this.setName(Lang("New Group")); // For DEBUG
 		this.$ui.on("pointerdown",event => { // click to activate
 			if($.contains(this.$ui.children(".layer-group-container")[0],event.target)) {
 				// The event is from one of my containings
