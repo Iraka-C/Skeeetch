@@ -208,7 +208,8 @@ class GLRenderer extends BasicRenderer {
 		super.init(param); // init canvas
 
 		if(param.imageData.type!="GLTexture") { // not GL texture type
-			throw new Error("ImageData "+param.imageData+" not GLTexture");
+			console.warn(param.imageData);
+			throw new Error("ImageData not a GLTexture");
 		}
 		// init rendering environment
 
@@ -302,24 +303,30 @@ class GLRenderer extends BasicRenderer {
 	 * "GLTexture": WebGL texture for GL renderer
 	 * "GLRAMBuf": texture restored in RAM buffer, cannot be used directly
 	 */
-	createImageData(w,h) { // imagedata contains a texture
-		const gl=this.gl;
-		let texture=GLProgram.createAndSetupTexture(gl);
-		// Using 0 means an empty texture at first and will grow according to the drawing
-		// Using {width,height} means a texture sized of the whole viewport is provided, won't change in the life cycle
-		//w=w||this.canvas.width;
-		//h=h||this.canvas.height;
+	createImageData(w,h,isFrozen) { // imagedata contains a texture
 		w=w||0;
 		h=h||0;
-		gl.texImage2D( // setup texture format
-			gl.TEXTURE_2D,0,gl.RGBA, // texture type, level(0), texture color format
-			w,h,0, // size[w,h], border(0)
-			gl.RGBA, // texel color format (==texture color format)
-			this.dataFormat,null // 32bit/channel float for RGBA, empty
-		);
+		isFrozen=!!isFrozen;
+
+		let imgData=null;
+		if(isFrozen){ // create array
+			const SIZE=w*h*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4?1:4);
+			switch(this.dataFormat){
+				case gl.FLOAT: imgData=Float32Array(SIZE);break;
+				case gl.UNSIGNED_SHORT_4_4_4_4:
+				case gl.HALF_FLOAT: imgData=Uint16Array(SIZE);break;
+				case gl.UNSIGNED_BYTE: imgData=Uint8Array(SIZE);break;
+			}
+		}
+		else{ // create gl texture
+			const gl=this.gl;
+			imgData=GLProgram.createAndSetupTexture(gl);
+			gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,this.dataFormat,null);
+		}
+
 		return { // a texture - image data type
-			type: "GLTexture",
-			data: texture,
+			type: isFrozen?"GLRAMBuf":"GLTexture",
+			data: imgData,
 			id: LAYERS.generateHash("t"), // for DEBUG ONLY!
 			width: w, // width and ...
 			height: h, // ... height are immutable: do not change by assignment!
@@ -532,11 +539,21 @@ class GLRenderer extends BasicRenderer {
 		return canvas;
 	}
 
-	glTextureToRAM(src) { // in-place
+	cre
+	isImageDataFrozen(src){
+		return src.type=="GLRAMBuf";
+	}
+	freezeImageData(src) { // in-place
+		if(src.type!="GLTexture"){ // only freezes GLTexture
+			return;
+		}
 		this.imageDataFactory.convertGLTextureToRAMBuf(src);
 	}
 
-	ramToGLTexture(src) { // in-place
+	restoreImageData(src) { // in-place
+		if(this.isImageDataFrozen(src)){ // only restore frozen data
+			return;
+		}
 		this.imageDataFactory.convertGLRAMBufToTexture(src);
 	}
 

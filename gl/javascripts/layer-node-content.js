@@ -24,8 +24,6 @@ class ContentNode extends LayerNode {
 		this.imageData=this.maskedImageData;
 		this.isImageDataValid=true;
 
-		this.cachedImageData={}; // Cache for groups, when this node is on the route of the active layer
-
 		// Image Data Managements
 		this.isChildrenClipMaskOrderValid=true; // do all children own proper clip mask id?
 		/**
@@ -42,7 +40,31 @@ class ContentNode extends LayerNode {
 		 * for consecutive clip masks at the group bottom, see notes @ constructClipMaskOrder()
 		 */
 		this.clipMaskChildrenCnt=0; // how many clip mask layer over this node, calculated by tree structure
-		this.clipMaskParentIndex=-1; // If this node is a clip mask, the target (back drop) layer id. If not, this value is -1 (no parent) or itself (with a parent & calculated)
+		this.clipMaskParentIndex=-1; // If this node is a clip mask, the target (back drop) layer id. If not, this value is -1 (no parent) or itself (with a parent & calculated). You may safely consider it as the id of itself in the layer tree.
+
+		// Cache managements
+		/**
+		 * Let me explain this: another function of the imageData is to cache the
+		 * composition result of several layers.
+		 * The imageDataCombinedCnt variable shows how many consecutive layers
+		 * (including this layer and the clip masks of this layer)
+		 * are composited in this imageData
+		 * If no following layers are cached, then imageDataCombinedCnt==clipMaskChildrenCnt+1
+		 */
+		this.imageDataCombinedCnt=1;
+		/**
+		 * Stored imagedata to RAM/compressed
+		 * status:
+		 * 0: normal composition
+		 * 1: children and raw image data cached
+		 * 2: self and children all cached
+		 */
+		this.cache={
+			status: 0,
+			parentIndex: -1, // In which layer (index) is this imagedata cached/composited
+			isOnCrucialPath: false // crucial path: ancestor of now active layer, shouldn't be cached
+
+		};
 
 		// Common properties
 		this.properties={
@@ -94,12 +116,10 @@ class ContentNode extends LayerNode {
 		if(this.maskImageData)CANVAS.renderer.deleteImageData(this.maskImageData);
 		if(this.maskedImageData)CANVAS.renderer.deleteImageData(this.maskedImageData);
 		if(this.imageData)CANVAS.renderer.deleteImageData(this.imageData);
-		if(this.cachedImageData)CANVAS.renderer.deleteImageData(this.cachedImageData);
 		this.rawImageData=null;
 		this.maskImageData=null;
 		this.maskedImageData=null;
 		this.imageData=null;
-		this.cachedImageData=null;
 		super.delete();
 	}
 	// ============= Property Operation ===============
@@ -163,15 +183,16 @@ class ContentNode extends LayerNode {
 		return true;
 	}
 	// =============== mask & clip mask ==================
-	// @TODO: create these image data with initial contents (for history)
-	createClipMaskImageData(){
+	createImageData(){
 		if(this.imageData!=this.maskedImageData)return; // already created
 		this.imageData=CANVAS.renderer.createImageData();
+		this.imageDataCombinedCnt=1;
 	}
-	deleteClipMaskImageData(){
+	deleteImageData(){
 		if(this.imageData==this.maskedImageData)return; // already deleted
 		CANVAS.renderer.deleteImageData(this.imageData);
 		this.imageData=this.maskedImageData;
+		this.imageDataCombinedCnt=1;
 	}
 	createMaskImageData(){
 		if(this.maskImageData)return; // already created
@@ -257,16 +278,18 @@ class ContentNode extends LayerNode {
 			const node=list[i];
 			// These operations won't affect status-unchanged nodes
 			if(node.clipMaskChildrenCnt>0){
-				node.createClipMaskImageData();
+				node.createImageData();
 			}
 			else{
-				node.deleteClipMaskImageData();
+				node.deleteImageData();
 			}
+			node.imageDataCombinedCnt=1;
 		}
 		this.isChildrenClipMaskOrderValid=true; // set order array valid
 	}
 	setClipMaskOrderInvalid(){ // when children order changes, the order info becomes invalid
 		this.isChildrenClipMaskOrderValid=false;
+		this.imageDataCombinedCnt=1;
 		// Optional: children clipMaskChildrenCnt & clipMaskParentIndex reset
 	}
 	// ================ ImageData validation management =================
@@ -320,24 +343,25 @@ class ContentNode extends LayerNode {
 	}
 
 	// ==================== Swap texture between CPU & GPU ========================
-	swapImageDataToRAM(){
-		CANVAS.renderer.glTextureToRAM(this.rawImageData);
-		if(this.maskedImageData!=this.rawImageData){
-			CANVAS.renderer.glTextureToRAM(this.maskedImageData);
-		}
-		if(this.imageData!=this.maskedImageData){
-			CANVAS.renderer.glTextureToRAM(this.imageData);
-		}
-	}
-	swapImageDataToGrapicsMemory(){
-		CANVAS.renderer.ramToGLTexture(this.rawImageData);
-		if(this.maskedImageData!=this.rawImageData){
-			CANVAS.renderer.ramToGLTexture(this.maskedImageData);
-		}
-		if(this.imageData!=this.maskedImageData){
-			CANVAS.renderer.ramToGLTexture(this.imageData);
-		}
-	}
+	// only for reference
+	// freezeMemory(){
+	// 	CANVAS.renderer.freezeImageData(this.rawImageData);
+	// 	if(this.maskedImageData!=this.rawImageData){
+	// 		CANVAS.renderer.freezeImageData(this.maskedImageData);
+	// 	}
+	// 	if(this.imageData!=this.maskedImageData){
+	// 		CANVAS.renderer.freezeImageData(this.imageData);
+	// 	}
+	// }
+	// restoreMemory(){
+	// 	CANVAS.renderer.restoreImageData(this.rawImageData);
+	// 	if(this.maskedImageData!=this.rawImageData){
+	// 		CANVAS.renderer.restoreImageData(this.maskedImageData);
+	// 	}
+	// 	if(this.imageData!=this.maskedImageData){
+	// 		CANVAS.renderer.restoreImageData(this.imageData);
+	// 	}
+	// }
 
 	// get a JSON object that is writable by ag-psd
 	getAgPSDCompatibleJSON(){
@@ -356,5 +380,20 @@ class ContentNode extends LayerNode {
 			"name": this.getName()
 			// protected, children ...
 		};
+	}
+
+	_getTreeNodeString(_depth){
+		_depth=_depth||0; // start from 0
+		let str="   ".repeat(_depth)
+			+(this.properties.clipMask?"┌":" ")
+			+this.id+": "+this.imageDataCombinedCnt
+			+(this.cache.isOnCrucialPath?"@":
+				CANVAS.renderer.isImageDataFrozen(this.imageData)?"#":
+				CANVAS.renderer.isImageDataFrozen(this.rawImageData)?"=":"")
+			+"\n";
+		for(let v of this.children){
+			str+=v._getTreeNodeString(_depth+1);
+		}
+		return str;
 	}
 }

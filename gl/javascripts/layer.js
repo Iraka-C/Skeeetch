@@ -112,7 +112,7 @@ class LayerNode{
 	}
 	_getTreeNodeString(_depth){
 		_depth=_depth||0; // start from 0
-		let str="   ".repeat(_depth)+this.id+": "+(this.parent?this.parent.id:"---")+"\n";
+		let str="   ".repeat(_depth)+this.id+"\n";
 		for(let v of this.children){
 			str+=v._getTreeNodeString(_depth+1);
 		}

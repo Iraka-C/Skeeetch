@@ -240,6 +240,16 @@ class GLImageDataFactory{
 	// return premultiplied, Y-non-flipped (raw) result
 	_imageDataToBuffer(src) {
 		const gl=this.gl;
+		if(!(src.width&&src.height)){ // empty texture
+			switch(this.dataFormat){
+				case gl.FLOAT:return new Float32Array(0);
+				case gl.UNSIGNED_SHORT_4_4_4_4:
+				case gl.HALF_FLOAT: return new Uint16Array(0);
+				case gl.UNSIGNED_BYTE: return new Uint8Array(0);
+			}
+		}
+
+		// start converting
 		const program=this.converterProgram;
 		program.setTargetTexture(src.data,src.width,src.height);
 		gl.viewport(0,0,src.width,src.height); // set size to src

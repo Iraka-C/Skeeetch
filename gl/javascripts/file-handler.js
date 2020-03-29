@@ -154,6 +154,7 @@ FILES.loadPSDNode=function(node,nowGroup,progressAmount){
 				// the actuall progress considering the depth should be a function of progress in average
 				// 4 is the approx. value
 				FILES.loadPSDNode.lastLoadingElement=newElement;
+				// @TODO: last loading must be: not hidden, not folded
 			}
 			else{
 				FILES.loadPSDNode.isUnsupportedLayerFound=true;
@@ -177,10 +178,11 @@ FILES.loadPSDNode=function(node,nowGroup,progressAmount){
 				}
 				else{
 					EventDistributer.footbarHint.showInfo("Loaded");
-					LAYERS.setActive(FILES.loadPSDNode.lastLoadingElement);
-					FILES.loadPSDNode.lastLoadingElement=null; // release reference
-					CURSOR.updateAppearance.setBusy(false); // free busy cursor
 				}
+				LAYERS.setActive(FILES.loadPSDNode.lastLoadingElement);
+				FILES.loadPSDNode.lastLoadingElement=null; // release reference
+				CURSOR.updateAppearance.setBusy(false); // free busy cursor
+				// @TODO: set idle task
 			}
 			//console.log(STATUS,nowGroup.id);
 		},0);

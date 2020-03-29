@@ -246,7 +246,7 @@ CANVAS.onRefresh=function() {
  * unless you know what you're doing!
  */
 CANVAS.refreshScreen=function() {
-	CANVAS.recompositeLayers();
+	COMPOSITOR.recompositeLayers();
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData);
 }
 
@@ -258,113 +258,6 @@ CANVAS.refreshScreen=function() {
 CANVAS.onEndRefresh=function() {
 	LAYERS.active.updateThumb();
 	CANVAS.lastRefreshTime=NaN;
-}
-
-/**
- * Use mid-order traverse: the backdrop of a group is transparent
- * SAI uses mid-order
- * PS, Web use pre-order: the backdrop is the underlaying layers
- * 
- * In this module, size auto-growth is used.
- * If one texture at the leaf node (CanvasNode) expands,
- * All textures along the route to the root will be reallocated.
- * This is time consuming.
- * @TODO: looking for better algorithm to grow texture sizes.
- */
-CANVAS.recompositeLayers=function(node) {
-	node=node||LAYERS.layerTree; // init: root
-	//console.log("Recomposite "+node.id);
-
-	if(!node.isRawImageDataValid&&node.children.length) { // raw data of this node needs recomposition
-		// Only group/root will reach here
-		if(!node.isChildrenClipMaskOrderValid) { // clip mask order not calculated
-			node.constructClipMaskOrder();
-		}
-
-		// clip mask order here is correct
-		const list=node.children;
-		const childrenToBlend=[];
-		let initSize={width: 0,height: 0,left: 0,top: 0};
-		for(let i=list.length-1;i>=0;i--) { // reversed order
-			const child=list[i];
-			// for group, only blend non-clip mask layers
-			// clip mask parent not itself: a clip mask
-			if(child.index!=child.clipMaskParentIndex) continue;
-
-			CANVAS.recompositeLayers(child); // recomposite this level
-			if(!child.properties.visible) continue; // invisible: pass this node
-			if(!child.imageData.width||!child.imageData.height) continue; // child contains 0 pixel after composition
-
-			childrenToBlend.push(i);
-			initSize=GLProgram.extendBorderSize(initSize,child.imageData); // to blend the imageData into layer's raw imageData
-		}
-		// Now the initSize contains the minimum size to contain the children's imageData
-		let bg=node.rawImageData; // present uncleared imagedata
-		CANVAS.renderer.adjustImageDataBorders(bg,initSize,false);
-		CANVAS.renderer.clearImageData(bg,null,false); // clear the data to blank
-
-		// blend the children
-		for(const v of childrenToBlend) {
-			const child=list[v];
-			if(PERFORMANCE.debugger.isDrawingLayerBorder){ // For DEBUG: draw the edge of each layer
-				CANVAS.renderer.drawEdge(child.imageData,bg);
-			}
-			CANVAS.renderer.blendImageData(child.imageData,bg,{
-				mode: child.properties.blendMode,
-				srcAlpha: child.properties.opacity
-			}); // blend layer with backdrop
-		}
-
-	}
-	node.isRawImageDataValid=true;
-
-	if(!node.isMaskedImageDataValid) { // masked data needs recomposition
-		if(node.maskImageData) { // there is a mask in this layer
-			// @TODO: blend raw & mask ==> masked
-
-		}
-		// else: node.maskedImageData==node.rawImageData;
-	}
-	node.isMaskedImageDataValid=true;
-
-	if(!node.isImageDataValid) { // image data needs recomposition (with clip masks)
-		if(node.clipMaskChildrenCnt>0) { // there is a clip mask over this layer
-			// At here, imageData is surely not equal to rawImageData
-			const siblings=node.parent.children;
-			const childrenToBlend=[];
-			const index=node.getIndex();
-			for(let i=0;i<node.clipMaskChildrenCnt;i++) {
-				const v=index-1-i; // reversed order
-				const clipMaskNode=siblings[v];
-				CANVAS.recompositeLayers(clipMaskNode); // recomposite this level
-				if(!clipMaskNode.properties.visible) continue; // invisible: pass this node
-				if(!clipMaskNode.imageData.width||!clipMaskNode.imageData.height) continue; // contains 0 pixel: do not blend
-				childrenToBlend.push(v);
-			}
-
-			// Now the initSize contains the minimum size to contain the children's & this node's imageData
-			const mask=node.maskedImageData;
-			const clipped=node.imageData; // present uncleared imagedata
-			CANVAS.renderer.adjustImageDataBorders(clipped,mask,false); // move to the position of mask
-			//CANVAS.renderer.clearImageData(clipped,null,false); // clear the data to blank.
-			// combine all image data
-			CANVAS.renderer.blendImageData(mask,clipped,{mode: BasicRenderer.SOURCE}); // copy masked image
-			for(const v of childrenToBlend) {
-				const clipMaskNode=siblings[v];
-				// for DEBUG, blend with normal mode. @TODO: add blend mode
-				if(PERFORMANCE.debugger.isDrawingLayerBorder){ // For DEBUG: draw the edge of each layer
-					CANVAS.renderer.drawEdge(clipMaskNode.imageData,clipped);
-				}
-				CANVAS.renderer.blendImageData(clipMaskNode.imageData,clipped,{
-					mode: clipMaskNode.properties.blendMode,
-					alphaLock: true, // lock alpha
-					srcAlpha: clipMaskNode.properties.opacity
-				});
-			}
-		}
-		// else: clipped==node.maskedImageData
-	}
-	node.isImageDataValid=true;
 }
 
 // ===================== Clear function ====================
