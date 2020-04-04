@@ -176,7 +176,7 @@ LAYERS.onOrderChanged=function(event){
 	// newGroup.setClipMaskOrderInvalid();
 	// oldGroup.setRawImageDataInvalid(); // needs recomposition
 	// newGroup.setRawImageDataInvalid();
-	CANVAS.requestRefresh(); // recomposite immediately
+	COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
 }
 
 // ========================= Manipulation ===========================
@@ -244,6 +244,7 @@ LAYERS.setActive=function(obj){ // layer or group or id
 		CANVAS.setTargetLayer(null); // disable canvas
 		$("#clear-button").children("img").attr("src","./resources/merge-group.svg"); // merge
 	}
+	COMPOSITOR.updateLayerTreeStructure();
 }
 
 // deactivate the present active object
@@ -358,8 +359,6 @@ LAYERS.deleteItem=function(obj){
 		EventDistributer.footbarHint.showInfo(Lang("Cannot delete the only layer/group."));
 		return; // cannot delete
 	}
-	LAYERS._inactive();
-	LAYERS.setActive(newActive);
 
 	// HISTORY.addHistory({ // add a delete layer history item, before detach
 	// 	type:"move-layer-item",
@@ -374,7 +373,8 @@ LAYERS.deleteItem=function(obj){
 	obj.$ui.detach(); // remove layer ui
 	obj.detach(); // remove from layer tree, also handles data/clip order invalidation
 	
-	CANVAS.requestRefresh(); // recomposite
+	LAYERS._inactive();
+	LAYERS.setActive(newActive); // meanwhile refresh the screen
 
 	// remove from hash: in HISTORY.addHistory when this layer won't be retrieved
 	// The followings are only for debugging delete
@@ -400,9 +400,7 @@ LAYERS.replaceGroupWithLayer=function(group){
 	group.maskImageData=null;
 	group.maskedImageData=null;
 	group.imageData=null;
-	if(group.cachedImageData){ // if group has a cache image data, remove it
-		CANVAS.renderer.deleteImageData(group.cachedImageData);
-	}
+
 	layer.setMaskedImageDataInvalid();
 	LAYERS.setActive(layer);
 
@@ -415,7 +413,7 @@ LAYERS.replaceGroupWithLayer=function(group){
 	layer.setProperties(prop);
 
 	// recomposite
-	CANVAS.requestRefresh();
+	COMPOSITOR.updateLayerTreeStructure();
 	layer.updateThumb();
 
 	// remove group from memory @TODO: add to history

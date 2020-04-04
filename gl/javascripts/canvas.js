@@ -183,10 +183,11 @@ CANVAS.stroke=function() {
 	let targetSize={width: wH-wL,height: hH-hL,left: wL,top: hL};
 
 	// render
-	CANVAS.renderer.adjustImageDataBorders(nowTarget,targetSize,true);
-	CANVAS.renderer.init({imageData: nowTarget}); // renew target imageData
-	if(!(nowTarget.width&&nowTarget.height)){ // zero size. may happen when drawing out of canvas border
-		return;
+	if(CANVAS.renderer.brush.blendMode!=-1){ // not eraser, need to expand border
+		CANVAS.renderer.adjustImageDataBorders(nowTarget,targetSize,true);
+		if(!(nowTarget.width&&nowTarget.height)){ // zero size. may happen when drawing out of canvas border
+			return;
+		}
 	}
 	CANVAS.renderer.renderPoints(wL,wH,hL,hH,kPoints);
 

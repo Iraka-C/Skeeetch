@@ -6,64 +6,48 @@
 COMPOSITOR={};
 
 /**
- * Set the node on the crucial path in the layer tree.
- * The crucial path is the path from the active layer to the root.
- * This function is recursive. Only need to specify the root node.
+ * There should be a monitor watching every change in the layer tree, and create cache structures
  */
-COMPOSITOR.setCrucialPathStatus=function(node){
-	if(COMPOSITOR.setCrucialPathStatus.nowRoot){
-		COMPOSITOR._unsetCrucialPathStatus(COMPOSITOR.setCrucialPathStatus.nowRoot);
-		COMPOSITOR.setCrucialPathStatus.nowRoot=null;
+COMPOSITOR.isUpdateRequested=false;
+COMPOSITOR.updateLayerTreeStructure=function(){
+	if(COMPOSITOR.isUpdateRequested) {
+		return; // already requested
 	}
-	node.cache.isOnCrucialPath=true;
-	if(node.parent){
-		COMPOSITOR.setCrucialPathStatus(node.parent);
-	}
-	COMPOSITOR.setCrucialPathStatus.nowRoot=node; // the first caller will be set as the root
+	COMPOSITOR.isUpdateRequested=true;
+	requestAnimationFrame(() => {
+		COMPOSITOR.onUpdate(); // call refresh callback
+		COMPOSITOR.isUpdateRequested=false;
+	});
 }
-COMPOSITOR.setCrucialPathStatus.nowRoot=null;
-COMPOSITOR._unsetCrucialPathStatus=function(node){ // delete all crucial path status
-	node.cache.isOnCrucialPath=false;
-	if(node.parent){
-		COMPOSITOR.setCrucialPathStatus(node.parent);
-	}
-}
-
 /**
- * isToFreezeImageData determines whether node.imageData is to be frozen.
- * freezeDescendants(node) freezes the raw/mask/masked(/-)ImageData of this node,
- * and all image data of the descendant nodes.
- * Won't care about clip mask nodes of this node.
+ * This function entrance assumes that all nodes have valid imageData.
  */
-COMPOSITOR.freezeDescendants=function(node,isToFreezeImageData){
-	if(CANVAS.renderer.isImageDataFrozen(node.imageData)){ // already frozen
-		return;
+COMPOSITOR.onUpdate=function(){
+	console.log("Update");
+	if(!LAYERS.layerTree.isImageDataValid){
+		//console.warn(LAYERS.layerTree._getTreeNodeString()); // print the present layer tree
+		//throw new Error("Try to construct cache structure while there are invalid image data.");
 	}
-	if(!CANVAS.renderer.isImageDataFrozen(node.rawImageData)){ // children not frozen
-		for(const v of node.children) {
-			COMPOSITOR.freezeDescendants(v,true);
-		}
-	}
-	if(node.imageData!=node.rawImageData){
-		CANVAS.renderer.freezeImageData(node.rawImageData);
-	}
-	if(node.imageData!=node.maskedImageData){ // if same as raw, won't freeze again
-		CANVAS.renderer.freezeImageData(node.maskedImageData);
-		// @TODO: maskImageData
-	}
-	if(isToFreezeImageData){ // if same as masked/raw, won't freeze again
-		CANVAS.renderer.freezeImageData(node.imageData);
-	}
+	/**
+	 * @TODO: update cache structure
+	 * 1. determine the new cache structure
+	 * 2. determine which to freeze or restore
+	 * 3. composite while freezing/restoring
+	 */
+	COMPOSITOR.recompositeLayers();
+	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData);
 }
-
+// =========================== Main Cache Constructor =============================
 /**
- * Cache consecutive siblings into the first sibling's imageData.
- * Also, freeze the contents of the children of cached nodes.
- * 
- * There are four cases:
- * 1. The layer
+ * A layer tree is just like a grammar tree in programming,
+ * and pre-compilation makes it work better.
+ * Compilation traces the active nodes, and gives an executing order
+ * for every update on a node.
+ * This allows caching the inactive nodes into the RAM.
  */
-
+COMPOSITOR.compileLayerTree=function(){
+	// @TODO
+}
 // ============================ Main Compositor ===================================
 /**
  * Use mid-order traverse: the backdrop of a group is transparent
@@ -97,9 +81,9 @@ COMPOSITOR.recompositeLayers=function(node) {
 			COMPOSITOR.recompositeLayers(child); // recomposite this level
 			if(child.properties.visible&&child.imageData.width&&child.imageData.height){
 				// visible and has content
+				// to blend the imageData into layer's raw imageData
 				childrenToBlend.push(i);
 				initSize=GLProgram.extendBorderSize(initSize,child.imageData);
-				// to blend the imageData into layer's raw imageData
 			}
 			i-=child.imageDataCombinedCnt;
 		}
@@ -166,7 +150,7 @@ COMPOSITOR.recompositeLayers=function(node) {
 					srcAlpha: clipMaskNode.properties.opacity
 				});
 			}
-			node.imageDataCombinedCnt=node.clipMaskChildrenCnt+1; // including itself
+			node.imageDataCombinedCnt=node.clipMaskChildrenCnt+1; // including itself @TODO: change this value in onUpdate
 		}
 		// else: clipped==node.maskedImageData
 	}

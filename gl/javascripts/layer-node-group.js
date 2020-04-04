@@ -191,7 +191,7 @@ class LayerGroupNode extends ContentNode {
 				// The logic here is the same as the function in CanvasNode
 				prevClipParent.setImageDataInvalid();
 				clipParent.setImageDataInvalid();
-				CANVAS.requestRefresh(); // recomposite
+				COMPOSITOR.updateLayerTreeStructure(); // recomposite
 			}
 		});
 		this.buttonUpdateFuncs.clipButton=()=>fClip(this.properties.clipMask? 1:0);
@@ -219,7 +219,7 @@ class LayerGroupNode extends ContentNode {
 			// @TODO: add history here
 			setBlendButtonStatus(v);
 			this.setImageDataInvalid();
-			CANVAS.requestRefresh(); // recomposite immediately
+			COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
 		});
 		const blendModeToIdList=mode=>{
 			switch(mode){

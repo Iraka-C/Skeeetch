@@ -171,7 +171,7 @@ FILES.loadPSDNode=function(node,nowGroup,progressAmount){
 			}
 
 			if($.isEmptyObject(STATUS)){
-				CANVAS.requestRefresh();
+				COMPOSITOR.updateLayerTreeStructure();
 				LAYERS.updateAllThumbs();
 				if(FILES.loadPSDNode.isUnsupportedLayerFound){
 					EventDistributer.footbarHint.showInfo("Unsupported layers in this file are discarded");
@@ -196,7 +196,7 @@ FILES.loadAsImage=function(img){
 	layer.setRawImageDataInvalid();
 	layer.updateThumb();
 	LAYERS.setActive(layer);
-	CANVAS.requestRefresh();
+	COMPOSITOR.updateLayerTreeStructure();
 	CURSOR.updateAppearance.setBusy(false); // free busy cursor
 }
 

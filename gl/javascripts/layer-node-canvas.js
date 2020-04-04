@@ -271,7 +271,7 @@ class CanvasNode extends ContentNode {
 				 */
 				prevClipParent.setImageDataInvalid();
 				clipParent.setImageDataInvalid();
-				CANVAS.requestRefresh(); // recomposite
+				COMPOSITOR.updateLayerTreeStructure(); // recomposite
 			}
 		});
 		this.buttonUpdateFuncs.clipButton=()=>fClip(this.properties.clipMask? 1:0);
@@ -299,7 +299,7 @@ class CanvasNode extends ContentNode {
 			// @TODO: add history here
 			setBlendButtonStatus(v);
 			this.setImageDataInvalid();
-			CANVAS.requestRefresh(); // recomposite immediately
+			COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
 		});
 		const blendModeToIdList=mode=>{
 			switch(mode){
@@ -336,7 +336,7 @@ class CanvasNode extends ContentNode {
 		const setOpacity=opacity => { // set opacity function
 			this.properties.opacity=opacity;
 			this.setImageDataInvalid(); // In fact this is a little more, only need to set parent/clip parent
-			CANVAS.requestRefresh(); // refresh screen afterwards
+			CANVAS.requestRefresh(); // refresh screen afterwards, no need to change layerTree cache
 		};
 		const opacityString=() => { // show opacity input
 			return this.properties.visible? Math.round(this.properties.opacity*100)+"%":"----";
@@ -371,7 +371,7 @@ class CanvasNode extends ContentNode {
 				$opacityInput.val(opacityString());
 				this.setImageDataInvalid(); // In fact this is a little more: when this layer has clip layer children
 				// @TODO: modify here if it is a performance bottleneck, and the place above
-				CANVAS.requestRefresh();
+				COMPOSITOR.updateLayerTreeStructure();
 			}
 		});
 		EventDistributer.footbarHint($opacityLabel,() => Lang(

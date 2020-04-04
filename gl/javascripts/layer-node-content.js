@@ -63,7 +63,6 @@ class ContentNode extends LayerNode {
 			status: 0,
 			parentIndex: -1, // In which layer (index) is this imagedata cached/composited
 			isOnCrucialPath: false // crucial path: ancestor of now active layer, shouldn't be cached
-
 		};
 
 		// Common properties
@@ -90,7 +89,7 @@ class ContentNode extends LayerNode {
 			const nextNodeClipParent=this.children[pos].clipMaskParentIndex;
 			this.children[nextNodeClipParent].setImageDataInvalid(); // maybe change in clip mask
 		}
-		node.setImageDataInvalid();
+		node.setImageDataInvalid(); // there may be new clip mask over this node
 		
 		this.setClipMaskOrderInvalid();
 		this.setRawImageDataInvalid();
@@ -386,10 +385,10 @@ class ContentNode extends LayerNode {
 		_depth=_depth||0; // start from 0
 		let str="   ".repeat(_depth)
 			+(this.properties.clipMask?"┌":" ")
-			+this.id+": "+this.imageDataCombinedCnt
-			+(this.cache.isOnCrucialPath?"@":
-				CANVAS.renderer.isImageDataFrozen(this.imageData)?"#":
-				CANVAS.renderer.isImageDataFrozen(this.rawImageData)?"=":"")
+			+this.id+"["+this.imageDataCombinedCnt+"] "
+			+(CANVAS.renderer.isImageDataFrozen(this.imageData)?" ":this.isImageDataValid?"I":"i")
+			+(CANVAS.renderer.isImageDataFrozen(this.maskedImageData)?" ":this.isMaskedImageDataValid?"M":"m")
+			+(CANVAS.renderer.isImageDataFrozen(this.rawImageData)?" ":this.isRawImageDataValid?"R":"r")
 			+"\n";
 		for(let v of this.children){
 			str+=v._getTreeNodeString(_depth+1);
