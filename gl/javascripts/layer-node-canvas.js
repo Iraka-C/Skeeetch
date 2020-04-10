@@ -73,6 +73,13 @@ LAYERS.$newCanvasLayerUI=function(id) {
 class CanvasNode extends ContentNode {
 	constructor() {
 		super();
+		/**
+		 * another imageData for stroke composition
+		 * managed by CANVAS and COMPOSITOR
+		 */
+		this.strokeBuffer=null;
+
+		// Layer panel UI
 		this.$ui=LAYERS.$newCanvasLayerUI(this.id); // set ui in layer list
 
 		// thumb image canvas

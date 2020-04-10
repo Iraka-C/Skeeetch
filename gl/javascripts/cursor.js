@@ -148,11 +148,11 @@ CURSOR.updateColor=function(){
 CURSOR._isBusy=false;
 CURSOR.setBusy=function(isBusy){
 	CURSOR._isBusy=isBusy;
-	CURSOR.setCursor();
+	CURSOR.updateAction();
 }
 CURSOR.setIsShown=function(isShown){
 	CURSOR.isShown=isShown;
-	CURSOR.setCursor();
+	CURSOR.updateAction();
 }
 
 /**
@@ -196,22 +196,6 @@ CURSOR.disableCursor=function(){
 	CANVAS.updateCursor(CURSOR.p0);
 };
 
-/**
- * Cursor appearance
- */
-// CURSOR.hideCursor=function(){
-// 	if(CURSOR.isShown){
-// 		CURSOR.isShown=false;
-// 	}
-// 	$("#brush-cursor-layer").css("display","none");
-// 	CURSOR.disableCursor();
-// };
-// CURSOR.showCursor=function(){
-// 	if(!CURSOR.isShown){
-// 		CURSOR.isShown=true;
-// 	}
-// 	$("#brush-cursor-layer").css("display","block");
-// };
 /**
  * Change the appearance of the cursor
  */

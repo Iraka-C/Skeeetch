@@ -49,7 +49,8 @@ class GLTextureBlender {
 	 *    srcAlpha: additional opacity of source, 0~1
 	 * }
 	 * 
-	 * **NOTE** if src range exceeds dst range, overflown parts will be discarded!
+	 * **NOTE** if src range exceeds dst size range, overflown parts will be discarded!
+	 * **NOTE** if not param.alphaLock, then the dst.validArea may change!
 	 */
 	blendTexture(src,dst,param) {
 		if(!src.width||!src.height||!dst.width||!dst.height){ // one of the target contains zero pixel
@@ -116,6 +117,16 @@ class GLTextureBlender {
 		const top=Math.round(dst.top+dst.height-src.top-src.height);
 		gl.viewport(left,top,src.width,src.height);
 		program.run();
+
+		if(!param.alphaLock){ // extend dst valid area, but not larger than dst size
+			dst.validArea=GLProgram.borderIntersection(
+				GLProgram.extendBorderSize(
+					src.validArea,
+					dst.validArea
+				),
+				dst
+			);
+		}
 	}
 }
 
@@ -175,6 +186,7 @@ class GLImageDataFactory{
 
 	/**
 	 * src is a gl renderer img data
+	 * translate the whole src contents into Uint8
 	 * targetSize is [w,h]. if not specified, then regarded as same as src.
 	 * targetRange is [left,top,width,height], the range to take data from targetSized output
 	 * Use nearest neighbor interpolation for zooming in/out
@@ -282,6 +294,7 @@ class GLImageDataFactory{
 		tgt.height=src.height;
 		tgt.left=src.left;
 		tgt.top=src.top;
+		tgt.validArea=src.validArea;
 	}
 
 	// get a new GLRAMBuf (with similar ids) from texture
@@ -294,7 +307,8 @@ class GLImageDataFactory{
 			height: src.height,
 			left: src.left,
 			top: src.top,
-			tagColor: src.tagColor // same color
+			tagColor: src.tagColor, // same color
+			validArea: {...src.validArea}
 		};
 	}
 
@@ -319,6 +333,7 @@ class GLImageDataFactory{
 	/**
 	 * Load the img into the target image data
 	 * img can be Context2D ImageData / HTMLImageElement / HTMLCanvasElement / ImageBitmap
+	 * // @TODO: restrict the input size.
 	 */
 	loadToImageData(target,img){
 		try{
@@ -327,6 +342,12 @@ class GLImageDataFactory{
 			gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,this.dataFormat,img);
 			target.width=img.width;
 			target.height=img.height;
+			target.validArea={
+				width: img.width,
+				height: img.height,
+				left: target.left,
+				top: target.top
+			};
 		}catch(err){
 			console.warn(img);
 			console.err(err);

@@ -328,6 +328,8 @@ CANVAS.panLayer=function(targetLayer,dx,dy){
 	const imgData=targetLayer.rawImageData;
 	imgData.left+=dx;
 	imgData.top+=dy;
+	imgData.validArea.left+=dx;
+	imgData.validArea.top+=dy;
 	// @TODO: pan Mask data // @TODO: link Mask data
 	if(targetLayer.children.length){
 		for(const v of targetLayer.children) {

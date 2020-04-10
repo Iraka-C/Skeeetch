@@ -33,16 +33,16 @@ EVENTS.init=function(){
 
 	$("#canvas-window").on("pointerover",event=>{
 		CURSOR.setIsShown(true);
-		CURSOR.updateAction(event);
+		CURSOR.updateAction(event); // provide an action
 	});
 	$("#canvas-window").on("pointermove",event=>{
 		CURSOR.setIsShown(true); // pen->mouse switching
-		//CURSOR.updateAction(event);
+		//CURSOR.updateAction(event); // action doen't change during pure mouse moving
 		CURSOR.moveCursor(event); // may be stroke or pan
 	});
 	$("#canvas-window").on("pointerout",event=>{
 		CURSOR.setIsShown(false); // pen away, disable cursor
-		CURSOR.updateAction();
+		//CURSOR.updateAction();
 	});
 
 	// do sth to each menu panel

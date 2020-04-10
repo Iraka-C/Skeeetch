@@ -16,7 +16,7 @@ class ContentNode extends LayerNode {
 		this.rawImageData=CANVAS.renderer.createImageData(); // content
 		this.isRawImageDataValid=true; // is this imgData the latest (not modified)
 
-		this.maskImageData={}; // should be "luminance"
+		this.maskImageData=null; // should be "luminance"
 
 		this.maskedImageData=this.rawImageData;
 		this.isMaskedImageDataValid=true;

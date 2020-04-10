@@ -88,7 +88,7 @@ COMPOSITOR.recompositeLayers=function(node) {
 				// visible and has content
 				// to blend the imageData into layer's raw imageData
 				childrenToBlend.push(i);
-				initSize=GLProgram.extendBorderSize(initSize,child.imageData);
+				initSize=GLProgram.extendBorderSize(initSize,child.imageData.validArea);
 			}
 			i-=child.clipMaskChildrenCnt+1; // skip clip masks
 		}
