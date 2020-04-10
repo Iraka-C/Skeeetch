@@ -34,8 +34,8 @@ COMPOSITOR.onUpdate=function(){
 	 * 2. determine which to freeze or restore
 	 * 3. composite while freezing/restoring
 	 */
-	COMPOSITOR.recompositeLayers();
-	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData);
+	// Presently, use the same function as CANVAS.refreshScreen
+	CANVAS.refreshScreen();
 }
 // =========================== Main Cache Constructor =============================
 /**
@@ -46,7 +46,12 @@ COMPOSITOR.onUpdate=function(){
  * This allows caching the inactive nodes into the RAM.
  */
 COMPOSITOR.compileLayerTree=function(){
-	// @TODO
+	/**
+	 * @TODO:
+	 * Do this later.
+	 * Now most OS is equipped with automatic GPUMem <=> RAM <=> VirtualMem transfer.
+	 * 
+	 */
 }
 // ============================ Main Compositor ===================================
 /**
@@ -85,7 +90,7 @@ COMPOSITOR.recompositeLayers=function(node) {
 				childrenToBlend.push(i);
 				initSize=GLProgram.extendBorderSize(initSize,child.imageData);
 			}
-			i-=child.imageDataCombinedCnt;
+			i-=child.clipMaskChildrenCnt+1; // skip clip masks
 		}
 		// Now the initSize contains the minimum size to contain the children's imageData
 		let bg=node.rawImageData; // present uncleared imagedata
@@ -95,13 +100,13 @@ COMPOSITOR.recompositeLayers=function(node) {
 		// blend the children
 		for(const v of childrenToBlend) {
 			const child=list[v];
-			if(PERFORMANCE.debugger.isDrawingLayerBorder){ // For DEBUG: draw the edge of each layer
-				CANVAS.renderer.drawEdge(child.imageData,bg);
-			}
 			CANVAS.renderer.blendImageData(child.imageData,bg,{
 				mode: child.properties.blendMode,
 				srcAlpha: child.properties.opacity
 			}); // blend layer with backdrop
+			if(PERFORMANCE.debugger.isDrawingLayerBorder){ // For DEBUG: draw the edge of each layer
+				CANVAS.renderer.drawEdge(child.imageData,bg);
+			}
 		}
 
 	}
@@ -135,22 +140,20 @@ COMPOSITOR.recompositeLayers=function(node) {
 			const mask=node.maskedImageData;
 			const clipped=node.imageData; // present uncleared imagedata
 			CANVAS.renderer.adjustImageDataBorders(clipped,mask,false); // move to the position of mask
-			//CANVAS.renderer.clearImageData(clipped,null,false); // clear the data to blank.
+			CANVAS.renderer.clearImageData(clipped,null,false); // clear the data to blank.
 			// combine all image data
 			CANVAS.renderer.blendImageData(mask,clipped,{mode: BasicRenderer.SOURCE}); // copy masked image
 			for(const v of childrenToBlend) {
 				const clipMaskNode=siblings[v];
-				// for DEBUG, blend with normal mode. @TODO: add blend mode
-				if(PERFORMANCE.debugger.isDrawingLayerBorder){ // For DEBUG: draw the edge of each layer
-					CANVAS.renderer.drawEdge(clipMaskNode.imageData,clipped);
-				}
 				CANVAS.renderer.blendImageData(clipMaskNode.imageData,clipped,{
 					mode: clipMaskNode.properties.blendMode,
 					alphaLock: true, // lock alpha
 					srcAlpha: clipMaskNode.properties.opacity
 				});
+				if(PERFORMANCE.debugger.isDrawingLayerBorder){
+					CANVAS.renderer.drawEdge(clipMaskNode.imageData,clipped);
+				}
 			}
-			node.imageDataCombinedCnt=node.clipMaskChildrenCnt+1; // including itself @TODO: change this value in onUpdate
 		}
 		// else: clipped==node.maskedImageData
 	}

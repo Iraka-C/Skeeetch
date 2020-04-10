@@ -16,6 +16,7 @@ PERFORMANCE.debugger={
 /**
  * init
  */
+PERFORMANCE.idleTaskManager=null;
 PERFORMANCE.init=function(){
 	let counter=PERFORMANCE.fpsCounter;
 	counter.fps=60;
@@ -27,27 +28,33 @@ PERFORMANCE.init=function(){
 	PERFORMANCE.idleTaskManager=new IdleTaskManager();
 }
 
-PERFORMANCE.getMemoryEstimation=function(){ // in MB
-	let byte=0;
+PERFORMANCE.getRAMEstimation=function(){ // in MB
+	let ramBytes=0;
 	// LAYER memory
-	let imgDataSize=0;
+	let imgDataRAMSize=0;
 	const pixelBytes=32; // RGBA Float
-	const alphaBytes=4;
+	const alphaBytes=4; // Float
 	for(let id in LAYERS.layerHash){ // for all canvases
 		// @TODO: split into GPU mem or RAM
 		const item=LAYERS.layerHash[id];
-		imgDataSize+=item.rawImageData.width*item.rawImageData.height*pixelBytes;
+		if(item.rawImageData.type!="GLTexture"){
+			imgDataRAMSize+=item.rawImageData.width*item.rawImageData.height*pixelBytes;
+		}
+
 		if(item.maskedImageData!=item.rawImageData){
-			imgDataSize+=item.maskedImageData.width*item.maskedImageData.height*alphaBytes; // Only alpha
-			imgDataSize+=item.maskedImageData.width*item.maskedImageData.height*pixelBytes;
+			if(item.rawImageData.type!="GLTexture"){
+				imgDataRAMSize+=item.maskImageData.width*item.maskImageData.height*alphaBytes; // Only alpha
+				imgDataRAMSize+=item.maskedImageData.width*item.maskedImageData.height*pixelBytes;
+			}
 		}
 		if(item.imageData!=item.maskedImageData){
-			imgDataSize+=item.imageData.width*item.imageData.height*pixelBytes;
+			if(item.rawImageData.type!="GLTexture"){
+				imgDataRAMSize+=item.imageData.width*item.imageData.height*pixelBytes;
+			}
 		}
 	}
-	byte+=CANVAS.renderer.getGPUMemUsage();
-	byte+=imgDataSize; // latest imgData + Canvas imgData
-
+	imgDataRAMSize+=CANVAS.renderer.getRAMUsage();
+	ramBytes+=imgDataRAMSize;
 	// History
 	/*let histCnt=1; // initial
 	for(let i=0;i<HISTORY.list.length;i++){ // clear all history afterwards
@@ -57,7 +64,45 @@ PERFORMANCE.getMemoryEstimation=function(){ // in MB
 		}
 	}
 	byte+=histCnt*imageDataSize; // every history holds onr unique imageData*/
-	return byte/1.04E6; // in MB
+	return ramBytes/1024/1024; // in MB
+}
+
+PERFORMANCE.getGPUMemEstimation=function(){
+	let gpuBytes=0;
+	// LAYER memory
+	let imgDataGPUSize=0;
+	const pixelBytes=32; // RGBA Float
+	const alphaBytes=4; // Float
+	for(let id in LAYERS.layerHash){ // for all canvases
+		// @TODO: split into GPU mem or RAM
+		const item=LAYERS.layerHash[id];
+		if(item.rawImageData.type=="GLTexture"){
+			imgDataGPUSize+=item.rawImageData.width*item.rawImageData.height*pixelBytes;
+		}
+		if(item.maskedImageData!=item.rawImageData){
+			if(item.rawImageData.type=="GLTexture"){
+				imgDataGPUSize+=item.maskImageData.width*item.maskImageData.height*alphaBytes; // Only alpha
+				imgDataGPUSize+=item.maskedImageData.width*item.maskedImageData.height*pixelBytes;
+			}
+		}
+		if(item.imageData!=item.maskedImageData){
+			if(item.rawImageData.type=="GLTexture"){
+				imgDataGPUSize+=item.imageData.width*item.imageData.height*pixelBytes;
+			}
+		}
+	}
+	imgDataGPUSize+=CANVAS.renderer.getGPUMemUsage();
+	gpuBytes+=imgDataGPUSize;
+	// History
+	/*let histCnt=1; // initial
+	for(let i=0;i<HISTORY.list.length;i++){ // clear all history afterwards
+		let item=HISTORY.list[i];
+		if(item.info.type=="canvas-change"){
+			histCnt++;
+		}
+	}
+	byte+=histCnt*imageDataSize; // every history holds onr unique imageData*/
+	return gpuBytes/1024/1024; // in MB
 }
 
 PERFORMANCE.submitFpsStat=function(intv){ // intv in ms
@@ -84,7 +129,7 @@ class IdleTaskManager{
 		this.isReadyToIdle=false; // in busy->idle countdown
 		this.timer=0;
 	}
-	startIdle(){ // count as idle after 1s
+	startIdle(){ // count as idle after a certain period
 		if(this.isReadyToIdle){ // already in countdown
 			return;
 		}
@@ -94,8 +139,10 @@ class IdleTaskManager{
 			return;
 		}
 		this.timer=setTimeout(event=>{
+			console.log("Start Idle");
+			
 			this._onIdle();
-		},200); // Start idle in 200ms. Do not start immediately to guarantee smooth pen strokes
+		},500); // Start idle in 500ms. Do not start immediately to guarantee smooth pen strokes
 	}
 	startBusy(){
 		this.isIdle=false;
@@ -104,6 +151,7 @@ class IdleTaskManager{
 			clearTimeout(this.timer); // do it later
 			this.timer=0;
 		}
+		//console.log("Start Busy");
 	}
 	_onIdle(){ // start task
 		this.isIdle=true;
@@ -118,6 +166,7 @@ class IdleTaskManager{
 		try{
 			task(); // operate this task
 		}catch(err){
+			console.log(err);
 			// task might not be a function
 		}
 		const dT=Date.now()-startT; // time consuming

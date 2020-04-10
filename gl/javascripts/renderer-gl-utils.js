@@ -3,12 +3,7 @@
  * Works in a same color space with linear blending
  */
 class GLTextureBlender {
-	// Mode enums, shall be the same def as BasicRenderer
-	static NORMAL=0;
-	static SOURCE=1;
-	static MULTIPLY=2;
-	static SCREEN=3;
-	static EXCLUSION=10;
+	// Enums at the end of class definition
 
 	constructor(gl) {
 		// Normal or Copy version
@@ -22,6 +17,7 @@ class GLTextureBlender {
 		`;
 		const fBlendShaderSource=glsl`
 			precision mediump float;
+			precision mediump sampler2D;
 			uniform sampler2D u_image;
 			uniform float u_image_alpha;
 			varying vec2 v_position;
@@ -123,6 +119,13 @@ class GLTextureBlender {
 	}
 }
 
+// Mode enums, shall be the same def as BasicRenderer
+GLTextureBlender.NORMAL=BasicRenderer.NORMAL;
+GLTextureBlender.SOURCE=BasicRenderer.SOURCE;
+GLTextureBlender.MULTIPLY=BasicRenderer.MULTIPLY;
+GLTextureBlender.SCREEN=BasicRenderer.SCREEN;
+GLTextureBlender.EXCLUSION=BasicRenderer.EXCLUSION;
+
 class GLImageDataFactory{
 	/**
 	 * Load an Image / ImageData into GL texture based image data
@@ -144,6 +147,7 @@ class GLImageDataFactory{
 		`;
 		const fConverterShaderSource=glsl`
 			precision mediump float;
+			precision mediump sampler2D;
 			uniform sampler2D u_image;
 			uniform float u_is_premult; // 1: premult alpha, 0: non-premult result
 			uniform float u_range; // target range 0~u_range
@@ -238,7 +242,7 @@ class GLImageDataFactory{
 
 	// src is a gl renderer img data
 	// return premultiplied, Y-non-flipped (raw) result
-	_imageDataToBuffer(src) {
+	imageDataToBuffer(src) {
 		const gl=this.gl;
 		if(!(src.width&&src.height)){ // empty texture
 			switch(this.dataFormat){
@@ -263,13 +267,40 @@ class GLImageDataFactory{
 			case gl.UNSIGNED_BYTE: pixels=new Uint8Array(SIZE);break;
 		}
 		gl.readPixels(0,0,src.width,src.height,gl.RGBA,this.dataFormat,pixels); // read from buffer
-
 		return pixels;
+	}
+
+	// src is a GLRAMBuf, tgt is a GLTexture. load the contents of src into tgt
+	loadRAMBufToTexture(src,tgt){
+		if(tgt.type!="GLTexture"){
+			throw new Error("Cannot load data into "+tgt.type);
+		}
+		const gl=this.gl;
+		gl.bindTexture(gl.TEXTURE_2D,tgt.data);
+		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,src.width,src.height,0,gl.RGBA,this.dataFormat,src.data);
+		tgt.width=src.width;
+		tgt.height=src.height;
+		tgt.left=src.left;
+		tgt.top=src.top;
+	}
+
+	// get a new GLRAMBuf (with similar ids) from texture
+	getRAMBufFromTexture(src){
+		return {
+			type: "GLRAMBuf",
+			data: this.imageDataToBuffer(src), // creates a copy
+			id: src.id, // here, imgData of same id may appear: don't use this as a hash!
+			width: src.width,
+			height: src.height,
+			left: src.left,
+			top: src.top,
+			tagColor: src.tagColor // same color
+		};
 	}
 
 	// Convert target into a GLRAMBuf type imagedata
 	convertGLTextureToRAMBuf(target){
-		const data2D=this._imageDataToBuffer(target);
+		const data2D=this.imageDataToBuffer(target);
 		const texture=target.data;
 		target.type="GLRAMBuf";
 		target.data=data2D;
@@ -289,7 +320,7 @@ class GLImageDataFactory{
 	 * Load the img into the target image data
 	 * img can be Context2D ImageData / HTMLImageElement / HTMLCanvasElement / ImageBitmap
 	 */
-	loadImageToImageData(target,img){
+	loadToImageData(target,img){
 		try{
 			const gl=this.gl;
 			gl.bindTexture(gl.TEXTURE_2D,target.data);

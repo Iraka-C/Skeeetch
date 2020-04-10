@@ -204,19 +204,11 @@ LAYERS.initFirstLayer=function(){
 	let layer=new CanvasNode();
 	LAYERS.layerTree.insertNode$UI(layer.$ui); 
 	LAYERS.layerTree.insertNode(layer,0); // append the contents to layerTree
-	//layer.setName(Lang("Background"));
+	layer.assignNewRawImageData(ENV.paperSize.width,ENV.paperSize.height,0,0);
+	CANVAS.renderer.clearImageData(layer.rawImageData,[1,1,1,1],false);
+	layer.setRawImageDataInvalid();
+	layer.setProperties({name:Lang("Background"),pixelOpacityLocked:true});
 	LAYERS.setActive(layer);
-	// layer.$ui.children(".layer-name-label").val(Lang("Background"));
-	// LAYERS.active.$ui.children(".layer-group-container").prepend(layer.$ui);
-	// LAYERS.active.$div.append(layer.$div);
-	// LAYERS.setActive(layer);
-	// // @TODO: try registering Once handler list
-	// CANVAS.renderer.fillColor([255,255,255,255]); // Sync!
-	// layer.latestImageData=CANVAS.renderer.getImageData(); // get filled image data
-	// layer._setButtonStatus({
-	// 	lock:1
-	// }); // lock background opacity
-	// layer.prevStatus=layer._getButtonStatus(); // save first status
 }
 
 /**

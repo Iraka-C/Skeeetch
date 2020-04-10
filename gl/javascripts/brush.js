@@ -8,33 +8,30 @@ BrushManager.brushes=[
 		size:20, // diameter in sizeList[size]
 		minSize:0.0, // 0~1 (0~100%) of size
 		isSizePressure:1, // 1: Enable, 0:Disable
-
-		//smoothness:2, // the smoothness of the trail: avoid trembling
 		alpha:1.0, // opacity 0~1 (0~100%)
 		minAlpha:1.0, // 0~1 (0~100%) of alpha
 		isAlphaPressure:0,
 		edgeHardness:1.0, // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
-		blendMode:0 // 0: normal, -1: eraser, see RENDER/RENDER16
+		blendMode:0 // 0: normal, -1: erase
 	},
 	{
 		name:Lang("brush"),
 		size:50,
 		minSize:0.5,
 		isSizePressure:1,
-		//smoothness:2,
-		//mixColor:0.3,
 		alpha:0.85,
 		minAlpha:0,
 		isAlphaPressure:1,
 		edgeHardness:0.3,
 		blendMode:0
+		// paint brush specialized
+
 	},
 	{
 		name:Lang("eraser"),
 		size:50,
 		minSize:1.0,
 		isSizePressure:0,
-		//smoothness:0,
 		alpha:1,
 		minAlpha:1.0,
 		isAlphaPressure:0,
@@ -281,7 +278,7 @@ BrushManager.setActiveBrush=function(v){
 	$("#brush-name").text(BrushManager.activeBrush.name);
 	$("#brush-size").val(Math.round(BrushManager.activeBrush.size));
 	if(BrushManager.brushMenu){ // if associated with menu
-		BrushManager.brushMenu.update(); // size updated here
+		BrushManager.brushMenu.update(); // menu items and values updated here
 	}
 }
 

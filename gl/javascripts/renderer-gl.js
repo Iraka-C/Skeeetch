@@ -65,8 +65,11 @@ class GLRenderer extends BasicRenderer {
 		// ================= Create Framebuffer ================
 		// for clear image data
 		this.framebuffer=gl.createFramebuffer(); // create a new framebuffer from gl
-		gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuffer);
+
+		// tmp: for copying/bufferring
 		this.tmpImageData=this.createImageData(this.viewport.width,this.viewport.height);
+		// storing the shape of brush tip
+		this.brushtipImageData=this.createImageData();
 
 		// blender
 		this.textureBlender=new GLTextureBlender(gl);
@@ -81,6 +84,7 @@ class GLRenderer extends BasicRenderer {
 		this.clearProgram.free();
 		gl.deleteFramebuffer(this.framebuffer);
 		this.deleteImageData(this.tmpImageData);
+		this.deleteImageData(this.brushtipImageData);
 	}
 
 	getGPUMemUsage(){ // return GPU Memory usage in bytes
@@ -170,10 +174,25 @@ class GLRenderer extends BasicRenderer {
 		`;
 		const fCanvasShaderSource=glsl`
 			precision mediump float;
+			precision mediump sampler2D;
 			uniform sampler2D u_image;
+			uniform vec2 u_aa_step; // anti-alias pixel interval (x,y) in sampler coordinate
+			uniform float u_aa_cnt; // how many steps to sample
 			varying vec2 v_position;
+
+			const float max_its=10.;
 			void main(){
-				gl_FragColor=texture2D(u_image,v_position);
+				float cnt=floor(u_aa_cnt)+1.;
+				vec4 totalColor=texture2D(u_image,v_position)*cnt;
+				for(float i=1.;i<max_its;i++){
+					if(i>=cnt)break; // counting finished
+					vec2 dPos=u_aa_step*i;
+					float k=cnt-i;
+					totalColor+=texture2D(u_image,v_position+dPos)*k;
+					totalColor+=texture2D(u_image,v_position-dPos)*k;
+				}
+				float totalCnt=cnt*cnt;
+				gl_FragColor=totalColor/totalCnt; // average pixel
 			}
 		`;
 		// ================= Create program ====================
@@ -194,8 +213,9 @@ class GLRenderer extends BasicRenderer {
 		const fClearShaderSource=glsl`
 			precision mediump float;
 			varying vec2 v_position;
+			uniform vec4 u_clear_color;
 			void main(){
-				gl_FragColor=vec4(1,1,1,1);
+				gl_FragColor=u_clear_color;
 			}
 		`;
 		// ================= Create program ====================
@@ -221,6 +241,7 @@ class GLRenderer extends BasicRenderer {
 	initBeforeStroke(param) {
 		super.initBeforeStroke(param);
 		//console.log(this.brush);
+		// pre-render the brushtip data
 	}
 
 	/**
@@ -275,7 +296,9 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	// source is a texture
-	drawCanvas(imgData) {
+	drawCanvas(imgData,antiAliasRadius) {
+		antiAliasRadius=antiAliasRadius||0; // 0px as default
+
 		const gl=this.gl;
 		const program=this.canvasProgram;
 		const w=this.canvas.width;
@@ -283,17 +306,36 @@ class GLRenderer extends BasicRenderer {
 		const iw=imgData.width;
 		const ih=imgData.height;
 
-		program.setTargetTexture(null,w,h); // draw to canvas
+		const isToDraw=iw&&ih;
+		const tmp=this.tmpImageData;
+		// horizontal
+		if(isToDraw){
+			program.setTargetTexture(tmp.data); // draw to temp data
+			gl.viewport(0,0,w,h);
+			gl.clearColor(0,0,0,0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+	
+			program.setSourceTexture(imgData.data);
+			program.setUniform("u_aa_step",[1/w,0]);
+			program.setUniform("u_aa_cnt",antiAliasRadius);
+			gl.viewport(imgData.left,h-ih-imgData.top,iw,ih); // set viewport according to the image data
+			gl.blendFunc(this.gl.ONE,this.gl.ZERO); // copy
+			program.run();
+		}
+
+		// vertical
+		program.setTargetTexture(null); // draw to canvas
 		gl.viewport(0,0,w,h);
 		gl.clearColor(0,0,0,0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
-		if(!(iw&&ih)) { // drawing an empty texture
+		if(!isToDraw) { // drawing an empty texture
 			return;
 		}
 
-		program.setSourceTexture(imgData.data,iw,ih);
-		gl.viewport(imgData.left,h-ih-imgData.top,iw,ih); // set viewport according to the image data
-		gl.blendFunc(this.gl.ONE,this.gl.ONE_MINUS_SRC_ALPHA); // normal blend
+		program.setSourceTexture(tmp.data);
+		program.setUniform("u_aa_step",[0,1/h]);
+		program.setUniform("u_aa_cnt",antiAliasRadius);
+		gl.blendFunc(this.gl.ONE,this.gl.ZERO); // copy
 		program.run();
 	}
 
@@ -303,10 +345,11 @@ class GLRenderer extends BasicRenderer {
 	 * "GLTexture": WebGL texture for GL renderer
 	 * "GLRAMBuf": texture restored in RAM buffer, cannot be used directly
 	 */
-	createImageData(w,h,isFrozen) { // imagedata contains a texture
+	createImageData(w,h,param) { // imagedata contains a texture
 		w=w||0;
 		h=h||0;
-		isFrozen=!!isFrozen;
+		const isFrozen=!!(param&&param.isFrozen);
+		const isAlpha=(param&&param.format=="alpha")?true:false; // to boolean
 
 		let imgData=null;
 		if(isFrozen){ // create array
@@ -327,28 +370,39 @@ class GLRenderer extends BasicRenderer {
 		return { // a texture - image data type
 			type: isFrozen?"GLRAMBuf":"GLTexture",
 			data: imgData,
-			id: LAYERS.generateHash("t"), // for DEBUG ONLY!
+			id: LAYERS.generateHash("t"), // for DEBUG ONLY! DO NOT use this as a hash
 			width: w, // width and ...
 			height: h, // ... height are immutable: do not change by assignment!
 			left: 0, // left & top can be changed directly: all relative to the viewport
 			top: 0,
-			tagColor: [Math.random()*0.8,Math.random()*0.7,Math.random()*0.9]
+			tagColor: [
+				Math.random()*0.6+0.2,
+				Math.random()*0.7+0.1,
+				Math.random()*0.7+0.2
+			]
 		};
+		// If you modify the structure here, also modify GLImageDataFactory.getRAMBufFromTexture
 	}
 
 	deleteImageData(imgData) { // discard an image data after being used
 		this.gl.deleteTexture(imgData.data);
 	}
 
-	// clear the contents with white
-	clearImageData(target,range,isOpacityLocked) {
+	// clear the contents with transparent black or white
+	// color is in [r,g,b,a], all 0~1 non-alpha-premultiplied
+	clearImageData(target,color,isOpacityLocked) {
 		if(!(target.width&&target.height)) { // No pixel, needless to clear
 			return;
 		}
 		const gl=this.gl;
+		const tmpColor=color?[...color]:isOpacityLocked?[1,1,1,1]:[0,0,0,0];
+		tmpColor[0]*=tmpColor[3];
+		tmpColor[1]*=tmpColor[3];
+		tmpColor[2]*=tmpColor[3];
 		if(isOpacityLocked) { // the opacity of each pixel doesn't change
 			const program=this.clearProgram;
 			program.setTargetTexture(target.data);
+			program.setUniform("u_clear_color",tmpColor);
 			gl.blendFunc(gl.DST_ALPHA,gl.ZERO);
 			gl.viewport(0,0,target.width,target.height);
 			program.run();
@@ -358,7 +412,7 @@ class GLRenderer extends BasicRenderer {
 			gl.framebufferTexture2D( // framebuffer target
 				gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,target.data,0);
 			gl.viewport(0,0,target.width,target.height);
-			gl.clearColor(0,0,0,0); // Set clear color
+			gl.clearColor(...tmpColor); // Set clear color
 			gl.clear(gl.COLOR_BUFFER_BIT); // Clear the color buffer with specified clear color
 		}
 	}
@@ -487,7 +541,7 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	// debug: add wire frame
-	// draw a 1px border wire frame of the source.color on the target
+	// draw a border wire frame of the source.color on the target
 	drawEdge(src,tgt) {
 		const WIDTH=4;
 		const gl=this.gl;
@@ -515,6 +569,22 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	// ====================== Data type transforms =======================
+	// Load/Get
+	loadToImageData(target,img) { // load img into target
+		if(img.type&&img.type=="GLRAMBuf"){ // load a buffer
+			this.imageDataFactory.loadRAMBufToTexture(img,target);
+		}
+		else{
+			// img can be Context2DImageData/HTMLImageElement/HTMLCanvasElement/ImageBitmap
+			this.imageDataFactory.loadToImageData(target,img);
+		}
+	}
+
+	getBufferFromImageData(source){
+		// get a RAM buffer copy of source
+		return this.imageDataFactory.getRAMBufFromTexture(source);
+	}
+
 	getUint8ArrayFromImageData(src,targetSize,targetRange) {
 		return this.imageDataFactory.imageDataToUint8(src,targetSize,targetRange);
 	}
@@ -539,7 +609,7 @@ class GLRenderer extends BasicRenderer {
 		return canvas;
 	}
 
-	cre
+	// Freeze restore
 	isImageDataFrozen(src){
 		return src.type=="GLRAMBuf";
 	}
@@ -549,16 +619,10 @@ class GLRenderer extends BasicRenderer {
 		}
 		this.imageDataFactory.convertGLTextureToRAMBuf(src);
 	}
-
 	restoreImageData(src) { // in-place
 		if(this.isImageDataFrozen(src)){ // only restore frozen data
 			return;
 		}
 		this.imageDataFactory.convertGLRAMBufToTexture(src);
-	}
-
-	loadImageToImageData(target,img) { // load img into target
-		// img can be Context2D ImageData / HTMLImageElement / HTMLCanvasElement / ImageBitmap
-		this.imageDataFactory.loadImageToImageData(target,img);
 	}
 }

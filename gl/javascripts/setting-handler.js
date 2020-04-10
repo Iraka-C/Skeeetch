@@ -207,7 +207,11 @@ SettingHandler.initSystemSetting=function(){
 
 	sys.addSectionTitle(Lang("sys-info"));
 	sys.addInfo(Lang("sys-mem"),"MB",()=>{
-		const mem=PERFORMANCE.getMemoryEstimation();
+		const mem=PERFORMANCE.getRAMEstimation();
+		return mem.toFixed(mem>2000?0:1);
+	});
+	sys.addInfo(Lang("sys-gpumem"),"MB",()=>{
+		const mem=PERFORMANCE.getGPUMemEstimation();
 		return mem.toFixed(mem>2000?0:1);
 	});
 

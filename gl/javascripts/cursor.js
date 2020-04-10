@@ -10,9 +10,19 @@ CURSOR.p0=[NaN,NaN,NaN]; // latest point
 CURSOR.p1=[NaN,NaN,NaN]; // last point
 CURSOR.isShown=false; // is the pointer visible
 CURSOR.isDown=false; //is the pointer pressed on screen
-CURSOR.isDragging=false; // is the pointer dragging the canvas?
 CURSOR.type=null;
 CURSOR.eventIdList=["","",""]; // a list to record now id
+
+CURSOR.nowActivity=null; // what is the cursor doing at this moment?
+/**
+ * nowActivity:
+ * <null>: nothing
+ * stroke: paining on the canvas
+ * pick: picking pixels from the canvas
+ * pan-paper: panning the whole paper
+ * pan-layer: panning a single layer/group
+ * select: seleting an area
+ */
 
 /**
  * @TODO: fix brush moving delay (change svg into canvas?)
@@ -57,55 +67,42 @@ CURSOR.moveCursor=function(event){
 
 	// canvas operation
 	CANVAS.updateCursor(CURSOR.p0);
-	let lastAction=-1; // 0: stroking, 1: dragging paper, 2: dragging layer
-	let originalPaperPos=[0,0];
-	let originalLayerPos=[0,0];
 	if(CURSOR.isDown){
-		if(EVENTS.key.shift||EVENTS.key.ctrl){ // pan
+		if(CURSOR.nowActivity=="pan-paper"){ // shift: pan the whole canvas
 			let dx=CURSOR.p0[0]-CURSOR.p1[0];
 			let dy=CURSOR.p0[1]-CURSOR.p1[1];
-			if(!(isNaN(dx)||isNaN(dy))){ // all available
-				CURSOR.isDragging=true;
-				if(EVENTS.key.shift){ // shift: pan the whole window
-					let newTx=ENV.window.trans.x+dx;
-					let newTy=ENV.window.trans.y+dy;
-					ENV.translateTo(newTx,newTy);
-					lastAction=1;
-				}
-				else{ // ctrl: pan canvas only
-					if(!LAYERS.active.isVisible()||LAYERS.active.isLocked()){ // if locked/invisible in layer tree, cannot move
-						return;
-					}
-					// if(lastAction!=2){ // start panning layer, record original point
-					// 	originalPaperPos=ENV.toPaperXY([CURSOR.p1[0],CURSOR.p1[1]]);
-					// 	originalLayerPos=[LAYERS.active.imageData.left,LAYERS.active.imageData.top];
-					// }
-					// @TODO: move all cursor coordinate translate into CURSOR
-					const cp0=ENV.toPaperXY(CURSOR.p0[0],CURSOR.p0[1]);
-					const cp1=ENV.toPaperXY(CURSOR.p1[0],CURSOR.p1[1]);
-					CANVAS.panLayer(LAYERS.active,cp0[0]-cp1[0],cp0[1]-cp1[1]);
-					LAYERS.active.setImageDataInvalid(); // merge with clip mask
-					/**
-					 * **NOTE** here, only se the imagedata invalid:
-					 */
-					CANVAS.requestRefresh();
-					// @TODO: now after layer recomposition the raw data is cropped by canvas viewport
-					// This happens at top/left
-					lastAction=2;
-				}
+			if(isNaN(dx)||isNaN(dy))return;
+			let newTx=ENV.window.trans.x+dx;
+			let newTy=ENV.window.trans.y+dy;
+			ENV.translateTo(newTx,newTy);
+		}
+		else if(CURSOR.nowActivity=="pan-layer"){ // ctrl: pan canvas only
+			if(!LAYERS.active.isVisible()||LAYERS.active.isLocked()||LAYERS.active.isOpacityLocked()){
+				// if locked/invisible in layer tree, cannot move
+				return;
 			}
-			else{
-				CURSOR.isDragging=false;
-			}
+			// @TODO: move all cursor coordinate translate into CURSOR
+			const cp0=ENV.toPaperXY(CURSOR.p0[0],CURSOR.p0[1]);
+			const cp1=ENV.toPaperXY(CURSOR.p1[0],CURSOR.p1[1]);
+			const dxP=cp0[0]-cp1[0]; // difference in paper coordinate
+			const dyP=cp0[1]-cp1[1];
+			if(isNaN(dxP)||isNaN(dyP))return;
+			CANVAS.panLayer(LAYERS.active,cp0[0]-cp1[0],cp0[1]-cp1[1]);
+			LAYERS.active.setImageDataInvalid(); // merge with clip mask
+			CANVAS.requestRefresh();
+			// @TODO: now after layer recomposition the raw data is cropped by canvas viewport
+			// This happens at top/left
+		}
+		else if(CURSOR.nowActivity=="pick"){
+			if(isNaN(CURSOR.p0[0])||isNaN(CURSOR.p0[1]))return;
+			const pix=CANVAS.pickColor(CURSOR.p0[0],CURSOR.p0[1]);
+			PALETTE.setRGB(pix.slice(0,3));
+			PALETTE.drawPalette();
+			PALETTE.setCursor();
 		}
 		else{ // is drawing
-			CURSOR.isDragging=false;
 			CANVAS.stroke();
-			lastAction=3;
 		}
-	}
-	else{
-		lastAction=-1;
 	}
 	
 };
@@ -147,65 +144,48 @@ CURSOR.updateColor=function(){
 	$("#brush-cursor-center-outer").attr("fill",outerString);
 }
 
-CURSOR.updateAppearance=function(k){
-	if(CURSOR.updateAppearance.setBusy._isBusy){ // is busy has the highest priority
-		return;
+
+CURSOR._isBusy=false;
+CURSOR.setBusy=function(isBusy){
+	CURSOR._isBusy=isBusy;
+	CURSOR.setCursor();
+}
+CURSOR.setIsShown=function(isShown){
+	CURSOR.isShown=isShown;
+	CURSOR.setCursor();
+}
+
+/**
+ * Change the present action of the cursor
+ */
+CURSOR.updateAction=function(event){
+	if(CURSOR._isBusy){ // is busy has the highest priority
+		CURSOR.nowActivity="busy";
 	}
-	let appearance;
-	if(k!==undefined){
-		appearance=k; // default!
+	else if(!CURSOR.isShown){ // hidden has the next priority
+		CURSOR.nowActivity="hidden";
+	}
+	else if(event&&(event.originalEvent.buttons&0x2)){ // 2^1==2, right button
+		CURSOR.nowActivity="pick";
 	}
 	else if(EVENTS.key.shift){
-		appearance=1;
+		CURSOR.nowActivity="pan-paper";
+		// used as a flag in ENV._transformAnimation
 	}
 	else if(EVENTS.key.ctrl){
-		appearance=2;
+		CURSOR.nowActivity="pan-layer";
 	}
 	else if(!CANVAS.drawSuccessful&&CURSOR.isDown){
-		appearance=3;
+		CURSOR.nowActivity="disable";
 	}
 	else{
-		appearance=0;
+		CURSOR.nowActivity="stroke";
 	}
 	
-	if(CURSOR.updateAppearance.lastAppearance==appearance){ // no need to change
-		return;
-	}
-	
-	switch(appearance){
-		default:
-		case 0: // normal: no cursor
-			$("#canvas-area-panel").css("cursor","none");
-			$("#brush-cursor").css("display","block");
-			break;
-		case 1: // moving
-			$("#canvas-area-panel").css("cursor","move");
-			$("#brush-cursor").css("display","none");
-			break;
-		case 2: // dragging
-			$("#canvas-area-panel").css("cursor","alias");
-			$("#brush-cursor").css("display","none");
-			break;
-		case 3: // disabling
-			$("#canvas-area-panel").css("cursor","not-allowed");
-			$("#brush-cursor").css("display","none");
-			break;
-	}
-	CURSOR.updateAppearance.lastAppearance=appearance;
+	CURSOR.setCursor();
 }
-CURSOR.updateAppearance.lastAppearance=0; // allowed
-CURSOR.updateAppearance.setBusy=function(isBusy){
-	CURSOR.updateAppearance.setBusy._isBusy=isBusy;
-	
-	if(isBusy){
-		$("#canvas-area-panel").css("cursor","wait");
-		$("#brush-cursor").css("display","none");
-		CURSOR.updateAppearance.lastAppearance=-1; // set apprearance to invalid
-	}
-	else{
-		CURSOR.updateAppearance();
-	}
-}
+
+// ================== Appearance ======================
 
 /**
  * Disable cursor data
@@ -219,29 +199,83 @@ CURSOR.disableCursor=function(){
 /**
  * Cursor appearance
  */
-CURSOR.hideCursor=function(){
-	if(CURSOR.isShown){
-		CURSOR.isShown=false;
+// CURSOR.hideCursor=function(){
+// 	if(CURSOR.isShown){
+// 		CURSOR.isShown=false;
+// 	}
+// 	$("#brush-cursor-layer").css("display","none");
+// 	CURSOR.disableCursor();
+// };
+// CURSOR.showCursor=function(){
+// 	if(!CURSOR.isShown){
+// 		CURSOR.isShown=true;
+// 	}
+// 	$("#brush-cursor-layer").css("display","block");
+// };
+/**
+ * Change the appearance of the cursor
+ */
+CURSOR.setCursor=function(){
+	// filter style
+	if(CURSOR.nowActivity==CURSOR.setCursor.lastType){
+		return;
 	}
-	$("#brush-cursor-layer").css("display","none");
-	CURSOR.disableCursor();
-};
-CURSOR.showCursor=function(){
-	if(!CURSOR.isShown){
-		CURSOR.isShown=true;
+	CURSOR.setCursor.lastType=CURSOR.nowActivity;
+
+	if(CURSOR.nowActivity=="busy"){ // is busy has the highest priority
+		$("#brush-cursor").css("display","none");
+		$("#canvas-area-panel").css("cursor","wait");
+		return;
 	}
-	$("#brush-cursor-layer").css("display","block");
-};
+
+	if(CURSOR.nowActivity=="hidden"){ // hide cursor has the next priority
+		$("#brush-cursor").css("display","none");
+		$("#canvas-area-panel").css("cursor","none");
+		CURSOR.disableCursor(); // provide dummy value
+		return;
+	}
+	// * stroke: paining on the canvas
+	// * pick: picking pixels from the canvas
+	// * pan-paper: panning the whole paper
+	// * pan-layer: panning a single layer/group
+	// * select: seleting an area
+	// * disable: invalid operation
+	switch(CURSOR.nowActivity){
+		default:
+		case "stroke": // normal: svg cursor
+			$("#canvas-area-panel").css("cursor","none");
+			$("#brush-cursor").css("display","block");
+			break;
+		case "pick": // corss hair color picker
+			$("#canvas-area-panel").css("cursor","crosshair");
+			$("#brush-cursor").css("display","none");
+			break;
+		case "pan-paper": // moving
+			$("#canvas-area-panel").css("cursor","move");
+			$("#brush-cursor").css("display","none");
+			break;
+		case "pan-layer": // dragging
+			$("#canvas-area-panel").css("cursor","alias");
+			$("#brush-cursor").css("display","none");
+			break;
+		case "disable": // disabling
+			$("#canvas-area-panel").css("cursor","not-allowed");
+			$("#brush-cursor").css("display","none");
+			break;
+	}
+}
+CURSOR.setCursor.lastType=null;
 
 /**
  * Cursor click control
  */
 
 CURSOR.down=function(event){
-	if(!CURSOR.isDown){
-		CURSOR.isDown=true;
+	if(CURSOR.isDown){
+		return;
 		//CURSOR.type=event.originalEvent.pointerId;
 	}
+	CURSOR.isDown=true;
 }
 
 CURSOR.up=function(event){
@@ -249,7 +283,6 @@ CURSOR.up=function(event){
 		CURSOR.type==event.originalEvent.pointerType // on the target leave
 		||CURSOR.type===null)){ // on init
 		CURSOR.isDown=false;
-		CURSOR.isDragging=false; // stop dragging
 		//CURSOR.type=NaN;
 	}
 }

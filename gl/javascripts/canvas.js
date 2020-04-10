@@ -57,7 +57,7 @@ CANVAS.setTargetLayer=function(targetLayer) {
 /**
  * Set the canvas params before each stroke
  */
-CANVAS.setCanvasEnvironment=function(event) { // event="pointerdown"
+CANVAS.setCanvasEnvironment=function() {
 	if(!CANVAS.renderer||!CANVAS.settings.enabled) { // No canvas, can't draw on it
 		CANVAS.drawSuccessful=false;
 		return;
@@ -245,10 +245,13 @@ CANVAS.onRefresh=function() {
  * Refresh screen display immediately
  * Shall not invoke directly as this may block the UI (synced function)
  * unless you know what you're doing!
+ * 
+ * The antialiasing parameter 0.7 is a balance of sharpness and crispiness.
  */
 CANVAS.refreshScreen=function() {
+	const antiAliasRadius=ENV.displaySettings.antiAlias?0.7/ENV.window.scale:0;
 	COMPOSITOR.recompositeLayers();
-	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData);
+	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
 }
 
 /**
@@ -258,6 +261,10 @@ CANVAS.refreshScreen=function() {
  */
 CANVAS.onEndRefresh=function() {
 	LAYERS.active.updateThumb();
+	HISTORY.addHistory({
+		type:"image-data",
+		id:CANVAS.nowLayer.id
+	});
 	CANVAS.lastRefreshTime=NaN;
 }
 
@@ -281,11 +288,10 @@ CANVAS.clearAll=function() {
 	CANVAS.renderer.clearImageData(CANVAS.nowLayer.rawImageData,null,CANVAS.targetLayerOpacityLocked);
 	CANVAS.nowLayer.updateThumb();
 	CANVAS.nowLayer.setRawImageDataInvalid(); // the data is invalid now
-	CANVAS.refreshScreen(); // refresh immediately
+	CANVAS.requestRefresh(); // refresh display
 }
 
 // ================ Other tools ==================
-
 CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the window coordinate
 	const EXT=1; // p-EXT to p+EXT pixels. 1 for 3pix
 	const RANGE=2*EXT+1;
@@ -308,7 +314,7 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 	pSum[2]/=SIZE;
 	pSum[3]/=SIZE*255;
 
-	return SMath.blendNormal([...PALETTE.rgb,1],pSum);
+	return SMath.blendNormal([...PALETTE.rgb,1],pSum); //pSum
 }
 
 // ========= Panning translation on imageData =========

@@ -195,12 +195,13 @@ ENV.setPaperSize=function(w,h){
 	$("#scale-info-input").val(Math.round(k*100));
 
 	ENV.displaySettings.enableTransformAnimation=isAnim; // restore animation setting
+	$("#canvas-container").css("background-size",Math.sqrt(Math.max(w,h))*2+"px"); // set transparent block size
 
 	const aL=LAYERS.active;
 	if(aL instanceof CanvasNode){ // if there is an active CV, refresh it
 		CANVAS.setTargetLayer(aL);
 	}
-	CANVAS.requestRefresh();
+	CANVAS.requestRefresh(); // @TODO: recomposite layer structure?
 	LAYERS.updateAllThumbs();
 };
 // ====================== Tools functions ==========================
@@ -275,13 +276,10 @@ ENV.fireTransformAnimation=function(pArr){
 			"transform":matrixStr, // transform
 			"box-shadow":"0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
 		});
+		CANVAS.requestRefresh(); // update canvas anti-aliasing
 		return;
 	}
 	anim.target=pArr;
-	/*if(EVENTS.key.shift){ // is dragging, direct move
-		anim.now[0]=pArr[0];
-		anim.now[1]=pArr[1];
-	}*/
 	anim.start=anim.now;
 	anim.process=0;
 	if(!anim.isAnimationFired){ // no animation at present
@@ -303,7 +301,7 @@ ENV._transformAnimation=function(){
 		let sP=anim.start; 
 		// if shift pressed, run animation 10x faster to reduce latency on dragging
 		let targetFPS=PERFORMANCE.fpsCounter.fps.clamp(30,300);
-		let nextFps=targetFPS/(CURSOR.isDragging?10:1);
+		let nextFps=targetFPS/(CURSOR.nowActivity=="pan-paper"?10:1);
 		let step=1/(anim.time*nextFps);
 		p+=step;
 		if(p>1)p=1; // end
@@ -321,6 +319,7 @@ ENV._transformAnimation=function(){
 			"transform":matrixStr, // transform
 			"box-shadow":"0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
 		});
+		CANVAS.requestRefresh(); // update canvas anti-aliasing
 
 		//console.log(matrixStr);
 		
@@ -366,6 +365,7 @@ ENV.setAntiAliasing=function(isAntiAlias){
 	else{
 		$("#canvas-container").find("canvas").addClass("pixelated");
 	}
+	CANVAS.requestRefresh(); // update canvas anti-alias renderings
 }
 
 /**

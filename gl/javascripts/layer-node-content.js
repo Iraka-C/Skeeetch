@@ -51,7 +51,6 @@ class ContentNode extends LayerNode {
 		 * are composited in this imageData
 		 * If no following layers are cached, then imageDataCombinedCnt==clipMaskChildrenCnt+1
 		 */
-		this.imageDataCombinedCnt=1;
 		/**
 		 * Stored imagedata to RAM/compressed
 		 * status:
@@ -62,7 +61,8 @@ class ContentNode extends LayerNode {
 		this.cache={
 			status: 0,
 			parentIndex: -1, // In which layer (index) is this imagedata cached/composited
-			isOnCrucialPath: false // crucial path: ancestor of now active layer, shouldn't be cached
+			isOnCrucialPath: false, // crucial path: ancestor of now active layer, shouldn't be cached
+			imageDataCombinedCnt: 1
 		};
 
 		// Common properties

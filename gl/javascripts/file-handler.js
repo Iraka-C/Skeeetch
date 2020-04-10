@@ -16,13 +16,15 @@ FILES.initFileMenu=function(){
 	fileManager.addButton(Lang("Import File"),()=>{});
 	fileManager.addButton(Lang("Save as PNG"),e=>{
 		EventDistributer.footbarHint.showInfo("Saving ...");
-		CURSOR.updateAppearance.setBusy(true); // set busy cursor
+		CURSOR.setBusy(true); // set busy cursor
+		PERFORMANCE.idleTaskManager.startBusy();
 		fileManager.toggleExpand();
 		setTimeout(FILES.saveAsPNG,1000); // @TODO: mark IdleTask as Busy?
 	});
 	fileManager.addButton(Lang("Save as PSD"),e=>{
 		EventDistributer.footbarHint.showInfo("Rendering ...");
-		CURSOR.updateAppearance.setBusy(true); // set busy cursor
+		CURSOR.setBusy(true); // set busy cursor
+		PERFORMANCE.idleTaskManager.startBusy();
 		fileManager.toggleExpand();
 		setTimeout(FILES.saveAsPSD,1000); // @TODO: mark IdleTask as Busy?
 	});
@@ -41,7 +43,8 @@ FILES.initImportDropHandler=function(){
 
 			// Check file type
 			if(file.name.endsWith(".psd")){ // a Photoshop file
-				CURSOR.updateAppearance.setBusy(true); // set busy cursor
+				CURSOR.setBusy(true); // set busy cursor
+				PERFORMANCE.idleTaskManager.startBusy();
 				let reader=new FileReader();
 				reader.readAsArrayBuffer(file);
 				reader.onload=function(){
@@ -50,7 +53,8 @@ FILES.initImportDropHandler=function(){
 			}
 
 			if(file.type&&file.type.match(/image*/)){ // an image file
-				CURSOR.updateAppearance.setBusy(true); // set busy cursor
+				CURSOR.setBusy(true); // set busy cursor
+				PERFORMANCE.idleTaskManager.startBusy();
 				window.URL=window.URL||window.webkitURL;
 				const img=new Image();
 				img.src=window.URL.createObjectURL(file);
@@ -117,15 +121,16 @@ FILES.loadPSDNode=function(node,nowGroup,progressAmount){
 					name: sNode.name,
 					isExpanded: sNode.opened
 				});
-				newElement.setRawImageDataInvalid();
 
 				FILES.loadPSDNode(sNode,newElement,progressFrac); // iteratively
-				FILES.loadPSDNode.lastLoadingElement=newElement;
+				if(nowGroup.id=="root"){
+					FILES.loadPSDNode.lastLoadingElement=newElement;
+				}
 				// load the progress in all: progressFrac
 			}
 			else if(sNode.canvas){ // There might be unsupported layer such as info/adjustments
 				newElement=new CanvasNode();
-				CANVAS.renderer.loadImageToImageData(newElement.rawImageData,sNode.canvas); // load image data from canvas
+				CANVAS.renderer.loadToImageData(newElement.rawImageData,sNode.canvas); // load image data from canvas
 				if(sNode.hasOwnProperty("left")){
 					newElement.rawImageData.left=sNode.left;
 				}
@@ -153,7 +158,9 @@ FILES.loadPSDNode=function(node,nowGroup,progressAmount){
 				EventDistributer.footbarHint.showInfo("Loading "+(p*100).toFixed(2)+"% ...");
 				// the actuall progress considering the depth should be a function of progress in average
 				// 4 is the approx. value
-				FILES.loadPSDNode.lastLoadingElement=newElement;
+				if(nowGroup.id=="root"){
+					FILES.loadPSDNode.lastLoadingElement=newElement;
+				}
 				// @TODO: last loading must be: not hidden, not folded
 			}
 			else{
@@ -163,6 +170,7 @@ FILES.loadPSDNode=function(node,nowGroup,progressAmount){
 			if(newElement){ // successfully created, insert the new layer
 				nowGroup.insertNode(newElement,0);
 				nowGroup.insertNode$UI(newElement.$ui,0);
+				newElement.setRawImageDataInvalid();
 			}
 
 			STATUS[nowGroup.id]--; // loaded, remove from list
@@ -171,33 +179,39 @@ FILES.loadPSDNode=function(node,nowGroup,progressAmount){
 			}
 
 			if($.isEmptyObject(STATUS)){
-				COMPOSITOR.updateLayerTreeStructure();
-				LAYERS.updateAllThumbs();
-				if(FILES.loadPSDNode.isUnsupportedLayerFound){
-					EventDistributer.footbarHint.showInfo("Unsupported layers in this file are discarded");
-				}
-				else{
-					EventDistributer.footbarHint.showInfo("Loaded");
-				}
-				LAYERS.setActive(FILES.loadPSDNode.lastLoadingElement);
-				FILES.loadPSDNode.lastLoadingElement=null; // release reference
-				CURSOR.updateAppearance.setBusy(false); // free busy cursor
-				// @TODO: set idle task
+				FILES.onPSDLoaded();
 			}
 			//console.log(STATUS,nowGroup.id);
 		},0);
 	}
 }
 
+// when all contents of PSD file are loaded
+FILES.onPSDLoaded=function(){
+	COMPOSITOR.updateLayerTreeStructure();
+	LAYERS.updateAllThumbs();
+	if(FILES.loadPSDNode.isUnsupportedLayerFound){
+		EventDistributer.footbarHint.showInfo("Unsupported layers in this file are discarded");
+	}
+	else{
+		EventDistributer.footbarHint.showInfo("Loaded");
+	}
+	LAYERS.setActive(FILES.loadPSDNode.lastLoadingElement);
+	FILES.loadPSDNode.lastLoadingElement=null; // release reference
+	CURSOR.setBusy(false); // free busy cursor
+	PERFORMANCE.idleTaskManager.startIdle();
+}
+
 // Image Handlers
 FILES.loadAsImage=function(img){
 	const layer=LAYERS.addNewCanvasNode();
-	CANVAS.renderer.loadImageToImageData(layer.rawImageData,img);
+	CANVAS.renderer.loadToImageData(layer.rawImageData,img);
 	layer.setRawImageDataInvalid();
 	layer.updateThumb();
 	LAYERS.setActive(layer);
 	COMPOSITOR.updateLayerTreeStructure();
-	CURSOR.updateAppearance.setBusy(false); // free busy cursor
+	CURSOR.setBusy(false); // free busy cursor
+	PERFORMANCE.idleTaskManager.startIdle();
 }
 
 // ===================== Export operations ========================
@@ -211,19 +225,19 @@ FILES.saveAsPSD=function(){ // @TODO: change to async function
 	 * 
 	 * **What it combining setTimeOut & Promise? Better grammar that doesn't block the UI?
 	 */
-	let psdJSON=LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
-	let buffer;
+	const psdJSON=LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
 
 	EventDistributer.footbarHint.showInfo("Encoding ...");
 	setTimeout(e=>{ // convert into binary stream
-		buffer=agPsd.writePsd(psdJSON);
+		const buffer=agPsd.writePsd(psdJSON);
 		EventDistributer.footbarHint.showInfo("Exporting ...");
-	},0);
-	setTimeout(e=>{ // Download
-		const blob=new Blob([buffer],{type: "application/octet-stream"});
-		const filename=ENV.getFileTitle();
-		FILES.downloadBlob(filename+".psd",blob);
-		CURSOR.updateAppearance.setBusy(false); // free busy cursor
+		setTimeout(e=>{ // Download
+			const blob=new Blob([buffer],{type: "application/octet-stream"});
+			const filename=ENV.getFileTitle();
+			FILES.downloadBlob(filename+".psd",blob);
+			CURSOR.setBusy(false); // free busy cursor
+			PERFORMANCE.idleTaskManager.startIdle();
+		},0);
 	},0);
 }
 
@@ -234,7 +248,8 @@ FILES.saveAsPNG=function(){
 	canvas.toBlob(blob=>{ // Only Context2D can be safely changed into blob
 		const filename=ENV.getFileTitle();
 		FILES.downloadBlob(filename+".png",blob);
-		CURSOR.updateAppearance.setBusy(false); // free busy cursor
+		CURSOR.setBusy(false); // free busy cursor
+		PERFORMANCE.idleTaskManager.startIdle();
 	});
 }
 

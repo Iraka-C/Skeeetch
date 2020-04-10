@@ -16,7 +16,7 @@ EVENTS.init=function(){
 	 */
 
 	// disable pen long press => context menu
-	$(window).on("contextmenu",e=>false);
+	//$(window).on("contextmenu",e=>false);
 
 	/**
 	 * Window resize handler
@@ -25,7 +25,6 @@ EVENTS.init=function(){
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
 		ENV.refreshTransform();
-		//CURSOR.refreshBrushLayerSize();
 		$("#brush-cursor-layer").attr({
 			width:ENV.window.SIZE.width,
 			height:ENV.window.SIZE.height
@@ -33,21 +32,17 @@ EVENTS.init=function(){
 	});
 
 	$("#canvas-window").on("pointerover",event=>{
-		CURSOR.showCursor();
+		CURSOR.setIsShown(true);
+		CURSOR.updateAction(event);
 	});
 	$("#canvas-window").on("pointermove",event=>{
-		const oE=event.originalEvent;
-		if((oE.buttons>>1)&1){ // 2^1==2, right button doesn't move cursor
-			return;
-		}
-
-		CURSOR.showCursor(); // pen->mouse switching
+		CURSOR.setIsShown(true); // pen->mouse switching
+		//CURSOR.updateAction(event);
 		CURSOR.moveCursor(event); // may be stroke or pan
-		CURSOR.updateAppearance();
 	});
-	$("#canvas-window").on("pointerout",()=>{
-		// disable cursor
-		CURSOR.hideCursor(); // pen away
+	$("#canvas-window").on("pointerout",event=>{
+		CURSOR.setIsShown(false); // pen away, disable cursor
+		CURSOR.updateAction();
 	});
 
 	// do sth to each menu panel
@@ -67,20 +62,12 @@ EVENTS.init=function(){
 			8 : 4th button (typically the "Browser Back" button)
 			16: 5th button (typically the "Browser Forward" button)
 		 */
-		const oE=event.originalEvent;
-		if((oE.buttons>>1)&1){ // 2^1==2, right button
-			const pix=CANVAS.pickColor(oE.offsetX,oE.offsetY);
-			PALETTE.setRGB(pix.slice(0,3));
-			PALETTE.drawPalette();
-			PALETTE.setCursor();
-			return;
-		}
 		
-		CURSOR.moveCursor(event);
+		CANVAS.setCanvasEnvironment(); // init canvas here
 		CURSOR.down(event);
+		CURSOR.updateAction(event); // doesn't change the action
+		CURSOR.moveCursor(event);
 		eachMenuPanelFunc($el=>$el.css("pointer-events","none")); // do not enable menu operation
-		CANVAS.setCanvasEnvironment(event); // init canvas here
-		CURSOR.updateAppearance();
 	});
 	$(window).on("pointerup",event=>{
 		if(event.target==$("#canvas-window")[0]){
@@ -92,8 +79,8 @@ EVENTS.init=function(){
 		// 	CURSOR.hideCursor();
 		// }
 		CANVAS.strokeEnd();
+		CURSOR.updateAction(event);
 		eachMenuPanelFunc($el=>$el.css("pointer-events","all")); // after stroke, enable menus
-		CURSOR.updateAppearance();
 	});
 	// When menus enabled, disable canvas operation
 	// This also disables drawing on canvas when the cursor moves out of the menu part
@@ -145,13 +132,15 @@ EVENTS.keyDown=function(event){
 		EVENTS.key.shift=true;
 		functionKeyChanged=true;
 		// change cursor on panning whole canvas
-		CURSOR.updateAppearance();
+		
+		CURSOR.updateAction();
 	}
 	if(ctrl&&!EVENTS.key.ctrl){
 		EVENTS.key.ctrl=true;
 		functionKeyChanged=true;
 		// change cursor on panning layer
-		CURSOR.updateAppearance();
+		
+		CURSOR.updateAction();
 	}
 	if(alt&&!EVENTS.key.alt){
 		EVENTS.key.alt=true;
@@ -176,13 +165,15 @@ EVENTS.keyUp=function(event){
 		EVENTS.key.shift=false;
 		functionKeyChanged=true;
 		// change cursor
-		CURSOR.updateAppearance();
+		
+		CURSOR.updateAction();
 	}
 	if(!ctrl&&EVENTS.key.ctrl){
 		EVENTS.key.ctrl=false;
 		functionKeyChanged=true;
 		// change cursor
-		CURSOR.updateAppearance();
+		
+		CURSOR.updateAction();
 	}
 	if(!alt&&EVENTS.key.alt){
 		EVENTS.key.alt=false;
@@ -195,6 +186,7 @@ EVENTS.keyUp=function(event){
 	}
 }
 
+// disable the selections in <input>
 EVENTS.disableInputSelection=function($input){
 	let ci=$input[0];
 	ci.addEventListener("select",event=>{

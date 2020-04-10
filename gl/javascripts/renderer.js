@@ -10,15 +10,7 @@
   * All methods shall be synchronized.
   */
 class BasicRenderer{
-	
-	// Mode enums
-	static NORMAL=0;
-	static SOURCE=1;
-	static MULTIPLY=2;
-	static SCREEN=3;
-	static EXCLUSION=10;
-
-	static _sBase=5; // power base 5^(sensitivity-1)
+	// Enums at the end of class definition
 
 	constructor(param){
 		this.canvas=param.canvas; // the target canvas to be rendered !MUST be uninitialized context!
@@ -146,6 +138,12 @@ class BasicRenderer{
 		// abstract
 	}
 	
+	/**
+	 * Render into the image data
+	 */
+	renderPaintBrush(wL,wH,hL,hH,kPoints){
+		// abstract
+	}
 	// ======================= Display operations ===========================
 
 	drawCanvas(imgData){
@@ -251,3 +249,12 @@ class BasicRenderer{
 		}
 	}
 }
+
+// Blend Mode enums
+BasicRenderer.NORMAL=0;
+BasicRenderer.SOURCE=1;
+BasicRenderer.MULTIPLY=2;
+BasicRenderer.SCREEN=3;
+BasicRenderer.EXCLUSION=10;
+
+BasicRenderer._sBase=5; // power base 5^(sensitivity-1)

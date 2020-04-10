@@ -69,7 +69,14 @@ class SettingManager{
 		this.$frame.find("tbody").append($row);
 		let _updateFunc=function(){
 			if(valFunc){
-				$input.val(valFunc());
+				const val=valFunc();
+				if(isNaN(val)){ // invalid: hide
+					$row.css("display","none");
+				}
+				else{ // a value returned: show
+					$row.css("display","table-row");
+					$input.val(val);
+				}
 			}
 		}
 		SettingManager.setInputInstantNumberInteraction(
@@ -155,18 +162,18 @@ class SettingManager{
 	// callback(selectedID), doesn't need to return a value
 	addSwitch(name,valArr,unit,callback,valFunc){
 		let toggle=valFunc?valFunc():0;
-		let item=$("<tr class='hoverable'>").append(
+		let $item=$("<tr class='hoverable'>").append(
 			$("<td>"+name+"</td>"),
 			$("<td>&gt;</td>")
 		);
 		if(typeof(unit)=="string"){
-			item.append(
+			$item.append(
 				$("<td class='value'>"+valArr[toggle]+"</td>"),
 				$("<td class='unit'>"+unit+"</td>")
 			);
 		}
 		else{
-			item.append($("<td class='value' colspan='2'>"+valArr[toggle]+"</td>"));
+			$item.append($("<td class='value' colspan='2'>"+valArr[toggle]+"</td>"));
 		}
 
 		/**
@@ -177,25 +184,32 @@ class SettingManager{
 		 * Also implemented in setSwitchInteraction()
 		 */
 		let lastClickTime=-10000;
-		item.on("pointerdown",event=>{
+		$item.on("pointerdown",event=>{
 			if(event.timeStamp-lastClickTime>=100){ // 100ms works in tested browsers
 				toggle++;
 				if(toggle>=valArr.length)toggle-=valArr.length;
-				item.find(".value").text(valArr[toggle]);
+				$item.find(".value").text(valArr[toggle]);
 				if(callback)callback(toggle);
 			}
 			event.stopPropagation(); // only click on this switch
 		});
-		item.on("pointerup pointercancel",event=>{
+		$item.on("pointerup pointercancel",event=>{
 			lastClickTime=event.timeStamp; // record the last time pointer leaving the button
 		});
 
-		this.$frame.find("tbody").append(item);
+		this.$frame.find("tbody").append($item);
 
 		let _updateFunc=function(){
 			if(valFunc){
-				toggle=valFunc();
-				item.find(".value").text(valArr[toggle]);
+				const val=valFunc();
+				if(isNaN(val)){ // not a number: hide this switch
+					$item.css("display","none");
+				}
+				else{
+					toggle=val;
+					$item.css("display","table-row");
+					$item.find(".value").text(valArr[toggle]);
+				}
 			}
 		}
 		this._updateFuncList.push(_updateFunc);

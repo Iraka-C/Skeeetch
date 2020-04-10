@@ -2,59 +2,56 @@
  * History recording & switching
  */
 HISTORY={};
-/**
- * HISTORY.list is an array containing a sequence of actions, see HistoryItem
- * HISTORY.nowId points to the tail item of the HISTORY.list
- * HISTORY.nodeDataHistory contains the history buffers of the node rawImageData
- * HISTORY.nodeDataHistory[node.id] is a historical image data array: [imgData]
- */
+
 HISTORY.list=[];
 HISTORY.nowId=-1; // no history yet
-HISTORY.nodeDataHistory={};
 HISTORY.MAX_HISTORY=20; // at most 20 steps
 
-HISTORY.pendingHistoryCnt=0; // How many history item still at pending status? (not added to list)
-HISTORY.pendingDataChangeId=new Set();
+/**
+ * Strategy to save graphics memory:
+ * Move History items to CPU memory when idle
+ */
 
 class HistoryItem{
-	constructor(param){
-		this.msg=param.msg?param.msg:null;
+	constructor(info){
+		this.info=info;
 		/**
 		 * Present available types:
-		 * image-data: change the content of the image data
-		 * node-pan: translating the image data of the node descendants, contents not changed
-		 * node-structure: moved a node item from one place to another (including add/delete)
-		 * node-property: changed a property of a node item
+		 * canvas-change: change the content of the canvas
+		 * move-layer-item: moved a layer item from one place to another (including add/delete)
+		 * change-layer-item-property: changed a property of a layer item
 		 */
-		this.type=param.type;
-		this.id=param.id;
 
-		switch(param.type){
-			case "image-data":
-				const rawImageData=LAYERS.layerHash[param.id].rawImageData; // fetch rawImgData
-				const imgBuf=CANVAS.renderer.getBufferFromImageData(rawImageData);
-				if(!HISTORY.nodeDataHistory.hasOwnProperty(param.id)){ // Only for DEBUG
-					HISTORY.nodeDataHistory[param.id]=[];
-				}
-				HISTORY.nodeDataHistory[param.id].push(imgBuf); // push into imgData history
-				this.data=imgBuf; // the imgData of this item
-				break;
-			case "node-pan":
-				this.prevPos=param.prevPos;
-				this.nowPos=param.nowPos;
-			case "node-structure":
-				this.from=param.from; // if is null, then it's a new operation
-				this.to=param.to; // if is null, then it's a delete operation
-				this.oldIndex=param.oldIndex; // old index in the "from" group
-				this.newIndex=param.newIndex; // new index in the "to" group
-				break;
-			case "node-property":
-				this.prevStatus=param.prevStatus;
-				this.nowStatus=param.nowStatus;
-			default:
-				throw new Error("Unknown history activity type: "+param.type);
-		}
+		/**
+		 * "canvas-change" type:
+		 * info={
+		 * 	type: "canvas-change"
+		 * 	id: layer id
+		 * 	data: imageData
+		 * 	prevData: the imageData before the change
+		 * 	status: the button status (locked, blend, clip) of the present layer
+		 * 	prevStatus: the button status (locked, blend, clip) before the change
+		 * }
+		 */
 
+		/**
+		 * "move-layer-item" type:
+		 * info={
+		 * 	type: "move-layer-item"
+		 * 	subType: (Optional):new,delete
+		 * 	id: layer id
+		 * 	from: old container id
+		 * 	to: new container id
+		 * 	oldIndex: index in the old container
+		 * 	newIndex: index in the new container
+		 * 	status: the button status (locked, blend, clip) of the present layer
+		 * 	prevStatus: the button status (locked, blend, clip) before the change
+		 * }
+		 */
+
+		/**
+		 * "change-layer-button-status" type:
+		 */
 		/**
 		 * "history-group" type: a group of actions as a bunch
 		 * @TODO: add sumbit-update like API
@@ -80,62 +77,30 @@ HISTORY.init=function(){
 	});
 }
 
-HISTORY.addHistory=function(param){ // see HistoryItem constructor for info structure
-	//HISTORY.clearAllHistoryAfter(); // delete all item after HISTORY.nowId
-	// if(HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
-	// 	HISTORY.popHead(); // pop the oldest history and release related resources
-	// }
-	// HISTORY.list.push(new HistoryItem(info));
-	// HISTORY.nowId++;
-	return; // For debug
-
-	if(param.type=="image-data"){ // special treatment for imagedata change: only sumbit once
-		if(HISTORY.pendingDataChangeId.has(param.id)){ // already submitted
-			return;
-		}
-		HISTORY.pendingDataChangeId.add(param.id); // submit
+HISTORY.addHistory=function(info){ // see HistoryItem constructor for info structure
+	HISTORY.clearAllHistoryAfter(); // delete all item after HISTORY.nowId
+	if(HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
+		HISTORY.popHead(); // pop the oldest history and release related resources
 	}
-	HISTORY.pendingHistoryCnt++;
-	PERFORMANCE.idleTaskManager.addTask(e=>{
-		HISTORY.pendingHistoryCnt--;
-		HISTORY.pendingDataChangeId.delete(param.id);
-		const item=new HistoryItem(param);
-		console.log("Add History",item);
-		HISTORY.list.push(item);
-		HISTORY.nowId=HISTORY.list.length; // point to tail
-	});
+	HISTORY.list.push(new HistoryItem(info));
+	HISTORY.nowId++;
 }
 
 HISTORY.undo=function(){ // undo 1 step
-	const undoInstant=()=>{
-		console.log("Undo");
-	};
-	
 	if(HISTORY.nowId<0)return; // no older history
-	if(HISTORY.pendingHistoryCnt==0){ // no pending history items, undo immediately
-		undoInstant();
+	let item=HISTORY.list[HISTORY.nowId--];
+	switch(item.info.type){
+	case "canvas-change":
+		HISTORY.undoCanvasChange(item.info);
+		break;
+	case "move-layer-item":
+		HISTORY.undoMoveItem(item.info);
+		break;
+	default: // uncategorized
 	}
-	else{ // this task is certainly added after all pending tasks
-		PERFORMANCE.idleTaskManager.addTask(e=>{
-			undoInstant();
-		});
-	}
-
-	// let item=HISTORY.list[HISTORY.nowId--];
-	// switch(item.info.type){
-	// case "canvas-change":
-	// 	HISTORY.undoCanvasChange(item.info);
-	// 	break;x
-	// case "move-layer-item":
-	// 	HISTORY.undoMoveItem(item.info);
-	// 	break;
-	// default: // uncategorized
-	// }
 }
 
 HISTORY.redo=function(){ // redo 1 step
-	console.log("Redo");
-
 	if(HISTORY.nowId>=HISTORY.list.length-1)return; // no newer history
 	let item=HISTORY.list[++HISTORY.nowId];
 	switch(item.info.type){
