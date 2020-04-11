@@ -119,13 +119,8 @@ class GLTextureBlender {
 		program.run();
 
 		if(!param.alphaLock){ // extend dst valid area, but not larger than dst size
-			dst.validArea=GLProgram.borderIntersection(
-				GLProgram.extendBorderSize(
-					src.validArea,
-					dst.validArea
-				),
-				dst
-			);
+			const tmpArea=GLProgram.extendBorderSize(src.validArea,dst.validArea);
+			dst.validArea=GLProgram.borderIntersection(tmpArea,dst);
 		}
 	}
 }
@@ -198,6 +193,7 @@ class GLImageDataFactory{
 		let tmpTexture=null;
 		if(!targetSize){ // init: same as source
 			targetSize=[src.width,src.height];
+			//targetSize=[src.validArea.width,src.validArea.height];
 		}
 		if(!targetRange){ // init: same as targetSize
 			targetRange=[0,0,targetSize[0],targetSize[1]];
@@ -216,7 +212,7 @@ class GLImageDataFactory{
 		program.setTargetTexture(tmpTexture,W,H); // draw to canvas
 		program.setUniform("u_is_premult",0);
 		switch(this.dataFormat){
-			case gl.FLOAT: program.setUniform("u_range",255.99);break; // map 0.0~1.0 to 0~255
+			case gl.FLOAT: program.setUniform("u_range",255.999);break; // map 0.0~1.0 to 0~255
 			case gl.UNSIGNED_SHORT_4_4_4_4: // @TODO: support these formats
 			case gl.HALF_FLOAT: break;
 			case gl.UNSIGNED_BYTE: program.setUniform("u_range",1);break;

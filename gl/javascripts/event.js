@@ -16,7 +16,7 @@ EVENTS.init=function(){
 	 */
 
 	// disable pen long press => context menu
-	//$(window).on("contextmenu",e=>false);
+	$(window).on("contextmenu",e=>false);
 
 	/**
 	 * Window resize handler
@@ -37,7 +37,7 @@ EVENTS.init=function(){
 	});
 	$("#canvas-window").on("pointermove",event=>{
 		CURSOR.setIsShown(true); // pen->mouse switching
-		//CURSOR.updateAction(event); // action doen't change during pure mouse moving
+		CURSOR.updateAction(event); // still registering right button: change to movecursor?
 		CURSOR.moveCursor(event); // may be stroke or pan
 	});
 	$("#canvas-window").on("pointerout",event=>{

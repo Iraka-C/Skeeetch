@@ -92,6 +92,7 @@ COMPOSITOR.recompositeLayers=function(node) {
 			}
 			i-=child.clipMaskChildrenCnt+1; // skip clip masks
 		}
+
 		// Now the initSize contains the minimum size to contain the children's imageData
 		let bg=node.rawImageData; // present uncleared imagedata
 		CANVAS.renderer.adjustImageDataBorders(bg,initSize,false);
@@ -139,7 +140,7 @@ COMPOSITOR.recompositeLayers=function(node) {
 			// Now the initSize contains the minimum size to contain the children's & this node's imageData
 			const mask=node.maskedImageData;
 			const clipped=node.imageData; // present uncleared imagedata
-			CANVAS.renderer.adjustImageDataBorders(clipped,mask,false); // move to the position of mask
+			CANVAS.renderer.adjustImageDataBorders(clipped,mask.validArea,false); // move to the position of mask
 			CANVAS.renderer.clearImageData(clipped,null,false); // clear the data to blank.
 			// combine all image data
 			CANVAS.renderer.blendImageData(mask,clipped,{mode: BasicRenderer.SOURCE}); // copy masked image

@@ -74,8 +74,12 @@ class CanvasNode extends ContentNode {
 	constructor() {
 		super();
 		/**
-		 * another imageData for stroke composition
+		 * contains another imageData for stroke composition
 		 * managed by CANVAS and COMPOSITOR
+		 * this.strokeBuffer={
+		 *    strokeImageData,
+		 *    originalImageData
+		 * }
 		 */
 		this.strokeBuffer=null;
 

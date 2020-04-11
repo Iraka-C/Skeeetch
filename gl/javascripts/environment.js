@@ -301,7 +301,7 @@ ENV._transformAnimation=function(){
 		let sP=anim.start; 
 		// if shift pressed, run animation 10x faster to reduce latency on dragging
 		let targetFPS=PERFORMANCE.fpsCounter.fps.clamp(30,300);
-		let nextFps=targetFPS/(CURSOR.nowActivity=="pan-paper"?10:1);
+		let nextFps=targetFPS/(CURSOR.nowActivity=="pan-paper"&&CURSOR.isDown?10:1);
 		let step=1/(anim.time*nextFps);
 		p+=step;
 		if(p>1)p=1; // end

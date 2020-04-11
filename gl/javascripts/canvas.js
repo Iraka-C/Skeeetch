@@ -249,7 +249,7 @@ CANVAS.onRefresh=function() {
  * The antialiasing parameter 0.7 is a balance of sharpness and crispiness.
  */
 CANVAS.refreshScreen=function() {
-	const antiAliasRadius=ENV.displaySettings.antiAlias?0.7/ENV.window.scale:0;
+	const antiAliasRadius=ENV.displaySettings.antiAlias?0.7*Math.max(1/ENV.window.scale-1,0):0;
 	COMPOSITOR.recompositeLayers();
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
 }
@@ -323,6 +323,7 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 /**
  * set the contents of targetLayer at {left:x,top:y}
  * Also move all child layers
+ * @TODO: move stroke buffer
  */
 CANVAS.panLayer=function(targetLayer,dx,dy){
 	const imgData=targetLayer.rawImageData;
@@ -330,7 +331,7 @@ CANVAS.panLayer=function(targetLayer,dx,dy){
 	imgData.top+=dy;
 	imgData.validArea.left+=dx;
 	imgData.validArea.top+=dy;
-	// @TODO: pan Mask data // @TODO: link Mask data
+	// @TODO: pan Masked data // @TODO: link Mask data
 	if(targetLayer.children.length){
 		for(const v of targetLayer.children) {
 			CANVAS.panLayer(v,dx,dy);

@@ -131,11 +131,13 @@ FILES.loadPSDNode=function(node,nowGroup,progressAmount){
 			else if(sNode.canvas){ // There might be unsupported layer such as info/adjustments
 				newElement=new CanvasNode();
 				CANVAS.renderer.loadToImageData(newElement.rawImageData,sNode.canvas); // load image data from canvas
-				if(sNode.hasOwnProperty("left")){
+				if(sNode.hasOwnProperty("left")){ // set both border and valid area
 					newElement.rawImageData.left=sNode.left;
+					newElement.rawImageData.validArea.left=sNode.left;
 				}
 				if(sNode.hasOwnProperty("top")){
 					newElement.rawImageData.top=sNode.top;
+					newElement.rawImageData.validArea.top=sNode.top;
 				}
 				
 				// UI/status settings
