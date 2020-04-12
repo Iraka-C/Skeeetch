@@ -101,13 +101,16 @@ FILES.loadAsPSD=function(data,filename){
  * node is a node object in psdFile
  */
 FILES.loadPSDNode=function(node,nowGroup,progressAmount){
+	// @TODO: in some files, node itself is a CanvasNode()!
+
+	// node is certainly a group, its equivalent layer object a GroupNode (nowGroup)
+	const children=node.children;
+
+	const progressFrac=progressAmount/children.length;
 	const STATUS=FILES.loadPSDNode.status;
 	STATUS[nowGroup.id]=0; // start loading this node
 	//if(node.mask) // masking layer
 
-	// node is certainly a group, its equivalent layer object a GroupNode (nowGroup)
-	const children=node.children;
-	const progressFrac=progressAmount/children.length;
 
 	// For each child
 	for(let i=0;i<children.length;i++){

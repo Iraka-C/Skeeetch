@@ -39,6 +39,10 @@ CANVAS.init=function() {
  * Update the target canvas to draw
  */
 CANVAS.setTargetLayer=function(targetLayer) {
+	if(CANVAS.nowLayer){ // Must be a CanvasNode
+		// @TODO: submit strokeBuffer
+		CANVAS.nowLayer.strokeBuffer=null; // release strokeBuffer
+	}
 	CANVAS.nowLayer=targetLayer;
 	if(!targetLayer) { // no active target
 		CANVAS.settings.enabled=false;
@@ -51,6 +55,7 @@ CANVAS.setTargetLayer=function(targetLayer) {
 		CANVAS.renderer.init({
 			imageData: targetLayer.rawImageData // render target
 		});
+		// @TODO: setup strokeBuffer
 	}
 }
 
