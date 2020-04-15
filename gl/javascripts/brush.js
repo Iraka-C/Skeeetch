@@ -12,7 +12,11 @@ BrushManager.brushes=[
 		minAlpha:1.0, // 0~1 (0~100%) of alpha
 		isAlphaPressure:0,
 		edgeHardness:1.0, // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
-		blendMode:0 // 0: normal, -1: erase
+		blendMode:0, // 0: normal, -1: erase
+		brushtip: { // brush shape // This is the initial status
+			type: "round",
+			imageData: null
+		}
 	},
 	{
 		name:Lang("brush"),

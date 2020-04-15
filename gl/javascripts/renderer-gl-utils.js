@@ -29,12 +29,10 @@ class GLTextureBlender {
 		this.gl=gl;
 		this.blendProgram=new GLProgram(gl,vBlendShaderSource,fBlendShaderSource);
 		this.blendProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
-		this.framebuffer=gl.createFramebuffer();
 	}
 
 	free(){
 		this.blendProgram.free();
-		this.gl.deleteFramebuffer(this.framebuffer);
 	}
 	/**
 	 * blend the src and dst textures in corresponding ranges

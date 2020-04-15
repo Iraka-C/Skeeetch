@@ -170,7 +170,7 @@ ENV.setPaperSize=function(w,h){
 	$("#canvas-container").css({"width":w+"px","height":h+"px"}); // set canvas view size
 	$("#main-canvas").attr({"width":w,"height":h}); // set canvas pixel size
 	$("#overlay-canvas").attr({"width":w,"height":h}); // set canvas pixel size
-	CANVAS.init();
+	CANVAS.init(); // re-initialize CANVAS (and create new renderer)
 
 	for(let k in LAYERS.layerHash){ // @TODO: copy image data
 		let layer=LAYERS.layerHash[k];

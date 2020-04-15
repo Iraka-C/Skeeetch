@@ -53,9 +53,9 @@ CANVAS.setTargetLayer=function(targetLayer) {
 		CANVAS.drawSuccessful=true;
 		CANVAS.updateSpeed(); // at init
 		CANVAS.renderer.init({
+			// @TODO: setup strokeBuffer
 			imageData: targetLayer.rawImageData // render target
 		});
-		// @TODO: setup strokeBuffer
 	}
 }
 

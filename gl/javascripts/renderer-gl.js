@@ -58,7 +58,6 @@ class GLRenderer extends BasicRenderer {
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
 
 		// =================== Create Programs ====================
-		this._initCircleProgram();
 		this._initRenderCanvasProgram();
 		this._initClearCanvasProgram();
 
@@ -74,15 +73,16 @@ class GLRenderer extends BasicRenderer {
 		// storing the shape of brush tip //@TODO: LUMINOSITY
 		//this.brushtipImageData=this.createImageData();
 
-		// blender
+		// children renderers
 		this.textureBlender=new GLTextureBlender(gl);
 		this.imageDataFactory=new GLImageDataFactory(gl,this.dataFormat);
+		this.brushRenderer=new GLBrushRenderer(this);
 	}
 	free() { // death
 		const gl=this.gl;
 		this.textureBlender.free();
 		this.imageDataFactory.free();
-		this.circleProgram.free();
+		this.brushRenderer.free();
 		this.canvasProgram.free();
 		this.clearProgram.free();
 		gl.deleteFramebuffer(this.framebuffer);
@@ -97,74 +97,6 @@ class GLRenderer extends BasicRenderer {
 	}
 	getRAMUsage() {
 		return 0;
-	}
-
-
-	_initCircleProgram() {
-		// slice number of a circle divided
-		const circleSliceN=64;
-
-		// add the glsl codes inside a closure
-		const vCircleShaderSource=glsl` // vertex shader for drawing a circle
-			// circle id (not used) is the order of the circle to be drawn
-			// face id is the order of the triangle in the circle
-			// vertex id is the order of the vertex in a triangle (0,1,2)
-			// OpenGL guarantees the primitive rasterization order same as VBO
-			#define DBPI 6.2831853071795864769 // 2*PI
-
-			attribute float a_id; // vertex id: faceid*3+vertexid
-
-			uniform vec2 u_resolution; // canvas resolution
-			uniform float u_circle_slice_N; // slice number of a circle divided
-
-			uniform vec3 u_pos; // circle position (x,y,r) in pixels
-			varying float rel; // linear opacity interpolation
-			void main(){
-				if(mod(a_id,3.0)<0.5){ // 0' vertex
-					vec2 center_clip=(u_pos.xy/u_resolution*2.0-1.0)*vec2(1.0,-1.0);
-					gl_Position=vec4(center_clip,0.0,1.0);
-					rel=1.0;
-				}
-				else{ // 1',2' vertex
-					float id=floor((a_id+1.0)/3.0);
-					float u=id/u_circle_slice_N; // 0~1
-					float angle=u*DBPI;
-					vec2 d_pos=vec2(cos(angle),sin(angle))*u_pos.z;
-					vec2 pos=u_pos.xy+d_pos;
-					vec2 v_clip=(pos/u_resolution*2.0-1.0)*vec2(1.0,-1.0);
-					gl_Position=vec4(v_clip,0.0,1.0);
-					rel=0.0;
-				}
-			}
-		`;
-
-		const fCircleShaderSource=glsl`
-			precision mediump float;
-			uniform float u_softness; // circle edge softness
-			uniform vec4 u_color; // rgba
-			varying float rel;
-			void main(){
-				//float opa=smoothstep(0.0,u_softness,rel); // sharper than following
-				if(rel>=u_softness){
-					gl_FragColor=u_color;
-				}
-				else{ // sample on this function averages to 1/3
-					float r=rel/u_softness;
-					float opa=clamp(r*r,0.0,1.0); // prevent NaN operation
-					gl_FragColor=u_color*opa;
-				}
-			}
-		`;
-		// ================= Create program ====================
-		const program=new GLProgram(this.gl,vCircleShaderSource,fCircleShaderSource);
-		this.circleProgram=program;
-		// ================ Create buffer ================
-
-		// prepare vertices id array
-		const vertexIdArray=new Float32Array(circleSliceN*3);
-		vertexIdArray.forEach((v,i) => {vertexIdArray[i]=i;});
-		program.setAttribute("a_id",vertexIdArray,1);
-		program.setUniform("u_circle_slice_N",circleSliceN);
 	}
 
 	_initRenderCanvasProgram() {
@@ -260,31 +192,10 @@ class GLRenderer extends BasicRenderer {
 	// Especially in large files
 	renderPoints(wL,wH,hL,hH,kPoints) {
 		const gl=this.gl;
-		const program=this.circleProgram;
+		const imgData=this.targetImageData;
 
 		// set blend mode
 		let rgb=[this.rgb[0]/255,this.rgb[1]/255,this.rgb[2]/255]; // color to use: unmultiplied
-		if(this.brush.blendMode>=0) { // add: pen, brush, ...
-			if(this.isOpacityLocked) { // destination opacity not change
-				gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA); // a_dest doesn't change
-			}
-			else {
-				gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA); // normal blend mode *Lossy when 8bit int!
-			}
-		}
-		else { // erase: eraser
-			if(this.isOpacityLocked) { // destination opacity not change
-				rgb=[1,1,1]; // white
-				gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA); // a_dest doesn't change
-			}
-			else {
-				gl.blendFunc(gl.ZERO,gl.ONE_MINUS_SRC_ALPHA); // no color
-			}
-		}
-		const imgData=this.targetImageData;
-		program.setTargetTexture(imgData.data); // render to this.texture
-		program.setUniform("u_resolution",[imgData.width,imgData.height]);
-		gl.viewport(0,0,imgData.width,imgData.height); // restore viewport // @TODO: position based on target
 
 		// a soft edge with fixed pixel width for anti-aliasing
 		const fixedSoftEdge=this.antiAlias? Math.min((this.brush.size+1)/4,2):0;
@@ -292,12 +203,20 @@ class GLRenderer extends BasicRenderer {
 			const p=kPoints[k];
 			const opa=p[3];
 			const softRange=this.softness+fixedSoftEdge/p[2];
+			const size=(p[2]+0.1)*2;
 
-			// set circle size and radius, adjust position according to the imgData, radius+0.07 for gl clipping
-			program.setUniform("u_pos",[p[0]-imgData.left,p[1]-imgData.top,p[2]+0.1]);
-			program.setUniform("u_color",[rgb[0]*opa,rgb[1]*opa,rgb[2]*opa,opa]); // set circle color, alpha pre-multiply
-			program.setUniform("u_softness",softRange);
-			program.run();
+			const color=[...rgb,1];
+			color[0]*=opa;
+			color[1]*=opa;
+			color[2]*=opa;
+			color[3]*=opa;
+
+			// set circle size and radius, adjust position according to the imgData, radius+0.1 for gl clipping
+			this.brushRenderer.render(
+				imgData,this.brush,
+				[p[0]-imgData.left,p[1]-imgData.top],size,
+				color,this.isOpacityLocked,softRange
+			);
 		}
 
 		// adjust valid area
