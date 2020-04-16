@@ -116,6 +116,10 @@ class CanvasNode extends ContentNode {
 		this.initButtons();
 		this.initInputs();
 	}
+	delete() { // delete buffer image data
+		if(this.lastRawImageData)CANVAS.renderer.deleteImageData(this.lastRawImageData);
+		super.delete();
+	}
 	getName() {
 		// get the displayed name of this layer
 		return this.name;
@@ -201,6 +205,15 @@ class CanvasNode extends ContentNode {
 		//console.log("set raw invalid "+this.id);
 		// this.isRawImageDataValid shall always be true
 		this.setMaskedImageDataInvalid();
+	}
+	updateLastImageData(){ // This function shall be handled by HISTORY
+		const lastD=this.lastRawImageData;
+		const rawD=this.rawImageData;
+		// copy contents
+		CANVAS.renderer.adjustImageDataBorders(lastD,rawD,false);
+		CANVAS.renderer.clearImageData(lastD);
+		// @TODO: only copy the changed part to save time
+		CANVAS.renderer.blendImageData(rawD,lastD,{mode:BasicRenderer.SOURCE});
 	}
 	// ================= button =================
 	initButtons() {

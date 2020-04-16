@@ -36,28 +36,36 @@ class HistoryItem{
 				const newImageData=node.rawImageData; // fetch rawImgData
 				const oldImageData=node.lastRawImageData;
 				//const imgBuf=CANVAS.renderer.getBufferFromImageData(rawImageData); // TIME CONSUMING!!!
+				const oldArea=GLProgram.borderIntersection(oldImageData.validArea,param.area);
+				const newArea=GLProgram.borderIntersection(newImageData.validArea,param.area);
 
-				this.oldData=CANVAS.renderer.getBufferFromImageData(oldImageData,param.area);
-				this.newData=CANVAS.renderer.getBufferFromImageData(newImageData,param.area);
+				this.oldData=CANVAS.renderer.getBufferFromImageData(oldImageData,oldArea);
+				this.newData=CANVAS.renderer.getBufferFromImageData(newImageData,newArea);
 				
 				// copy contents
-				CANVAS.renderer.adjustImageDataBorders(oldImageData,newImageData,false);
-				CANVAS.renderer.clearImageData(oldImageData);
-				// @TODO: only copy the changed part to save time
-				CANVAS.renderer.blendImageData(newImageData,oldImageData,{mode:BasicRenderer.SOURCE});
+				node.updateLastImageData();
 				break;
 			case "node-pan":
 				this.prevPos=param.prevPos;
 				this.nowPos=param.nowPos;
+				break;
 			case "node-structure":
 				this.from=param.from; // if is null, then it's a new operation
 				this.to=param.to; // if is null, then it's a delete operation
 				this.oldIndex=param.oldIndex; // old index in the "from" group
 				this.newIndex=param.newIndex; // new index in the "to" group
+				this.oldActive=param.oldActive; // old active node, may be null
+				this.newActive=param.newActive; // new active node, may be null
 				break;
 			case "node-property":
 				this.prevStatus=param.prevStatus;
 				this.nowStatus=param.nowStatus;
+			case "bundle":
+				this.children=[];
+				for(const v of param.children){ // recursive, ascending order
+					this.children.push(new HistoryItem(v));
+				}
+				break;
 			default:
 				throw new Error("Unknown history activity type: "+param.type);
 		}
@@ -88,14 +96,11 @@ HISTORY.init=function(){
 }
 
 HISTORY.addHistory=function(param){ // see HistoryItem constructor for info structure
-	//HISTORY.clearAllHistoryAfter(); // delete all item after HISTORY.nowId
 	// if(HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
 	// 	HISTORY.popHead(); // pop the oldest history and release related resources
 	// }
 	// HISTORY.list.push(new HistoryItem(info));
 	// HISTORY.nowId++;
-	console.log(param);
-	
 	//return; // For debug
 
 	if(param.type=="image-data"){ // special treatment for imagedata change: only sumbit once
@@ -110,6 +115,8 @@ HISTORY.addHistory=function(param){ // see HistoryItem constructor for info stru
 	PERFORMANCE.idleTaskManager.addTask(e=>{
 		HISTORY.pendingHistoryCnt--;
 		HISTORY.pendingImageDataChangeItem.delete(param.id);
+		
+		HISTORY.clearAllHistoryAfter(); // delete all item after HISTORY.nowId
 		const item=new HistoryItem(param);
 		console.log("Add History",item);
 		HISTORY.list.push(item);
@@ -118,13 +125,18 @@ HISTORY.addHistory=function(param){ // see HistoryItem constructor for info stru
 }
 
 HISTORY.undo=function(){ // undo 1 step
-	const undoInstant=()=>{
-		console.log("Undo",HISTORY.list,HISTORY.nowId);
-		const item=HISTORY.list[HISTORY.nowId--];
-		
-		switch(item.type){
+	const undoInstant=item=>{
+		switch(item.type){ // different types
 		case "image-data":
 			HISTORY.undoImageDataChange(item);
+			break;
+		case "node-structure":
+			HISTORY.undoStructureChange(item);
+			break;
+		case "bundle":
+			for(let i=item.children.length-1;i>=0;i--){
+				undoInstant(item.children[i]); // backwards
+			}
 			break;
 		default: // uncategorized
 		}
@@ -132,122 +144,114 @@ HISTORY.undo=function(){ // undo 1 step
 	
 	if(HISTORY.nowId<0)return; // no older history
 	if(HISTORY.pendingHistoryCnt==0){ // no pending history items, undo immediately
-		undoInstant();
+		undoInstant(HISTORY.list[HISTORY.nowId--]);
 	}
 	else{ // this task is certainly added after all pending tasks
 		PERFORMANCE.idleTaskManager.addTask(e=>{
-			undoInstant();
+			undoInstant(HISTORY.list[HISTORY.nowId--]);
 		});
 	}
-
-	// let item=HISTORY.list[HISTORY.nowId--];
-	// switch(item.info.type){
-	// case "canvas-change":
-	// 	HISTORY.undoCanvasChange(item.info);
-	// 	break;x
-	// case "move-layer-item":
-	// 	HISTORY.undoMoveItem(item.info);
-	// 	break;
-	// default: // uncategorized
-	// }
 }
 
 HISTORY.redo=function(){ // redo 1 step
 	console.log("Redo");
 
 	if(HISTORY.nowId>=HISTORY.list.length-1)return; // no newer history
-	let item=HISTORY.list[++HISTORY.nowId];
-	switch(item.info.type){
-	case "canvas-change":
-		HISTORY.redoCanvasChange(item.info);
-		break;
-	case "move-layer-item":
-		HISTORY.redoMoveItem(item.info);
-		break;
-	default: // uncategorized
+
+	const redoInstant=item=>{
+		switch(item.type){ // different types
+		case "image-data":
+			HISTORY.redoImageDataChange(item);
+			break;
+		case "node-structure":
+			HISTORY.redoStructureChange(item);
+			break;
+		case "bundle":
+			for(const v of item.children){
+				redoInstant(v);
+			}
+			break;
+		default: // uncategorized
+		}
 	}
+	// redo is always instant
+	redoInstant(HISTORY.list[++HISTORY.nowId]);
 }
 
 // ================= Deal with each type of Undo/Redo ==================
-// "image-data" type
+/**
+ * ----------------------------------------------------
+ * "image-data" type
+ * {type,id,oldData,newData} oldData,newData: GLRAMBuf imageData
+ * ----------------------------------------------------
+ */
 HISTORY.undoImageDataChange=function(item){
-	const layer=LAYERS.layerHash[item.id];
-	CANVAS.renderer.clearScissoredImageData(layer.rawImageData,item.newData);
-	CANVAS.renderer.loadToImageData(layer.rawImageData,item.oldData);
-	// @TODO: maintain lastImageData
-	layer.setRawImageDataInvalid();
-	CANVAS.requestRefresh();
-	LAYERS.setActive(layer); // also update canvas buffer and latest image data
+	const node=LAYERS.layerHash[item.id];
+	CANVAS.renderer.clearScissoredImageData(node.rawImageData,item.newData);
+	CANVAS.renderer.loadToImageData(node.rawImageData,item.oldData);
+	node.updateLastImageData();
+	node.setRawImageDataInvalid();
+	node.updateThumb();
+	LAYERS.setActive(node); // also refresh
+	CANVAS.requestRefresh(); // setActive does not guarantee refresh
 }
 
-HISTORY.redoCanvasChange=function(info){
-	let layer=LAYERS.layerHash[info.id];
-	CANVAS.getNewRenderer(layer.$div[0],{disableBuffer:true}).putImageData(info.data);
-	layer.updateSettings(info.data,info.status);
-	LAYERS.setActive(layer); // also update canvas buffer and latest image data
+HISTORY.redoImageDataChange=function(item){
+	const node=LAYERS.layerHash[item.id];
+	CANVAS.renderer.clearScissoredImageData(node.rawImageData,item.oldData);
+	CANVAS.renderer.loadToImageData(node.rawImageData,item.newData);
+	node.updateLastImageData();
+	node.setRawImageDataInvalid();
+	node.updateThumb();
+	LAYERS.setActive(node); // also refresh
+	CANVAS.requestRefresh(); // setActive does not guarantee refresh
 }
 
-// ===================================================================
-
-// "move-layer-item" type
-// @TODO: add layer / group status
-HISTORY.undoMoveItem=function(info){
-	let oldGroup=LAYERS.layerHash[info.from];
-	let obj=LAYERS.layerHash[info.id];
+/**
+ * ----------------------------------------------------
+ * "node-structure" type
+ * {type,id,from,to,oldIndex,newIndex,oldActive,newActive}
+ * ----------------------------------------------------
+ */
+HISTORY.undoStructureChange=function(item){
+	// move obj from newGroup into oldGroup
+	const oldGroup=LAYERS.layerHash[item.from];
+	const obj=LAYERS.layerHash[item.id];
 	
-
-	if(oldGroup){
-		let $ui=obj.$ui.detach(); // get the DOM element $
-		let $div=obj.$div.detach(); // get the DOM element $
-		oldGroup.insert$UIAt($ui,info.oldIndex);
-		oldGroup.insert$At($div,info.oldIndex); // insert at old place
-		LAYERS.setActive(obj); // also update canvas buffer and latest image data
-		//obj.updateSettings(); // no need because contents weren't changed
+	if(oldGroup){ // a "layer move" operation
+		obj.$ui.detach(); // detach $ui from DOM
+		obj.detach(); // detach node from layerTree
+		oldGroup.insertNode$UI(obj.$ui,item.oldIndex); // insert $ui at old place
+		oldGroup.insertNode(obj,item.oldIndex); // insert at old place
+		LAYERS.setActive(item.oldActive?item.oldActive:obj); // also refresh. setActive accepts string or Node
+		COMPOSITOR.updateLayerTreeStructure(); // call manually. setActive() won't update when active layer's unchanged
 	}
 	else{ // else: no old group, this is a create-new-layer action
-		if(info.to=="root"){ // root
-			let $newActive=obj.$ui.next(); // there will always be a next because root always create a new layer before next
-			LAYERS.setActive(LAYERS.layerHash[$newActive.attr("data-layer-id")]);
-		}
-		else{ // normal group
-			let newGroup=LAYERS.layerHash[info.to];
-			LAYERS.setActive(newGroup);
-		}
-		obj.$ui.detach(); // get the DOM element $
-		obj.$div.detach(); // get the DOM element $
+		obj.$ui.detach(); // detach $ui from DOM
+		obj.detach(); // detach node from layerTree
+		LAYERS.setActive(item.oldActive);
+		COMPOSITOR.updateLayerTreeStructure();
 	}
 }
-HISTORY.redoMoveItem=function(info){
-	let newGroup=LAYERS.layerHash[info.to];
-	let obj=LAYERS.layerHash[info.id];
 
-
-	if(newGroup){
-		let $ui=obj.$ui.detach(); // get the DOM element $
-		let $div=obj.$div.detach(); // get the DOM element $
-		newGroup.insert$UIAt($ui,info.newIndex);
-		newGroup.insert$At($div,info.newIndex); // insert at new place
-		LAYERS.setActive(obj); // also update canvas buffer and latest image data
+HISTORY.redoStructureChange=function(item){
+	// move obj from oldGroup into newGroup
+	const newGroup=LAYERS.layerHash[item.to];
+	const obj=LAYERS.layerHash[item.id];
+	
+	if(newGroup){ // a "layer move" operation
+		obj.$ui.detach(); // detach $ui from DOM
+		obj.detach(); // detach node from layerTree
+		newGroup.insertNode$UI(obj.$ui,item.newIndex); // insert $ui at new place
+		newGroup.insertNode(obj,item.newIndex); // insert at new place
+		LAYERS.setActive(item.newActive?item.newActive:obj); // also refresh. setActive accepts string or Node
+		COMPOSITOR.updateLayerTreeStructure(); // call manually. setActive() won't update when active layer's unchanged
 	}
 	else{ // else: no new group, this is a delete-layer action
-		if(info.from=="root"){ // simulate the delete - new active layer logic
-			let $newActive=obj.$ui.next();
-			if(!$newActive.length){
-				$newActive=obj.$ui.prev();
-			}
-			if(!$newActive.length){
-				$newActive=obj.$ui.parent();
-			}
-			// new active layer
-			let newActive=LAYERS.layerHash[$newActive.attr("data-layer-id")];
-			LAYERS.setActive(newActive);
-		}
-		else{ // normal group
-			let oldGroup=LAYERS.layerHash[info.from];
-			LAYERS.setActive(oldGroup);
-		}
-		obj.$ui.detach(); // get the DOM element $
-		obj.$div.detach(); // get the DOM element $
+		obj.$ui.detach(); // detach $ui from DOM
+		obj.detach(); // detach node from layerTree
+		LAYERS.setActive(item.newActive);
+		COMPOSITOR.updateLayerTreeStructure();
 	}
 }
 
@@ -282,12 +286,21 @@ HISTORY.clearAllHistoryBefore=function(){
 
 // clear all history after present status
 HISTORY.clearAllHistoryAfter=function(){
+	const clearAllNewNode=item=>{
+		if(item.type=="node-structure"&&!item.from){
+			const node=LAYERS.layerHash[item.id];
+			node.delete(); // destroy imageData or hash number, this method is resursive for a group
+		}
+		if(item.type=="bundle"){
+			for(const v of item.children){
+				clearAllNewNode(v);
+			}
+		}
+	}
 	let len=HISTORY.list.length;
 	for(let i=HISTORY.nowId+1;i<len;i++){ // clear all history afterwards
-		let item=HISTORY.list[i];
-		if(item.info.subType=="new"){ // creating a layer action, won't be used anymore
-			delete LAYERS.layerHash[item.info.id]; // release the resource
-		}
+		const item=HISTORY.list[i];
+		clearAllNewNode(item);
 	}
 	HISTORY.list.splice(HISTORY.nowId+1,len); // len>HISTORY.nowId: delete all item after nowId
 }

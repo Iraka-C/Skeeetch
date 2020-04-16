@@ -85,8 +85,7 @@ CANVAS.setCanvasEnvironment=function() {
 		isOpacityLocked: CANVAS.targetLayerOpacityLocked,
 		antiAlias: ENV.displaySettings.antiAlias
 	});
-
-	CANVAS.changedArea={width:0,height:0,left:0,top:0}; // init changed area
+	CANVAS.changedArea={width:0,height:0,left:0,top:0}; // init changed area, put this first as isChanged sign init
 };
 
 CANVAS.updateSpeed=function() {
@@ -285,6 +284,7 @@ CANVAS.onEndRefresh=function() {
 		area:{...CANVAS.changedArea}
 	});
 	CANVAS.lastRefreshTime=NaN;
+	CANVAS.changedArea={width:0,height:0,left:0,top:0}; // reset changed area
 }
 
 // ===================== Clear function ====================
@@ -304,7 +304,13 @@ CANVAS.clearAll=function() {
 	}
 
 	// @TODO: consider mask
+	const validArea={...CANVAS.nowLayer.rawImageData.validArea}; // the valid area doesn't change or turns 0
 	CANVAS.renderer.clearImageData(CANVAS.nowLayer.rawImageData,null,CANVAS.targetLayerOpacityLocked);
+	HISTORY.addHistory({ // add raw image data changed history
+		type:"image-data",
+		id:CANVAS.nowLayer.id,
+		area:validArea // whole image
+	});
 	CANVAS.nowLayer.updateThumb();
 	CANVAS.nowLayer.setRawImageDataInvalid(); // the data is invalid now
 	CANVAS.requestRefresh(); // refresh display

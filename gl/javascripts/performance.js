@@ -55,7 +55,7 @@ PERFORMANCE.getRAMEstimation=function(){ // in MB
 	}
 	imgDataRAMSize+=CANVAS.renderer.getRAMUsage();
 	ramBytes+=imgDataRAMSize;
-	// History
+	// History @TODO: add history cnt
 	/*let histCnt=1; // initial
 	for(let i=0;i<HISTORY.list.length;i++){ // clear all history afterwards
 		let item=HISTORY.list[i];
@@ -93,15 +93,6 @@ PERFORMANCE.getGPUMemEstimation=function(){
 	}
 	imgDataGPUSize+=CANVAS.renderer.getGPUMemUsage();
 	gpuBytes+=imgDataGPUSize;
-	// History
-	/*let histCnt=1; // initial
-	for(let i=0;i<HISTORY.list.length;i++){ // clear all history afterwards
-		let item=HISTORY.list[i];
-		if(item.info.type=="canvas-change"){
-			histCnt++;
-		}
-	}
-	byte+=histCnt*imageDataSize; // every history holds onr unique imageData*/
 	return gpuBytes/1024/1024; // in MB
 }
 
