@@ -9,15 +9,10 @@ CANVAS.settings={
 	smoothness: 3,
 	_speed: 0 // a function of smoothness
 };
-CANVAS.points={ // the points drawn on canvas, under paper coordinate
-	p0: [NaN,NaN,NaN], // x,y,pressure(0~1)
-	p1: [NaN,NaN,NaN],
-	p2: [NaN,NaN,NaN]
-};
+CANVAS.points=[[NaN,NaN,NaN],[NaN,NaN,NaN]]; // the points drawn on canvas, under paper coordinate [x,y,pressure(0~1)]
 CANVAS.targetCanvas=null; // display canvas to render to
 CANVAS.nowLayer=null; // now operating layer
-CANVAS.pointCnt=0;
-CANVAS.isChanged=false;
+CANVAS.changedArea={width:0,height:0,left:0,top:0};
 CANVAS.drawSuccessful=false; // if you try to stroke on canvas, will it be successful?
 
 // ========================= Functions ===========================
@@ -67,7 +62,6 @@ CANVAS.setCanvasEnvironment=function() {
 		CANVAS.drawSuccessful=false;
 		return;
 	}
-	CANVAS.drawSuccessful=true;
 
 	// get params of this layer in a tree
 	CANVAS.targetLayerVisible=CANVAS.nowLayer.isVisible();
@@ -77,11 +71,12 @@ CANVAS.setCanvasEnvironment=function() {
 	if(!CANVAS.targetLayerVisible||CANVAS.targetLayerLocked) { // invisible or locked
 		return;
 	}
+	CANVAS.drawSuccessful=true;
 	/**
 	 * @TODO: for some wacom boards, the first 2/3 events appears not constant
 	 */
-	CANVAS.pointCnt=0; // count reset
-	CANVAS.isChanged=false; // change reset
+	CANVAS.points=CANVAS.points.slice(-2); // init point list, only save the last points
+	
 	CANVAS.isRefreshRequested=false; // refresh screen control
 	CANVAS.renderer.initBeforeStroke({ // init renderer before stroke
 		brush: BrushManager.activeBrush,
@@ -90,6 +85,8 @@ CANVAS.setCanvasEnvironment=function() {
 		isOpacityLocked: CANVAS.targetLayerOpacityLocked,
 		antiAlias: ENV.displaySettings.antiAlias
 	});
+
+	CANVAS.changedArea={width:0,height:0,left:0,top:0}; // init changed area
 };
 
 CANVAS.updateSpeed=function() {
@@ -105,7 +102,7 @@ CANVAS.updateSpeed=function() {
 /**
  * Update cursor trace, point=[x,y,pressure] relative to div #canvas-window
  */
-CANVAS.updateCursor=function(point) {
+CANVAS.updateCursor=function(point,isPointerDown) {
 	const pT=CANVAS.points;
 	/**
 	 * @TODO: Mysterious behavior
@@ -116,25 +113,32 @@ CANVAS.updateCursor=function(point) {
 	// 	console.log(pT.p0);
 	// }
 
-	pT.p2=pT.p1;
-	pT.p1=pT.p0;
-
 	// Coordinate transform
 	const pC=ENV.toPaperXY(point[0],point[1]);
 
 	const p=CANVAS.settings._speed;
 	const q=1-p;
-	if(!isNaN(pT.p1[0])) { // Smooth the trail
-		pT.p0=[
-			pC[0]*p+pT.p1[0]*q,
-			pC[1]*p+pT.p1[1]*q,
-			point[2]*p+pT.p1[2]*q
-		];
+
+	if(pT.length) { // Smooth the trail
+		const p1=pT[pT.length-1]; // last point
+		if(isNaN(p1[0])){ // not a valid point
+			pT.push([pC[0],pC[1],point[2]]);
+		}
+		else{ // interpolate
+			pT.push([
+				pC[0]*p+p1[0]*q,
+				pC[1]*p+p1[1]*q,
+				point[2]*p+p1[2]*q
+			]);
+		}
 	}
 	else {
-		pT.p0=[pC[0],pC[1],point[2]];
+		pT.push([pC[0],pC[1],point[2]]);
 	}
-	CANVAS.pointCnt++;
+
+	if(!isPointerDown){ // keep tracking only a little piece
+		CANVAS.points=CANVAS.points.slice(-2);
+	}
 }
 
 /**
@@ -150,18 +154,22 @@ CANVAS.stroke=function() {
 		return;
 	}
 
-	let pT=CANVAS.points;
-	if(isNaN(pT.p2[0])||isNaN(pT.p1[0])||isNaN(pT.p0[0])) { // There's a not-recorded pointer
+	const pT=CANVAS.points;
+	
+	if(pT.length<3){
 		return;
 	}
+	// if(isNaN(pT.p2[0])||isNaN(pT.p1[0])||isNaN(pT.p0[0])) { // There's a not-recorded pointer
+	// 	return;
+	// }
 	CANVAS.drawSuccessful=true;
 	PERFORMANCE.idleTaskManager.startBusy(); // start stroke: busy times
 
 	// Consider changing the way to calculate division
 	const nowLayer=CANVAS.nowLayer;
-	let p0=pT.p0;
-	let p1=pT.p1;
-	let p2=pT.p2;
+	let p0=pT[pT.length-1];
+	let p1=pT[pT.length-2];
+	let p2=pT[pT.length-3];
 
 
 	let s2=[(p1[0]+p2[0])/2,(p1[1]+p2[1])/2,(p1[2]+p2[2])/2];
@@ -184,9 +192,12 @@ CANVAS.stroke=function() {
 
 	// calculate new range
 	let [wL,wH,hL,hH,kPoints]=param;
-	let nowTarget=nowLayer.rawImageData;
-	let targetSize={width: wH-wL,height: hH-hL,left: wL,top: hL};
-
+	const nowTarget=nowLayer.rawImageData;
+	const targetSize={width: wH-wL+1,height: hH-hL+1,left: wL,top: hL};
+	const clippedTargetSize=GLProgram.borderIntersection(targetSize,CANVAS.renderer.viewport);
+	if(clippedTargetSize.width<=0||clippedTargetSize.height<=0){ // now draw in the paper area
+		return;
+	}
 	// render
 	if(CANVAS.renderer.brush.blendMode!=-1){ // not eraser, need to expand border
 		CANVAS.renderer.adjustImageDataBorders(nowTarget,targetSize,true);
@@ -197,7 +208,7 @@ CANVAS.stroke=function() {
 	CANVAS.renderer.renderPoints(wL,wH,hL,hH,kPoints);
 
 	// render end
-	CANVAS.isChanged=true; // canvas changed
+	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize);
 	nowLayer.setRawImageDataInvalid(); // the layers needs to be recomposited
 	CANVAS.requestRefresh(); // request a refresh on the screen
 };
@@ -206,13 +217,15 @@ CANVAS.stroke=function() {
  * On the end of stroke (Notice: not certainly canvas refreshed!)
  */
 CANVAS.strokeEnd=function() {
-	CANVAS.points.p0=[NaN,NaN,0];
 	PERFORMANCE.idleTaskManager.startIdle();
 	/**
 	 * @TODO: more precise isChanged detection
 	 */
-	if(CANVAS.isChanged) { // the place that calls LAYER
-		CANVAS.isChanged=false;
+	if(CANVAS.changedArea.width<0)CANVAS.changedArea.width=0;
+	if(CANVAS.changedArea.height<0)CANVAS.changedArea.height=0;
+	const isChanged=CANVAS.changedArea.width>0&&CANVAS.changedArea.height>0;
+	
+	if(isChanged) { // the place that calls LAYER
 		CANVAS.onEndRefresh();
 	}
 }
@@ -266,9 +279,10 @@ CANVAS.refreshScreen=function() {
  */
 CANVAS.onEndRefresh=function() {
 	LAYERS.active.updateThumb();
-	HISTORY.addHistory({
+	HISTORY.addHistory({ // add raw image data changed history
 		type:"image-data",
-		id:CANVAS.nowLayer.id
+		id:CANVAS.nowLayer.id,
+		area:{...CANVAS.changedArea}
 	});
 	CANVAS.lastRefreshTime=NaN;
 }

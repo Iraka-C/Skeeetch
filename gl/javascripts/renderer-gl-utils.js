@@ -9,10 +9,16 @@ class GLTextureBlender {
 		// Normal or Copy version
 		const vBlendShaderSource=glsl` // vertex shader for drawing a circle
 			attribute vec2 a_position; // vertex position
+			uniform float u_flip_Y; // vertical flip
 			varying vec2 v_position;
 			void main(){
-				v_position=a_position;
-				gl_Position=vec4(a_position*2.0-1.0,0.0,1.0); // to clip space
+				if(u_flip_Y==0.){
+					v_position=a_position;
+				}
+				else{
+					v_position=vec2(a_position.x,1.-a_position.y);
+				}
+				gl_Position=vec4(a_position*2.-1.,0.,1.); // to clip space
 			}
 		`;
 		const fBlendShaderSource=glsl`
@@ -31,7 +37,7 @@ class GLTextureBlender {
 		this.blendProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
 	}
 
-	free(){
+	free() {
 		this.blendProgram.free();
 	}
 	/**
@@ -51,46 +57,63 @@ class GLTextureBlender {
 	 * **NOTE** if not param.alphaLock, then the dst.validArea may change!
 	 */
 	blendTexture(src,dst,param) {
-		if(!src.width||!src.height||!dst.width||!dst.height){ // one of the target contains zero pixel
+		if(!src.width||!src.height||!dst.width||!dst.height) { // one of the target contains zero pixel
 			return; // needless to blend
 		}
-		
+
 		const gl=this.gl;
 		param.alphaLock=param.alphaLock||false;
-		if(param.mode===undefined)param.mode=GLTextureBlender.NORMAL;
-		if(param.srcAlpha===undefined)param.srcAlpha=1;
+		if(param.mode===undefined) param.mode=GLTextureBlender.NORMAL;
+		if(param.srcAlpha===undefined) param.srcAlpha=1;
+		if(param.flipY==undefined) param.flipY=false;
 
 		let advancedBlendFlag=false;
 		switch(param.mode) {
 			case GLTextureBlender.SOURCE:
-				if(param.alphaLock){ // do not change target alpha
+				if(param.alphaLock) { // do not change target alpha
 					gl.blendFunc(gl.DST_ALPHA,gl.ZERO);
 				}
-				else{
+				else {
 					gl.blendFunc(gl.ONE,gl.ZERO); // copy
 				}
 				break;
+			case GLTextureBlender.ERASE:
+				if(param.alphaLock) { // do not change target alpha
+					// Nothing to erase
+				}
+				else {
+					gl.blendFunc(gl.ZERO,gl.ONE_MINUS_SRC_ALPHA); // no color
+				}
+				break;
+			case GLTextureBlender.NONE:
+				if(param.alphaLock) { // do not change target alpha
+					// Nothing to delete
+				}
+				else {
+					gl.blendFunc(gl.ZERO,gl.ZERO); // no color
+				}
+				break;
 			case GLTextureBlender.NORMAL:
-				if(param.alphaLock){ // do not change target alpha
+				if(param.alphaLock) { // do not change target alpha
 					gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA); // source-atop composition
 				}
-				else{
+				else {
 					gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA); // normal alpha blend
 				}
 				break;
 			case GLTextureBlender.SCREEN:
-				if(param.alphaLock){
+				if(param.alphaLock) {
 					advancedBlendFlag=true;
 				}
-				else{
+				else {
 					gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_COLOR); // screen color/alpha blend
 				}
 				break;
 			case GLTextureBlender.EXCLUSION:
-				if(param.alphaLock){
+				if(param.alphaLock) {
 					advancedBlendFlag=true;
 				}
-				else{
+				else {
 					gl.blendFuncSeparate( // exclusion color/alpha blend
 						gl.ONE_MINUS_DST_COLOR,gl.ONE_MINUS_SRC_COLOR,
 						gl.ONE,gl.ONE_MINUS_SRC_ALPHA
@@ -101,7 +124,7 @@ class GLTextureBlender {
 				advancedBlendFlag=true;
 		}
 
-		if(advancedBlendFlag){
+		if(advancedBlendFlag) {
 			// @TODO: need advanced composition shader
 			return;
 		}
@@ -110,13 +133,14 @@ class GLTextureBlender {
 		program.setTargetTexture(dst.data);
 		program.setSourceTexture(src.data);
 		program.setUniform("u_image_alpha",param.srcAlpha);
-		
+		program.setUniform("u_flip_Y",param.flipY?1:0);
+
 		const left=Math.round(src.left-dst.left);
 		const top=Math.round(dst.top+dst.height-src.top-src.height);
 		gl.viewport(left,top,src.width,src.height);
 		program.run();
 
-		if(!param.alphaLock){ // extend dst valid area, but not larger than dst size
+		if(!param.alphaLock) { // extend dst valid area, but not larger than dst size
 			const tmpArea=GLProgram.extendBorderSize(src.validArea,dst.validArea);
 			dst.validArea=GLProgram.borderIntersection(tmpArea,dst);
 		}
@@ -125,19 +149,21 @@ class GLTextureBlender {
 
 // Mode enums, shall be the same def as BasicRenderer
 GLTextureBlender.NORMAL=BasicRenderer.NORMAL;
+GLTextureBlender.ERASE=BasicRenderer.ERASE;
+GLTextureBlender.NONE=BasicRenderer.NONE;
 GLTextureBlender.SOURCE=BasicRenderer.SOURCE;
 GLTextureBlender.MULTIPLY=BasicRenderer.MULTIPLY;
 GLTextureBlender.SCREEN=BasicRenderer.SCREEN;
 GLTextureBlender.EXCLUSION=BasicRenderer.EXCLUSION;
 
-class GLImageDataFactory{
+class GLImageDataFactory {
 	/**
 	 * Load an Image / ImageData into GL texture based image data
 	 * Output GL texture based image data as basic ImageData Object
 	 * 
 	 * These functions are all time consuming! Reduce the use.
 	 */
-	constructor(gl,dataFormat){
+	constructor(gl,dataFormat) {
 		this.gl=gl;
 		this.dataFormat=dataFormat;
 		// draw source 
@@ -173,7 +199,7 @@ class GLImageDataFactory{
 		this.converterProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
 	}
 
-	free(){
+	free() {
 		this.converterProgram.free();
 	}
 
@@ -189,14 +215,14 @@ class GLImageDataFactory{
 		const gl=this.gl;
 		const program=this.converterProgram;
 		let tmpTexture=null;
-		if(!targetSize){ // init: same as source
+		if(!targetSize) { // init: same as source
 			targetSize=[src.width,src.height];
 			//targetSize=[src.validArea.width,src.validArea.height];
 		}
-		if(!targetRange){ // init: same as targetSize
+		if(!targetRange) { // init: same as targetSize
 			targetRange=[0,0,targetSize[0],targetSize[1]];
 		}
-		else{
+		else {
 			targetRange=targetRange.slice(0,4);
 		}
 		let [W,H]=targetSize;
@@ -209,24 +235,24 @@ class GLImageDataFactory{
 		program.setSourceTexture(src.data,src.width,src.height);
 		program.setTargetTexture(tmpTexture,W,H); // draw to canvas
 		program.setUniform("u_is_premult",0);
-		switch(this.dataFormat){
-			case gl.FLOAT: program.setUniform("u_range",255.999);break; // map 0.0~1.0 to 0~255
+		switch(this.dataFormat) {
+			case gl.FLOAT: program.setUniform("u_range",255.999); break; // map 0.0~1.0 to 0~255
 			case gl.UNSIGNED_SHORT_4_4_4_4: // @TODO: support these formats
 			case gl.HALF_FLOAT: break;
-			case gl.UNSIGNED_BYTE: program.setUniform("u_range",1);break;
+			case gl.UNSIGNED_BYTE: program.setUniform("u_range",1); break;
 		}
 		gl.viewport(0,0,W,H); // set size to target
 		gl.blendFunc(this.gl.ONE,this.gl.ZERO); // copy
 		program.run();
 
 		// allocate proper buffer
-		const SIZE=targetRange[2]*targetRange[3]*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4?1:4);
+		const SIZE=targetRange[2]*targetRange[3]*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4? 1:4);
 		let pixelsF;
-		switch(this.dataFormat){
-			case gl.FLOAT: pixelsF=new Float32Array(SIZE);break;
+		switch(this.dataFormat) {
+			case gl.FLOAT: pixelsF=new Float32Array(SIZE); break;
 			case gl.UNSIGNED_SHORT_4_4_4_4:
-			case gl.HALF_FLOAT: pixelsF=new Uint16Array(SIZE);break;
-			case gl.UNSIGNED_BYTE: pixelsF=new Uint8Array(SIZE);break;
+			case gl.HALF_FLOAT: pixelsF=new Uint16Array(SIZE); break;
+			case gl.UNSIGNED_BYTE: pixelsF=new Uint8Array(SIZE); break;
 		}
 
 		// read pixels from texture, takes time (~3ms)
@@ -234,7 +260,7 @@ class GLImageDataFactory{
 		gl.deleteTexture(tmpTexture);
 
 		// format transform
-		switch(this.dataFormat){
+		switch(this.dataFormat) {
 			case gl.FLOAT:
 				return new Uint8ClampedArray(pixelsF);
 			case gl.UNSIGNED_BYTE: // same
@@ -246,13 +272,16 @@ class GLImageDataFactory{
 		}
 	}
 
-	// src is a gl renderer img data
-	// return premultiplied, Y-non-flipped (raw) result
+	/**
+	 * src is a gl renderer img data
+	 * return premultiplied, Y-non-flipped (raw) result
+	 */
 	imageDataToBuffer(src) {
 		const gl=this.gl;
-		if(!(src.width&&src.height)){ // empty texture
-			switch(this.dataFormat){
-				case gl.FLOAT:return new Float32Array(0);
+
+		if(!(src.width&&src.height)) { // empty
+			switch(this.dataFormat) {
+				case gl.FLOAT: return new Float32Array(0);
 				case gl.UNSIGNED_SHORT_4_4_4_4:
 				case gl.HALF_FLOAT: return new Uint16Array(0);
 				case gl.UNSIGNED_BYTE: return new Uint8Array(0);
@@ -264,50 +293,92 @@ class GLImageDataFactory{
 		program.setTargetTexture(src.data,src.width,src.height);
 		gl.viewport(0,0,src.width,src.height); // set size to src
 
-		const SIZE=src.width*src.height*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4?1:4);
+		const SIZE=src.width*src.height*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4? 1:4);
 		let pixels;
-		switch(this.dataFormat){
-			case gl.FLOAT:pixels=new Float32Array(SIZE);break;
+		switch(this.dataFormat) {
+			case gl.FLOAT: pixels=new Float32Array(SIZE); break;
 			case gl.UNSIGNED_SHORT_4_4_4_4:
-			case gl.HALF_FLOAT: pixels=new Uint16Array(SIZE);break;
-			case gl.UNSIGNED_BYTE: pixels=new Uint8Array(SIZE);break;
+			case gl.HALF_FLOAT: pixels=new Uint16Array(SIZE); break;
+			case gl.UNSIGNED_BYTE: pixels=new Uint8Array(SIZE); break;
 		}
 		gl.readPixels(0,0,src.width,src.height,gl.RGBA,this.dataFormat,pixels); // read from buffer
 		return pixels;
 	}
 
 	// src is a GLRAMBuf, tgt is a GLTexture. load the contents of src into tgt
-	loadRAMBufToTexture(src,tgt){
-		if(tgt.type!="GLTexture"){
-			throw new Error("Cannot load data into "+tgt.type);
-		}
-		const gl=this.gl;
-		gl.bindTexture(gl.TEXTURE_2D,tgt.data);
-		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,src.width,src.height,0,gl.RGBA,this.dataFormat,src.data);
-		tgt.width=src.width;
-		tgt.height=src.height;
-		tgt.left=src.left;
-		tgt.top=src.top;
-		tgt.validArea=src.validArea;
-	}
+	// loadRAMBufToTexture(src,tgt) {
+	// 	if(tgt.type!="GLTexture") {
+	// 		throw new Error("Cannot load data into "+tgt.type);
+	// 	}
+	// 	const gl=this.gl;
+	// 	// Setup temp texture for extracting data
+	// 	const tmpTexture=GLProgram.createAndSetupTexture(gl);
+	// 	gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,src.width,src.height,0,gl.RGBA,this.dataFormat,src.data);
+
+	// 	const tmpImageData={ // create a GLTexture copy of src
+	// 		type: "GLTexture",
+	// 		data: tmpTexture,
+	// 		width: src.width,
+	// 		height: src.height,
+	// 		left: src.left,
+	// 		top: src.top,
+	// 		validArea: src // borrow values
+	// 	}
+		
+	// 	gl.deleteTexture(tmpTexture);
+	// }
 
 	// get a new GLRAMBuf (with similar ids) from texture
-	getRAMBufFromTexture(src){
-		return {
-			type: "GLRAMBuf",
-			data: this.imageDataToBuffer(src), // creates a copy
-			id: src.id, // here, imgData of same id may appear: don't use this as a hash!
+	/**
+	 * src is a gl renderer img data
+	 * return premultiplied, Y-non-flipped (raw) result
+	 * targetArea is the range to extract imageData {width,height,left,top}, in paper coordinate
+	 * ** NOTE **
+	 * if the targetArea is out of the src size range, then only the intersection part will be clipped
+	 */
+	getRAMBufFromTexture(src,targetArea) {
+		const gl=this.gl;
+		targetArea=targetArea||{
 			width: src.width,
 			height: src.height,
 			left: src.left,
-			top: src.top,
+			top: src.top
+		};
+		const area=GLProgram.borderIntersection(src,targetArea); // clip out the intersection part
+		if(area.width<0)area.width=0;
+		if(area.height<0)area.height=0;
+
+		let data;
+		const SIZE=area.width*area.height*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4? 1:4);
+		switch(this.dataFormat) {
+			case gl.FLOAT: data=new Float32Array(SIZE); break;
+			case gl.UNSIGNED_SHORT_4_4_4_4:
+			case gl.HALF_FLOAT: data=new Uint16Array(SIZE); break;
+			case gl.UNSIGNED_BYTE: data=new Uint8Array(SIZE); break;
+		}
+		if(SIZE) { // start converting
+			const program=this.converterProgram;
+			program.setTargetTexture(src.data);
+			gl.viewport(0,0,src.width,src.height); // set size to src
+			const glArea=[area.left-src.left,src.top+src.height-area.top-area.height,area.width,area.height];
+			gl.readPixels(...glArea,gl.RGBA,this.dataFormat,data); // read from buffer
+		}
+
+		return {
+			type: "GLRAMBuf",
+			data: data, // creates a copy
+			id: src.id, // here, imgData of same id may appear: don't use this as a hash!
+			width: area.width,
+			height: area.height,
+			left: area.left,
+			top: area.top,
 			tagColor: src.tagColor, // same color
-			validArea: {...src.validArea}
+			validArea: {...area}
 		};
 	}
 
 	// Convert target into a GLRAMBuf type imagedata
-	convertGLTextureToRAMBuf(target){
+	convertGLTextureToRAMBuf(target) {
 		const data2D=this.imageDataToBuffer(target);
 		const texture=target.data;
 		target.type="GLRAMBuf";
@@ -315,7 +386,7 @@ class GLImageDataFactory{
 		this.gl.deleteTexture(texture);
 	}
 
-	convertGLRAMBufToTexture(target){
+	convertGLRAMBufToTexture(target) {
 		const gl=this.gl;
 		const texture=GLProgram.createAndSetupTexture(gl);
 		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,target.width,target.height,0,gl.RGBA,this.dataFormat,target.data);
@@ -329,8 +400,8 @@ class GLImageDataFactory{
 	 * img can be Context2D ImageData / HTMLImageElement / HTMLCanvasElement / ImageBitmap
 	 * // @TODO: restrict the input size.
 	 */
-	loadToImageData(target,img){
-		try{
+	loadToImageData(target,img) {
+		try {
 			const gl=this.gl;
 			gl.bindTexture(gl.TEXTURE_2D,target.data);
 			gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,this.dataFormat,img);
@@ -342,7 +413,7 @@ class GLImageDataFactory{
 				left: target.left,
 				top: target.top
 			};
-		}catch(err){
+		} catch(err) {
 			console.warn(img);
 			console.err(err);
 		}
@@ -353,7 +424,7 @@ class GLImageDataFactory{
 	 * Get a range as small as possible that covers all non-zero pixels
 	 * return [l,r,u,b]: blank intervals in pixels. Shrinking the border these pixels won't delete non-zero pixel.
 	 */
-	getImageDataNonZeroRange(){
+	getImageDataNonZeroRange() {
 
 	}
 }

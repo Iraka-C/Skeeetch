@@ -10,11 +10,11 @@ HISTORY={};
  */
 HISTORY.list=[];
 HISTORY.nowId=-1; // no history yet
-HISTORY.nodeDataHistory={};
+//HISTORY.nodeDataHistory={};
 HISTORY.MAX_HISTORY=20; // at most 20 steps
 
 HISTORY.pendingHistoryCnt=0; // How many history item still at pending status? (not added to list)
-HISTORY.pendingDataChangeId=new Set();
+HISTORY.pendingImageDataChangeItem=new Map();
 
 class HistoryItem{
 	constructor(param){
@@ -25,19 +25,26 @@ class HistoryItem{
 		 * node-pan: translating the image data of the node descendants, contents not changed
 		 * node-structure: moved a node item from one place to another (including add/delete)
 		 * node-property: changed a property of a node item
+		 * bundle: a sequence of HistoryItem
 		 */
 		this.type=param.type;
 		this.id=param.id;
 
 		switch(param.type){
 			case "image-data":
-				const rawImageData=LAYERS.layerHash[param.id].rawImageData; // fetch rawImgData
-				const imgBuf=CANVAS.renderer.getBufferFromImageData(rawImageData);
-				if(!HISTORY.nodeDataHistory.hasOwnProperty(param.id)){ // Only for DEBUG
-					HISTORY.nodeDataHistory[param.id]=[];
-				}
-				HISTORY.nodeDataHistory[param.id].push(imgBuf); // push into imgData history
-				this.data=imgBuf; // the imgData of this item
+				const node=LAYERS.layerHash[param.id];
+				const newImageData=node.rawImageData; // fetch rawImgData
+				const oldImageData=node.lastRawImageData;
+				//const imgBuf=CANVAS.renderer.getBufferFromImageData(rawImageData); // TIME CONSUMING!!!
+
+				this.oldData=CANVAS.renderer.getBufferFromImageData(oldImageData,param.area);
+				this.newData=CANVAS.renderer.getBufferFromImageData(newImageData,param.area);
+				
+				// copy contents
+				CANVAS.renderer.adjustImageDataBorders(oldImageData,newImageData,false);
+				CANVAS.renderer.clearImageData(oldImageData);
+				// @TODO: only copy the changed part to save time
+				CANVAS.renderer.blendImageData(newImageData,oldImageData,{mode:BasicRenderer.SOURCE});
 				break;
 			case "node-pan":
 				this.prevPos=param.prevPos;
@@ -56,7 +63,7 @@ class HistoryItem{
 		}
 
 		/**
-		 * "history-group" type: a group of actions as a bunch
+		 * "bundle" type: a group of actions as a bunch
 		 * @TODO: add sumbit-update like API
 		 */
 	}
@@ -87,28 +94,40 @@ HISTORY.addHistory=function(param){ // see HistoryItem constructor for info stru
 	// }
 	// HISTORY.list.push(new HistoryItem(info));
 	// HISTORY.nowId++;
-	return; // For debug
+	console.log(param);
+	
+	//return; // For debug
 
 	if(param.type=="image-data"){ // special treatment for imagedata change: only sumbit once
-		if(HISTORY.pendingDataChangeId.has(param.id)){ // already submitted
+		if(HISTORY.pendingImageDataChangeItem.has(param.id)){ // already submitted
+			const item=HISTORY.pendingImageDataChangeItem.get(param.id);
+			item.area=GLProgram.extendBorderSize(item.area,param.area); // extend area, needn't submit again
 			return;
 		}
-		HISTORY.pendingDataChangeId.add(param.id); // submit
+		HISTORY.pendingImageDataChangeItem.set(param.id,param); // submit
 	}
 	HISTORY.pendingHistoryCnt++;
 	PERFORMANCE.idleTaskManager.addTask(e=>{
 		HISTORY.pendingHistoryCnt--;
-		HISTORY.pendingDataChangeId.delete(param.id);
+		HISTORY.pendingImageDataChangeItem.delete(param.id);
 		const item=new HistoryItem(param);
 		console.log("Add History",item);
 		HISTORY.list.push(item);
-		HISTORY.nowId=HISTORY.list.length; // point to tail
+		HISTORY.nowId++; // point to tail
 	});
 }
 
 HISTORY.undo=function(){ // undo 1 step
 	const undoInstant=()=>{
-		console.log("Undo");
+		console.log("Undo",HISTORY.list,HISTORY.nowId);
+		const item=HISTORY.list[HISTORY.nowId--];
+		
+		switch(item.type){
+		case "image-data":
+			HISTORY.undoImageDataChange(item);
+			break;
+		default: // uncategorized
+		}
 	};
 	
 	if(HISTORY.nowId<0)return; // no older history
@@ -150,21 +169,25 @@ HISTORY.redo=function(){ // redo 1 step
 }
 
 // ================= Deal with each type of Undo/Redo ==================
-// "canvas-change" type
-HISTORY.undoCanvasChange=function(info){
-	let layer=LAYERS.layerHash[info.id];
-	// use temp renderer without buffer (the buffer will be filled after set active)
-	CANVAS.getNewRenderer(layer.$div[0],{disableBuffer:true}).putImageData(info.prevData);
-	layer.updateSettings(info.prevData,info.prevStatus);
+// "image-data" type
+HISTORY.undoImageDataChange=function(item){
+	const layer=LAYERS.layerHash[item.id];
+	CANVAS.renderer.clearScissoredImageData(layer.rawImageData,item.newData);
+	CANVAS.renderer.loadToImageData(layer.rawImageData,item.oldData);
+	// @TODO: maintain lastImageData
+	layer.setRawImageDataInvalid();
+	CANVAS.requestRefresh();
 	LAYERS.setActive(layer); // also update canvas buffer and latest image data
-	// @TODO: logic here
 }
+
 HISTORY.redoCanvasChange=function(info){
 	let layer=LAYERS.layerHash[info.id];
 	CANVAS.getNewRenderer(layer.$div[0],{disableBuffer:true}).putImageData(info.data);
 	layer.updateSettings(info.data,info.status);
 	LAYERS.setActive(layer); // also update canvas buffer and latest image data
 }
+
+// ===================================================================
 
 // "move-layer-item" type
 // @TODO: add layer / group status

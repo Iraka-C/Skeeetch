@@ -66,7 +66,7 @@ CURSOR.moveCursor=function(event){
 	CURSOR.updateXYR();
 
 	// canvas operation
-	CANVAS.updateCursor(CURSOR.p0);
+	CANVAS.updateCursor(CURSOR.p0,CURSOR.isDown);
 	if(CURSOR.isDown){
 		if(CURSOR.nowActivity=="pan-paper"){ // shift: pan the whole canvas
 			let dx=CURSOR.p0[0]-CURSOR.p1[0];
@@ -193,7 +193,7 @@ CURSOR.updateAction=function(event){
 CURSOR.disableCursor=function(){
 	CURSOR.p0=[NaN,NaN,NaN];
 	CURSOR.p1=[NaN,NaN,NaN];
-	CANVAS.updateCursor(CURSOR.p0);
+	CANVAS.updateCursor(CURSOR.p0,CURSOR.isDown);
 };
 
 /**

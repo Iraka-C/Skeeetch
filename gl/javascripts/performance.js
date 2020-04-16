@@ -142,7 +142,7 @@ class IdleTaskManager{
 			console.log("Start Idle");
 			
 			this._onIdle();
-		},500); // Start idle in 500ms. Do not start immediately to guarantee smooth pen strokes
+		},250); // Start idle in 250ms. Do not start immediately to guarantee smooth pen strokes
 	}
 	startBusy(){
 		this.isIdle=false;

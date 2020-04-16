@@ -251,6 +251,8 @@ class BasicRenderer{
 }
 
 // Blend Mode enums
+BasicRenderer.NONE=-2;
+BasicRenderer.ERASE=-1;
 BasicRenderer.NORMAL=0;
 BasicRenderer.SOURCE=1;
 BasicRenderer.MULTIPLY=2;

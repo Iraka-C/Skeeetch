@@ -201,12 +201,19 @@ LAYERS.init=function(){
  * Add a first blank layer to the layer panel
  */
 LAYERS.initFirstLayer=function(){
+	// Create Node
 	let layer=new CanvasNode();
 	LAYERS.layerTree.insertNode$UI(layer.$ui); 
 	LAYERS.layerTree.insertNode(layer,0); // append the contents to layerTree
+	// Clear Blank imageData
 	layer.assignNewRawImageData(ENV.paperSize.width,ENV.paperSize.height,0,0);
 	CANVAS.renderer.clearImageData(layer.rawImageData,[1,1,1,1],false);
 	layer.setRawImageDataInvalid();
+	// Prepare history
+	CANVAS.renderer.adjustImageDataBorders(layer.lastRawImageData,layer.rawImageData,false);
+	CANVAS.renderer.clearImageData(layer.lastRawImageData,[1,1,1,1],false);
+
+	// Set Properties
 	layer.setProperties({name:Lang("Background"),pixelOpacityLocked:true});
 	LAYERS.setActive(layer);
 }

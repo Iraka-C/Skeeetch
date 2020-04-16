@@ -144,12 +144,12 @@ class GLBrushRenderer{
 	 * @param {*} target 
 	 * @param {*} brush 
 	 * @param {*} pos 
-	 * @param {*} size diameter of the brush
+	 * @param {*} radius diameter of the brush
 	 * @param {*} colorRGBA Premultiplied [r,g,b,a] in 0~1
 	 * @param {*} isOpacityLocked 
 	 * @param {*} softRange 
 	 */
-	render(target,brush,pos,size,colorRGBA,isOpacityLocked,softRange){
+	render(target,brush,pos,radius,colorRGBA,isOpacityLocked,softRange){
 		const gl=this.gl;
 		const program=this.circleProgram;
 
@@ -157,7 +157,7 @@ class GLBrushRenderer{
 		program.setUniform("u_resolution",[target.width,target.height]);
 		gl.viewport(0,0,target.width,target.height); // restore viewport
 
-		const color=[...colorRGBA];
+		let color=[...colorRGBA];
 		if(brush.blendMode>=0) { // add: pen, brush, ...
 			if(isOpacityLocked) { // destination opacity not change
 				gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA); // a_dest doesn't change
@@ -176,7 +176,7 @@ class GLBrushRenderer{
 			}
 		}
 
-		program.setUniform("u_pos",[pos[0],pos[1],size/2]);
+		program.setUniform("u_pos",[pos[0],pos[1],radius]);
 		program.setUniform("u_color",color); // set circle color, alpha pre-multiply
 		program.setUniform("u_softness",softRange);
 		program.run();

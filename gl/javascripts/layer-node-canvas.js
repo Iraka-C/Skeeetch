@@ -73,15 +73,9 @@ LAYERS.$newCanvasLayerUI=function(id) {
 class CanvasNode extends ContentNode {
 	constructor() {
 		super();
-		/**
-		 * contains another imageData for stroke composition
-		 * managed by CANVAS and COMPOSITOR
-		 * this.strokeBuffer={
-		 *    strokeImageData,
-		 *    originalImageData
-		 * }
-		 */
-		this.strokeBuffer=null;
+		
+		// store the last imageData, managed by HISTORY
+		this.lastRawImageData=CANVAS.renderer.createImageData();
 
 		// Layer panel UI
 		this.$ui=LAYERS.$newCanvasLayerUI(this.id); // set ui in layer list

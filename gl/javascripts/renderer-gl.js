@@ -191,7 +191,6 @@ class GLRenderer extends BasicRenderer {
 	// @TODO: dynamically grow texture size to save graphics memory!
 	// Especially in large files
 	renderPoints(wL,wH,hL,hH,kPoints) {
-		const gl=this.gl;
 		const imgData=this.targetImageData;
 
 		// set blend mode
@@ -203,7 +202,10 @@ class GLRenderer extends BasicRenderer {
 			const p=kPoints[k];
 			const opa=p[3];
 			const softRange=this.softness+fixedSoftEdge/p[2];
-			const size=(p[2]+0.1)*2;
+			let rad=p[2];
+			if(this.antiAlias&&rad<2){ // thickness compensation
+				rad=0.8+rad*0.6;
+			}
 
 			const color=[...rgb,1];
 			color[0]*=opa;
@@ -214,7 +216,7 @@ class GLRenderer extends BasicRenderer {
 			// set circle size and radius, adjust position according to the imgData, radius+0.1 for gl clipping
 			this.brushRenderer.render(
 				imgData,this.brush,
-				[p[0]-imgData.left,p[1]-imgData.top],size,
+				[p[0]-imgData.left,p[1]-imgData.top],rad,
 				color,this.isOpacityLocked,softRange
 			);
 		}
@@ -377,6 +379,21 @@ class GLRenderer extends BasicRenderer {
 					top: 0
 				};
 		}
+	}
+
+	clearScissoredImageData(target,range){ // target, range, all in paper coordinate
+		if(!(target.width&&target.height)) { // No pixel, needless to clear
+			return;
+		}
+		const gl=this.gl;
+		gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuffer); // render to a texture
+		gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,target.data,0);
+		gl.viewport(0,0,target.width,target.height);
+		gl.enable(gl.SCISSOR_TEST);
+		gl.scissor(range.left-target.left,target.top+target.height-range.top-range.height,range.width,range.height);
+		gl.clearColor(0,0,0,0); // Set clear color
+		gl.clear(gl.COLOR_BUFFER_BIT); // Clear the color buffer with specified clear color
+		gl.disable(gl.SCISSOR_TEST);
 	}
 	/**
 	 * Change src's size to newParam
@@ -580,7 +597,25 @@ class GLRenderer extends BasicRenderer {
 	// Load/Get
 	loadToImageData(target,img) { // load img into target
 		if(img.type&&img.type=="GLRAMBuf") { // load a buffer
-			this.imageDataFactory.loadRAMBufToTexture(img,target);
+			// Here, suppose that the size of target will always contain img @TODO: Buggy?
+			const gl=this.gl;
+			// Setup temp texture for extracting data
+			const tmpTexture=GLProgram.createAndSetupTexture(gl);
+			gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,img.width,img.height,0,gl.RGBA,this.dataFormat,img.data); // y-flipped!
+			const tmpImageData={ // create a GLTexture copy of img
+				type: "GLTexture",
+				data: tmpTexture,
+				width: img.width,
+				height: img.height,
+				left: img.left,
+				top: img.top,
+				validArea: img // borrow values
+			}
+			this.textureBlender.blendTexture(tmpImageData,target,{
+				mode:GLRenderer.SOURCE,
+				flipY: true
+			});
+			gl.deleteTexture(tmpTexture);
 		}
 		else {
 			// img can be Context2DImageData/HTMLImageElement/HTMLCanvasElement/ImageBitmap
@@ -588,9 +623,9 @@ class GLRenderer extends BasicRenderer {
 		}
 	}
 
-	getBufferFromImageData(source) {
-		// get a RAM buffer copy of source
-		return this.imageDataFactory.getRAMBufFromTexture(source);
+	getBufferFromImageData(source,area) {
+		// get a RAM buffer copy of source (area part)
+		return this.imageDataFactory.getRAMBufFromTexture(source,area);
 	}
 
 	getUint8ArrayFromImageData(src,targetSize,targetRange) {
