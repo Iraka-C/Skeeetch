@@ -56,6 +56,7 @@ class GLTextureBlender {
 		}
 		
 		const gl=this.gl;
+		param=param||{};
 		param.alphaLock=param.alphaLock||false;
 		if(param.mode===undefined)param.mode=GLTextureBlender.NORMAL;
 		if(param.srcAlpha===undefined)param.srcAlpha=1;
@@ -68,6 +69,14 @@ class GLTextureBlender {
 				}
 				else{
 					gl.blendFunc(gl.ONE,gl.ZERO); // copy
+				}
+				break;
+			case GLTextureBlender.ERASE:
+				if(param.alphaLock){ // do not change target alpha
+					gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+				}
+				else{
+					gl.blendFunc(gl.ZERO,gl.ONE_MINUS_SRC_ALPHA); // no color
 				}
 				break;
 			case GLTextureBlender.NORMAL:
@@ -116,7 +125,8 @@ class GLTextureBlender {
 		gl.viewport(left,top,src.width,src.height);
 		program.run();
 
-		if(!param.alphaLock){ // extend dst valid area, but not larger than dst size
+		if(!param.alphaLock&&param.mode!=GLTextureBlender.ERASE){
+			// extend dst valid area, but not larger than dst size
 			const tmpArea=GLProgram.extendBorderSize(src.validArea,dst.validArea);
 			dst.validArea=GLProgram.borderIntersection(tmpArea,dst);
 		}
@@ -124,6 +134,7 @@ class GLTextureBlender {
 }
 
 // Mode enums, shall be the same def as BasicRenderer
+GLTextureBlender.ERASE=BasicRenderer.ERASE;
 GLTextureBlender.NORMAL=BasicRenderer.NORMAL;
 GLTextureBlender.SOURCE=BasicRenderer.SOURCE;
 GLTextureBlender.MULTIPLY=BasicRenderer.MULTIPLY;
@@ -206,8 +217,8 @@ class GLImageDataFactory{
 		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,this.dataFormat,null);
 
 		// Run program to get a zoomed texture
-		program.setSourceTexture(src.data,src.width,src.height);
-		program.setTargetTexture(tmpTexture,W,H); // draw to canvas
+		program.setSourceTexture(src.data);
+		program.setTargetTexture(tmpTexture); // draw to canvas
 		program.setUniform("u_is_premult",0);
 		switch(this.dataFormat){
 			case gl.FLOAT: program.setUniform("u_range",255.999);break; // map 0.0~1.0 to 0~255

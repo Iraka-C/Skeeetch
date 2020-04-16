@@ -229,6 +229,8 @@ LAYERS.setActive=function(obj){ // layer or group or id
 	LAYERS.active=obj;
 	if(obj instanceof CanvasNode){ // canvas layer
 		CANVAS.setTargetLayer(obj); // set CANVAS draw target
+		// Do not require this because no content is changed
+		//obj.setRawImageDataInvalid(); // require reconstruction because of strokeBuffer
 		$("#clear-button").children("img").attr("src","./resources/clear-layer.svg"); // clear
 	}
 	else if(obj instanceof LayerGroupNode){ // group

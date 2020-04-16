@@ -41,7 +41,7 @@ CANVAS.init=function() {
 CANVAS.setTargetLayer=function(targetLayer) {
 	if(CANVAS.nowLayer){ // Must be a CanvasNode
 		// @TODO: submit strokeBuffer
-		CANVAS.nowLayer.strokeBuffer=null; // release strokeBuffer
+		CANVAS.renderer.releaseStrokeBuffer(CANVAS.nowLayer.rawImageData,CANVAS.nowLayer.strokeBuffer);
 	}
 	CANVAS.nowLayer=targetLayer;
 	if(!targetLayer) { // no active target
@@ -54,8 +54,10 @@ CANVAS.setTargetLayer=function(targetLayer) {
 		CANVAS.updateSpeed(); // at init
 		CANVAS.renderer.init({
 			// @TODO: setup strokeBuffer
-			imageData: targetLayer.rawImageData // render target
+			imageData: targetLayer.rawImageData, // render target
+			strokeBuffer: targetLayer.strokeBuffer
 		});
+		targetLayer.setRawImageDataInvalid(); // rawImageData changed
 	}
 }
 
@@ -198,7 +200,7 @@ CANVAS.stroke=function() {
 
 	// render end
 	CANVAS.isChanged=true; // canvas changed
-	nowLayer.setRawImageDataInvalid(); // the layers needs to be recomposited
+	nowLayer.setMaskedImageDataInvalid(); // the layers needs to be recomposited, but raw is valid
 	CANVAS.requestRefresh(); // request a refresh on the screen
 };
 
@@ -206,6 +208,16 @@ CANVAS.stroke=function() {
  * On the end of stroke (Notice: not certainly canvas refreshed!)
  */
 CANVAS.strokeEnd=function() {
+	// submit strokeBuffer to originalImageData
+	if(CANVAS.nowLayer){
+		CANVAS.renderer.submitStrokeBuffer(CANVAS.nowLayer.rawImageData,CANVAS.nowLayer.strokeBuffer);
+	}
+	// Register history
+	// HISTORY.addHistory({
+	// 	type:"image-data",
+	// 	id:CANVAS.nowLayer.id
+	// });
+
 	CANVAS.points.p0=[NaN,NaN,0];
 	PERFORMANCE.idleTaskManager.startIdle();
 	/**
@@ -262,14 +274,9 @@ CANVAS.refreshScreen=function() {
 /**
  * The last refresh after a stroke stops
  * refresh corresponding layer settings
- * register history
  */
 CANVAS.onEndRefresh=function() {
 	LAYERS.active.updateThumb();
-	HISTORY.addHistory({
-		type:"image-data",
-		id:CANVAS.nowLayer.id
-	});
 	CANVAS.lastRefreshTime=NaN;
 }
 
@@ -331,7 +338,17 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
  * @TODO: move stroke buffer
  */
 CANVAS.panLayer=function(targetLayer,dx,dy){
-	const imgData=targetLayer.rawImageData;
+	let imgData;
+	let isRecomposite=false;
+	if(targetLayer.strokeBuffer&&targetLayer.strokeBuffer.originalImageData){
+		// the original "rawImageData" is in the buffer
+		imgData=targetLayer.strokeBuffer.originalImageData;
+		targetLayer.setRawImageDataInvalid();
+		isRecomposite=true;
+	}
+	else{
+		imgData=targetLayer.rawImageData;
+	}
 	imgData.left+=dx;
 	imgData.top+=dy;
 	imgData.validArea.left+=dx;
@@ -341,5 +358,9 @@ CANVAS.panLayer=function(targetLayer,dx,dy){
 		for(const v of targetLayer.children) {
 			CANVAS.panLayer(v,dx,dy);
 		}
+	}
+
+	if(isRecomposite){
+		CANVAS.requestRefresh();
 	}
 }

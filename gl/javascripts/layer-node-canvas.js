@@ -81,7 +81,7 @@ class CanvasNode extends ContentNode {
 		 *    originalImageData
 		 * }
 		 */
-		this.strokeBuffer=null;
+		this.strokeBuffer={};
 
 		// Layer panel UI
 		this.$ui=LAYERS.$newCanvasLayerUI(this.id); // set ui in layer list
@@ -148,7 +148,8 @@ class CanvasNode extends ContentNode {
 	 */
 	updateThumb() {
 		let thumbCV=this.$thumb;
-		let w=this.rawImageData.width,h=this.rawImageData.height;
+		const imgData=this.strokeBuffer.originalImageData?this.strokeBuffer.originalImageData:this.rawImageData;
+		let w=imgData.width,h=imgData.height;
 		let uW=this.$ui.width(),uH=this.$ui.height();
 
 		if(!(w&&h)) {
@@ -172,7 +173,7 @@ class CanvasNode extends ContentNode {
 			thumbCV.css({
 				"transform": "translateX("+((uW-nW)/2)+"px)"
 			});
-			this._drawThumb();
+			this._drawThumb(imgData);
 		}
 		else { // top/bottom overflow
 			let nH=h*kw; // new height
@@ -185,28 +186,22 @@ class CanvasNode extends ContentNode {
 			thumbCV.css({
 				"transform": "translateY("+((uH-nH)/2)+"px)"
 			});
-			this._drawThumb();
+			this._drawThumb(imgData);
 		}
 	}
 
-	_drawThumb() { // Use 2d context operation
+	_drawThumb(imgData) { // Use 2d context operation
 		const thumbCV=this.$thumb[0];
 		const ctx=thumbCV.getContext("2d");
 		const w=thumbCV.width,h=thumbCV.height;
 		const imgData2d=ctx.createImageData(w,h);
 
-		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(this.rawImageData,[w,h]); // get data
+		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(imgData,[w,h]); // get data
 		//const pid=CANVAS.renderer.imageDataFactory.imageDataToFloatRaw(this.rawImageData); // DEBUG (Slow!)
 		//console.log(pid.length*4/1024/1024+"MB");
 
 		imgData2d.data.set(pixels); // copy pixel data
 		ctx.putImageData(imgData2d,0,0);
-	}
-	// ================ ImageData management =================
-	setRawImageDataInvalid() {
-		//console.log("set raw invalid "+this.id);
-		// this.isRawImageDataValid shall always be true
-		this.setMaskedImageDataInvalid();
 	}
 	// ================= button =================
 	initButtons() {
