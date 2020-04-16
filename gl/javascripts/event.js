@@ -16,7 +16,7 @@ EVENTS.init=function(){
 	 */
 
 	// disable pen long press => context menu
-	//$(window).on("contextmenu",e=>false);
+	$(window).on("contextmenu",e=>false);
 
 	/**
 	 * Window resize handler
@@ -47,7 +47,6 @@ EVENTS.init=function(){
 
 	// do sth to each menu panel
 	const menuPanels=$("#menu-panel").find(".setting-panel");
-	menuPanels.push($("#bottom-info-panel")[0]); // also add footnotes into
 	const eachMenuPanelFunc=callback=>{ // callback($el)
 		menuPanels.each(function(){
 			callback($(this));

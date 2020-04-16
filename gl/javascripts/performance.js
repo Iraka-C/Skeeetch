@@ -5,7 +5,7 @@ PERFORMANCE={};
 
 PERFORMANCE.fpsCounter={
 	fps:0,
-	intvList:new Array(10), // average of 10 frames, less than 0.2s
+	intvList:new Array(60),
 	intvPt:0,
 	intvSum:0
 };

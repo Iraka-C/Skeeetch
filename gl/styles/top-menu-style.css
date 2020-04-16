@@ -57,16 +57,9 @@
 }
 
 #palette-button{
-	width: 3em; /* Same as .layer-panel-block collapsed */
-	overflow: hidden;
 	transition: color 0.25s ease-out;
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
 }
-#palette-button-text{
-	white-space: nowrap;
-}
+
 /* ===================== Brush Selector ======================== */
 #brush-selector-panel{
 	position: relative;
