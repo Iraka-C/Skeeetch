@@ -233,6 +233,7 @@ class BasicRenderer{
 	static blendModeNameToEnum(name){
 		switch(name){
 			case "normal": return BasicRenderer.NORMAL;
+			case "source": return BasicRenderer.SOURCE;
 			case "multiply": return BasicRenderer.MULTIPLY;
 			case "screen": return BasicRenderer.SCREEN;
 			case "exclusion": return BasicRenderer.EXCLUSION;
@@ -241,6 +242,7 @@ class BasicRenderer{
 	static blendModeEnumToName(mode){
 		switch(mode){
 			case BasicRenderer.NORMAL: return "normal";
+			case BasicRenderer.SOURCE: return "source";
 			case BasicRenderer.MULTIPLY: return "multiply";
 			case BasicRenderer.SCREEN: return "screen";
 			case BasicRenderer.EXCLUSION: return "exclusion";
@@ -249,7 +251,6 @@ class BasicRenderer{
 }
 
 // Blend Mode enums
-BasicRenderer.ERASE=-1; // Not used by layer composition
 BasicRenderer.NORMAL=0;
 BasicRenderer.SOURCE=1;
 BasicRenderer.MULTIPLY=2;

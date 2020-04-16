@@ -147,8 +147,6 @@ CURSOR.updateColor=function(){
 
 CURSOR._isBusy=false;
 CURSOR.setBusy=function(isBusy){
-	console.log("Set Busy",isBusy);
-	
 	CURSOR._isBusy=isBusy;
 	CURSOR.updateAction();
 }

@@ -67,7 +67,7 @@ LANG_ZH={
 };
 LANG_ZH._id={
 	"filename-input":"Skeeetch",
-	"palette-button":"调色板",
+	"palette-button-text":"调色板",
 	"system-button":"设置",
 	"file-button":"文件",
 	"palette-hue-sign":"色相",

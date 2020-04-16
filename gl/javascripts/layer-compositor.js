@@ -66,22 +66,9 @@ COMPOSITOR.compileLayerTree=function(){
  */
 COMPOSITOR.recompositeLayers=function(node) {
 	node=node||LAYERS.layerTree; // init: root
-	//console.log("Recomposite "+node.id,node.isRawImageDataValid);
+	//console.log("Recomposite "+node.id);
 
-	if(node.isRawImageDataValid){
-		// ...?
-	}
-	else if(node instanceof CanvasNode){
-		const sBuf=node.strokeBuffer; // has stroke buffer
-		if(sBuf.originalImageData&&sBuf.strokeImageData){
-			console.log("Composite Stroke Buffer");
-			
-			CANVAS.renderer.clearImageData(node.rawImageData);
-			CANVAS.renderer.blendImageData(sBuf.originalImageData,node.rawImageData,{mode:BasicRenderer.SOURCE});
-			CANVAS.renderer.blendImageData(sBuf.strokeImageData,node.rawImageData);
-		}
-	}
-	else if(node.children.length) { // there's children
+	if(!node.isRawImageDataValid&&node.children.length) {
 		// raw data of this node needs recomposition
 		// Only group/root will reach here
 		if(!node.isChildrenClipMaskOrderValid) { // clip mask order not calculated

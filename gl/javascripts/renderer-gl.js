@@ -169,38 +169,17 @@ class GLRenderer extends BasicRenderer {
 			console.warn(param.imageData);
 			throw new Error("ImageData not a GLTexture");
 		}
+		// init rendering environment
+
 		// attach the target texture to fbo
 		this.targetImageData=param.imageData;
-
-		// init rendering environment
-		if(!param.strokeBuffer){
-			throw new Error("No stroke buffer provided!");
-		}
-		const sBuf=param.strokeBuffer;
-		sBuf.originalImageData=this.brushRenderer.originalImageData;
-		sBuf.strokeImageData=this.brushRenderer.strokeImageData;
-		this.clearImageData(sBuf.originalImageData); // clear before swapping
-		this.clearImageData(sBuf.strokeImageData); // clear overlay buffer
-		this.swapImageData(this.targetImageData,sBuf.originalImageData); // store input rawImageData into ori
-		// There might be following composition in COMPOSITOR
-	}
-	submitStrokeBuffer(rImgData,sBuf){
-		this.clearImageData(this.brushRenderer.strokeImageData); // clear overlay buffer
-		this.adjustImageDataBorders(sBuf.originalImageData,rImgData.validArea,false); // make sure it contains the size
-		this.clearImageData(sBuf.originalImageData);
-		this.blendImageData(rImgData,sBuf.originalImageData,{mode:BasicRenderer.SOURCE}); // copy
-	}
-	releaseStrokeBuffer(rImgData,sBuf){
-		this.swapImageData(rImgData,sBuf.originalImageData); // submit the original image data back
-		sBuf.originalImageData=null;
-		sBuf.strokeImageData=null;
 	}
 
 	// Init before every stroke: setting the rendering environment
 	initBeforeStroke(param) {
 		super.initBeforeStroke(param);
-		this.brushRenderer.setupBrushtip(this.brush);
 		//console.log(this.brush);
+		// pre-render the brushtip data
 	}
 
 	/**
@@ -218,18 +197,41 @@ class GLRenderer extends BasicRenderer {
 		// set blend mode
 		let rgb=[this.rgb[0]/255,this.rgb[1]/255,this.rgb[2]/255]; // color to use: unmultiplied
 
-		
 		// a soft edge with fixed pixel width for anti-aliasing
+		const fixedSoftEdge=this.antiAlias? Math.min((this.brush.size+1)/4,2):0;
 		for(let k=0;k<kPoints.length;k++) { // each circle in sequence
 			const p=kPoints[k];
 			const opa=p[3];
-			const radius=p[2]+0.1; // for avoiding gl-clipping
+			const softRange=this.softness+fixedSoftEdge/p[2];
+			const size=(p[2]+0.1)*2;
 
-			// set circle size and radius, adjust position according to the imgData
-			this.brushRenderer.renderSolidPen(
+			const color=[...rgb,1];
+			color[0]*=opa;
+			color[1]*=opa;
+			color[2]*=opa;
+			color[3]*=opa;
+
+			// set circle size and radius, adjust position according to the imgData, radius+0.1 for gl clipping
+			this.brushRenderer.render(
 				imgData,this.brush,
-				[p[0],p[1]],radius,
-				rgb,opa,this.isOpacityLocked,this.antiAlias
+				[p[0]-imgData.left,p[1]-imgData.top],size,
+				color,this.isOpacityLocked,softRange
+			);
+		}
+
+		// adjust valid area
+		if(this.brush.blendMode>=0){ // add sth
+			imgData.validArea=GLProgram.borderIntersection(
+				GLProgram.extendBorderSize(
+					imgData.validArea,
+					{ // area to draw in paper coordinate
+						width: wH-wL+1,
+						height: hH-hL+1,
+						left: wL,
+						top: hL
+					}
+				),
+				imgData // clip inside the image data
 			);
 		}
 	}
@@ -331,10 +333,7 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	deleteImageData(imgData) { // discard an image data after being used
-		if(imgData.type=="GLTexture"){
-			this.gl.deleteTexture(imgData.data);
-		}
-		imgData.data=null;
+		this.gl.deleteTexture(imgData.data);
 	}
 
 	// clear the contents with transparent black or white
@@ -342,7 +341,6 @@ class GLRenderer extends BasicRenderer {
 	// if color is null and opacity is not locked, the validArea will be reset
 	// **NOTE** even if color is [0,0,0,0], the validArea won't change!
 	clearImageData(target,color,isOpacityLocked) {
-		
 		if(!(target.width&&target.height)) { // No pixel, needless to clear
 			return;
 		}
