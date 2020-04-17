@@ -81,7 +81,7 @@ body{
 input{
 	background: transparent;
 	font-size: 100%;
-	font-family: Consolas, Monaco, Microsoft YaHei, monospace, serif;
+	font-family: Consolas, Monaco, Microsoft YaHei, monospace, sans-serif;
 	border: none;
 	padding: 0em;
 	margin: 0em;

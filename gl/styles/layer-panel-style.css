@@ -194,7 +194,6 @@
 	position: absolute;
 	left: 0em;
 	bottom: 0em;
-	margin: 0.3em;
 }
 .layer-name-label:focus{
 	/* Use box shadow instead of border to avoid size change */

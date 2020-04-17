@@ -16,7 +16,7 @@ EVENTS.init=function(){
 	 */
 
 	// disable pen long press => context menu
-	$(window).on("contextmenu",e=>false);
+	//$(window).on("contextmenu",e=>false);
 
 	/**
 	 * Window resize handler

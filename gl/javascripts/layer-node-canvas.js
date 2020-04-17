@@ -35,7 +35,7 @@ LAYERS.$newCanvasLayerUI=function(id) {
 
 	// Layer name label
 	let nameLabel=$("<input class='layer-name-label'>");
-	nameLabel.attr({"value": "","type": "text","maxLength": "256","size": "16"});
+	nameLabel.attr({"value": "","type": "text","maxLength": "256","size": "20"});
 	EVENTS.disableInputSelection(nameLabel); // disable selection, prevent from dragging text
 
 	// Layer thumb
