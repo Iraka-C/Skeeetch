@@ -186,6 +186,7 @@ table{
 #bottom-info-panel *{
 	display: flex;
 	flex-direction: row;
+	align-items: baseline;
 }
 #bottom-info-box input{
 	text-align: right;
