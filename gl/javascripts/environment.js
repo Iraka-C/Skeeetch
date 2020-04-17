@@ -63,9 +63,6 @@ ENV.init=function(){ // When the page is loaded
 	 */
 	//testPsd_DEBUG();
 	//initSettingSample_DEBUG();
-
-	// ENV.shiftAntiAlias();
-	// $("#canvas_container").css("display","block");
 };
 
 // ====================== Settings ========================
@@ -81,6 +78,14 @@ ENV.refreshTransform=function(){
 	]);
 	CURSOR.updateXYR();
 };
+
+/**
+ * Set is the paper flipped
+ */
+ENV.setFlip=function(isFlip){
+	ENV.window.flip=isFlip;
+	ENV.refreshTransform();
+}
 
 /**
  * Set the scale to ratio (default 1.0)
@@ -165,7 +170,7 @@ ENV.setPaperSize=function(w,h){
 	}
 	let isAnim=ENV.displaySettings.enableTransformAnimation; // store animation
 	ENV.displaySettings.enableTransformAnimation=false; // disable animation when changing size
-	//HISTORY.clearAllHistory(); // remove histories
+	HISTORY.clearAllHistory(); // remove histories
 	ENV.paperSize={width:w,height:h,diag:Math.sqrt(w*w+h*h)};
 	$("#canvas-container").css({"width":w+"px","height":h+"px"}); // set canvas view size
 	$("#main-canvas").attr({"width":w,"height":h}); // set canvas pixel size

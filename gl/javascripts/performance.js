@@ -32,7 +32,7 @@ PERFORMANCE.getRAMEstimation=function(){ // in MB
 	let ramBytes=0;
 	// LAYER memory
 	let imgDataRAMSize=0;
-	const pixelBytes=32; // RGBA Float
+	const pixelBytes=CANVAS.rendererBitDepth/8*4; // RGBA
 	const alphaBytes=4; // Float
 	for(let id in LAYERS.layerHash){ // for all canvases
 		// @TODO: split into GPU mem or RAM
@@ -55,15 +55,12 @@ PERFORMANCE.getRAMEstimation=function(){ // in MB
 	}
 	imgDataRAMSize+=CANVAS.renderer.getRAMUsage();
 	ramBytes+=imgDataRAMSize;
-	// History @TODO: add history cnt
-	/*let histCnt=1; // initial
-	for(let i=0;i<HISTORY.list.length;i++){ // clear all history afterwards
-		let item=HISTORY.list[i];
-		if(item.info.type=="canvas-change"){
-			histCnt++;
-		}
-	}
-	byte+=histCnt*imageDataSize; // every history holds onr unique imageData*/
+
+	// History
+	let histRAMSize=HISTORY.nowRAMUsage;
+
+	ramBytes+=histRAMSize;
+	//ramBytes*=2.0; // A Mysterious param provides better estimation (?) Refer to task manager
 	return ramBytes/1024/1024; // in MB
 }
 
@@ -71,7 +68,7 @@ PERFORMANCE.getGPUMemEstimation=function(){
 	let gpuBytes=0;
 	// LAYER memory
 	let imgDataGPUSize=0;
-	const pixelBytes=32; // RGBA Float
+	const pixelBytes=CANVAS.rendererBitDepth/8*4; // RGBA Float(4bytes)
 	const alphaBytes=4; // Float
 	for(let id in LAYERS.layerHash){ // for all canvases
 		// @TODO: split into GPU mem or RAM
@@ -93,6 +90,7 @@ PERFORMANCE.getGPUMemEstimation=function(){
 	}
 	imgDataGPUSize+=CANVAS.renderer.getGPUMemUsage();
 	gpuBytes+=imgDataGPUSize;
+	//gpuBytes*=2.0; // A Mysterious param provides better estimation (?) Refer to task manager
 	return gpuBytes/1024/1024; // in MB
 }
 

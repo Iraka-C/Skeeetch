@@ -14,6 +14,10 @@ CURSOR.type=null;
 CURSOR.eventIdList=["","",""]; // a list to record now id
 
 CURSOR.nowActivity=null; // what is the cursor doing at this moment?
+CURSOR.panRecord={ // recording the status of panning a layer/group
+	isPanned: false,
+	startPosition: [NaN,NaN] // the original position of rawImageData
+};
 /**
  * nowActivity:
  * <null>: nothing
@@ -87,6 +91,12 @@ CURSOR.moveCursor=function(event){
 			const dxP=cp0[0]-cp1[0]; // difference in paper coordinate
 			const dyP=cp0[1]-cp1[1];
 			if(isNaN(dxP)||isNaN(dyP))return;
+			
+			if(!CURSOR.panRecord.isPanned){ // record panning status
+				CURSOR.panRecord.isPanned=true;
+				const imgData=LAYERS.active.rawImageData;
+				CURSOR.panRecord.startPosition=[imgData.left,imgData.top];
+			}
 			CANVAS.panLayer(LAYERS.active,cp0[0]-cp1[0],cp0[1]-cp1[1]);
 			LAYERS.active.setImageDataInvalid(); // merge with clip mask
 			CANVAS.requestRefresh();
@@ -260,6 +270,7 @@ CURSOR.down=function(event){
 		//CURSOR.type=event.originalEvent.pointerId;
 	}
 	CURSOR.isDown=true;
+	CURSOR.panRecord.isPanned=false;
 }
 
 CURSOR.up=function(event){
@@ -268,5 +279,15 @@ CURSOR.up=function(event){
 		||CURSOR.type===null)){ // on init
 		CURSOR.isDown=false;
 		//CURSOR.type=NaN;
+		if(CURSOR.panRecord.isPanned){ // There was a panning operation
+			const imgData=LAYERS.active.rawImageData;
+			const startPos=CURSOR.panRecord.startPosition;
+			HISTORY.addHistory({
+				type:"node-pan",
+				id:LAYERS.active.id,
+				dx: imgData.left-startPos[0],
+				dy: imgData.top-startPos[1]
+			});
+		}
 	}
 }

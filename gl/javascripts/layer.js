@@ -204,10 +204,6 @@ LAYERS.initFirstLayer=function() {
 	layer.assignNewRawImageData(ENV.paperSize.width,ENV.paperSize.height,0,0);
 	CANVAS.renderer.clearImageData(layer.rawImageData,[1,1,1,1],false);
 	layer.setRawImageDataInvalid();
-	// Prepare history
-	CANVAS.renderer.adjustImageDataBorders(layer.lastRawImageData,layer.rawImageData,false);
-	CANVAS.renderer.clearImageData(layer.lastRawImageData,[1,1,1,1],false);
-
 	// Set Properties
 	layer.setProperties({name: Lang("Background"),pixelOpacityLocked: true});
 	LAYERS.setActive(layer);
@@ -230,7 +226,7 @@ LAYERS.setActive=function(obj) { // layer or group or id
 	obj.setActiveUI(true);
 	LAYERS.active=obj;
 	if(obj instanceof CanvasNode) { // canvas layer
-		CANVAS.setTargetLayer(obj); // set CANVAS draw target
+		CANVAS.setTargetLayer(obj); // set CANVAS draw target, also prepare history
 		$("#clear-button").children("img").attr("src","./resources/clear-layer.svg"); // clear
 	}
 	else if(obj instanceof LayerGroupNode) { // group
@@ -249,7 +245,6 @@ LAYERS._inactive=function() {
 	LAYERS.active.setActiveUI(false);
 	LAYERS.active=null;
 }
-
 // ======================= UI Settings =============================
 
 LAYERS.initLayerPanelButtons=function() {
@@ -293,7 +288,20 @@ LAYERS.initLayerPanelButtons=function() {
 
 	// Delete layer / group button
 	$("#delete-button").on("click",event => {
+		const objId=LAYERS.active.id;
+		const fromId=LAYERS.active.parent.id;
+		const fromIndex=LAYERS.active.getIndex();
 		LAYERS.deleteItem(LAYERS.active);
+		HISTORY.addHistory({ // add a history item
+			type: "node-structure",
+			id: objId,
+			from: fromId,
+			to: null,
+			oldIndex: fromIndex,
+			newIndex: null,
+			oldActive: objId,
+			newActive: LAYERS.active.id
+		});
 	});
 	EventDistributer.footbarHint($("#delete-button"),() => Lang("Delete current layer / group"));
 
@@ -365,26 +373,6 @@ LAYERS.deleteItem=function(obj) {
 		EventDistributer.footbarHint.showInfo(Lang("Cannot delete the only layer/group."));
 		return; // cannot delete
 	}
-
-	// HISTORY.addHistory({ // add a delete layer history item, before detach
-	// 	type:"move-layer-item",
-	// 	subType:"delete",
-	// 	id:obj.id,
-	// 	from:obj.$ui.parent().attr("data-layer-id"),
-	// 	to:null,
-	// 	oldIndex:obj.$ui.index(),
-	// 	newIndex:null
-	// });
-	HISTORY.addHistory({ // add a history item
-		type: "node-structure",
-		id: obj.id,
-		from: obj.parent.id,
-		to: null,
-		oldIndex: obj.getIndex(),
-		newIndex: null,
-		oldActive: obj.id,
-		newActive: newActive.id
-	});
 
 	obj.$ui.detach(); // remove layer ui
 	obj.detach(); // remove from layer tree, also handles data/clip order invalidation

@@ -220,9 +220,12 @@ class SettingManager{
 	 * Set a div as switch / toggle
 	 * Click on $parent, change the value of $input
 	 * N is the number of selections of this switch
-	 * callback is the function called when switch pressed
+	 * callback is the function called when toggle value is set (by clicking or _updateFunc)
+	 * If you want to specify the action only when clicking:
+	 *    clickCallbacks.before is called before toggle change
+	 *    clickCallbacks.after is called after toggle change
 	 */
-	static setSwitchInteraction($el,$parent,N,callback){
+	static setSwitchInteraction($el,$parent,N,callback,clickCallbacks){
 		$parent=$parent||$el; // if no parent provided, set as itself
 		let toggle=0; // Init as 0;
 		function setVal(v){ // set the status of this switch as v
@@ -239,7 +242,9 @@ class SettingManager{
 		let lastClickTime=-10000;
 		$parent.on("pointerdown",event=>{
 			if(event.timeStamp-lastClickTime>=100){ // not too near
+				if(clickCallbacks&&clickCallbacks.before)clickCallbacks.before(toggle);
 				setVal(toggle+1); // call next selection
+				if(clickCallbacks&&clickCallbacks.after)clickCallbacks.after(toggle);
 			}
 			event.stopPropagation();
 		});

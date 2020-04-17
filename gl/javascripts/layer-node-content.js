@@ -80,7 +80,7 @@ class ContentNode extends LayerNode {
 		// Abstract
 		return "";
 	}
-	setName(name){
+	_setName(name){
 		// Expected: set the displayed name of this layer
 	}
 	// =================== Node operation ======================

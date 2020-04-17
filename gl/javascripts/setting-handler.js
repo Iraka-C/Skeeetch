@@ -82,15 +82,37 @@ SettingHandler.initTransformHandler=function(){
 	);
 	
 	// Reset all transform
+	const $flipButton=$("#flip-info");
 	$("#reset-info").click(event=>{
-		let k1=ENV.window.SIZE.width/ENV.paperSize.width;
-		let k2=ENV.window.SIZE.height/ENV.paperSize.height;
-		let k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
+		const k1=ENV.window.SIZE.width/ENV.paperSize.width;
+		const k2=ENV.window.SIZE.height/ENV.paperSize.height;
+		const k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
+		ENV.setFlip(false);
 		ENV.transformTo(0,0,0,k);
 		$scale.val(Math.round(k*100));
 		$rotate.val("0");
+		$flipButton.html("&lrarr;");
+		$flipButton.css("color","");
 	});
 	EventDistributer.footbarHint($("#reset-info"),()=>Lang("Reset paper position"));
+
+	// set flip
+	$flipButton.click(event=>{
+		ENV.setFlip(!ENV.window.flip);
+		$flipButton.html(ENV.window.flip?"&rlarr;":"&lrarr;");
+		$flipButton.css("color",ENV.window.flip?"#0ff":"");
+	});
+	EventDistributer.footbarHint($flipButton,()=>Lang("Flip paper horizontally"));
+
+	// Undo/Redo
+	$("#undo-info").click(event=>{
+		HISTORY.undo();
+	});
+	$("#redo-info").click(event=>{
+		HISTORY.redo();
+	});
+	EventDistributer.footbarHint($("#undo-info"),()=>Lang("Undo one step"));
+	EventDistributer.footbarHint($("#redo-info"),()=>Lang("Redo one step"));
 }
 
 // Decide the new scaling factor when adding one step

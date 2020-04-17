@@ -9,6 +9,7 @@ CANVAS.settings={
 	smoothness: 3,
 	_speed: 0 // a function of smoothness
 };
+CANVAS.rendererBitDepth=32;
 CANVAS.points=[[NaN,NaN,NaN],[NaN,NaN,NaN]]; // the points drawn on canvas, under paper coordinate [x,y,pressure(0~1)]
 CANVAS.targetCanvas=null; // display canvas to render to
 CANVAS.nowLayer=null; // now operating layer
@@ -27,7 +28,8 @@ CANVAS.init=function() {
 	CANVAS.targetCanvas=$("#main-canvas")[0];
 	CANVAS.renderer=new GLRenderer({
 		canvas: CANVAS.targetCanvas,
-		onRefresh: CANVAS.onRefresh
+		onRefresh: CANVAS.onRefresh,
+		bitDepth: CANVAS.rendererBitDepth
 	});
 }
 /**
@@ -35,8 +37,10 @@ CANVAS.init=function() {
  */
 CANVAS.setTargetLayer=function(targetLayer) {
 	if(CANVAS.nowLayer){ // Must be a CanvasNode
-		// @TODO: submit strokeBuffer
-		CANVAS.nowLayer.strokeBuffer=null; // release strokeBuffer
+		const lastD=CANVAS.nowLayer.lastRawImageData; // release its lastRawImageData
+		CANVAS.renderer.deleteImageData(lastD);
+		CANVAS.nowLayer.lastRawImageData=null;
+		//CANVAS.nowLayer.strokeBuffer=null; // release strokeBuffer
 	}
 	CANVAS.nowLayer=targetLayer;
 	if(!targetLayer) { // no active target
@@ -51,7 +55,20 @@ CANVAS.setTargetLayer=function(targetLayer) {
 			// @TODO: setup strokeBuffer
 			imageData: targetLayer.rawImageData // render target
 		});
+		targetLayer.lastRawImageData=CANVAS.renderer.createImageData(); // create last buffer
+		CANVAS.updateLastImageData(targetLayer);
 	}
+}
+
+// update the lastRawImageData in a node
+CANVAS.updateLastImageData=function(node){
+	const lastD=node.lastRawImageData;
+	const rawD=node.rawImageData;
+	// copy contents
+	CANVAS.renderer.adjustImageDataBorders(lastD,rawD,false);
+	CANVAS.renderer.clearImageData(lastD);
+	// @TODO: only copy the changed part to save time
+	CANVAS.renderer.blendImageData(rawD,lastD,{mode:BasicRenderer.SOURCE});
 }
 
 /**
@@ -348,7 +365,11 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 /**
  * set the contents of targetLayer at {left:x,top:y}
  * Also move all child layers
- * @TODO: move stroke buffer
+ * @TODO: move masks
+ * 
+ * This is a rather low-cost but not logically correct implementation.
+ * After panning, the masked/imageData become invalid (as they didn't moved)
+ * but if no rendering into these layers happen, there will be no difference.
  */
 CANVAS.panLayer=function(targetLayer,dx,dy){
 	const imgData=targetLayer.rawImageData;

@@ -93,7 +93,7 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	getGPUMemUsage() { // return GPU Memory usage in bytes
-		return this.canvas.width*this.canvas.height*this.bitDepth*2; // ARGB, canvas and tmpImageData
+		return this.canvas.width*this.canvas.height*(this.bitDepth/8*4)*2; // canvas and tmpImageData
 	}
 	getRAMUsage() {
 		return 0;

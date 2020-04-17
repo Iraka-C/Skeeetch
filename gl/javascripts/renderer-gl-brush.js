@@ -6,9 +6,9 @@ class GLBrushRenderer{
 
 		const viewport=renderer.viewport;
 		// originalImageData: for buffering stroke data
-		this.originalImageData=renderer.createImageData(viewport.width,viewport.height);
+		//this.originalImageData=renderer.createImageData(viewport.width,viewport.height);
 		// storing the shape of brush tip
-		this.strokeImageData=renderer.createImageData(viewport.width,viewport.height);
+		//this.strokeImageData=renderer.createImageData(viewport.width,viewport.height);
 	}
 
 	_initCircleProgram() {
@@ -80,8 +80,8 @@ class GLBrushRenderer{
 
 	free(){
 		this.circleProgram.free();
-		this.mainRenderer.deleteImageData(this.originalImageData);
-		this.mainRenderer.deleteImageData(this.strokeImageData);
+		//this.mainRenderer.deleteImageData(this.originalImageData);
+		//this.mainRenderer.deleteImageData(this.strokeImageData);
 	}
 
 	setupBrushtip(brush,newBrushtip){

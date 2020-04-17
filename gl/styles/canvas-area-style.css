@@ -187,15 +187,17 @@ table{
 	display: flex;
 	flex-direction: row;
 }
-#bottom-info-box > div{
-	/*margin: 0em 1em;*/
-}
 #bottom-info-box input{
 	text-align: right;
 	color: #cc6735;
 }
-#bottom-general-info{
-	margin-right: 1em;
+.bottom-info-block{
+	margin-left: 2em;
+	opacity: 0;
+	transition: opacity 0.5s;
+}
+#bottom-info-box:hover > .bottom-info-block{
+	opacity: 1;
 }
 /* ==================== Canvas panels ==================== */
 #brush-cursor-layer{

@@ -10,11 +10,10 @@ HISTORY={};
  */
 HISTORY.list=[];
 HISTORY.nowId=-1; // no history yet
-//HISTORY.nodeDataHistory={};
-HISTORY.MAX_HISTORY=20; // at most 20 steps
+HISTORY.MAX_HISTORY=100; // at most 100 steps
 
-HISTORY.pendingHistoryCnt=0; // How many history item still at pending status? (not added to list)
-HISTORY.pendingImageDataChangeItem=new Map();
+HISTORY.MAX_MEMORY=1024*1024*1024; // at most 1GB
+HISTORY.nowRAMUsage=0; // how many RAM is history using?
 
 class HistoryItem{
 	constructor(param){
@@ -43,11 +42,11 @@ class HistoryItem{
 				this.newData=CANVAS.renderer.getBufferFromImageData(newImageData,newArea);
 				
 				// copy contents
-				node.updateLastImageData();
+				CANVAS.updateLastImageData(node);
 				break;
 			case "node-pan":
-				this.prevPos=param.prevPos;
-				this.nowPos=param.nowPos;
+				this.dx=param.dx; // all in paper coordinate, left-top as origin
+				this.dy=param.dy;
 				break;
 			case "node-structure":
 				this.from=param.from; // if is null, then it's a new operation
@@ -60,9 +59,11 @@ class HistoryItem{
 			case "node-property":
 				this.prevStatus=param.prevStatus;
 				this.nowStatus=param.nowStatus;
+				break;
 			case "bundle":
 				this.children=[];
 				for(const v of param.children){ // recursive, ascending order
+					 // pre-order traversal
 					this.children.push(new HistoryItem(v));
 				}
 				break;
@@ -74,6 +75,24 @@ class HistoryItem{
 		 * "bundle" type: a group of actions as a bunch
 		 * @TODO: add sumbit-update like API
 		 */
+	}
+
+	getRAMSize(){ // how many RAM is this item using?
+		const pixelBytes=CANVAS.rendererBitDepth/8*4; // RGBA Float(4bytes)
+		let size=0;
+		switch(this.type){
+			case "image-data": // Do not access data directly as the implementation may change
+				size+=this.oldData.width*this.oldData.height*pixelBytes;
+				size+=this.newData.width*this.newData.height*pixelBytes;
+				return size;
+			case "bundle":
+				for(const v of this.children){
+					size+=getHistoryItemRAMSize(v);
+				}
+				return size;
+			default:
+				return 0;
+		}
 	}
 }
 
@@ -95,35 +114,90 @@ HISTORY.init=function(){
 	});
 }
 
+/**
+ * Add History item
+ * A HistoryItem shall be added by USER ACTIONS, rather than property manipulation functions
+ */
+HISTORY.pendingHistoryCnt=0; // How many history item still at pending status? (not added to list)
+HISTORY.pendingImageDataChangeParam=new Map(); // pending during busy
 HISTORY.addHistory=function(param){ // see HistoryItem constructor for info structure
 	// if(HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
 	// 	HISTORY.popHead(); // pop the oldest history and release related resources
 	// }
-	// HISTORY.list.push(new HistoryItem(info));
-	// HISTORY.nowId++;
-	//return; // For debug
+	while(HISTORY.nowRAMUsage>HISTORY.MAX_MEMORY){ // exceed max memory
+		console.log("Pop");
+		HISTORY.popHead(); // pop the oldest history and release related resources
+	}
 
-	if(param.type=="image-data"){ // special treatment for imagedata change: only sumbit once
-		if(HISTORY.pendingImageDataChangeItem.has(param.id)){ // already submitted
-			const item=HISTORY.pendingImageDataChangeItem.get(param.id);
+	/**
+	 * special treatment for imagedata change / node property:
+	 * Even there are several changes to the same image data during busy, only sumbit once
+	 * Even there are several property changes to the same layer, only sumbit once
+	 */
+	if(param.type=="image-data"){
+		if(HISTORY.pendingImageDataChangeParam.has(param.id)){ // already submitted
+			const item=HISTORY.pendingImageDataChangeParam.get(param.id);
 			item.area=GLProgram.extendBorderSize(item.area,param.area); // extend area, needn't submit again
 			return;
 		}
-		HISTORY.pendingImageDataChangeItem.set(param.id,param); // submit
+		HISTORY.pendingImageDataChangeParam.set(param.id,param); // submit
 	}
-	HISTORY.pendingHistoryCnt++;
+	if(param.type=="node-property"){
+		HISTORY.addPropertyHistory(param);
+		return;
+	}
+	HISTORY.submitPropertyHistory(); // submit pending node-property item
+	HISTORY.pendingHistoryCnt++; // new pending
 	PERFORMANCE.idleTaskManager.addTask(e=>{
 		HISTORY.pendingHistoryCnt--;
-		HISTORY.pendingImageDataChangeItem.delete(param.id);
+		HISTORY.pendingImageDataChangeParam.delete(param.id);
 		
 		HISTORY.clearAllHistoryAfter(); // delete all item after HISTORY.nowId
 		const item=new HistoryItem(param);
 		console.log("Add History",item);
 		HISTORY.list.push(item);
 		HISTORY.nowId++; // point to tail
+		HISTORY.nowRAMUsage+=item.getRAMSize();
 	});
 }
 
+HISTORY.pendingNodePropertyItem=null;
+HISTORY.addPropertyHistory=function(param){
+	const item=HISTORY.pendingNodePropertyItem;
+	if(!item||item.id!=param.id){ // switch to new node
+		HISTORY.submitPropertyHistory(item); // submit old
+		HISTORY.pendingHistoryCnt++; // new pending
+		HISTORY.pendingNodePropertyItem=param; // set new
+	}
+	else{ // renew status
+		item.prevStatus=Object.assign(param.prevStatus,item.prevStatus);
+		Object.assign(item.nowStatus,param.nowStatus);
+	}
+};
+HISTORY.submitPropertyHistory=function(param){
+	const newParam=param||HISTORY.pendingNodePropertyItem;
+	if(newParam){
+		PERFORMANCE.idleTaskManager.addTask(e=>{
+			HISTORY.pendingHistoryCnt--;
+			const item=new HistoryItem(newParam);
+			if(param){ // param provided, HISTORY.pendingNodePropertyItem already handled
+				// do nothing
+			}
+			else{ // no param provided, pure update
+				HISTORY.pendingNodePropertyItem=null;
+			}
+			HISTORY.clearAllHistoryAfter(); // delete all item after HISTORY.nowId
+			console.log("Add Property History",item);
+			HISTORY.list.push(item);
+			HISTORY.nowId++; // point to tail
+			// No need to update history RAM usage
+		});
+	}
+}
+
+/**
+ * Retrieve History item
+ */
 HISTORY.undo=function(){ // undo 1 step
 	const undoInstant=item=>{
 		switch(item.type){ // different types
@@ -133,7 +207,13 @@ HISTORY.undo=function(){ // undo 1 step
 		case "node-structure":
 			HISTORY.undoStructureChange(item);
 			break;
-		case "bundle":
+		case "node-pan":
+			HISTORY.undoNodePan(item);
+			break;
+		case "node-property":
+			HISTORY.undoNodeProperty(item);
+			break;
+		case "bundle": // pre-order traversal
 			for(let i=item.children.length-1;i>=0;i--){
 				undoInstant(item.children[i]); // backwards
 			}
@@ -147,6 +227,7 @@ HISTORY.undo=function(){ // undo 1 step
 		undoInstant(HISTORY.list[HISTORY.nowId--]);
 	}
 	else{ // this task is certainly added after all pending tasks
+		HISTORY.submitPropertyHistory(); // submit all property change first
 		PERFORMANCE.idleTaskManager.addTask(e=>{
 			undoInstant(HISTORY.list[HISTORY.nowId--]);
 		});
@@ -166,7 +247,13 @@ HISTORY.redo=function(){ // redo 1 step
 		case "node-structure":
 			HISTORY.redoStructureChange(item);
 			break;
-		case "bundle":
+		case "node-pan":
+			HISTORY.redoNodePan(item);
+			break;
+		case "node-property":
+			HISTORY.redoNodeProperty(item);
+			break;
+		case "bundle": // pre-order traversal
 			for(const v of item.children){
 				redoInstant(v);
 			}
@@ -187,23 +274,23 @@ HISTORY.redo=function(){ // redo 1 step
  */
 HISTORY.undoImageDataChange=function(item){
 	const node=LAYERS.layerHash[item.id];
+	LAYERS.setActive(node); // also refresh and set lastRawImageData
 	CANVAS.renderer.clearScissoredImageData(node.rawImageData,item.newData);
 	CANVAS.renderer.loadToImageData(node.rawImageData,item.oldData);
-	node.updateLastImageData();
+	CANVAS.updateLastImageData(node);
 	node.setRawImageDataInvalid();
 	node.updateThumb();
-	LAYERS.setActive(node); // also refresh
 	CANVAS.requestRefresh(); // setActive does not guarantee refresh
 }
 
 HISTORY.redoImageDataChange=function(item){
 	const node=LAYERS.layerHash[item.id];
+	LAYERS.setActive(node); // also refresh and set lastRawImageData
 	CANVAS.renderer.clearScissoredImageData(node.rawImageData,item.oldData);
 	CANVAS.renderer.loadToImageData(node.rawImageData,item.newData);
-	node.updateLastImageData();
+	CANVAS.updateLastImageData(node);
 	node.setRawImageDataInvalid();
 	node.updateThumb();
-	LAYERS.setActive(node); // also refresh
 	CANVAS.requestRefresh(); // setActive does not guarantee refresh
 }
 
@@ -255,26 +342,64 @@ HISTORY.redoStructureChange=function(item){
 	}
 }
 
-// ============== Other manip ================
+/**
+ * ----------------------------------------------------
+ * "node-pan" type
+ * {type,id,dx,dy}
+ * ----------------------------------------------------
+ */
+HISTORY.undoNodePan=function(item){
+	const obj=LAYERS.layerHash[item.id];
+	CANVAS.panLayer(obj,-item.dx,-item.dy); // reversely
+	obj.setImageDataInvalid(); // merge with clip mask
+	CANVAS.requestRefresh();
+}
+HISTORY.redoNodePan=function(item){
+	const obj=LAYERS.layerHash[item.id];
+	CANVAS.panLayer(obj,item.dx,item.dy); // again
+	obj.setImageDataInvalid(); // merge with clip mask
+	CANVAS.requestRefresh();
+}
+
+/**
+ * ----------------------------------------------------
+ * "node-property" type
+ * {type,id,prevStatus,nowStatus}
+ * ----------------------------------------------------
+ */
+
+HISTORY.undoNodeProperty=function(item){
+	const obj=LAYERS.layerHash[item.id];
+	obj.setProperties(item.prevStatus);
+	// refresh / UI updates are handled by setProperties()
+}
+HISTORY.redoNodeProperty=function(item){
+	const obj=LAYERS.layerHash[item.id];
+	obj.setProperties(item.nowStatus);
+}
+// ====================================== Other manip ========================================
 // remove the first history record
 HISTORY.popHead=function(){
-	if(HISTORY.list.length==0){ // check is empty
+	if(!HISTORY.list.length){ // check is empty
 		return;
 	}
-	let item=HISTORY.list[0];
-	if(item.info.subType=="delete"){ // won't be recalled anymore
-		let idList=[item.info.id];
-		let obj=LAYERS.layerHash[item.info.id]; // the object deleted
-		// clear all its descendants and itself
-		obj.$div.find("*").each(function(){
-			idList.push($(this).attr("data-layer-id"));
-		});
-		for(let id of idList){ // remove from layer list to release memory
-			delete LAYERS.layerHash[id];
+	const clearAllDeleteNode=item=>{
+		if(item.type=="node-structure"&&!item.to){
+			const node=LAYERS.layerHash[item.id];
+			node.delete(); // destroy imageData or hash number, this method is resursive for a group
 		}
-	}
+		if(item.type=="bundle"){
+			for(const v of item.children){
+				clearAllDeleteNode(v);
+			}
+		}
+	};
+
+	const item=HISTORY.list[0];
+	clearAllDeleteNode(item);
+	HISTORY.nowRAMUsage-=item.getRAMSize();
 	HISTORY.list.shift();
-	HISTORY.nowId--; // <= handled by other functions?
+	HISTORY.nowId--;
 }
 
 // clear all history before present status
@@ -296,11 +421,12 @@ HISTORY.clearAllHistoryAfter=function(){
 				clearAllNewNode(v);
 			}
 		}
-	}
+	};
 	let len=HISTORY.list.length;
 	for(let i=HISTORY.nowId+1;i<len;i++){ // clear all history afterwards
 		const item=HISTORY.list[i];
 		clearAllNewNode(item);
+		HISTORY.nowRAMUsage-=item.getRAMSize();
 	}
 	HISTORY.list.splice(HISTORY.nowId+1,len); // len>HISTORY.nowId: delete all item after nowId
 }

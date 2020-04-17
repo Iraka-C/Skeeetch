@@ -73,9 +73,9 @@ LAYERS.$newCanvasLayerUI=function(id) {
 class CanvasNode extends ContentNode {
 	constructor() {
 		super();
-		
-		// store the last imageData, managed by HISTORY
-		this.lastRawImageData=CANVAS.renderer.createImageData();
+
+		// store the last imageData, managed by LAYER & HISTORY
+		this.lastRawImageData=null;//CANVAS.renderer.createImageData();
 
 		// Layer panel UI
 		this.$ui=LAYERS.$newCanvasLayerUI(this.id); // set ui in layer list
@@ -83,8 +83,8 @@ class CanvasNode extends ContentNode {
 		// thumb image canvas
 		this.$thumb=this.$ui.children(".layer-ui-canvas-container").children("canvas");
 
-		this.name=this.id;//Lang("New Layer");
-		this.setName(this.name);
+		this.name=Lang("New Layer");
+		this._setName(this.name);
 		this.$ui.on("pointerdown",event => { // set active on clicking
 			LAYERS.setActive(this);
 		});
@@ -117,14 +117,14 @@ class CanvasNode extends ContentNode {
 		this.initInputs();
 	}
 	delete() { // delete buffer image data
-		if(this.lastRawImageData)CANVAS.renderer.deleteImageData(this.lastRawImageData);
+		if(this.lastRawImageData) CANVAS.renderer.deleteImageData(this.lastRawImageData);
 		super.delete();
 	}
 	getName() {
 		// get the displayed name of this layer
 		return this.name;
 	}
-	setName(name) {
+	_setName(name) {
 		// set the displayed name of this layer
 		this.$ui.children(".layer-name-label").val(name);
 		this.name=name;
@@ -206,15 +206,6 @@ class CanvasNode extends ContentNode {
 		// this.isRawImageDataValid shall always be true
 		this.setMaskedImageDataInvalid();
 	}
-	updateLastImageData(){ // This function shall be handled by HISTORY
-		const lastD=this.lastRawImageData;
-		const rawD=this.rawImageData;
-		// copy contents
-		CANVAS.renderer.adjustImageDataBorders(lastD,rawD,false);
-		CANVAS.renderer.clearImageData(lastD);
-		// @TODO: only copy the changed part to save time
-		CANVAS.renderer.blendImageData(rawD,lastD,{mode:BasicRenderer.SOURCE});
-	}
 	// ================= button =================
 	initButtons() {
 		const $buttons=this.$ui.children(".layer-buttons");
@@ -241,11 +232,30 @@ class CanvasNode extends ContentNode {
 					break;
 			}
 		}
+		const lockButtonHistoryCallback={
+			prevStatus: null,
+			before: () => {
+				lockButtonHistoryCallback.prevStatus={
+					locked: this.properties.locked,
+					pixelOpacityLocked: this.properties.pixelOpacityLocked
+				};
+			},
+			after: () => {
+				HISTORY.addHistory({ // add a history
+					type: "node-property",
+					id: this.id,
+					prevStatus: lockButtonHistoryCallback.prevStatus,
+					nowStatus: {
+						locked: this.properties.locked,
+						pixelOpacityLocked: this.properties.pixelOpacityLocked
+					}
+				});
+			}
+		};
 		// Operating on this function is equivalent to the user's pressing the button
 		const fLock=SettingManager.setSwitchInteraction($lockButton,null,3,($el,v) => {
-			// @TODO: add history here
 			setLockButtonStatus(v);
-		});
+		},lockButtonHistoryCallback);
 		this.buttonUpdateFuncs.lockButton=() => fLock(
 			this.properties.locked? 2:
 				this.properties.pixelOpacityLocked? 1:0
@@ -269,6 +279,17 @@ class CanvasNode extends ContentNode {
 					break;
 			}
 		}
+		const clipButtonHistoryCallback={
+			before: null,
+			after: () => {
+				HISTORY.addHistory({ // add a history
+					type: "node-property",
+					id: this.id,
+					prevStatus: {clipMask: !this.properties.clipMask},
+					nowStatus: {clipMask: this.properties.clipMask}
+				});
+			}
+		};
 		const fClip=SettingManager.setSwitchInteraction($clipButton,null,2,($el,v) => {
 			// @TODO: add history here
 			setClipMaskButtonStatus(v);
@@ -291,8 +312,8 @@ class CanvasNode extends ContentNode {
 				clipParent.setImageDataInvalid();
 				COMPOSITOR.updateLayerTreeStructure(); // recomposite
 			}
-		});
-		this.buttonUpdateFuncs.clipButton=()=>fClip(this.properties.clipMask? 1:0);
+		},clipButtonHistoryCallback);
+		this.buttonUpdateFuncs.clipButton=() => fClip(this.properties.clipMask? 1:0);
 
 		// blend mode button
 		const $blendButton=$buttons.find(".layer-blend-mode-button");
@@ -313,21 +334,37 @@ class CanvasNode extends ContentNode {
 					break;
 			}
 		}
+		const blendButtonHistoryCallback={
+			prevStatus: null,
+			before: () => {
+				blendButtonHistoryCallback.prevStatus={
+					blendMode: this.properties.blendMode
+				}
+			},
+			after: () => {
+				HISTORY.addHistory({ // add a history
+					type: "node-property",
+					id: this.id,
+					prevStatus: blendButtonHistoryCallback.prevStatus,
+					nowStatus: {blendMode: this.properties.blendMode}
+				});
+			}
+		};
 		const fBlend=SettingManager.setSwitchInteraction($blendButton,null,3,($el,v) => {
 			// @TODO: add history here
 			setBlendButtonStatus(v);
 			this.setImageDataInvalid();
 			COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
-		});
-		const blendModeToIdList=mode=>{
-			switch(mode){
+		},blendButtonHistoryCallback);
+		const blendModeToIdList=mode => {
+			switch(mode) {
 				default:
 				case BasicRenderer.NORMAL: return 0;
 				case BasicRenderer.MULTIPLY: return 1;
 				case BasicRenderer.SCREEN: return 2;
 			}
 		};
-		this.buttonUpdateFuncs.blendButton=()=>fBlend(blendModeToIdList(this.properties.blendMode));
+		this.buttonUpdateFuncs.blendButton=() => fBlend(blendModeToIdList(this.properties.blendMode));
 
 		// mask button. @TODO: the logic is much more difficult to tidy
 		const $maskButton=$buttons.find(".layer-mask-button");
@@ -346,14 +383,21 @@ class CanvasNode extends ContentNode {
 			// @TODO: add history here
 			setMaskButtonStatus(v);
 		});
-		this.buttonUpdateFuncs.maskButton=()=>fMask();// @TODO
+		this.buttonUpdateFuncs.maskButton=() => fMask();// @TODO
 	}
 	initInputs() {
 		const $opacityLabel=this.$ui.children(".layer-opacity-label");
 		const $opacityInput=$opacityLabel.children("input");
 		const setOpacity=opacity => { // set opacity function
+			const prevOpacity=this.properties.opacity;
 			this.properties.opacity=opacity;
 			this.setImageDataInvalid(); // In fact this is a little more, only need to set parent/clip parent
+			HISTORY.addHistory({ // add a history
+				type: "node-property",
+				id: this.id,
+				prevStatus: {opacity: prevOpacity},
+				nowStatus: {opacity: opacity}
+			});
 			CANVAS.requestRefresh(); // refresh screen afterwards, no need to change layerTree cache
 		};
 		const opacityString=() => { // show opacity input
@@ -385,8 +429,15 @@ class CanvasNode extends ContentNode {
 		$opacityInput.on("pointerdown",event => {
 			const oE=event.originalEvent;
 			if((oE.buttons>>1)&1||(oE.buttons&1)&&(EVENTS.key.ctrl||EVENTS.key.shift)) { // right or left-with-ctrl/shift
-				this.properties.visible=!this.properties.visible;
+				const newVisibility=!this.properties.visible;
+				this.properties.visible=newVisibility
 				$opacityInput.val(opacityString());
+				HISTORY.addHistory({ // add a history
+					type: "node-property",
+					id: this.id,
+					prevStatus: {visible: !newVisibility},
+					nowStatus: {visible: newVisibility}
+				});
 				this.setImageDataInvalid(); // In fact this is a little more: when this layer has clip layer children
 				// @TODO: modify here if it is a performance bottleneck, and the place above
 				COMPOSITOR.updateLayerTreeStructure();
@@ -397,9 +448,17 @@ class CanvasNode extends ContentNode {
 
 		const $nameInput=this.$ui.children(".layer-name-label");
 		$nameInput.on("change",event => { // Input
+			const prevName=this.getName();
 			this.name=$nameInput.val();
 			// Do some checks here
+			HISTORY.addHistory({ // add a history
+				type: "node-property",
+				id: this.id,
+				prevStatus: {name: prevName},
+				nowStatus: {name: this.getName()}
+			});
 		});
+		EventDistributer.footbarHint($nameInput,() =>this.id);
 	}
 	// ======================= Property control =========================
 	getProperties() {
@@ -410,7 +469,7 @@ class CanvasNode extends ContentNode {
 	}
 	setProperties(prop) {
 		if(prop.name!==undefined) {
-			this.setName(prop.name); // Change UI instantly!
+			this._setName(prop.name); // Change UI instantly!
 		}
 		super.setProperties(prop); // update button ui here
 	}

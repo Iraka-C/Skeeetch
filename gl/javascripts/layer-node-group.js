@@ -46,8 +46,10 @@ class LayerGroupNode extends ContentNode {
 
 		// Properties
 		this.isExpanded=true; // is the container of this group expanded?
-		
-		this.setName(this.id/*Lang("New Group")*/); // For DEBUG
+
+		this.name=Lang("New Group");
+		this._setName(this.name); // For DEBUG
+
 		this.$ui.on("pointerdown",event => { // click to activate
 			if($.contains(this.$ui.children(".layer-group-container")[0],event.target)) {
 				// The event is from one of my containings
@@ -64,13 +66,16 @@ class LayerGroupNode extends ContentNode {
 
 		// init property button operation
 		this.initButtons();
+		this.initInputs();
 	}
-	setName(name) {
+	getName() {
+		// get the displayed name of this layer
+		return this.name;
+	}
+	_setName(name) {
 		// set the displayed name of this layer
 		this.$ui.children(".group-title-panel").children(".group-name-label").val(name);
-	}
-	getName(){
-		return this.$ui.children(".group-title-panel").children(".group-name-label").val();
+		this.name=name;
 	}
 	setActiveUI(isActive) {
 		// Expected: set the UI effect of this node
@@ -126,6 +131,12 @@ class LayerGroupNode extends ContentNode {
 		expandButton.on("click",e=>{
 			this.isExpanded=!this.isExpanded;
 			updateExpandUI();
+			HISTORY.addHistory({ // add a history
+				type: "node-property",
+				id: this.id,
+				prevStatus: {isExpanded: !this.isExpanded},
+				nowStatus: {isExpanded: this.isExpanded}
+			});
 		});
 		this.buttonUpdateFuncs.expandButton=updateExpandUI;
 
@@ -151,11 +162,30 @@ class LayerGroupNode extends ContentNode {
 					break;
 			}
 		}
+		const lockButtonHistoryCallback={ // callback function for clicking lock button
+			prevStatus: null,
+			before: () => {
+				lockButtonHistoryCallback.prevStatus={
+					locked: this.properties.locked,
+					pixelOpacityLocked: this.properties.pixelOpacityLocked
+				};
+			},
+			after: () => {
+				HISTORY.addHistory({ // add a history
+					type: "node-property",
+					id: this.id,
+					prevStatus: lockButtonHistoryCallback.prevStatus,
+					nowStatus: {
+						locked: this.properties.locked,
+						pixelOpacityLocked: this.properties.pixelOpacityLocked
+					}
+				});
+			}
+		};
 		// Operating on this function is equivalent to the user's pressing the button
 		const fLock=SettingManager.setSwitchInteraction($lockButton,null,3,($el,v) => {
-			// @TODO: add history here
 			setLockButtonStatus(v);
-		});
+		},lockButtonHistoryCallback);
 		this.buttonUpdateFuncs.lockButton=() => fLock(
 			this.properties.locked? 2:
 				this.properties.pixelOpacityLocked? 1:0
@@ -179,8 +209,18 @@ class LayerGroupNode extends ContentNode {
 					break;
 			}
 		}
+		const clipButtonHistoryCallback={ // callback function for clicking clip mask button
+			before: null,
+			after: () => {
+				HISTORY.addHistory({ // add a history
+					type: "node-property",
+					id: this.id,
+					prevStatus: {clipMask: !this.properties.clipMask},
+					nowStatus: {clipMask: this.properties.clipMask}
+				});
+			}
+		};
 		const fClip=SettingManager.setSwitchInteraction($clipButton,null,2,($el,v) => {
-			// @TODO: add history here
 			setClipMaskButtonStatus(v);
 			if(this.parent) { // when attached
 				const siblings=this.parent.children;
@@ -193,7 +233,7 @@ class LayerGroupNode extends ContentNode {
 				clipParent.setImageDataInvalid();
 				COMPOSITOR.updateLayerTreeStructure(); // recomposite
 			}
-		});
+		},clipButtonHistoryCallback);
 		this.buttonUpdateFuncs.clipButton=()=>fClip(this.properties.clipMask? 1:0);
 
 		// blend mode button
@@ -215,12 +255,28 @@ class LayerGroupNode extends ContentNode {
 					break;
 			}
 		}
+		const blendButtonHistoryCallback={
+			prevStatus: null,
+			before: () => {
+				blendButtonHistoryCallback.prevStatus={
+					blendMode: this.properties.blendMode
+				}
+			},
+			after: () => {
+				HISTORY.addHistory({ // add a history
+					type: "node-property",
+					id: this.id,
+					prevStatus: blendButtonHistoryCallback.prevStatus,
+					nowStatus: {blendMode: this.properties.blendMode}
+				});
+			}
+		};
 		const fBlend=SettingManager.setSwitchInteraction($blendButton,null,3,($el,v) => {
 			// @TODO: add history here
 			setBlendButtonStatus(v);
 			this.setImageDataInvalid();
 			COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
-		});
+		},blendButtonHistoryCallback);
 		const blendModeToIdList=mode=>{
 			switch(mode){
 				default:
@@ -230,6 +286,22 @@ class LayerGroupNode extends ContentNode {
 			}
 		};
 		this.buttonUpdateFuncs.blendButton=()=>fBlend(blendModeToIdList(this.properties.blendMode));
+	}
+	// Name and opacity inputs
+	initInputs() {
+		const $nameInput=this.$ui.children(".group-title-panel").children(".group-name-label");
+		$nameInput.on("change",event => { // Input
+			const prevName=this.getName();
+			this.name=$nameInput.val();
+			// Do some checks here
+			HISTORY.addHistory({ // add a history
+				type: "node-property",
+				id: this.id,
+				prevStatus: {name: prevName},
+				nowStatus: {name: this.getName()}
+			});
+		});
+		EventDistributer.footbarHint($nameInput,() =>this.id);
 	}
 	// =========== Properties =============
 	getProperties() {
@@ -241,7 +313,7 @@ class LayerGroupNode extends ContentNode {
 	}
 	setProperties(prop) {
 		if(prop.name!==undefined){
-			this.setName(prop.name); // Change UI instantly!
+			this._setName(prop.name); // Change UI instantly!
 		}
 		if(prop.isExpanded!==undefined){
 			this.isExpanded=prop.isExpanded;
