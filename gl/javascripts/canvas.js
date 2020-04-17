@@ -9,7 +9,7 @@ CANVAS.settings={
 	smoothness: 3,
 	_speed: 0 // a function of smoothness
 };
-CANVAS.rendererBitDepth=32;
+CANVAS.rendererBitDepth=8;
 CANVAS.points=[[NaN,NaN,NaN],[NaN,NaN,NaN]]; // the points drawn on canvas, under paper coordinate [x,y,pressure(0~1)]
 CANVAS.targetCanvas=null; // display canvas to render to
 CANVAS.nowLayer=null; // now operating layer
