@@ -63,8 +63,13 @@ COMPOSITOR.compileLayerTree=function(){
  * If one texture at the leaf node (CanvasNode) expands,
  * All textures along the route to the root will be reallocated.
  * This is time consuming.
+ * 
+ * @param node a ContentNode to be recomposited
+ * @param dirtyArea the area {width,height,left,top} to be refreshed
+ * if dirtyArea is null, then the full area will be recomposited.
+ * @TODO: implement dirty area recomposition
  */
-COMPOSITOR.recompositeLayers=function(node) {
+COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 	node=node||LAYERS.layerTree; // init: root
 	//console.log("Recomposite "+node.id);
 

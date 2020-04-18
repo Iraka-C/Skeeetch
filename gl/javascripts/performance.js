@@ -53,7 +53,9 @@ PERFORMANCE.getRAMEstimation=function(){ // in MB
 			}
 		}
 	}
-	imgDataRAMSize+=CANVAS.renderer.getRAMUsage();
+	if(CANVAS.renderer){
+		imgDataRAMSize+=CANVAS.renderer.getRAMUsage();
+	}
 	ramBytes+=imgDataRAMSize;
 
 	// History
@@ -88,7 +90,9 @@ PERFORMANCE.getGPUMemEstimation=function(){
 			}
 		}
 	}
-	imgDataGPUSize+=CANVAS.renderer.getGPUMemUsage();
+	if(CANVAS.renderer){
+		imgDataGPUSize+=CANVAS.renderer.getGPUMemUsage();
+	}
 	gpuBytes+=imgDataGPUSize;
 	//gpuBytes*=2.0; // A Mysterious param provides better estimation (?) Refer to task manager
 	return gpuBytes/1024/1024; // in MB

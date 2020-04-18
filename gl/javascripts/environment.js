@@ -38,17 +38,17 @@ ENV.displaySettings={
 
 // ========================= Functions ============================
 ENV.init=function(){ // When the page is loaded
+	SettingHandler.init(); // load all settings for the following initializations
+	LANG.init(); // set all doms after load?
+
 	ENV.window.SIZE.width=$("#canvas-window").width();
 	ENV.window.SIZE.height=$("#canvas-window").height();
-	ENV.setPaperSize(window.screen.width,window.screen.height); // no layer yet
+	ENV.setPaperSize(window.screen.width,window.screen.height); // no layer yet, init CANVAS
 
-	LANG.init(); // set all doms after load?
 	EVENTS.init();
 	EventDistributer.init();
 	PALETTE.init();
-	//CANVAS.init(); // Before LAYERS, in setPaperSize
 	LAYERS.init();
-	SettingHandler.init();
 	BrushManager.init();
 	CURSOR.init();
 	HISTORY.init();
@@ -164,7 +164,8 @@ ENV.transformTo=function(x,y,r,s){ // four values, with hint
  * @TODO: There's GPU memory leak!
  * @TODO: Doesn't seem like memory leak, more like a memory allocation policy
  */
-ENV.setPaperSize=function(w,h){
+ENV.setPaperSize=function(w,h,isPreservingContents){
+	isPreservingContents=isPreservingContents||false; // do not breserve by default
 	if(!(w&&h)){ // w or h invalid or is 0
 		return;
 	}
