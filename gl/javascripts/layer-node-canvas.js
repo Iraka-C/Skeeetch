@@ -291,11 +291,8 @@ class CanvasNode extends ContentNode {
 			}
 		};
 		const fClip=SettingManager.setSwitchInteraction($clipButton,null,2,($el,v) => {
-			// @TODO: add history here
-			setClipMaskButtonStatus(v);
-			//console.log("Change clip mask status "+this.id+" to "+this.properties.clipMask);
-
-			if(this.parent) { // when attached
+			setClipMaskButtonStatus(v); // try to change status
+			if(this.parent) { // changed and attached
 				const siblings=this.parent.children;
 				const prevClipParent=siblings[this.clipMaskParentIndex]; // clip parent before changing
 				this.parent.setClipMaskOrderInvalid(); // The parent's clip mask order array will change
@@ -318,6 +315,7 @@ class CanvasNode extends ContentNode {
 		// blend mode button
 		const $blendButton=$buttons.find(".layer-blend-mode-button");
 		const setBlendButtonStatus=v => {
+			if(this.properties.locked)return;
 			const $blendButtonImg=$blendButton.children("img");
 			switch(v) {
 				case 0: // normal
@@ -342,6 +340,7 @@ class CanvasNode extends ContentNode {
 				}
 			},
 			after: () => {
+				if(this.properties.locked)return;
 				HISTORY.addHistory({ // add a history
 					type: "node-property",
 					id: this.id,
@@ -389,6 +388,7 @@ class CanvasNode extends ContentNode {
 		const $opacityLabel=this.$ui.children(".layer-opacity-label");
 		const $opacityInput=$opacityLabel.children("input");
 		const setOpacity=opacity => { // set opacity function
+			if(this.properties.locked)return; // locked, doen't change
 			const prevOpacity=this.properties.opacity;
 			this.properties.opacity=opacity;
 			this.setImageDataInvalid(); // In fact this is a little more, only need to set parent/clip parent

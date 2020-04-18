@@ -176,14 +176,28 @@ HISTORY.addPropertyHistory=function(param){
 };
 HISTORY.submitPropertyHistory=function(param){
 	const newParam=param||HISTORY.pendingNodePropertyItem;
-	if(newParam){
-		PERFORMANCE.idleTaskManager.addTask(e=>{
+	if(!newParam)return; // empty
+	// check if newParam has changed property. All properties should be atomic value.
+	const prevStatus=newParam.prevStatus;
+	const nowStatus=newParam.nowStatus;
+	let isTheSame=true;
+	for(const key of Object.keys(prevStatus)){
+		if(nowStatus[key]!=prevStatus[key]){
+			isTheSame=false;
+			break;
+		}
+	}
+
+	if(isTheSame){ // sync
+		if(!param){ // no param provided, pure update
+			HISTORY.pendingNodePropertyItem=null;
+		}
+	}
+	else{
+		PERFORMANCE.idleTaskManager.addTask(e=>{ // async
 			HISTORY.pendingHistoryCnt--;
 			const item=new HistoryItem(newParam);
-			if(param){ // param provided, HISTORY.pendingNodePropertyItem already handled
-				// do nothing
-			}
-			else{ // no param provided, pure update
+			if(!param){ // no param provided, handle pendingNodePropertyItem by ths function
 				HISTORY.pendingNodePropertyItem=null;
 			}
 			HISTORY.clearAllHistoryAfter(); // delete all item after HISTORY.nowId
@@ -193,6 +207,7 @@ HISTORY.submitPropertyHistory=function(param){
 			// No need to update history RAM usage
 		});
 	}
+	
 }
 
 /**

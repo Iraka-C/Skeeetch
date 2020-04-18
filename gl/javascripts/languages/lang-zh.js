@@ -52,7 +52,7 @@ LANG_ZH={
 	"Add a new layer group":"新建图层组",
 	"Delete current layer / group":"删除当前图层/图层组",
 	"Clear current layer":"清空当前图层",
-	"Activate the mask layer":"切换蒙版编辑",
+	"Activate the mask layer":"切换蒙版编辑（未完成）",
 	"Merge group contents into one layer":"合并图层组",
 
 	// Workspace
