@@ -16,7 +16,15 @@ EVENTS.init=function(){
 	 */
 
 	// disable pen long press => context menu
-	$(window).on("contextmenu",e=>false);
+	//$(window).on("contextmenu",e=>false);
+
+	$(window).on("beforeunload",e=>{
+		STORAGE.saveOnExit();
+		
+		const originalEvent=e.originalEvent;
+		originalEvent.preventDefault();
+		delete originalEvent["returnValue"]; // do not show anything
+	});
 
 	/**
 	 * Window resize handler

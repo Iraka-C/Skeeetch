@@ -21,6 +21,7 @@ LANG_ZH={
 	"Transform Animation":"过渡动画",
 	"sys-info":"系统信息",
 	"sys-mem":"内存使用",
+	"sys-gpumem":"显存使用",
 	"toggle-fullscreen":"切换全屏幕模式",
 
 	// Paint Brush Menu
@@ -74,3 +75,4 @@ LANG_ZH._id={
 	"layer-panel-name":"图层",
 	"":""
 }
+LANG_ZH._tag="zh";

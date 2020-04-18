@@ -38,31 +38,28 @@ ENV.displaySettings={
 
 // ========================= Functions ============================
 ENV.init=function(){ // When the page is loaded
-	SettingHandler.init(); // load all settings for the following initializations
-	LANG.init(); // set all doms after load?
-
-	ENV.window.SIZE.width=$("#canvas-window").width();
-	ENV.window.SIZE.height=$("#canvas-window").height();
-	ENV.setPaperSize(window.screen.width,window.screen.height); // no layer yet, init CANVAS
-
-	EVENTS.init();
-	EventDistributer.init();
-	PALETTE.init();
-	LAYERS.init();
-	BrushManager.init();
-	CURSOR.init();
-	HISTORY.init();
-	FILES.init();
-	PERFORMANCE.init();
-
-	// prevent pen-dragging in Firefox causing window freezing
-	EVENTS.disableInputSelection($("#filename-input"));
-
-	/**
-	 * Debug part
-	 */
-	//testPsd_DEBUG();
-	//initSettingSample_DEBUG();
+	STORAGE.init(sysSettingParams=>{ // after loading all settings
+		LANG.init(sysSettingParams); // set all doms after load?
+		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
+		
+		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
+		ENV.window.SIZE.width=$("#canvas-window").width();
+		ENV.window.SIZE.height=$("#canvas-window").height();
+		ENV.setPaperSize(window.screen.width,window.screen.height); // no layer yet, init CANVAS
+	
+		EVENTS.init();
+		EventDistributer.init();
+		PALETTE.init(sysSettingParams);
+		LAYERS.init();
+		BrushManager.init();
+		CURSOR.init();
+		HISTORY.init();
+		FILES.init();
+		PERFORMANCE.init();
+	
+		// prevent pen-dragging in Firefox causing window freezing
+		EVENTS.disableInputSelection($("#filename-input"));
+	});
 };
 
 // ====================== Settings ========================

@@ -241,8 +241,14 @@ PALETTE.onSelectSV=function(x,y){ // do not change hue, no palette canvas renew
 	PALETTE.setHSV([PALETTE.hsv[0],newS,newV]);
 }
 // ================== init ======================
-PALETTE.init=function(){
-	PALETTE.rgb=[134.0,194.0,224.0]; // initRGB
+PALETTE.init=function(sysSettingParams){
+	// Init palette color
+	if(sysSettingParams.paletteColor&&sysSettingParams.paletteColor.length>=3){
+		PALETTE.rgb=sysSettingParams.paletteColor.slice(0,3);
+	}
+	else{ // initRGB
+		PALETTE.rgb=[134.0,194.0,224.0];
+	}
 	PALETTE.hsv=rgb2hsv(PALETTE.rgb);
 
 	// SV selector

@@ -8,9 +8,9 @@ SettingHandler.tempPaperSize={
 	height:0
 };
 
-SettingHandler.init=function(){
+SettingHandler.init=function(sysParams){
 	SettingHandler.initTransformHandler();
-	let sys=SettingHandler.initSystemSetting();
+	let sys=SettingHandler.initSystemSetting(sysParams);
 	sys.update();
 }
 
@@ -123,13 +123,15 @@ SettingHandler.updateScale=function(dS,oldVal){
 }
 
 // ====================== system settings =========================
-SettingHandler.initSystemSetting=function(){
+SettingHandler.initSystemSetting=function(sysParams){
+
 	let sys=new SettingManager($("#settings-menu-panel"),Lang("System"));
 	sys.addSectionTitle(Lang("Renderer"));
-	sys.addSwitch(Lang("Render Method"),["16","8"],Lang("bit"),val=>{
-		CANVAS.settings.method=val+2;
-		CANVAS.setTargetCanvas(CANVAS.nowCanvas);
-	});
+
+	CANVAS.rendererBitDepth=sysParams.preference.channelBitDepth||8;
+	sys.addSwitch(Lang("Render Method"),["32","8"],Lang("bit"),val=>{ // require restart
+		CANVAS.rendererBitDepth=[32,8][val]; // @TODO: clear the logic here, esp when re-init canvas
+	},()=>CANVAS.rendererBitDepth==32?0:1);
 
 	// Workspace/paper setting
 	sys.addSectionTitle(Lang("workspace-title"));
@@ -187,7 +189,7 @@ SettingHandler.initSystemSetting=function(){
 		case 1: ENV.setAntiAliasing(false);break;
 		default: ENV.setAntiAliasing(true);break;
 		}
-	});
+	},()=>ENV.displaySettings.antiAlias?0:1);
 
 
 	sys.addSectionTitle(Lang("Display"));
@@ -197,7 +199,7 @@ SettingHandler.initSystemSetting=function(){
 		case 1: ENV.setTransformAnimation(false);break;
 		default: ENV.setTransformAnimation(true);break;
 		}
-	});
+	},()=>ENV.displaySettings.enableTransformAnimation?0:1);
 	sys.addButton(Lang("toggle-fullscreen"),()=>{
 		if(!document.fullscreenElement){
 			document.documentElement.requestFullscreen();

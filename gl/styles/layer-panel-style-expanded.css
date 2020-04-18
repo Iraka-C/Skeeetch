@@ -15,6 +15,9 @@
 	display: block;
 }
 
+#layer-panel-title{
+	font-size: 125%;
+}
 .layer-ui{
 	height: 5em;
 }

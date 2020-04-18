@@ -19,4 +19,5 @@ LANG_EN={
 LANG_EN._id={
 	"filename-input":"Skeeetch",
 	"palette-button-text":"Palette",
-}
+};
+LANG_EN._tag="en";

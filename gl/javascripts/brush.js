@@ -4,7 +4,7 @@
 BrushManager={};
 BrushManager.brushes=[
 	{
-		name:Lang("pencil"),
+		name:"pencil",
 		size:20, // diameter in sizeList[size]
 		minSize:0.0, // 0~1 (0~100%) of size
 		isSizePressure:1, // 1: Enable, 0:Disable
@@ -19,7 +19,7 @@ BrushManager.brushes=[
 		}
 	},
 	{
-		name:Lang("brush"),
+		name:"brush",
 		size:50,
 		minSize:0.5,
 		isSizePressure:1,
@@ -32,7 +32,7 @@ BrushManager.brushes=[
 
 	},
 	{
-		name:Lang("eraser"),
+		name:"eraser",
 		size:50,
 		minSize:1.0,
 		isSizePressure:0,
@@ -68,6 +68,10 @@ BrushManager.sizeList=[
 // ===================== functions ======================
 
 BrushManager.init=function(){
+	for(const brush of BrushManager.brushes){
+		brush.name=Lang(brush.name);
+	}
+	// @TODO: add load customized brushes from settings
 	BrushManager.setActiveBrush(0);
 	let brushMenu=BrushManager.initBrushSettingMenu();
 	BrushManager.initMenuSizeSection(brushMenu);
