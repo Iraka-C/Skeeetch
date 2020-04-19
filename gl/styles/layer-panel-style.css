@@ -68,9 +68,13 @@
 }
 #palette-hue-value{
 	vertical-align: super;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	font-size: 80%;
 	margin-left: 0.1em;
-	width: 2em;
+	width: 0em;
+	flex: 1;
 }
 #palette-hue-selector{ /* Up-Right */
 	position: absolute;

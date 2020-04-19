@@ -111,3 +111,102 @@ SMath.blendNormal=function(p1,p2){
 		op
 	];
 }
+
+
+// ================== Tool Functions =====================
+// rgb=[r,g,b], return [h,s,v]
+function rgb2hsv(rgb){
+	let r=rgb[0],g=rgb[1],b=rgb[2];
+	let maxc=Math.max(r,g,b);
+	let minc=Math.min(r,g,b);
+	if(maxc==minc){ // pure gray
+		return [0,0,maxc];
+	}
+
+	let h=0,s=0,v=maxc;
+	let dc=maxc-minc;
+	if(maxc==r){
+		h=(g-b)/dc;
+	}
+	else if(maxc==g){
+		h=2+(b-r)/dc;
+	}
+	else{
+		h=4+(r-g)/dc;
+	}
+
+	h*=60;
+	if(h<0)h+=360;
+	s=dc*180/maxc;
+	return [h,s,v];
+}
+
+// hsv=[h,s,v], return [r,g,b]
+function hsv2rgb(hsv){
+	let v=hsv[2];
+	let s=hsv[1]/180; // 0~1
+	if(s==0){ // pure gray
+		return [v,v,v];
+	}
+	let h=hsv[0]/60; // 0~5
+
+	let i=Math.floor(h);
+	let f=h-i;
+	let a=v*(1-s);
+	let b=v*(1-s*f);
+	let c=v*(1-s*(1-f));
+
+	switch(i){
+	case 6: // Precision issues
+	case 0:return [v,c,a];
+	case 1:return [b,v,a];
+	case 2:return [a,v,c];
+	case 3:return [a,b,v];
+	case 4:return [c,a,v];
+	case 5:return [v,a,b];
+	}
+}
+
+function h2rgb(hue){ // hue to pure color
+	hue=hue%360;
+	if(hue<0){
+		hue+=360;
+	}
+	
+	let h=hue/60; // 0~5
+	let i=Math.floor(h);
+	let f=h-i;
+	let c=255*f;
+	let b=255-c;
+
+	switch(i){
+	case 6:
+	case 0:return [255,c,0];
+	case 1:return [b,255,0];
+	case 2:return [0,255,c];
+	case 3:return [0,b,255];
+	case 4:return [c,0,255];
+	case 5:return [255,0,b];
+	}
+}
+
+/**
+ * for rgb in 0~255
+ * Y: 0 ~ 207: cell 0~12
+ * U: 0 ~ 182: cell 0~11
+ * V: 0 ~ 255: cell 0~15
+ */
+function rgb2yuv(rgb){
+	return [
+		 0.243*rgb[0] + 0.477*rgb[1] + 0.093*rgb[2],
+		-0.120*rgb[0] - 0.235*rgb[1] + 0.355*rgb[2] + 91,
+		 0.500*rgb[0] - 0.419*rgb[1] - 0.081*rgb[2] + 127.5
+	];
+}
+
+function colorDis(yuv1,yuv2){
+	const dY=yuv1[0]-yuv2[0];
+	const dU=yuv1[1]-yuv2[1];
+	const dV=yuv1[2]-yuv2[2];
+	return dY*dY*0.3+dU*dU+dV*dV; // stress more on hue
+}

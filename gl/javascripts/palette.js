@@ -11,116 +11,85 @@ PALETTE={};
  * The palette canvas size is set to 255x255
  */
 
-// ================== Tool Functions =====================
-// rgb=[r,g,b], return [h,s,v]
-function rgb2hsv(rgb){
-	let r=rgb[0],g=rgb[1],b=rgb[2];
-	let maxc=Math.max(r,g,b);
-	let minc=Math.min(r,g,b);
-	if(maxc==minc){ // pure gray
-		return [0,0,maxc];
+// ====================== Palette Controller ==================
+class PaletteSelector{ // Abstract!
+	constructor(){
+		// Fixed 256x256. Larger palette UI can be operated by css zooming.
+		const cv=$("#palette-canvas");
+		this.ctx=cv[0].getContext("2d");
+		this.size=256;
+		this.colorRange="normal";
 	}
+	updateBanner(x){ // x: 0~1 is the position selected on banner
 
-	let h=0,s=0,v=maxc;
-	let dc=maxc-minc;
-	if(maxc==r){
-		h=(g-b)/dc;
 	}
-	else if(maxc==g){
-		h=2+(b-r)/dc;
-	}
-	else{
-		h=4+(r-g)/dc;
-	}
+	updateSelector(){
 
-	h*=60;
-	if(h<0)h+=360;
-	s=dc*180/maxc;
-	return [h,s,v];
-}
-
-// hsv=[h,s,v], return [r,g,b]
-function hsv2rgb(hsv){
-	let v=hsv[2];
-	let s=hsv[1]/180; // 0~1
-	if(s==0){ // pure gray
-		return [v,v,v];
 	}
-	let h=hsv[0]/60; // 0~5
+	setCursor(){
 
-	let i=Math.floor(h);
-	let f=h-i;
-	let a=v*(1-s);
-	let b=v*(1-s*f);
-	let c=v*(1-s*(1-f));
-
-	switch(i){
-	case 6: // Precision issues
-	case 0:return [v,c,a];
-	case 1:return [b,v,a];
-	case 2:return [a,v,c];
-	case 3:return [a,b,v];
-	case 4:return [c,a,v];
-	case 5:return [v,a,b];
 	}
-}
+	updatePaletteButton(){
+		const button=$("#palette-button");
+		button.css("background-color",PALETTE.getColorString());
+		if(PALETTE.hsv[2]>150){
+			button.css("color","#000000");
 
-function h2rgb(hue){ // hue to pure color
-	hue=hue%360;
-	if(hue<0){
-		hue+=360;
+		}
+		else{
+			const textRGB=hsv2rgb([PALETTE.hsv[0],PALETTE.hsv[1],255]);
+			button.css("color",PALETTE.getColorString(textRGB));
+		}
 	}
-	
-	let h=hue/60; // 0~5
-	let i=Math.floor(h);
-	let f=h-i;
-	let c=255*f;
-	let b=255-c;
-
-	switch(i){
-	case 6:
-	case 0:return [255,c,0];
-	case 1:return [b,255,0];
-	case 2:return [0,255,c];
-	case 3:return [0,b,255];
-	case 4:return [c,0,255];
-	case 5:return [255,0,b];
+	/**
+	 * 
+	 * @param {String} s "normal"|"web-safe-color"|"web-named-color"|"named-color"|"8bit"
+	 */
+	setColorRange(s){
+		this.colorRange=s;
 	}
-}
+};
 
 // ================== Render Palette ==========================
 
 // Draw the palette with a certain hue
 PALETTE.drawPalette=function(hue){ // 0 ~ 360
+	const startT=Date.now();
 	if(hue===undefined){
 		hue=PALETTE.hsv[0];
 	}
 	let pureRGB=h2rgb(hue);
-	let paletteImgData=PALETTE.ctx.getImageData(0,0,PALETTE.size,PALETTE.size);
+	let paletteImgData=PALETTE.ctx.createImageData(PALETTE.size,PALETTE.size);
 	let pix=paletteImgData.data;
 	for(let j=0;j<256;j++){ // column
-		let pj=j/255;
-		let qjM=255*(1-pj);
-		let rTop=qjM+pureRGB[0]*pj;
-		let gTop=qjM+pureRGB[1]*pj;
-		let bTop=qjM+pureRGB[2]*pj;
+		const pj=j/255;
+		const qjM=255-j;
+		const rTop=qjM+pureRGB[0]*pj;
+		const gTop=qjM+pureRGB[1]*pj;
+		const bTop=qjM+pureRGB[2]*pj;
 
-		for(let i=0;i<255;i++){ // row
-			let id=(i*256+j)*4;
+		let id=j*4;
+		for(let i=0;i<256;i++,id+=1024){ // row
+			const pi=i/255;
+			const qi=1-pi;
+			const rP=rTop*qi;
+			const gP=gTop*qi;
+			const bP=bTop*qi;
 
-			let pi=i/255;
-			let qi=1-pi;
-			let rP=rTop*qi;
-			let gP=gTop*qi;
-			let bP=bTop*qi;
+			const webC=PALETTE.colorManager.rgb2namedColor([rP,gP,bP])[1];
 
-			pix[id]=rP;
-			pix[id+1]=gP;
-			pix[id+2]=bP;
+			// pix[id]=rP;
+			// pix[id+1]=gP;
+			// pix[id+2]=bP;
+			pix[id]=webC[0];
+			pix[id+1]=webC[1];
+			pix[id+2]=webC[2];
 			pix[id+3]=255;
 		}
 	}
 	PALETTE.ctx.putImageData(paletteImgData,0,0);
+	console.log("Time:",Date.now()-startT);
+	
 }
 
 /**
@@ -180,21 +149,28 @@ PALETTE.setCursor=function(){
 		"cy":(1-PALETTE.hsv[2]/255)*PALETTE.height,
 		"stroke":PALETTE.hsv[2]>150?"#000000":"#ffffff"
 	});
-	//CURSOR.setColor(): on the main canvas
+	
+	$("#palette-hue-value").text(PALETTE.colorManager.rgb2namedColor(PALETTE.rgb)[0]);
+	//$("#palette-hue-value").text(Math.round(PALETTE.hsv[0]));
 }
 
 PALETTE.updatePaletteNoRenew=function(){
-	$("#palette-button").css("background-color",PALETTE.getColorString());
-	var textRGB=hsv2rgb([PALETTE.hsv[0],PALETTE.hsv[1],255]);
-	$("#palette-button").css("color",
-		PALETTE.hsv[2]>150?"#000000":PALETTE.getColorString(textRGB)
-	);
+	const button=$("#palette-button");
+	button.css("background-color",PALETTE.getColorString());
+	if(PALETTE.hsv[2]>150){
+		button.css("color","#000000");
+
+	}
+	else{
+		const textRGB=hsv2rgb([PALETTE.hsv[0],PALETTE.hsv[1],255]);
+		button.css("color",PALETTE.getColorString(textRGB));
+	}
 	/*var hueRGB=hsv2rgb({h:PALETTE.hsv.h,s:40,v:100});
 	$("#hue-panel").html(Math.round(PALETTE.hsv.h)).css("color",
 		"RGB("+hueRGB.r+","+hueRGB.g+","+hueRGB.b+")"
 	);*/
 	
-	$("#palette-hue-value").text(Math.round(PALETTE.hsv[0]));
+	//$("#palette-hue-value").text(Math.round(PALETTE.hsv[0]));
 	PALETTE.setCursor();
 }
 
@@ -251,10 +227,14 @@ PALETTE.init=function(sysSettingParams){
 	}
 	PALETTE.hsv=rgb2hsv(PALETTE.rgb);
 
+	// colorManagement
+	PALETTE.colorManager.init(PALETTE.namedColorList);
+
 	// SV selector
 	PALETTE.refreshUIParam();
-	const cvp=$("#palette-canvas"); // Fixed 256x256. Larger palette UI can be operated by css zooming.
-	PALETTE.ctx=cvp[0].getContext("2d");
+	
+	const cv=$("#palette-canvas");
+	PALETTE.ctx=cv[0].getContext("2d");
 	PALETTE.size=256;
 
 	// hue selector
