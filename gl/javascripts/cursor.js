@@ -185,6 +185,9 @@ CURSOR.updateAction=function(event){
 	else if(EVENTS.key.ctrl){
 		CURSOR.nowActivity="pan-layer";
 	}
+	else if(EVENTS.key.alt){
+		CURSOR.nowActivity="pick";
+	}
 	else if(!CANVAS.drawSuccessful&&CURSOR.isDown){
 		CURSOR.nowActivity="disable";
 	}

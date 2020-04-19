@@ -26,6 +26,10 @@ LAYERS.$newLayerGroupUI=function(id) {
 	groupButton.append(opacityLabel,lockButton,blendModeButton,clipMaskButton,maskButton);
 	layerGroupUI.append(groupButton);
 
+	// Layer clip mask hint
+	let clipHint=$("<img class='group-clip-mask-hint' src='./resources/clip-mask-hint.svg'>");
+	layerGroupUI.append(clipHint);
+
 	let layerContainer=$("<div class='layer-group-container'>"); // The container of children
 	layerContainer.attr("data-layer-id",id); // Same id as UI
 	LAYERS.set$ElementAsLayerContainer(layerContainer); // Enable drag into
@@ -35,6 +39,11 @@ LAYERS.$newLayerGroupUI=function(id) {
 			event.stopPropagation(); // cancel the following "drag" event on pen
 		}
 	});
+
+	nameLabel.on("pointerdown",event => event.stopPropagation());
+	opacityLabel.on("pointerdown",event => event.stopPropagation());
+	groupButton.on("pointerdown",event => event.stopPropagation());
+
 	return layerGroupUI;
 }
 
@@ -200,12 +209,12 @@ class LayerGroupNode extends ContentNode {
 				case 0: // normal
 					this.properties.clipMask=false;
 					$clipButtonImg.css("opacity","0.25"); // color deeper than canvas code
-					this.$ui.children(".layer-clip-mask-hint").css("display","none");
+					this.$ui.children(".group-clip-mask-hint").css("display","none");
 					break;
 				case 1: // clip mask
 					this.properties.clipMask=true;
 					$clipButtonImg.css("opacity","1");
-					this.$ui.children(".layer-clip-mask-hint").css("display","block");
+					this.$ui.children(".group-clip-mask-hint").css("display","block");
 					break;
 			}
 		}
@@ -239,6 +248,7 @@ class LayerGroupNode extends ContentNode {
 		// blend mode button
 		const $blendButton=$buttons.find(".group-blend-mode-button");
 		const setBlendButtonStatus=v => {
+			if(this.properties.locked)return;
 			const $blendButtonImg=$blendButton.children("img");
 			switch(v) {
 				case 0: // normal
@@ -263,6 +273,7 @@ class LayerGroupNode extends ContentNode {
 				}
 			},
 			after: () => {
+				if(this.properties.locked)return;
 				HISTORY.addHistory({ // add a history
 					type: "node-property",
 					id: this.id,
@@ -272,7 +283,6 @@ class LayerGroupNode extends ContentNode {
 			}
 		};
 		const fBlend=SettingManager.setSwitchInteraction($blendButton,null,3,($el,v) => {
-			// @TODO: add history here
 			setBlendButtonStatus(v);
 			this.setImageDataInvalid();
 			COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
@@ -289,6 +299,68 @@ class LayerGroupNode extends ContentNode {
 	}
 	// Name and opacity inputs
 	initInputs() {
+		const $opacityLabel=this.$ui.children(".group-button-panel").children(".group-opacity-label");
+		const $opacityInput=$opacityLabel.children("input");
+		const setOpacity=opacity => { // set opacity function
+			if(this.properties.locked)return; // locked, doen't change
+			const prevOpacity=this.properties.opacity;
+			this.properties.opacity=opacity;
+			this.setImageDataInvalid(); // In fact this is a little more, only need to set parent/clip parent
+			HISTORY.addHistory({ // add a history
+				type: "node-property",
+				id: this.id,
+				prevStatus: {opacity: prevOpacity},
+				nowStatus: {opacity: opacity}
+			});
+			CANVAS.requestRefresh(); // refresh screen afterwards, no need to change layerTree cache
+		};
+		const opacityString=() => { // show opacity input
+			return this.properties.visible? Math.round(this.properties.opacity*100)+"%":"----";
+		}
+		SettingManager.setInputInstantNumberInteraction(
+			$opacityInput,$opacityLabel,
+			newVal => { // input update
+				if(!this.properties.visible) return;
+				newVal=parseFloat(newVal).clamp(0,100); // string to number
+				if(isNaN(newVal)) { // not a number, return initial rotation
+					return;
+				}
+				setOpacity(newVal/100);
+			},
+			(dw,oldVal) => { // scroll update
+				if(!this.properties.visible) return;
+				let newOpa=(this.properties.opacity+dw/20).clamp(0,1);
+				setOpacity(newOpa);
+			},
+			(dx,oldVal) => { // drag update, @TODO: why area restricted?
+				if(!this.properties.visible) return;
+				oldVal=parseFloat(oldVal);
+				let newVal=(oldVal+dx/2).clamp(0,100);
+				setOpacity(newVal/100);
+			},
+			() => $opacityInput.val(opacityString())
+		);
+		$opacityInput.on("pointerdown",event => {
+			const oE=event.originalEvent;
+			if((oE.buttons>>1)&1||(oE.buttons&1)&&(EVENTS.key.ctrl||EVENTS.key.shift)) { // right or left-with-ctrl/shift
+				const newVisibility=!this.properties.visible;
+				this.properties.visible=newVisibility
+				$opacityInput.val(opacityString());
+				HISTORY.addHistory({ // add a history
+					type: "node-property",
+					id: this.id,
+					prevStatus: {visible: !newVisibility},
+					nowStatus: {visible: newVisibility}
+				});
+				this.setImageDataInvalid(); // In fact this is a little more: when this layer has clip layer children
+				// @TODO: modify here if it is a performance bottleneck, and the place above
+				COMPOSITOR.updateLayerTreeStructure();
+			}
+		});
+		EventDistributer.footbarHint($opacityLabel,() => Lang(
+			this.properties.visible? "layer-opacity-label-shown":"layer-opacity-label-hidden"));
+
+		// ================ Name Input =================
 		const $nameInput=this.$ui.children(".group-title-panel").children(".group-name-label");
 		$nameInput.on("change",event => { // Input
 			const prevName=this.getName();
@@ -321,10 +393,17 @@ class LayerGroupNode extends ContentNode {
 		super.setProperties(prop); // update button ui here
 	}
 	updatePropertyUI(){ // update all UIs
+		const prop=this.properties;
 		this.buttonUpdateFuncs.expandButton();
 		this.buttonUpdateFuncs.lockButton();
 		this.buttonUpdateFuncs.clipButton();
 		this.buttonUpdateFuncs.blendButton();
+		// @TODO: mask button
+		this.$ui
+		.children(".group-button-panel")
+		.children(".group-opacity-label")
+		.children("input")
+		.val(prop.visible? Math.round(prop.opacity*100)+"%":"----");
 	}
 	// ============== Export Control ================
 	getAgPSDCompatibleJSON(){

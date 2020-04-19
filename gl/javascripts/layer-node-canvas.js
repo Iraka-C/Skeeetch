@@ -350,7 +350,6 @@ class CanvasNode extends ContentNode {
 			}
 		};
 		const fBlend=SettingManager.setSwitchInteraction($blendButton,null,3,($el,v) => {
-			// @TODO: add history here
 			setBlendButtonStatus(v);
 			this.setImageDataInvalid();
 			COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately

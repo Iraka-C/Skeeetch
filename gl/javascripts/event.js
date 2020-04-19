@@ -16,7 +16,7 @@ EVENTS.init=function(){
 	 */
 
 	// disable pen long press => context menu
-	$(window).on("contextmenu",e=>false);
+	//$(window).on("contextmenu",e=>false);
 
 	$(window).on("beforeunload",e=>{
 		STORAGE.saveOnExit();
@@ -125,6 +125,7 @@ EVENTS.init=function(){
 
 	$(window).on("keydown",EVENTS.keyDown);
 	$(window).on("keyup",EVENTS.keyUp);
+	EVENTS.initHotKeys();
 }
 
 // keyboard down handler
@@ -138,19 +139,19 @@ EVENTS.keyDown=function(event){
 		EVENTS.key.shift=true;
 		functionKeyChanged=true;
 		// change cursor on panning whole canvas
-		
 		CURSOR.updateAction();
 	}
 	if(ctrl&&!EVENTS.key.ctrl){
 		EVENTS.key.ctrl=true;
 		functionKeyChanged=true;
 		// change cursor on panning layer
-		
 		CURSOR.updateAction();
 	}
 	if(alt&&!EVENTS.key.alt){
 		EVENTS.key.alt=true;
 		functionKeyChanged=true;
+		// change cursor on picking color
+		CURSOR.updateAction();
 		event.preventDefault(); // prevent browser menu
 	}
 	
@@ -170,20 +171,17 @@ EVENTS.keyUp=function(event){
 	if(!shift&&EVENTS.key.shift){ // long pressing a key may fire several events
 		EVENTS.key.shift=false;
 		functionKeyChanged=true;
-		// change cursor
-		
 		CURSOR.updateAction();
 	}
 	if(!ctrl&&EVENTS.key.ctrl){
 		EVENTS.key.ctrl=false;
 		functionKeyChanged=true;
-		// change cursor
-		
 		CURSOR.updateAction();
 	}
 	if(!alt&&EVENTS.key.alt){
 		EVENTS.key.alt=false;
 		functionKeyChanged=true;
+		CURSOR.updateAction();
 		event.preventDefault(); // prevent browser menu
 	}
 

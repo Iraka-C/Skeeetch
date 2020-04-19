@@ -11,7 +11,7 @@ LANG_ZH={
 	// Setting Menu
 	"System":"系统设置",
 	"Renderer":"渲染器",
-	"Render Method":"渲染方法",
+	"Bit Depth":"位深度",
 	"Display":"显示",
 	"display-hint-1":"这些显示设置将不会影响渲染到画布的结果",
 	"bit":"位",
@@ -62,6 +62,7 @@ LANG_ZH={
 	"Paper Height":"高度",
 	"Change Paper Size":"改变尺寸",
 	"workspace-hint-1":"改变纸张尺寸时会丢弃超出范围的像素并清除所有历史记录！",
+	"render-bitdepth-hint":"位深度设置将在网页刷新后生效",
 
 	// Files
 	"Files":"文件"

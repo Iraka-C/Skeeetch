@@ -90,6 +90,7 @@ BrushManager.initBrushSettingMenu=function(){
 	);
 };
 
+// ====================== Brush Size =======================
 BrushManager._findBrushSizeId=function(size){
 	size=size.clamp(BrushManager.limits.minSize,BrushManager.limits.maxSize);
 	let minDiff=Infinity;
@@ -105,6 +106,17 @@ BrushManager._findBrushSizeId=function(size){
 	return minDiffId;
 }
 
+// dS should be +1(larger)/-1(smaller)
+BrushManager.changeActiveBrushSizeBy=function(dS){
+	const oldId=BrushManager._findBrushSizeId(BrushManager.activeBrush.size);
+	const newId=Math.round(oldId+dS).clamp(0,BrushManager.sizeList.length-1);
+	BrushManager.activeBrush.size=BrushManager.sizeList[newId];
+	BrushManager.minSizeUpdateFunc();
+	BrushManager.brushButtonUpdateFunc();
+	CURSOR.updateXYR(); // update brush cursor
+}
+
+// ========================== Brush Menu ===========================
 BrushManager.initMenuSizeSection=function(brushMenu){
 	brushMenu.addSectionTitle(Lang("Size Control"));
 	BrushManager.brushSizeUpdateFunc=brushMenu.addInstantNumberItem(
@@ -118,11 +130,7 @@ BrushManager.initMenuSizeSection=function(brushMenu){
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
-			let oldId=BrushManager._findBrushSizeId(BrushManager.activeBrush.size);
-			let newId=Math.round(oldId+dW).clamp(0,BrushManager.sizeList.length-1);
-			BrushManager.activeBrush.size=BrushManager.sizeList[newId];
-			BrushManager.minSizeUpdateFunc();
-			BrushManager.brushButtonUpdateFunc();
+			BrushManager.changeActiveBrushSizeBy(dW);
 		}, // set
 		(dx,oldVal)=>{ // set on drag-x
 			let originId=BrushManager._findBrushSizeId(oldVal-0);

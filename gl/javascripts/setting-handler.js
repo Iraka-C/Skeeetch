@@ -118,7 +118,7 @@ SettingHandler.initTransformHandler=function(){
 // Decide the new scaling factor when adding one step
 SettingHandler.updateScale=function(dS,oldVal){
 	const scaleFactor=0.05;
-	let newS=Math.exp(Math.log(oldVal)+scaleFactor*dS);
+	const newS=Math.exp(Math.log(oldVal)+scaleFactor*dS);
 	return newS.clamp(0.1,8.0); // mod to 0.1~8.0
 }
 
@@ -129,9 +129,12 @@ SettingHandler.initSystemSetting=function(sysParams){
 	sys.addSectionTitle(Lang("Renderer"));
 
 	CANVAS.rendererBitDepth=sysParams.preference.channelBitDepth||8;
-	sys.addSwitch(Lang("Render Method"),["32","8"],Lang("bit"),val=>{ // require restart
+	sys.addSwitch(Lang("Bit Depth"),["32","8"],Lang("bit"),val=>{ // require restart
 		CANVAS.rendererBitDepth=[32,8][val]; // @TODO: clear the logic here, esp when re-init canvas
+		minSizeHintUpdateFunc(true);
 	},()=>CANVAS.rendererBitDepth==32?0:1);
+	let minSizeHintUpdateFunc=sys.addHint(Lang("render-bitdepth-hint"));
+	minSizeHintUpdateFunc(false); // invisible at start
 
 	// Workspace/paper setting
 	sys.addSectionTitle(Lang("workspace-title"));

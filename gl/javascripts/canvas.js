@@ -211,13 +211,19 @@ CANVAS.stroke=function() {
 	const nowTarget=nowLayer.rawImageData;
 	const targetSize={width: wH-wL+1,height: hH-hL+1,left: wL,top: hL};
 	const clippedTargetSize=GLProgram.borderIntersection(targetSize,CANVAS.renderer.viewport);
-	if(clippedTargetSize.width<=0||clippedTargetSize.height<=0){ // now draw in the paper area
+	if(!clippedTargetSize.width||!clippedTargetSize.height){ // now draw in the paper area
 		return;
 	}
 	// render
 	if(CANVAS.renderer.brush.blendMode!=-1){ // not eraser, need to expand border
-		CANVAS.renderer.adjustImageDataBorders(nowTarget,targetSize,true);
-		if(!(nowTarget.width&&nowTarget.height)){ // zero size. may happen when drawing out of canvas border
+		CANVAS.renderer.adjustImageDataBorders(nowTarget,clippedTargetSize,true);
+		if(!nowTarget.width||!nowTarget.height){ // zero size. may happen when drawing out of canvas border
+			return;
+		}
+	}
+	else{ // eraser
+		const intsc=GLProgram.borderIntersection(nowTarget.validArea,clippedTargetSize);
+		if(!intsc.width||!intsc.height){ // zero size. eraser won't erase anything
 			return;
 		}
 	}

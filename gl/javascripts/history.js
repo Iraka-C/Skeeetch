@@ -102,16 +102,10 @@ class HistoryItem{
 /**
  * init AFTER paper size is set and layer canvas added to UI
  */
-HISTORY.init=function(){
-	EventDistributer.key.addListener($(window),"ctrl+z",event=>{
-		HISTORY.undo();
-	});
-	EventDistributer.key.addListener($(window),"ctrl+shift+z",event=>{
-		HISTORY.redo();
-	});
-	EventDistributer.key.addListener($(window),"ctrl+y",event=>{
-		HISTORY.redo();
-	});
+HISTORY.init=function(){ // init anyways
+	HISTORY.list=[];
+	HISTORY.nowId=-1;
+	HISTORY.nowRAMUsage=0;
 }
 
 /**

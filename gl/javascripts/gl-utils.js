@@ -220,8 +220,8 @@ class GLProgram {
 		return {
 			left: xL,
 			top: yL,
-			width: xH-xL,
-			height: yH-yL
+			width: Math.max(xH-xL,0),
+			height: Math.max(yH-yL,0)
 		};
 	}
 }

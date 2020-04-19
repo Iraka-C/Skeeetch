@@ -215,11 +215,13 @@ EventDistributer.footbarHint.showInfo=function(text,time){
  * key is a character (string)
  * funcKey=[isCtrl,isShift,isAlt]
  * isPreventDefault: if there is a default action of the browser, prevent it
+ * 
+ * //@TODO: simplify "keydown" binding
  */
 EventDistributer.key={
 	_init:function(){
 	},
-	addListener:function($element,key,callback,isPreventDefault){ // $element is a jQuery Object
+	addListener:function(key,callback,isPreventDefault){
 		// notice left/right: KeyboardEvent.DOM_KEY_LOCATION_STANDARD
 
 		let keys=key.toLowerCase().split("+");
@@ -233,7 +235,7 @@ EventDistributer.key={
 		if(isPreventDefault===undefined){ // init: true
 			isPreventDefault=true;
 		}
-		$element.on("keydown",event=>{
+		$(window).on("keydown",event=>{
 			if(event.originalEvent.key.toLowerCase()==code){ // check keycode
 				const ek=EVENTS.key;
 				if(ek.ctrl==funcKey[0]&&ek.shift==funcKey[1]&&ek.alt==funcKey[2]){ // the key combination
