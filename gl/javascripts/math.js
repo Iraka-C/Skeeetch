@@ -114,7 +114,7 @@ SMath.blendNormal=function(p1,p2){
 
 
 // ================== Tool Functions =====================
-// rgb=[r,g,b], return [h,s,v]
+// rgb=[r(0~255),g(0~255),b(0~255)], return [h(0~360),s(0~180),v(0~255)]
 function rgb2hsv(rgb){
 	let r=rgb[0],g=rgb[1],b=rgb[2];
 	let maxc=Math.max(r,g,b);
@@ -141,7 +141,7 @@ function rgb2hsv(rgb){
 	return [h,s,v];
 }
 
-// hsv=[h,s,v], return [r,g,b]
+// hsv=[h(0~360),s(0~180),v(0~255)], return [r(0~255),g(0~255),b(0~255)]
 function hsv2rgb(hsv){
 	let v=hsv[2];
 	let s=hsv[1]/180; // 0~1
@@ -191,14 +191,17 @@ function h2rgb(hue){ // hue to pure color
 }
 
 /**
- * for rgb in 0~255
- * Y: 0 ~ 207: cell 0~12
- * U: 0 ~ 182: cell 0~11
- * V: 0 ~ 255: cell 0~15
+ * Not a real YUV!
+ * for rgb in 0 ~ 255
+ * Y: 0 ~ 128-
+ * U: 0 ~ 182-
+ * V: 0 ~ 256-
+ * 
+ * in this transform, y is zoomed about half, which means stress more on hue
  */
-function rgb2yuv(rgb){
+function rgb2fyuv(rgb){
 	return [
-		 0.243*rgb[0] + 0.477*rgb[1] + 0.093*rgb[2],
+		 0.149*rgb[0] + 0.293*rgb[1] + 0.057*rgb[2],
 		-0.120*rgb[0] - 0.235*rgb[1] + 0.355*rgb[2] + 91,
 		 0.500*rgb[0] - 0.419*rgb[1] - 0.081*rgb[2] + 127.5
 	];
@@ -208,5 +211,5 @@ function colorDis(yuv1,yuv2){
 	const dY=yuv1[0]-yuv2[0];
 	const dU=yuv1[1]-yuv2[1];
 	const dV=yuv1[2]-yuv2[2];
-	return dY*dY*0.3+dU*dU+dV*dV; // stress more on hue
+	return dY*dY+dU*dU+dV*dV;
 }

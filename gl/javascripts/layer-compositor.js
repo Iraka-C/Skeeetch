@@ -71,9 +71,10 @@ COMPOSITOR.compileLayerTree=function(){
  */
 COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 	node=node||LAYERS.layerTree; // init: root
-	//console.log("Recomposite "+node.id);
 
-	if(!node.isRawImageDataValid&&node.children.length) {
+	// If no dirty area provided, assume that node shall contain all contents of leaves
+
+	if(!node.isRawImageDataValid&&!(node instanceof CanvasNode)) {
 		// raw data of this node needs recomposition
 		// Only group/root will reach here
 		if(!node.isChildrenClipMaskOrderValid) { // clip mask order not calculated
@@ -88,7 +89,7 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 			const child=list[i];
 			// for group, only blend non-clip mask layers
 			// use node.imageDataCombinedCnt to skip clip mask
-			COMPOSITOR.recompositeLayers(child); // recomposite this level
+			COMPOSITOR.recompositeLayers(child,dirtyArea); // recomposite this level
 			if(child.properties.visible&&child.imageData.width&&child.imageData.height){
 				// visible and has content
 				// to blend the imageData into layer's raw imageData
@@ -100,18 +101,20 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 
 		// Now the initSize contains the minimum size to contain the children's imageData
 		let bg=node.rawImageData; // present uncleared imagedata
-		CANVAS.renderer.adjustImageDataBorders(bg,initSize,false);
-		CANVAS.renderer.clearImageData(bg,null,false); // clear the data to blank
+		// Shall contain all children size. If there's dirty area specified, need to preserve some contents
+		CANVAS.renderer.adjustImageDataBorders(bg,initSize,!!dirtyArea);
+		CANVAS.renderer.clearScissoredImageData(bg,dirtyArea); // clear the dirtyArea of data to blank
 
 		// blend the children
 		for(const v of childrenToBlend) {
 			const child=list[v];
 			CANVAS.renderer.blendImageData(child.imageData,bg,{
 				mode: child.properties.blendMode,
-				srcAlpha: child.properties.opacity
+				srcAlpha: child.properties.opacity,
+				targetArea: dirtyArea
 			}); // blend layer with backdrop
 			if(PERFORMANCE.debugger.isDrawingLayerBorder){ // For DEBUG: draw the edge of each layer
-				CANVAS.renderer.drawEdge(child.imageData,bg);
+				CANVAS.renderer.drawEdge(child.imageData,bg,dirtyArea);
 			}
 		}
 
@@ -136,7 +139,7 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 			for(let i=0;i<node.clipMaskChildrenCnt;i++) {
 				const v=index-1-i; // reversed order
 				const clipMaskNode=siblings[v];
-				COMPOSITOR.recompositeLayers(clipMaskNode); // recomposite this level
+				COMPOSITOR.recompositeLayers(clipMaskNode,dirtyArea); // recomposite this level
 				if(!clipMaskNode.properties.visible) continue; // invisible: pass this node
 				if(!clipMaskNode.imageData.width||!clipMaskNode.imageData.height) continue; // contains 0 pixel: do not blend
 				childrenToBlend.push(v);
@@ -146,15 +149,19 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 			const mask=node.maskedImageData;
 			const clipped=node.imageData; // present uncleared imagedata
 			CANVAS.renderer.adjustImageDataBorders(clipped,mask.validArea,false); // move to the position of mask
-			CANVAS.renderer.clearImageData(clipped,null,false); // clear the data to blank.
+			CANVAS.renderer.clearScissoredImageData(clipped/*,dirtyArea*/); // clear the dirty part of data to blank.
 			// combine all image data
-			CANVAS.renderer.blendImageData(mask,clipped,{mode: BasicRenderer.SOURCE}); // copy masked image
+			CANVAS.renderer.blendImageData(mask,clipped,{
+				mode: BasicRenderer.SOURCE,
+				//targetArea: dirtyArea
+			}); // copy masked image
 			for(const v of childrenToBlend) {
 				const clipMaskNode=siblings[v];
 				CANVAS.renderer.blendImageData(clipMaskNode.imageData,clipped,{
 					mode: clipMaskNode.properties.blendMode,
 					alphaLock: true, // lock alpha
-					srcAlpha: clipMaskNode.properties.opacity
+					srcAlpha: clipMaskNode.properties.opacity,
+					//targetArea: dirtyArea
 				});
 				if(PERFORMANCE.debugger.isDrawingLayerBorder){
 					CANVAS.renderer.drawEdge(clipMaskNode.imageData,clipped);

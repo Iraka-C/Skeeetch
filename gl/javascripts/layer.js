@@ -288,6 +288,9 @@ LAYERS.initLayerPanelButtons=function() {
 
 	// Delete layer / group button
 	$("#delete-button").on("click",event => {
+		if(LAYERS.active.isLocked()){ // locked layer
+			return;
+		}
 		const objId=LAYERS.active.id;
 		const fromId=LAYERS.active.parent.id;
 		const fromIndex=LAYERS.active.getIndex();
@@ -307,6 +310,9 @@ LAYERS.initLayerPanelButtons=function() {
 
 	// Clear layer content button
 	$("#clear-button").on("click",event => {
+		if(LAYERS.active.isLocked()){ // locked layer
+			return;
+		}
 		if(LAYERS.active instanceof LayerGroupNode) { // group: merge content
 			LAYERS.replaceGroupWithLayer(LAYERS.active);
 		}

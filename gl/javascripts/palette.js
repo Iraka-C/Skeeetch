@@ -53,6 +53,8 @@ class PaletteSelector{ // Abstract!
 // ================== Render Palette ==========================
 
 // Draw the palette with a certain hue
+// let aT=0;
+// let cT=0;
 PALETTE.drawPalette=function(hue){ // 0 ~ 360
 	const startT=Date.now();
 	if(hue===undefined){
@@ -61,6 +63,7 @@ PALETTE.drawPalette=function(hue){ // 0 ~ 360
 	let pureRGB=h2rgb(hue);
 	let paletteImgData=PALETTE.ctx.createImageData(PALETTE.size,PALETTE.size);
 	let pix=paletteImgData.data;
+	
 	for(let j=0;j<256;j++){ // column
 		const pj=j/255;
 		const qjM=255-j;
@@ -77,7 +80,6 @@ PALETTE.drawPalette=function(hue){ // 0 ~ 360
 			const bP=bTop*qi;
 
 			const webC=PALETTE.colorManager.rgb2namedColor([rP,gP,bP])[1];
-
 			// pix[id]=rP;
 			// pix[id+1]=gP;
 			// pix[id+2]=bP;
@@ -88,8 +90,10 @@ PALETTE.drawPalette=function(hue){ // 0 ~ 360
 		}
 	}
 	PALETTE.ctx.putImageData(paletteImgData,0,0);
-	console.log("Time:",Date.now()-startT);
-	
+	//console.log("T=",Date.now()-startT);
+	// aT+=Date.now()-startT;
+	// cT++;
+	// console.log("AVT=",(aT/cT).toFixed(3));
 }
 
 /**
@@ -150,7 +154,9 @@ PALETTE.setCursor=function(){
 		"stroke":PALETTE.hsv[2]>150?"#000000":"#ffffff"
 	});
 	
-	$("#palette-hue-value").text(PALETTE.colorManager.rgb2namedColor(PALETTE.rgb)[0]);
+	const name=PALETTE.colorManager.rgb2namedColor(PALETTE.rgb)[0];
+	$("#palette-hue-value").text(Lang(name));
+	//EventDistributer.footbarHint.showInfo(name);
 	//$("#palette-hue-value").text(Math.round(PALETTE.hsv[0]));
 }
 
@@ -165,6 +171,15 @@ PALETTE.updatePaletteNoRenew=function(){
 		const textRGB=hsv2rgb([PALETTE.hsv[0],PALETTE.hsv[1],255]);
 		button.css("color",PALETTE.getColorString(textRGB));
 	}
+	const $buttonText=$("#palette-button-text");
+	const k=button.width()/$buttonText.width();
+	if(k<1){
+		$buttonText.css("transform","scale("+k+", 1)");
+	}
+	else{
+		$buttonText.css("transform","");
+	}
+	
 	/*var hueRGB=hsv2rgb({h:PALETTE.hsv.h,s:40,v:100});
 	$("#hue-panel").html(Math.round(PALETTE.hsv.h)).css("color",
 		"RGB("+hueRGB.r+","+hueRGB.g+","+hueRGB.b+")"
@@ -229,6 +244,8 @@ PALETTE.init=function(sysSettingParams){
 
 	// colorManagement
 	PALETTE.colorManager.init(PALETTE.namedColorList);
+	//PALETTE.colorManager.init(PALETTE.pantoneColorList);
+	//PALETTE.colorManager.init();
 
 	// SV selector
 	PALETTE.refreshUIParam();

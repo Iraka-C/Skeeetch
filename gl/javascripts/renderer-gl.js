@@ -28,6 +28,9 @@ class GLRenderer extends BasicRenderer {
 		gl.enable(gl.BLEND); // enable blend function
 		gl.blendEquation(gl.FUNC_ADD); // always add: using gl.blendFunc to erase
 
+		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false); // loading texture
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+
 		// Device dependent: float texture
 		switch(this.bitDepth) {
 			case 32:
@@ -52,10 +55,6 @@ class GLRenderer extends BasicRenderer {
 				this.dataFormat=gl.UNSIGNED_SHORT_4_4_4_4;
 				break;
 		}
-
-		// These setting influence the loading of textures
-		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true); // when loading image
-		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
 
 		// =================== Create Programs ====================
 		this._initRenderCanvasProgram();
@@ -93,7 +92,11 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	getGPUMemUsage() { // return GPU Memory usage in bytes
-		return this.canvas.width*this.canvas.height*(this.bitDepth/8*4)*2; // canvas and tmpImageData
+		const pixMem=this.bitDepth/8*4; // 1 pixel(RGBA)
+		const bImgData=this.brushRenderer.brushtipImageData;
+		const bMem=bImgData.width*bImgData.height*pixMem
+		const cMem=this.canvas.width*this.canvas.height*pixMem*2; // canvas and tmpImageData
+		return bMem+cMem;
 	}
 	getRAMUsage() {
 		return 0;
@@ -185,7 +188,7 @@ class GLRenderer extends BasicRenderer {
 	/**
 	 * render a series of key points (plate shapes) into the buffer
 	 * [wL,wH,hL,hH] is the range of plates to be rendered, in paper coordinate *Note: may exceed canvas size range!
-	 * kPoints[v] = [x,y,r,a] *a in 0~1
+	 * kPoints[v] = [x,y,r,a], (x,y):paper coord, *a in 0~1
 	 */
 	// @TODO: render circles according to the actual size & position of the texture
 	// @TODO: dynamically grow texture size to save graphics memory!
@@ -203,7 +206,7 @@ class GLRenderer extends BasicRenderer {
 			const opa=p[3];
 			const softRange=this.softness+fixedSoftEdge/p[2];
 			let rad=p[2];
-			if(this.antiAlias&&rad<2){ // thickness compensation
+			if(this.antiAlias&&rad<2){ // thickness compensation for thin stroke
 				rad=0.8+rad*0.6;
 			}
 
@@ -216,7 +219,7 @@ class GLRenderer extends BasicRenderer {
 			// set circle size and radius, adjust position according to the imgData, radius+0.1 for gl clipping
 			this.brushRenderer.render(
 				imgData,this.brush,
-				[p[0]-imgData.left,p[1]-imgData.top],rad,
+				[p[0],p[1]],rad,
 				color,this.isOpacityLocked,softRange
 			);
 		}
@@ -385,6 +388,7 @@ class GLRenderer extends BasicRenderer {
 		if(!(target.width&&target.height)) { // No pixel, needless to clear
 			return;
 		}
+		range=range||target; // default: clear all
 		const gl=this.gl;
 		gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuffer); // render to a texture
 		gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,target.data,0);
@@ -544,7 +548,7 @@ class GLRenderer extends BasicRenderer {
 
 	// debug: add wire frame
 	// draw a border wire frame of the source.color on the target
-	drawEdge(src,tgt) {
+	drawEdge(src,tgt,optArea) {
 		const WIDTH=4;
 		const VA_WIDTH=4;
 		const gl=this.gl;
@@ -590,18 +594,33 @@ class GLRenderer extends BasicRenderer {
 			gl.clear(gl.COLOR_BUFFER_BIT);
 		}
 
+		if(optArea){ // Draw optional border
+			const O_WIDTH=Math.floor(WIDTH/2);
+			let L1=optArea.left-tgt.left;
+			let H1=tgt.top+tgt.height-optArea.top;
+			let H2=H1-optArea.height;
+			gl.scissor(L1,H1-O_WIDTH,optArea.width,O_WIDTH);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.scissor(L1,H2,O_WIDTH,optArea.height);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.scissor(L1,H2,optArea.width,O_WIDTH);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.scissor(L1+optArea.width-O_WIDTH,H2,O_WIDTH,optArea.height);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+		}
+
 		gl.disable(gl.SCISSOR_TEST);
 	}
 
 	// ====================== Data type transforms =======================
 	// Load/Get
 	loadToImageData(target,img) { // load img into target
+		const gl=this.gl;
 		if(img.type&&img.type=="GLRAMBuf") { // load a buffer
 			// Here, suppose that the size of target will always contain img @TODO: Buggy?
-			const gl=this.gl;
 			// Setup temp texture for extracting data
 			const tmpTexture=GLProgram.createAndSetupTexture(gl);
-			gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,img.width,img.height,0,gl.RGBA,this.dataFormat,img.data); // y-flipped!
+			gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,img.width,img.height,0,gl.RGBA,this.dataFormat,img.data);
 			const tmpImageData={ // create a GLTexture copy of img
 				type: "GLTexture",
 				data: tmpTexture,
@@ -611,15 +630,16 @@ class GLRenderer extends BasicRenderer {
 				top: img.top,
 				validArea: img // borrow values
 			}
-			this.textureBlender.blendTexture(tmpImageData,target,{
-				mode:GLRenderer.SOURCE,
-				flipY: true
-			});
+			this.textureBlender.blendTexture(tmpImageData,target,{mode:GLRenderer.SOURCE});
 			gl.deleteTexture(tmpTexture);
 		}
 		else {
+			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true); // non-premult img
+			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true); // normal Y-direction
 			// img can be Context2DImageData/HTMLImageElement/HTMLCanvasElement/ImageBitmap
 			this.imageDataFactory.loadToImageData(target,img);
+			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false); // restore
+			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
 		}
 	}
 

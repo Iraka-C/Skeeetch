@@ -9,15 +9,9 @@ class GLTextureBlender {
 		// Normal or Copy version
 		const vBlendShaderSource=glsl` // vertex shader for drawing a circle
 			attribute vec2 a_position; // vertex position
-			uniform float u_flip_Y; // vertical flip
 			varying vec2 v_position;
 			void main(){
-				if(u_flip_Y==0.){
-					v_position=a_position;
-				}
-				else{
-					v_position=vec2(a_position.x,1.-a_position.y);
-				}
+				v_position=a_position;
 				gl_Position=vec4(a_position*2.-1.,0.,1.); // to clip space
 			}
 		`;
@@ -34,7 +28,6 @@ class GLTextureBlender {
 
 		this.gl=gl;
 		this.blendProgram=new GLProgram(gl,vBlendShaderSource,fBlendShaderSource);
-		this.blendProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
 	}
 
 	free() {
@@ -44,13 +37,14 @@ class GLTextureBlender {
 	 * blend the src and dst textures in corresponding ranges
 	 * src, dst: imagedatas of this.gl
 	 * param={
-	 *    mode:
-	 *       "source": use src to replace dst
-	 *       "normal": 1*src+(1-src)*dst normal blend
-	 *       "multiply": darken
-	 *       "screen": lighten
+	 *    mode: // see css mix-blend-mode standard
+	 *       GLTextureBlender.SOURCE: use src to replace dst
+	 *       GLTextureBlender.NORMAL: 1*src+(1-src)*dst normal blend
+	 *       GLTextureBlender.EXCLUSION: color exclusion
+	 *       GLTextureBlender.SCREEN: lighten
 	 *    alphaLock: true | false // to change the dst alpha
 	 *    srcAlpha: additional opacity of source, 0~1
+	 *    targetArea: the area to blend, {w,h,l,t} under paper coordinate. The smaller, the faster.
 	 * }
 	 * 
 	 * **NOTE** if src range exceeds dst size range, overflown parts will be discarded!
@@ -65,7 +59,7 @@ class GLTextureBlender {
 		param.alphaLock=param.alphaLock||false;
 		if(param.mode===undefined) param.mode=GLTextureBlender.NORMAL;
 		if(param.srcAlpha===undefined) param.srcAlpha=1;
-		if(param.flipY==undefined) param.flipY=false;
+		if(!param.targetArea)param.targetArea=src.validArea; // blend all src valid pixels
 
 		let advancedBlendFlag=false;
 		switch(param.mode) {
@@ -80,6 +74,9 @@ class GLTextureBlender {
 			case GLTextureBlender.ERASE:
 				if(param.alphaLock) { // do not change target alpha
 					// Nothing to erase
+					gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA); // a_dest doesn't change
+					// Same as NORMAL-alphaLock
+					// This only works for brush-eraser
 				}
 				else {
 					gl.blendFunc(gl.ZERO,gl.ONE_MINUS_SRC_ALPHA); // no color
@@ -87,10 +84,10 @@ class GLTextureBlender {
 				break;
 			case GLTextureBlender.NONE:
 				if(param.alphaLock) { // do not change target alpha
-					// Nothing to delete
+					gl.blendFunc(gl.ZERO,gl.ONE); // do not change
 				}
 				else {
-					gl.blendFunc(gl.ZERO,gl.ZERO); // no color
+					gl.blendFunc(gl.ZERO,gl.ZERO); // no color, you'd rather use clearImageData()
 				}
 				break;
 			case GLTextureBlender.NORMAL:
@@ -133,16 +130,26 @@ class GLTextureBlender {
 		program.setTargetTexture(dst.data);
 		program.setSourceTexture(src.data);
 		program.setUniform("u_image_alpha",param.srcAlpha);
-		program.setUniform("u_flip_Y",param.flipY?1:0);
 
+		// set target area attribute, to 0~1 coord space(LB origin).
+		// gl will automatically trim within viewport
+		const tA=param.targetArea; // Do not change the contents!
+		const rL=(tA.left-src.left)/src.width;
+		const rT=(src.top+src.height-tA.top)/src.height;
+		const rR=(tA.left+tA.width-src.left)/src.width;
+		const rB=(src.top+src.height-tA.top-tA.height)/src.height;
+		program.setAttribute("a_position",[rL,rT,rL,rB,rR,rT,rR,rT,rL,rB,rR,rB],2);
+
+		// viewport covering src.data
 		const left=Math.round(src.left-dst.left);
 		const top=Math.round(dst.top+dst.height-src.top-src.height);
 		gl.viewport(left,top,src.width,src.height);
 		program.run();
 
 		if(!param.alphaLock) { // extend dst valid area, but not larger than dst size
-			const tmpArea=GLProgram.extendBorderSize(src.validArea,dst.validArea);
-			dst.validArea=GLProgram.borderIntersection(tmpArea,dst);
+			const extArea=GLProgram.borderIntersection(src.validArea,tA); // part blended
+			const tmpArea=GLProgram.extendBorderSize(extArea,dst.validArea); // extend valid
+			dst.validArea=GLProgram.borderIntersection(tmpArea,dst); // trim in dst borders
 		}
 	}
 }

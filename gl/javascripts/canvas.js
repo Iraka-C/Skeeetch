@@ -207,9 +207,10 @@ CANVAS.stroke=function() {
 	//CANVAS.requestRefresh(); // request a refresh on the screen
 
 	// calculate new range
+	// expand with [wL,wH)*[hL,hH)
 	let [wL,wH,hL,hH,kPoints]=param;
 	const nowTarget=nowLayer.rawImageData;
-	const targetSize={width: wH-wL+1,height: hH-hL+1,left: wL,top: hL};
+	const targetSize={width: wH-wL,height: hH-hL,left: wL,top: hL};
 	const clippedTargetSize=GLProgram.borderIntersection(targetSize,CANVAS.renderer.viewport);
 	if(!clippedTargetSize.width||!clippedTargetSize.height){ // now draw in the paper area
 		return;
@@ -232,7 +233,7 @@ CANVAS.stroke=function() {
 	// render end
 	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize);
 	nowLayer.setRawImageDataInvalid(); // the layers needs to be recomposited
-	CANVAS.requestRefresh(); // request a refresh on the screen
+	CANVAS.requestRefresh(clippedTargetSize); // request a refresh on the screen
 };
 
 /**
@@ -258,7 +259,14 @@ CANVAS.strokeEnd=function() {
  * multiple requests within 1 animation frame will be combined
  */
 CANVAS.lastRefreshTime=NaN;
-CANVAS.requestRefresh=function() {
+CANVAS.accumDirtyArea={width:0,height:0,left:0,top:0}; // Accumulated Dirty Area
+CANVAS.requestRefresh=function(dirtyArea) {
+	if(dirtyArea){
+		CANVAS.accumDirtyArea=GLProgram.extendBorderSize(CANVAS.accumDirtyArea,dirtyArea);
+	}
+	else{ // Full range
+		CANVAS.accumDirtyArea=CANVAS.renderer.viewport;
+	}
 	if(CANVAS.isRefreshRequested) {
 		return; // already requested
 	}
@@ -276,9 +284,12 @@ CANVAS.requestRefresh=function() {
 
 /**
  * On refreshing canvas, after animation frame
+ * Only called (including async CANVAS.requestRefresh) when no layer structure's changed
+ * Because this function offers CANVAS.accumDirtyArea value
  */
 CANVAS.onRefresh=function() {
-	CANVAS.refreshScreen();
+	CANVAS.refreshScreen(CANVAS.accumDirtyArea); // sync function
+	CANVAS.accumDirtyArea={width:0,height:0,left:0,top:0}; // reset
 }
 
 /**
@@ -288,9 +299,10 @@ CANVAS.onRefresh=function() {
  * 
  * The antialiasing parameter 0.7 is a balance of sharpness and crispiness.
  */
-CANVAS.refreshScreen=function() {
+CANVAS.refreshScreen=function(dirtyArea) {
+	//console.log("Recomposite",dirtyArea);
 	const antiAliasRadius=ENV.displaySettings.antiAlias?0.7*Math.max(1/ENV.window.scale-1,0):0;
-	COMPOSITOR.recompositeLayers();
+	COMPOSITOR.recompositeLayers(null,dirtyArea); // recomposite from root
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
 }
 

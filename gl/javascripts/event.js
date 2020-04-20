@@ -18,9 +18,19 @@ EVENTS.init=function(){
 	// disable pen long press => context menu
 	//$(window).on("contextmenu",e=>false);
 
+	let isWindowBlurred=false;
+	$(window).on("blur focus",e=>{
+		isWindowBlurred=(e.type=="blur"); // or "focus"
+		/**
+		 * @TODO:
+		 * set the page title
+		 * also: set title when renaming the page
+		 * save imagedata on blur is a good idea.
+		 */
+	});
 	$(window).on("beforeunload",e=>{
+		// see STORAGE.SETTING.saveAllSettings
 		STORAGE.saveOnExit();
-		delete e.originalEvent["returnValue"]; // do not show anything
 	});
 
 	/**

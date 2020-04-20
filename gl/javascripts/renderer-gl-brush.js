@@ -4,11 +4,12 @@ class GLBrushRenderer{
 		this.gl=renderer.gl;
 		this._initCircleProgram();
 
-		const viewport=renderer.viewport;
 		// originalImageData: for buffering stroke data
 		//this.originalImageData=renderer.createImageData(viewport.width,viewport.height);
 		// storing the shape of brush tip
 		//this.strokeImageData=renderer.createImageData(viewport.width,viewport.height);
+		const MAX_SIZE=BrushManager.limits.maxSize*2;
+		this.brushtipImageData=renderer.createImageData(MAX_SIZE,MAX_SIZE); // fixed size
 	}
 
 	_initCircleProgram() {
@@ -80,105 +81,60 @@ class GLBrushRenderer{
 
 	free(){
 		this.circleProgram.free();
-		//this.mainRenderer.deleteImageData(this.originalImageData);
-		//this.mainRenderer.deleteImageData(this.strokeImageData);
-	}
-
-	setupBrushtip(brush,newBrushtip){
-		if(!brush.brushtip){ // create brushtip
-			brush.brushtip={type:"round"};
-		}
-		if(newBrushtip){ // change brushtip type
-			if(newBrushtip.type="GLTexture"){ // set customized brushtip
-				this._setupBrushtipCustomizedImageData(brush,newBrushtip);
-				return;
-			}
-			brush.brushtip.type=newBrushtip; // string of "round" or //??? @TODO
-		}
-
-		// customized brushtip
-		if(brushtip.type=="custom"){ // not changing
-			return;
-		}
-
-		// internal type
-		if(brushtip.imageData.width!=MAX_SIZE||brushtip.imageData.height!=MAX_SIZE){
-			// create texture of maximum size
-			this.mainRenderer.deleteImageData(brushtip.imageData);
-			brushtip.imageData=this.mainRenderer.createImageData(
-				BrushManager.limits.maxSize,
-				BrushManager.limits.maxSize
-			);
-		}
-		else{ // simply clear it
-			this.mainRenderer.clearImageData(brushtip.imageData,null,false);
-		}
-
-		const gl=this.gl;
-		const brushtip=brush.brushtip;
-		const MAX_SIZE=BrushManager.limits.maxSize;
-		if(brushtip.type=="round"){ // string specified type
-			const program=this.circleProgram;
-			program.setTargetTexture(target.data); // render to this.texture
-			program.setUniform("u_resolution",[target.width,target.height]);
-			gl.viewport(0,0,target.width,target.height); // restore viewport
-			gl.blendFunc(gl.ONE,gl.ZERO); // source only
-
-			program.setUniform("u_pos",[MAX_SIZE/2,MAX_SIZE/2,MAX_SIZE/2]);
-			program.setUniform("u_color",[1,1,1,1]); // white
-
-			const softness=1-brush.edgeHardness;
-			program.setUniform("u_softness",softness);
-			program.run();
-		}
-		else{
-			// Other types
-		}
-	}
-	_setupBrushtipCustomizedImageData(brush,imageData){
-		
+		this.mainRenderer.deleteImageData(this.brushtipImageData);
 	}
 
 	/**
 	 * 
 	 * @param {*} target 
 	 * @param {*} brush 
-	 * @param {*} pos 
-	 * @param {*} radius diameter of the brush
-	 * @param {*} colorRGBA Premultiplied [r,g,b,a] in 0~1
-	 * @param {*} isOpacityLocked 
-	 * @param {*} softRange 
+	 * @param {*} pos [x,y] under paper coordinate
+	 * @param {Number} radius diameter of the brush
+	 * @param {[R,G,B,A]} colorRGBA Premultiplied [r,g,b,a] in 0~1
+	 * @param {Boolean} isOpacityLocked 
+	 * @param {Number} softRange 
 	 */
 	render(target,brush,pos,radius,colorRGBA,isOpacityLocked,softRange){
 		const gl=this.gl;
 		const program=this.circleProgram;
 
-		program.setTargetTexture(target.data); // render to this.texture
-		program.setUniform("u_resolution",[target.width,target.height]);
-		gl.viewport(0,0,target.width,target.height); // restore viewport
+		// Step 1: render colored brushtip to this.brushtipImageData
+		const bImg=this.brushtipImageData;
+		program.setTargetTexture(bImg.data); // render to brushtip
+		program.setUniform("u_resolution",[bImg.width,bImg.height]);
+		gl.viewport(0,0,bImg.width,bImg.height);
+		gl.clearColor(0,0,0,0); // clear brushtip
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.blendFunc(gl.ONE,gl.ZERO); // pure source draw
 
-		let color=[...colorRGBA];
-		if(brush.blendMode>=0) { // add: pen, brush, ...
-			if(isOpacityLocked) { // destination opacity not change
-				gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA); // a_dest doesn't change
-			}
-			else {
-				gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA); // normal blend mode *Lossy when 8bit int!
-			}
+		let color;
+		if(brush.blendMode>=0){
+			color=colorRGBA; // do NOT change content of color!
 		}
-		else { // erase: eraser
-			if(isOpacityLocked) { // destination opacity not change
-				color=[color[3],color[3],color[3],color[3]]; // white
-				gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA); // a_dest doesn't change
-			}
-			else {
-				gl.blendFunc(gl.ZERO,gl.ONE_MINUS_SRC_ALPHA); // no color
-			}
+		else{
+			const opa=colorRGBA[3];
+			color=[opa,opa,opa,opa];
 		}
 
-		program.setUniform("u_pos",[pos[0],pos[1],radius]);
+		program.setUniform("u_pos",[radius,radius,radius]); // draw on left-top
 		program.setUniform("u_color",color); // set circle color, alpha pre-multiply
 		program.setUniform("u_softness",softRange);
 		program.run();
+
+		// Step 2: transfer brushtip to target
+		// set position
+		bImg.left=pos[0]-radius;
+		bImg.top=pos[1]-radius;
+		bImg.validArea={
+			width: radius*2,
+			height: radius*2,
+			left: bImg.left,
+			top: bImg.top
+		};
+
+		this.mainRenderer.blendImageData(bImg,target,{
+			mode: brush.blendMode>=0?GLTextureBlender.NORMAL:GLTextureBlender.ERASE,
+			alphaLock: isOpacityLocked
+		});
 	}
 }

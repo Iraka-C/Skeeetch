@@ -74,7 +74,14 @@ STORAGE.SETTING.saveAllSettings=function(){
 			displaySettings: ENV.displaySettings
 		}
 	}).then(v=>{
+		/**
+		 * **ERROR**
+		 * This is an async function, not guaranteed to save data before closing!
+		 * Save important settings in localStorage.
+		 * See http://vaughnroyko.com/offline-storage-indexeddb-and-the-onbeforeunloadunload-problem/
+		 */
 		// successfully saved
+		console.log("Saved");
 	}).catch(err=>{
 		console.error(err);
 	});

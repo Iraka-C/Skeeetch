@@ -271,7 +271,7 @@
 	transition: transform 0.25s ease-out;
 }
 
-.layer-clip-mask-hint .group-clip-mask-hint{
+.layer-clip-mask-hint,.group-clip-mask-hint{
 	position: absolute;
 	width: 1em;
 	opacity: 0.2;
