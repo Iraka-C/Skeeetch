@@ -2,7 +2,7 @@
 
 A Web based sketchpad application.
 
-You can try it [here](https://iraka-c.github.io/Skeeetch/gl/index.html).
+You can try it [here](https://iraka-c.github.io/Skeeetch/index.html).
 
 ### [< English Tutorial >](https://github.com/Iraka-C/Skeeetch/blob/master/gl/docs/readme.md)
 

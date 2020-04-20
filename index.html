@@ -7,7 +7,9 @@
 	<head>
 		<title>Skeeetch</title>
 		<script type="text/javascript">
-			window.location.replace("./gl/index.html");
+			const query=window.location.search;
+			const hash=window.location.hash;
+			window.location.replace("./gl/index.html"+query+hash);
 		</script>
 	</head>
 	<body>
