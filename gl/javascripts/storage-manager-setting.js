@@ -28,20 +28,18 @@ sysSettingParams={
 
 STORAGE.SETTING={};
 
-STORAGE.SETTING.init=function(callback){
-	const windowParams=STORAGE.SETTING.initWindowParams();
-	localforage.getItem("system-setting").then(v=>{
-		// fill in missing objects
-		v=v||{};
-		v.preference=v.preference||{};
-		v.preference.displaySettings=v.preference.displaySettings||{};
-		v.preference.debugger=v.preference.debugger||{};
-		v.windowParams=windowParams;
-		callback(v);
-	}).catch(function(err) {
-		console.warn("Error when trying to load system settings at start!");
-		console.log(err);
-	});
+STORAGE.SETTING.init=function(callback){ // synced
+	let v={};
+	try{
+		v=JSON.parse(localStorage.getItem("system-setting"))||{};
+	}catch(err){
+		console.warn("System Setting read-error",err);
+	}
+	v.preference=v.preference||{};
+	v.preference.displaySettings=v.preference.displaySettings||{};
+	v.preference.debugger=v.preference.debugger||{};
+	v.windowParams=STORAGE.SETTING.initWindowParams();
+	callback(v);
 }
 STORAGE.SETTING.initWindowParams=function(){
 	const query=window.location.search;
@@ -65,24 +63,17 @@ STORAGE.SETTING.initWindowParams=function(){
 }
 
 STORAGE.SETTING.saveAllSettings=function(){
-	console.log("Try to save all system settings");
-	localforage.setItem("system-setting",{ // system setting structure
+	/**
+	 * localForage uses async function, not guaranteed to save data before closing!
+	 * Save important settings in localStorage (Sync calling).
+	 * See http://vaughnroyko.com/offline-storage-indexeddb-and-the-onbeforeunloadunload-problem/
+	 */
+	localStorage.setItem("system-setting",JSON.stringify({ // system setting structure
 		paletteColor: PALETTE.rgb,
 		preference:{
 			language: LANG.nowLang,
 			channelBitDepth: CANVAS.rendererBitDepth,
 			displaySettings: ENV.displaySettings
 		}
-	}).then(v=>{
-		/**
-		 * **ERROR**
-		 * This is an async function, not guaranteed to save data before closing!
-		 * Save important settings in localStorage.
-		 * See http://vaughnroyko.com/offline-storage-indexeddb-and-the-onbeforeunloadunload-problem/
-		 */
-		// successfully saved
-		console.log("Saved");
-	}).catch(err=>{
-		console.error(err);
-	});
+	}));
 }

@@ -197,7 +197,7 @@ table{
 	opacity: 0;
 	transition: opacity 0.5s;
 }
-#bottom-info-box:hover > .bottom-info-block{
+#bottom-info-panel:hover .bottom-info-block{
 	opacity: 1;
 }
 /* ==================== Canvas panels ==================== */

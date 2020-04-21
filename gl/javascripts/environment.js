@@ -369,8 +369,7 @@ ENV.setAntiAliasing=function(isAntiAlias){
 	else{
 		$("#canvas-container").find("canvas").addClass("pixelated");
 	}
-	COMPOSITOR.updateLayerTreeStructure(); // update canvas anti-alias renderings
-	// @TODO: buggy? shouldn't call this here
+	CANVAS.requestRefresh(); // update canvas anti-alias renderings
 }
 
 /**
@@ -392,41 +391,19 @@ ENV.getFileTitle=function(){
  * These functions are intended for debuggggggging purposes.
  * Do not use them in working context
  */
-function initSettingSample_DEBUG(){
-	/**
-	 * Setting Manager sample
-	 * */
-	let brush=new SettingManager($("#brush-menu-panel"),"Paint Brush");
-	brush.addSectionTitle("Thickness");
-	brush.addInstantNumberItem("size",10,"px",
-		newVal=>newVal?Math.round(newVal.clamp(1,100)):10, // set
-		(dW,oldVal)=>Math.round(new Number(oldVal+dW).clamp(1,100)), // set
-		(dx,oldVal)=>Math.round(new Number(oldVal+dx/10).clamp(1,100)) // set
-	);
-	brush.addInstantNumberItem("Megas",120,"MB",
-		newVal=>newVal?Math.round(newVal.clamp(1,1000)):10, // set
-		(dW,oldVal)=>Math.exp(Math.log(oldVal)+dW/10).clamp(1,1000).toFixed(1), // set
-		(dx,oldVal)=>Math.exp(Math.log(oldVal)+dx/10).clamp(1,1000).toFixed(1) // set
-	);
-	brush.addHint("* Change Me");
-	brush.addSwitch("Anti",["On","Off","Not Sure"],null,val=>{});
-	brush.addInfo("Mem","dB",()=>Math.round(Math.random()*100));
-	brush.addButton("Set",()=>console.log("Yes"));
-	brush.addButton("M agree <br>to the",()=>console.log("Yes"));
-	brush.addButton("M agree <br>to<br> the",()=>console.log("Yes"));
-	brush.update();
-}
 
-// ============ load text test ===============
+// ============ helper functions ===============
 /**
  * load a text file
  * only works on web server
  */
-function loadTextFile(url,callback){
-	var request=new XMLHttpRequest();
+ENV.loadTextFile=function(url,callback){
+	let request=new XMLHttpRequest();
 	request.open("GET",url,true);
 	request.addEventListener("load",function(){
 		callback(request.responseText);
 	});
 	request.send();
 }
+
+ENV.escapeHTML=str=>str.replace(/[&<>'"]/g,tag=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[tag]||tag));

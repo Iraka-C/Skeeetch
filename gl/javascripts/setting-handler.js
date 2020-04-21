@@ -9,15 +9,23 @@ SettingHandler.tempPaperSize={
 };
 
 SettingHandler.init=function(sysParams){
+	SettingHandler.initTitle();
 	SettingHandler.initTransformHandler();
 	let sys=SettingHandler.initSystemSetting(sysParams);
 	sys.update();
 }
 
-
 /**
- * @TODO: fix this function
+ * Init the file name input (title) actions and the page title
  */
+SettingHandler.initTitle=function(){
+	const $titleInput=$("#filename-input");
+	$titleInput.on("change",event => { // Input
+		$("title").text($titleInput.val());
+	});
+}
+
+
 // init the transform handlers on the right-bottom
 SettingHandler.initTransformHandler=function(){
 	// rotate input

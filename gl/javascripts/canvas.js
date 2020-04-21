@@ -233,7 +233,7 @@ CANVAS.stroke=function() {
 	// render end
 	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize);
 	nowLayer.setRawImageDataInvalid(); // the layers needs to be recomposited
-	CANVAS.requestRefresh(clippedTargetSize); // request a refresh on the screen
+	CANVAS.requestRefresh(clippedTargetSize); // request a refresh on the screen. Saved Time?
 };
 
 /**
@@ -259,13 +259,13 @@ CANVAS.strokeEnd=function() {
  * multiple requests within 1 animation frame will be combined
  */
 CANVAS.lastRefreshTime=NaN;
-CANVAS.accumDirtyArea={width:0,height:0,left:0,top:0}; // Accumulated Dirty Area
+CANVAS.accumDirtyArea={width:0,height:0,left:0,top:0}; // Accumulated Dirty Area, null for whole area
 CANVAS.requestRefresh=function(dirtyArea) {
-	if(dirtyArea){
+	if(dirtyArea&&CANVAS.accumDirtyArea){
 		CANVAS.accumDirtyArea=GLProgram.extendBorderSize(CANVAS.accumDirtyArea,dirtyArea);
 	}
 	else{ // Full range
-		CANVAS.accumDirtyArea=CANVAS.renderer.viewport;
+		CANVAS.accumDirtyArea=null;
 	}
 	if(CANVAS.isRefreshRequested) {
 		return; // already requested
@@ -301,9 +301,11 @@ CANVAS.onRefresh=function() {
  */
 CANVAS.refreshScreen=function(dirtyArea) {
 	//console.log("Recomposite",dirtyArea);
+	//const startT=window.performance.now();
 	const antiAliasRadius=ENV.displaySettings.antiAlias?0.7*Math.max(1/ENV.window.scale-1,0):0;
 	COMPOSITOR.recompositeLayers(null,dirtyArea); // recomposite from root
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
+	//console.log("Refresh Time = ",window.performance.now()-startT);
 }
 
 /**
