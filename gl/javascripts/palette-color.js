@@ -14,7 +14,6 @@ PALETTE.colorManager.init=function(list){
 	PALETTE.colorManager.cList3=new Array(SIZE);
 	const c1=PALETTE.colorManager.cList1;
 	const c3=PALETTE.colorManager.cList3;
-
 	const maxDis2Cell=new Array(SIZE); // temp array for trimming
 	for(let i=0;i<SIZE;i++){
 		c1[i]=[];
@@ -61,17 +60,19 @@ PALETTE.colorManager.init=function(list){
 		const uCell=Math.floor(yuv[1]/10);
 		const vCell=Math.floor(yuv[2]/10);
 		for(let i=-RAD;i<=RAD;i++){
+			const yC=yCell+i;
+			if(yC<0||yC>=13)continue;
+			const yID=yC*494;
 			for(let j=-RAD;j<=RAD;j++){
+				const uC=uCell+j;
+				if(uC<0||uC>=19)continue;
+				const yuID=yID+uC*26;
 				for(let k=-RAD;k<=RAD;k++){
-					const yC=yCell+i;
-					const uC=uCell+j;
 					const vC=vCell+k;
-					if(yC<0||yC>=13)continue;
-					if(uC<0||uC>=19)continue;
 					if(vC<0||vC>=26)continue;
-					const id=yC*494+uC*26+vC;
-					const mDis=maxDis2YUV2Cell(yuv,yC,uC,vC);
-					maxDis2Cell[id]=Math.min(maxDis2Cell[id],mDis);
+					const id=yuID+vC;
+					const mDis2=maxDis2YUV2Cell(yuv,yC,uC,vC);
+					maxDis2Cell[id]=Math.min(maxDis2Cell[id],mDis2);
 				}
 			}
 		}
@@ -83,16 +84,17 @@ PALETTE.colorManager.init=function(list){
 		const uCell=Math.floor(yuv[1]/10);
 		const vCell=Math.floor(yuv[2]/10);
 		for(let i=-RAD;i<=RAD;i++){
+			const yC=yCell+i;
+			if(yC<0||yC>=13)continue;
+			const yID=yC*494;
 			for(let j=-RAD;j<=RAD;j++){
+				const uC=uCell+j;
+				if(uC<0||uC>=19)continue;
+				const yuID=yID+uC*26;
 				for(let k=-RAD;k<=RAD;k++){
-					const yC=yCell+i;
-					const uC=uCell+j;
 					const vC=vCell+k;
-					if(yC<0||yC>=13)continue;
-					if(uC<0||uC>=19)continue;
 					if(vC<0||vC>=26)continue;
-
-					const id=yC*494+uC*26+vC;
+					const id=yuID+vC;
 					if(minDis2YUV2Cell(yuv,yC,uC,vC)>=maxDis2Cell[id]){
 						// larger than the most possible distance, discard
 						// This trimming shrinks c1 by 5%
