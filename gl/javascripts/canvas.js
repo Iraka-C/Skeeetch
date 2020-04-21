@@ -233,7 +233,7 @@ CANVAS.stroke=function() {
 	// render end
 	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize);
 	nowLayer.setRawImageDataInvalid(); // the layers needs to be recomposited
-	CANVAS.requestRefresh(clippedTargetSize); // request a refresh on the screen
+	CANVAS.requestRefresh(/*clippedTargetSize*/); // request a refresh on the screen
 };
 
 /**

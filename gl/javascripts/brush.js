@@ -19,7 +19,7 @@ BrushManager.brushes=[
 		}
 	},
 	{
-		name:"brush",
+		name:"spray gun",
 		size:50,
 		minSize:0.5,
 		isSizePressure:1,
@@ -28,6 +28,32 @@ BrushManager.brushes=[
 		isAlphaPressure:1,
 		edgeHardness:0.3,
 		blendMode:0
+		// scatter, jitter, etc
+
+	},
+	{
+		name:"paint brush",
+		size:50,
+		minSize:0.5,
+		isSizePressure:1,
+		alpha:1,
+		minAlpha:0,
+		isAlphaPressure:1,
+		edgeHardness:1,
+		blendMode:1 // 1: with color adding
+		// paint brush specialized
+
+	},
+	{
+		name:"smudge",
+		size:50,
+		minSize:0.5,
+		isSizePressure:1,
+		alpha:1,
+		minAlpha:0,
+		isAlphaPressure:1,
+		edgeHardness:1,
+		blendMode:2 // 1: with smudging
 		// paint brush specialized
 
 	},

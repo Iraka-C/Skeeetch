@@ -199,15 +199,15 @@ class GLRenderer extends BasicRenderer {
 		// set blend mode
 		let rgb=[this.rgb[0]/255,this.rgb[1]/255,this.rgb[2]/255]; // color to use: unmultiplied
 
-		// a soft edge with fixed pixel width for anti-aliasing
+		// a soft edge with fixed pixel width (at most 2) for anti-aliasing
 		const fixedSoftEdge=this.antiAlias? Math.min((this.brush.size+1)/4,2):0;
 		for(let k=0;k<kPoints.length;k++) { // each circle in sequence
 			const p=kPoints[k];
 			const opa=p[3];
 			const softRange=this.softness+fixedSoftEdge/p[2];
 			let rad=p[2];
-			if(this.antiAlias&&rad<2){ // thickness compensation for thin stroke
-				rad=0.8+rad*0.6;
+			if(this.antiAlias&&rad<2){
+				rad=0.2+rad*0.9; // thickness compensation for thin stroke
 			}
 
 			const color=[...rgb,1];

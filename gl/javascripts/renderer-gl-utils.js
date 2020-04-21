@@ -7,22 +7,46 @@ class GLTextureBlender {
 
 	constructor(gl) {
 		// Normal or Copy version
-		const vBlendShaderSource=glsl` // vertex shader for drawing a circle
-			attribute vec2 a_position; // vertex position
-			varying vec2 v_position;
+		// const vBlendShaderSource=glsl` // vertex shader for drawing a circle
+		// 	attribute vec2 a_position; // vertex position
+		// 	varying vec2 v_position;
+		// 	void main(){
+		// 		v_position=a_position;
+		// 		gl_Position=vec4(a_position*2.-1.,0.,1.); // to clip space
+		// 	}
+		// `;
+		const vBlendShaderSource=glsl`
+			attribute vec2 a_dst_pos; // drawing area on target
+			attribute vec2 a_src_pos; // sample area from source
+			varying vec2 v_pos;
 			void main(){
-				v_position=a_position;
-				gl_Position=vec4(a_position*2.-1.,0.,1.); // to clip space
+				v_pos=a_src_pos;
+				gl_Position=vec4(a_dst_pos*2.-1.,0.,1.); // to clip space
 			}
 		`;
+		// const fBlendShaderSource=glsl` // blend1
+		// 	precision mediump float;
+		// 	precision mediump sampler2D;
+		// 	uniform sampler2D u_image;
+		// 	uniform float u_image_alpha;
+		// 	varying vec2 v_position;
+		// 	void main(){
+		// 		gl_FragColor=texture2D(u_image,v_position)*u_image_alpha;
+		// 	}
+		// `;
 		const fBlendShaderSource=glsl`
 			precision mediump float;
 			precision mediump sampler2D;
 			uniform sampler2D u_image;
 			uniform float u_image_alpha;
-			varying vec2 v_position;
+			varying vec2 v_pos;
 			void main(){
-				gl_FragColor=texture2D(u_image,v_position)*u_image_alpha;
+				if(v_pos.x<0.||v_pos.y<0.||v_pos.x>1.||v_pos.y>1.){ // out of bound
+					gl_FragColor=vec4(0.,0.,0.,0.); // transparent
+				}
+				else{ // sample from u_image
+					gl_FragColor=texture2D(u_image,v_pos)*u_image_alpha;
+				}
 			}
 		`;
 
@@ -59,6 +83,7 @@ class GLTextureBlender {
 		param.alphaLock=param.alphaLock||false;
 		if(param.mode===undefined) param.mode=GLTextureBlender.NORMAL;
 		if(param.srcAlpha===undefined) param.srcAlpha=1;
+		if(param.antiAlias===undefined) param.antiAlias=true;
 		if(!param.targetArea)param.targetArea=src.validArea; // blend all src valid pixels
 
 		let advancedBlendFlag=false;
@@ -133,17 +158,29 @@ class GLTextureBlender {
 
 		// set target area attribute, to 0~1 coord space(LB origin).
 		// gl will automatically trim within viewport
-		const tA=param.targetArea; // Do not change the contents!
-		const rL=(tA.left-src.left)/src.width;
-		const rT=(src.top+src.height-tA.top)/src.height;
-		const rR=(tA.left+tA.width-src.left)/src.width;
-		const rB=(src.top+src.height-tA.top-tA.height)/src.height;
-		program.setAttribute("a_position",[rL,rT,rL,rB,rR,rT,rR,rT,rL,rB,rR,rB],2);
+		const getAttrRect=(tgt,img)=>{ // get a rectangle of 0~1 coord space
+			let rL=tgt.left-img.left;
+			let rT=img.top+img.height-tgt.top;
+			let rR=tgt.left+tgt.width-img.left;
+			let rB=img.top+img.height-tgt.top-tgt.height;
+			if(!param.antiAlias){ // round to nearest pixel
+				rL=Math.round(rL);
+				rT=Math.round(rT);
+				rR=Math.round(rR);
+				rB=Math.round(rB);
+			}
+			rL/=img.width;
+			rT/=img.height;
+			rR/=img.width;
+			rB/=img.height;
+			return [rL,rT,rL,rB,rR,rT,rR,rT,rL,rB,rR,rB];
+		}
 
-		// viewport covering src.data
-		const left=Math.round(src.left-dst.left);
-		const top=Math.round(dst.top+dst.height-src.top-src.height);
-		gl.viewport(left,top,src.width,src.height);
+		const tA=param.targetArea; // Do not change the contents!
+		program.setAttribute("a_src_pos",getAttrRect(tA,src),2);
+		program.setAttribute("a_dst_pos",getAttrRect(tA,dst),2);
+
+		gl.viewport(0,0,dst.width,dst.height); // target area as dst
 		program.run();
 
 		if(!param.alphaLock) { // extend dst valid area, but not larger than dst size

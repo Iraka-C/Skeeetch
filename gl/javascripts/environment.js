@@ -43,6 +43,7 @@ ENV.init=function(){ // When the page is loaded
 		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
 		
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
+		ENV.setAntiAliasing(ENV.displaySettings.antiAlias); // set canvas css param
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
 		ENV.setPaperSize(window.screen.width,window.screen.height); // no layer yet, init CANVAS
@@ -368,7 +369,8 @@ ENV.setAntiAliasing=function(isAntiAlias){
 	else{
 		$("#canvas-container").find("canvas").addClass("pixelated");
 	}
-	CANVAS.requestRefresh(); // update canvas anti-alias renderings
+	COMPOSITOR.updateLayerTreeStructure(); // update canvas anti-alias renderings
+	// @TODO: buggy? shouldn't call this here
 }
 
 /**

@@ -42,7 +42,7 @@
 	overflow-x: hidden;
 	overflow-y: auto;
 	width: 16em; /* hard coded for animation */
-	transition-property: width, padding;
+	transition-property: width;
 	transition-duration: 0.5s;
 	transition-timing-function: ease;
 	touch-action: pan-y;

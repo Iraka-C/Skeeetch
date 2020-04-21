@@ -116,25 +116,28 @@ class GLBrushRenderer{
 			color=[opa,opa,opa,opa];
 		}
 
-		program.setUniform("u_pos",[radius,radius,radius]); // draw on left-top
+		// Add 1 pix to brush imagedata edge to enable gl.LINEAR filtering at edges
+		// afterall the target is 2px wider in canvas
+		program.setUniform("u_pos",[radius+1,radius+1,radius]); // draw on left-top
 		program.setUniform("u_color",color); // set circle color, alpha pre-multiply
 		program.setUniform("u_softness",softRange);
 		program.run();
 
 		// Step 2: transfer brushtip to target
 		// set position
-		bImg.left=pos[0]-radius;
-		bImg.top=pos[1]-radius;
+		bImg.left=pos[0]-radius-1;
+		bImg.top=pos[1]-radius-1;
 		bImg.validArea={
-			width: radius*2,
-			height: radius*2,
+			width: radius*2+1,
+			height: radius*2+1,
 			left: bImg.left,
 			top: bImg.top
 		};
 
 		this.mainRenderer.blendImageData(bImg,target,{
 			mode: brush.blendMode>=0?GLTextureBlender.NORMAL:GLTextureBlender.ERASE,
-			alphaLock: isOpacityLocked
+			alphaLock: isOpacityLocked,
+			antiAlias: this.mainRenderer.antiAlias
 		});
 	}
 }
