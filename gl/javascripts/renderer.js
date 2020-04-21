@@ -43,7 +43,7 @@ class BasicRenderer{
 		// @TODO: ripples reduction?
 		const MAX=this.bitDepth==32?100:this.bitDepth==16?20:10;
 		this.quality=Math.min(2/(this.softness+0.01)+16,MAX,Math.max(this.brush.size,5));
-		console.log(this.quality);
+		//console.log(this.quality);
 		
 		this._invQuality=1/this.quality;
 		this.bezierRemDis=0; // distance remain = 0 at first

@@ -31,7 +31,7 @@ BrushManager.brushes=[
 		// scatter, jitter, etc
 
 	},
-	{
+	/*{
 		name:"paint brush",
 		size:50,
 		minSize:0.5,
@@ -56,7 +56,7 @@ BrushManager.brushes=[
 		blendMode:2 // 1: with smudging
 		// paint brush specialized
 
-	},
+	},*/
 	{
 		name:"eraser",
 		size:50,

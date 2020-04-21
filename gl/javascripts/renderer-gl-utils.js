@@ -160,9 +160,9 @@ class GLTextureBlender {
 		// gl will automatically trim within viewport
 		const getAttrRect=(tgt,img)=>{ // get a rectangle of 0~1 coord space
 			let rL=tgt.left-img.left;
+			let rR=rL+tgt.width;
 			let rT=img.top+img.height-tgt.top;
-			let rR=tgt.left+tgt.width-img.left;
-			let rB=img.top+img.height-tgt.top-tgt.height;
+			let rB=rT-tgt.height;
 			if(!param.antiAlias){ // round to nearest pixel
 				rL=Math.round(rL);
 				rT=Math.round(rT);

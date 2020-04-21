@@ -16,7 +16,7 @@ EVENTS.init=function(){
 	 */
 
 	// disable pen long press => context menu
-	//$(window).on("contextmenu",e=>false);
+	$(window).on("contextmenu",e=>false);
 
 	let isWindowBlurred=false;
 	$(window).on("blur focus",e=>{
@@ -33,12 +33,13 @@ EVENTS.init=function(){
 		STORAGE.saveOnExit();
 	});
 
+	const $canvasWindow=$("#canvas-window");
 	/**
 	 * Window resize handler
 	 */
 	$(window).on("resize",event=>{
-		ENV.window.SIZE.width=$("#canvas-window").width();
-		ENV.window.SIZE.height=$("#canvas-window").height();
+		ENV.window.SIZE.width=$canvasWindow.width();
+		ENV.window.SIZE.height=$canvasWindow.height();
 		ENV.refreshTransform();
 		$("#brush-cursor-layer").attr({
 			width:ENV.window.SIZE.width,
@@ -46,18 +47,24 @@ EVENTS.init=function(){
 		});
 	});
 
-	$("#canvas-window").on("pointerover",event=>{
+	// Tidy the logic here: better if only use over/move/out. Do not use down/up
+	$canvasWindow.on("pointerover",event=>{
+		if(!CURSOR.isDown&&event.originalEvent.buttons&0x3){ // left/right
+			CANVAS.setCanvasEnvironment();
+			CURSOR.down(event); // also considered as down
+			eachMenuPanelFunc($el=>$el.css("pointer-events","none"));
+		}
+		
 		CURSOR.setIsShown(true);
 		CURSOR.updateAction(event); // provide an action
 	});
-	$("#canvas-window").on("pointermove",event=>{
+	$canvasWindow.on("pointermove",event=>{
 		CURSOR.setIsShown(true); // pen->mouse switching
 		CURSOR.updateAction(event); // still registering right button: change to movecursor?
 		CURSOR.moveCursor(event); // may be stroke or pan
 	});
-	$("#canvas-window").on("pointerout",event=>{
+	$canvasWindow.on("pointerout",event=>{
 		CURSOR.setIsShown(false); // pen away, disable cursor
-		//CURSOR.updateAction();
 	});
 
 	// do sth to each menu panel
@@ -69,7 +76,7 @@ EVENTS.init=function(){
 		});
 	}
 	// DOWN / UP outside the window
-	$(window).on("pointerdown",event=>{
+	$canvasWindow.on("pointerdown",event=>{
 		/**
 			0 : No button or un-initialized
 			1 : Primary button (usually the left button)
@@ -78,7 +85,6 @@ EVENTS.init=function(){
 			8 : 4th button (typically the "Browser Back" button)
 			16: 5th button (typically the "Browser Forward" button)
 		 */
-		
 		CANVAS.setCanvasEnvironment(); // init canvas here
 		CURSOR.down(event);
 		CURSOR.updateAction(event); // doesn't change the action
@@ -86,7 +92,7 @@ EVENTS.init=function(){
 		eachMenuPanelFunc($el=>$el.css("pointer-events","none")); // do not enable menu operation
 	});
 	$(window).on("pointerup",event=>{
-		if(event.target==$("#canvas-window")[0]){
+		if(event.target==$canvasWindow[0]){
 			// on canvas
 			CURSOR.moveCursor(event);
 		}

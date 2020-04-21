@@ -13,7 +13,8 @@ class GLBrushRenderer{
 	}
 
 	_initCircleProgram() {
-		// slice number of a circle divided
+		// slice number of a circle divided. Does not quite related with rendering speed.
+		// 64 should be enough for an approximate circle
 		const circleSliceN=64;
 
 		// add the glsl codes inside a closure
@@ -23,6 +24,7 @@ class GLBrushRenderer{
 			// vertex id is the order of the vertex in a triangle (0,1,2)
 			// OpenGL guarantees the primitive rasterization order same as VBO
 			#define DBPI 6.2831853071795864769 // 2*PI
+			//#define QTPI 0.7853981633974483096 // PI/4
 
 			attribute float a_id; // vertex id: faceid*3+vertexid
 
