@@ -163,11 +163,13 @@ class GLBrushRenderer {
 					}
 					vec4 samp_color=texture2D(u_image,v_samp_tex); // sample from texture
 					samp_color=u_color*samp_color.w+samp_color*(1.-u_color.w); // add tint, opa is locked
+					vec4 res_color=dst_color+(samp_color-dst_color)*opa; // average blending
 					if(u_alpha_locked>0.5){ // alpha locked
-						gl_FragColor=samp_color*dst_color.w+dst_color*(1.-samp_color.w); // opa locked
+						//gl_FragColor=samp_color*dst_color.w+dst_color*(1.-samp_color.w); // This is interesting, like a paint brush
+						gl_FragColor=res_color*dst_color.w+dst_color*(1.-res_color.w); // opa locked
 					}
 					else{
-						gl_FragColor=dst_color+(samp_color-dst_color)*opa; // average blending
+						gl_FragColor=res_color;
 					}
 				}
 			}
@@ -373,7 +375,7 @@ class GLBrushRenderer {
 		);
 		this.mainRenderer.blendImageData(bImg,target,{
 			mode: GLTextureBlender.SOURCE,
-			alphaLock: false, // alpha lock rendered in frag shader
+			alphaLock: false, // alpha lock rendered in frag shader, avoid alpha loss
 			antiAlias: false // pixel-aligned
 		});
 	}
