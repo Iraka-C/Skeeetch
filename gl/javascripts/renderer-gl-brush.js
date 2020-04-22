@@ -160,10 +160,10 @@ class GLBrushRenderer {
 				}
 
 				vec4 samp_color=texture2D(u_image,v_samp_tex); // sample from texture
-				samp_color=u_color*samp_color.w+samp_color*(1.-u_color.w); // add tint, opa locked
+				samp_color.xyz=u_color.xyz*samp_color.w+samp_color.xyz*(1.-u_color.w); // add tint, opa locked
 
 				vec4 dst_color=texture2D(u_image,v_samp_dst);
-				gl_FragColor=samp_color*opa+dst_color*(1.-opa);
+				gl_FragColor=(samp_color-dst_color)*opa+dst_color; // only 1 mult
 			}
 		`;
 		// ================= Create program ====================
