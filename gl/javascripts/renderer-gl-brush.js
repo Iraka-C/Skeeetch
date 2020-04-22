@@ -142,6 +142,7 @@ class GLBrushRenderer {
 			uniform float u_softness; // circle edge softness
 			uniform vec4 u_color; // rgba
 			uniform float u_opa_tex; // sampling texture opacity
+			uniform float u_alpha_locked; // determine alpha lock here
 
 			varying float v_rel;
 			varying vec2 v_samp_tex;
@@ -161,9 +162,13 @@ class GLBrushRenderer {
 						opa=clamp(r*r,0.,1.)*u_opa_tex; // prevent NaN operation
 					}
 					vec4 samp_color=texture2D(u_image,v_samp_tex); // sample from texture
-					samp_color.xyz=u_color.xyz*samp_color.w+samp_color.xyz*(1.-u_color.w); // add tint, opa isOpacityLocked
-					vec4 colorDiff=(samp_color-dst_color)*opa; // only 1 mult
-					gl_FragColor=colorDiff+dst_color;
+					samp_color=u_color*samp_color.w+samp_color*(1.-u_color.w); // add tint, opa is locked
+					if(u_alpha_locked>0.5){ // alpha locked
+						gl_FragColor=samp_color*dst_color.w+dst_color*(1.-samp_color.w); // opa locked
+					}
+					else{
+						gl_FragColor=dst_color+(samp_color-dst_color)*opa; // average blending
+					}
 				}
 			}
 		`;
@@ -363,16 +368,17 @@ class GLBrushRenderer {
 		const extension=(typeof(brush.extension)=="number")?brush.extension:1;
 		this.renderSamplingCircleBrushtip(
 			bImg,radius,color,softRange,
-			target,pos,prevPos,extension*pressure
+			target,pos,prevPos,extension*pressure,
+			isOpacityLocked
 		);
 		this.mainRenderer.blendImageData(bImg,target,{
 			mode: GLTextureBlender.SOURCE,
-			alphaLock: isOpacityLocked,
+			alphaLock: false, // alpha lock rendered in frag shader
 			antiAlias: false // pixel-aligned
 		});
 	}
 
-	renderSamplingCircleBrushtip(imgData,r,color,softRange,sampImgData,tgtPos,sampPos,sampOpacity) {
+	renderSamplingCircleBrushtip(imgData,r,color,softRange,sampImgData,tgtPos,sampPos,sampOpacity,isOpacityLocked) {
 		const gl=this.gl;
 		const program=this.samplingCircleProgram;
 
@@ -394,6 +400,7 @@ class GLBrushRenderer {
 		program.setUniform("u_pos_tex",[sampPos[0]-sampImgData.left,sampPos[1]-sampImgData.top]);
 		program.setUniform("u_pos_dst",[tgtPos[0]-sampImgData.left,tgtPos[1]-sampImgData.top]);
 		program.setUniform("u_opa_tex",sampOpacity); // sampling opacity factor
+		program.setUniform("u_alpha_locked",isOpacityLocked?1:0); // opacity lock
 		program.run();
 	}
 
