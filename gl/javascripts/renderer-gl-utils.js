@@ -142,6 +142,15 @@ class GLTextureBlender {
 					);
 				}
 				break;
+			case GLTextureBlender.AVERAGE:
+				if(param.alphaLock) { // same as normal
+					gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+				}
+				else {
+					gl.blendColor(param.srcAlpha,param.srcAlpha,param.srcAlpha,param.srcAlpha);
+					gl.blendFunc(gl.ONE,gl.ONE_MINUS_CONSTANT_ALPHA);
+				}
+				break;
 			default:
 				advancedBlendFlag=true;
 		}
@@ -158,27 +167,9 @@ class GLTextureBlender {
 
 		// set target area attribute, to 0~1 coord space(LB origin).
 		// gl will automatically trim within viewport
-		const getAttrRect=(tgt,img)=>{ // get a rectangle of 0~1 coord space
-			let rL=tgt.left-img.left;
-			let rR=rL+tgt.width;
-			let rT=img.top+img.height-tgt.top;
-			let rB=rT-tgt.height;
-			if(!param.antiAlias){ // round to nearest pixel
-				rL=Math.round(rL);
-				rT=Math.round(rT);
-				rR=Math.round(rR);
-				rB=Math.round(rB);
-			}
-			rL/=img.width;
-			rT/=img.height;
-			rR/=img.width;
-			rB/=img.height;
-			return [rL,rT,rL,rB,rR,rT,rR,rT,rL,rB,rR,rB];
-		}
-
 		const tA=param.targetArea; // Do not change the contents!
-		program.setAttribute("a_src_pos",getAttrRect(tA,src),2);
-		program.setAttribute("a_dst_pos",getAttrRect(tA,dst),2);
+		program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,src,!param.antiAlias),2);
+		program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,dst,!param.antiAlias),2);
 
 		gl.viewport(0,0,dst.width,dst.height); // target area as dst
 		program.run();
@@ -193,9 +184,10 @@ class GLTextureBlender {
 
 // Mode enums, shall be the same def as BasicRenderer
 GLTextureBlender.NORMAL=BasicRenderer.NORMAL;
-GLTextureBlender.ERASE=BasicRenderer.ERASE;
-GLTextureBlender.NONE=BasicRenderer.NONE;
-GLTextureBlender.SOURCE=BasicRenderer.SOURCE;
+GLTextureBlender.AVERAGE=-3;
+GLTextureBlender.ERASE=-2;
+GLTextureBlender.NONE=-1;
+GLTextureBlender.SOURCE=1;
 GLTextureBlender.MULTIPLY=BasicRenderer.MULTIPLY;
 GLTextureBlender.SCREEN=BasicRenderer.SCREEN;
 GLTextureBlender.EXCLUSION=BasicRenderer.EXCLUSION;

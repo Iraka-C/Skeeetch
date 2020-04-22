@@ -224,4 +224,27 @@ class GLProgram {
 			height: Math.max(yH-yL,0)
 		};
 	}
+
+	/**
+	 * 
+	 * @param {imageData} tgt the space to be sampled
+	 * @param {imageData} img the texture area
+	 */
+	static getAttributeRect(tgt,img,isRound){ // get a rectangle of 0~1 coord space
+		let rL=tgt.left-img.left;
+		let rR=rL+tgt.width;
+		let rT=img.top+img.height-tgt.top;
+		let rB=rT-tgt.height;
+		if(isRound){ // round to nearest pixel
+			rL=Math.round(rL);
+			rT=Math.round(rT);
+			rR=Math.round(rR);
+			rB=Math.round(rB);
+		}
+		rL/=img.width;
+		rT/=img.height;
+		rR/=img.width;
+		rB/=img.height;
+		return [rL,rT,rL,rB,rR,rT,rR,rT,rL,rB,rR,rB];
+	}
 }

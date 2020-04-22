@@ -5,7 +5,7 @@ BrushManager={};
 BrushManager.brushes=[
 	{
 		name:"pencil",
-		size:20, // diameter in sizeList[size]
+		size:100, // diameter in sizeList[size]
 		minSize:0.0, // 0~1 (0~100%) of size
 		isSizePressure:1, // 1: Enable, 0:Disable
 		alpha:1.0, // opacity 0~1 (0~100%)
@@ -21,42 +21,43 @@ BrushManager.brushes=[
 	{
 		name:"spray gun",
 		size:50,
-		minSize:0.5,
+		minSize:0.4,
 		isSizePressure:1,
 		alpha:0.85,
 		minAlpha:0,
 		isAlphaPressure:1,
-		edgeHardness:0.3,
+		edgeHardness:0,
 		blendMode:0
 		// scatter, jitter, etc
 
 	},
-	/*{
+	{
 		name:"paint brush",
-		size:50,
-		minSize:0.5,
+		size:80,
+		minSize:0.4,
 		isSizePressure:1,
 		alpha:1,
 		minAlpha:0,
-		isAlphaPressure:1,
-		edgeHardness:1,
-		blendMode:1 // 1: with color adding
+		isAlphaPressure:0,
+		edgeHardness:0.5,
+		blendMode:1, // 1: with color adding
 		// paint brush specialized
+		moisture: 1,
+		extension: 0.9 // how much color to pick from sampler
 
 	},
 	{
-		name:"smudge",
-		size:50,
-		minSize:0.5,
-		isSizePressure:1,
-		alpha:1,
+		name:"smudge brush",
+		size:80,
+		minSize:1,
+		isSizePressure:0,
+		alpha:0.2,
 		minAlpha:0,
 		isAlphaPressure:1,
-		edgeHardness:1,
-		blendMode:2 // 1: with smudging
-		// paint brush specialized
-
-	},*/
+		edgeHardness:0.5,
+		blendMode:2, // 2: with smudging
+		extension: 1 // how much color to pick from sampler
+	},
 	{
 		name:"eraser",
 		size:50,
@@ -200,7 +201,7 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 		Lang("Opacity"),()=>Math.round(BrushManager.activeBrush.alpha*100),"%",
 		newVal=>{ // set on input
 			if(newVal){
-				newVal=(newVal-0).clamp(0,1);
+				newVal=((newVal-0)*0.01).clamp(0,1);
 				BrushManager.activeBrush.alpha=newVal;
 				BrushManager.minAlphaUpdateFunc();
 			}
@@ -217,6 +218,28 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 			BrushManager.minAlphaUpdateFunc();
 		} // set
 	);
+	// Moisture, Extension: for smudging / color sampling
+	BrushManager.brushExtensionUpdateFunc=brushMenu.addInstantNumberItem(
+		Lang("Extension"),()=>Math.round(BrushManager.activeBrush.extension*100),"%",
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=((newVal-0)*0.01).clamp(0,1);
+				BrushManager.activeBrush.extension=newVal;
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			let newVal=(BrushManager.activeBrush.extension+dW/20).clamp(0,1);
+			BrushManager.activeBrush.extension=newVal;
+		}, // set
+		(dx,oldVal)=>{ // set on drag-x
+			oldVal-=0;
+			let newVal=(0.01*oldVal+dx/200).clamp(0,1);
+			BrushManager.activeBrush.extension=newVal;
+		} // set
+	);
+
+	// ============================= Pressure ===================================
+
 	brushMenu.addSwitch(Lang("Pressure Controlled Opacity"),[Lang("Disabled"),Lang("Enabled")],null,id=>{
 		BrushManager.activeBrush.isAlphaPressure=id;
 		minAlphaHintUpdateFunc(id==0?true:false);

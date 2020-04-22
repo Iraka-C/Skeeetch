@@ -3,8 +3,10 @@
  */
 LANG_ZH={
 	"pencil":"铅笔",
-	"brush":"画笔",
 	"eraser":"橡皮擦",
+	"spray gun":"喷枪",
+	"paint brush":"画笔",
+	"smudge brush":"涂抹画笔",
 	"New Layer":"新图层",
 	"New Group":"新组",
 
@@ -35,7 +37,8 @@ LANG_ZH={
 	"Min Size":"最小尺寸",
 	"brush-pressure-hint-1":"禁用压感时此设置无效",
 	"Opacity Control":"笔刷不透明度控制",
-	"Opacity":"不透明度",
+	"Opacity":"颜色不透明度",
+	"Extension":"延伸",
 	"Pressure Controlled Opacity":"压感不透明度",
 	"Min Opacity":"最低不透明度",
 
@@ -45,7 +48,7 @@ LANG_ZH={
 	// Layer
 	"layer-opacity-label-shown":"调节图层不透明度。右键隐藏图层",
 	"layer-opacity-label-hidden":"右键显示图层",
-	"Lock pixel / opacity":"锁定图层/像素不透明度",
+	"Lock pixel / opacity":"锁定图层/像素透明度",
 	"Switch blend mode":"混合模式",
 	"Set this layer as a clipping mask":"剪贴蒙版",
 	"Background":"背景",

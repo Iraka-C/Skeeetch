@@ -406,4 +406,4 @@ ENV.loadTextFile=function(url,callback){
 	request.send();
 }
 
-ENV.escapeHTML=str=>str.replace(/[&<>'"]/g,tag=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[tag]||tag));
+ENV.escapeHTML=str=>str.replace(/[&<>'"]/g,tag=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&#34;"}[tag]||tag));

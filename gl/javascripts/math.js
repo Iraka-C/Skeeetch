@@ -5,6 +5,10 @@ Number.prototype.clamp=function(min,max){
 	return Math.min(Math.max(this,min),max);
 };
 
+function parseNumber(){
+	
+}
+
 /*
 	Check if line segment p1~p2 intersect with q1~q2
 	If true, return the intersection

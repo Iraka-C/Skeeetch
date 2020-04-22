@@ -183,6 +183,7 @@ class GLRenderer extends BasicRenderer {
 		super.initBeforeStroke(param);
 		//console.log(this.brush);
 		// pre-render the brushtip data
+		this.lastCircleFromPrevStroke=null;
 	}
 
 	/**
@@ -203,24 +204,24 @@ class GLRenderer extends BasicRenderer {
 		const fixedSoftEdge=this.antiAlias? Math.min((this.brush.size+1)/4,2):0;
 		for(let k=0;k<kPoints.length;k++) { // each circle in sequence
 			const p=kPoints[k];
-			const opa=p[3];
+			const lastP=this.lastCircleFromPrevStroke;
+			const prevP=k?kPoints[k-1]:lastP?lastP:p; // p as fallback
+			const strokeOpa=p[4];
+			const plateOpa=p[5]; // plate opacity
 			const softRange=this.softness+fixedSoftEdge/p[2];
 			let rad=p[2];
 			if(this.antiAlias&&rad<2){
 				rad=0.2+rad*0.9; // thickness compensation for thin stroke
 			}
 
-			const color=[...rgb,1];
-			color[0]*=opa;
-			color[1]*=opa;
-			color[2]*=opa;
-			color[3]*=opa;
+			const pressure=p[3]; // pressure considered sensitivity
 
 			// set circle size and radius, adjust position according to the imgData, radius+0.1 for gl clipping
 			this.brushRenderer.render(
 				imgData,this.brush,
-				[p[0],p[1]],rad,
-				color,this.isOpacityLocked,softRange
+				[p[0],p[1]],[prevP[0],prevP[1]],rad,
+				rgb,strokeOpa,plateOpa,pressure,
+				this.isOpacityLocked,softRange
 			);
 		}
 
@@ -238,6 +239,11 @@ class GLRenderer extends BasicRenderer {
 				),
 				imgData // clip inside the image data
 			);
+		}
+
+		// update last circle
+		if(kPoints.length){
+			this.lastCircleFromPrevStroke=kPoints[kPoints.length-1];
 		}
 	}
 
