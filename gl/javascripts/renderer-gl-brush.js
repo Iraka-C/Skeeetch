@@ -147,23 +147,24 @@ class GLBrushRenderer {
 			varying vec2 v_samp_tex;
 			varying vec2 v_samp_dst;
 			void main(){
-				float opa;
-				if(v_rel<0.){ // bg triangle
-					opa=0.;
-				}
-				else if(v_rel>=u_softness){ // get current color
-					opa=u_opa_tex;
-				}
-				else{
-					float r=v_rel/u_softness;
-					opa=clamp(r*r,0.,1.)*u_opa_tex; // prevent NaN operation
-				}
-
-				vec4 samp_color=texture2D(u_image,v_samp_tex); // sample from texture
-				samp_color.xyz=u_color.xyz*samp_color.w+samp_color.xyz*(1.-u_color.w); // add tint, opa locked
-
 				vec4 dst_color=texture2D(u_image,v_samp_dst);
-				gl_FragColor=(samp_color-dst_color)*opa+dst_color; // only 1 mult
+				if(v_rel<0.){ // bg triangle
+					gl_FragColor=dst_color;
+				}
+				else {
+					float opa;
+					if(v_rel>=u_softness){ // get current color
+						opa=u_opa_tex;
+					}
+					else{
+						float r=v_rel/u_softness;
+						opa=clamp(r*r,0.,1.)*u_opa_tex; // prevent NaN operation
+					}
+					vec4 samp_color=texture2D(u_image,v_samp_tex); // sample from texture
+					samp_color.xyz=u_color.xyz*samp_color.w+samp_color.xyz*(1.-u_color.w); // add tint, opa locked
+	
+					gl_FragColor=(samp_color-dst_color)*opa+dst_color; // only 1 mult
+				}
 			}
 		`;
 		// ================= Create program ====================
