@@ -351,10 +351,10 @@ class GLBrushRenderer {
 		let bT=pos[1]-radius-2;
 		bImg.top=Math.floor(bT-target.top)+target.top;
 		bImg.validArea={
-			width: radius*2+4,
-			height: radius*2+4,
-			left: bImg.left,
-			top: bImg.top
+			width: radius*2+2,
+			height: radius*2+2,
+			left: bImg.left+1,
+			top: bImg.top+1
 		};
 		if(!this.mainRenderer.antiAlias){ // round to aligned pixels
 			prevPos=[Math.round(prevPos[0]-pos[0])+pos[0],Math.round(prevPos[1]-pos[1])+pos[1]];
