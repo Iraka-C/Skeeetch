@@ -98,8 +98,6 @@ LAYERS.shrinkUI=function(){
 
 		// refresh palette window
 		PALETTE.refreshUIParam();
-		PALETTE.drawHueSelector();
-		PALETTE.setCursor();
 
 		// refresh canvas window
 		ENV.window.SIZE.width=$("#canvas-window").width();
@@ -129,8 +127,6 @@ LAYERS.expandUI=function(){
 
 		// refresh palette window
 		PALETTE.refreshUIParam();
-		PALETTE.drawHueSelector();
-		PALETTE.setCursor();
 	
 		// refresh canvas window
 		ENV.window.SIZE.width=$("#canvas-window").width();

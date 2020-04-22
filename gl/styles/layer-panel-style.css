@@ -79,10 +79,11 @@
 #palette-hue-selector{ /* Up-Right */
 	position: absolute;
 	width: 100%;
-	height: 1em;
+	height: 2em;
 	pointer-events: all;
 }
 #palette-hue-selector-canvas{
+	width: 100%;
 	margin: 0em;
 	opacity: 0;
 	transition: opacity 0.5s;

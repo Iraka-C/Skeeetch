@@ -41,7 +41,7 @@ CURSOR.init=function(){
 		width:ENV.window.SIZE.width,
 		height:ENV.window.SIZE.height
 	});
-	CURSOR.updateColor();
+	CURSOR.updateColor(PALETTE.colorSelector.getRGB());
 }
 
 CURSOR.moveCursor=function(event){
@@ -106,9 +106,9 @@ CURSOR.moveCursor=function(event){
 		else if(CURSOR.nowActivity=="pick"){
 			if(isNaN(CURSOR.p0[0])||isNaN(CURSOR.p0[1]))return;
 			const pix=CANVAS.pickColor(CURSOR.p0[0],CURSOR.p0[1]);
-			PALETTE.setRGB(pix.slice(0,3));
-			PALETTE.drawPalette();
-			PALETTE.setCursor();
+			PALETTE.colorSelector.setRGB(pix.slice(0,3));
+			// PALETTE.drawPalette();
+			// PALETTE.setCursor();
 		}
 		else{ // is drawing
 			CANVAS.stroke();
@@ -144,9 +144,9 @@ CURSOR.updateXYR=function(){
 	});
 }
 
-CURSOR.updateColor=function(){
-	const colorString=PALETTE.getColorString();
-	const outerString=PALETTE.hsv[2]>150?"#00000033":"#ffffff33";
+CURSOR.updateColor=function(rgb){
+	const colorString=PaletteSelector.getColorString(rgb);
+	const outerString=Math.max(...rgb)>150?"#00000033":"#ffffff33"; // @TODO: use luminosity instead?
 	$("#brush-cursor-round").attr("stroke",colorString);
 	$("#brush-cursor-center").attr("fill",colorString);
 

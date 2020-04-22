@@ -360,7 +360,7 @@ class GLBrushRenderer {
 		if(!this.mainRenderer.antiAlias){ // round to aligned pixels
 			prevPos=[Math.round(prevPos[0]-pos[0])+pos[0],Math.round(prevPos[1]-pos[1])+pos[1]];
 		}
-		const extension=(typeof(brush.extension)=="number")?brush.extension:1;
+		const extension=isNaN(brush.extension)?1:brush.extension;
 		this.renderSamplingCircleBrushtip(
 			bImg,radius,color,softRange,
 			target,pos,prevPos,extension*pressure
@@ -412,7 +412,7 @@ class GLBrushRenderer {
 			top: bImg.top
 		};
 		
-		const extension=(typeof(brush.extension)=="number")?brush.extension:1;
+		const extension=isNaN(brush.extension)?1:brush.extension;
 		// The Math Here!
 		const estDis=this.mainRenderer.bitDepth==32?1.07-brush.edgeHardness:2-brush.edgeHardness;
 		const targetDis=(radius/(1-extension)-radius)*opacity;

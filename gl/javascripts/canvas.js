@@ -97,7 +97,7 @@ CANVAS.setCanvasEnvironment=function() {
 	CANVAS.isRefreshRequested=false; // refresh screen control
 	CANVAS.renderer.initBeforeStroke({ // init renderer before stroke
 		brush: BrushManager.activeBrush,
-		rgb: PALETTE.rgb,
+		rgb: PALETTE.colorSelector.getRGB(),
 		sensitivity: BrushManager.general.sensitivity,
 		isOpacityLocked: CANVAS.targetLayerOpacityLocked,
 		antiAlias: ENV.displaySettings.antiAlias
@@ -376,7 +376,7 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 	pSum[2]/=SIZE;
 	pSum[3]/=SIZE*255;
 
-	return SMath.blendNormal([...PALETTE.rgb,1],pSum); //pSum
+	return SMath.blendNormal([...PALETTE.colorSelector.getRGB(),1],pSum); //pSum
 }
 
 // ========= Panning translation on imageData =========
