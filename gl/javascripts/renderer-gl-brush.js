@@ -142,7 +142,6 @@ class GLBrushRenderer {
 			uniform float u_softness; // circle edge softness
 			uniform vec4 u_color; // rgba
 			uniform float u_opa_tex; // sampling texture opacity
-			uniform float u_alpha_locked; // determine alpha lock here
 
 			varying float v_rel;
 			varying vec2 v_samp_tex;
@@ -162,15 +161,9 @@ class GLBrushRenderer {
 						opa=clamp(r*r,0.,1.)*u_opa_tex; // prevent NaN operation
 					}
 					vec4 samp_color=texture2D(u_image,v_samp_tex); // sample from texture
-					samp_color=u_color*samp_color.w+samp_color*(1.-u_color.w); // add tint, opa is locked
-					vec4 res_color=dst_color+(samp_color-dst_color)*opa; // average blending
-					if(u_alpha_locked>0.5){ // alpha locked
-						//gl_FragColor=samp_color*dst_color.w+dst_color*(1.-samp_color.w); // This is interesting, like a paint brush
-						gl_FragColor=res_color*dst_color.w+dst_color*(1.-res_color.w); // opa locked
-					}
-					else{
-						gl_FragColor=res_color;
-					}
+					samp_color=u_color*samp_color.w+samp_color*(1.-u_color.w); // add tint, opa unchanged
+					//gl_FragColor=samp_color*dst_color.w+dst_color*(1.-samp_color.w); // This is interesting, like a paint brush
+					gl_FragColor=dst_color+(samp_color-dst_color)*opa; // average blending
 				}
 			}
 		`;
@@ -370,17 +363,16 @@ class GLBrushRenderer {
 		const extension=(typeof(brush.extension)=="number")?brush.extension:1;
 		this.renderSamplingCircleBrushtip(
 			bImg,radius,color,softRange,
-			target,pos,prevPos,extension*pressure,
-			isOpacityLocked
+			target,pos,prevPos,extension*pressure
 		);
 		this.mainRenderer.blendImageData(bImg,target,{
-			mode: GLTextureBlender.SOURCE,
-			alphaLock: false, // alpha lock rendered in frag shader, avoid alpha loss
+			mode: isOpacityLocked?GLTextureBlender.NORMAL:GLTextureBlender.SOURCE, // NORMAL avoid alpha loss
+			alphaLock: isOpacityLocked,
 			antiAlias: false // pixel-aligned
 		});
 	}
 
-	renderSamplingCircleBrushtip(imgData,r,color,softRange,sampImgData,tgtPos,sampPos,sampOpacity,isOpacityLocked) {
+	renderSamplingCircleBrushtip(imgData,r,color,softRange,sampImgData,tgtPos,sampPos,sampOpacity) {
 		const gl=this.gl;
 		const program=this.samplingCircleProgram;
 
@@ -402,7 +394,6 @@ class GLBrushRenderer {
 		program.setUniform("u_pos_tex",[sampPos[0]-sampImgData.left,sampPos[1]-sampImgData.top]);
 		program.setUniform("u_pos_dst",[tgtPos[0]-sampImgData.left,tgtPos[1]-sampImgData.top]);
 		program.setUniform("u_opa_tex",sampOpacity); // sampling opacity factor
-		program.setUniform("u_alpha_locked",isOpacityLocked?1:0); // opacity lock
 		program.run();
 	}
 
