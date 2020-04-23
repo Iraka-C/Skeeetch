@@ -74,7 +74,14 @@ FILES.initImportDropHandler=function(){
  */
 FILES.loadAsPSD=function(data,filename){
 	let psdFile=agPsd.readPsd(data); // ag-psd function, use raw Context2D ImageData rather than loading into canvas
-	//console.log(psdFile);
+	console.log(psdFile);
+	if(psdFile.width>ENV.displaySettings.maxPaperSize||psdFile.height>ENV.displaySettings.maxPaperSize){
+		// larger than maximum paper size
+		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.displaySettings.maxPaperSize+" px");
+		CURSOR.setBusy(false); // free busy cursor
+		PERFORMANCE.idleTaskManager.startIdle();
+		return;
+	}
 	ENV.setPaperSize(psdFile.width,psdFile.height); // change paper size to fit the file, clear history
 	ENV.setFileTitle(filename);
 
@@ -193,30 +200,66 @@ FILES.loadPSDNode=function(node,nowGroup,progressAmount){
 
 // when all contents of PSD file are loaded
 FILES.onPSDLoaded=function(){
-	COMPOSITOR.updateLayerTreeStructure();
-	LAYERS.updateAllThumbs();
+	COMPOSITOR.updateLayerTreeStructure(); // async!
 	if(FILES.loadPSDNode.isUnsupportedLayerFound){
 		EventDistributer.footbarHint.showInfo("Unsupported layers in this file are discarded");
 	}
 	else{
 		EventDistributer.footbarHint.showInfo("Loaded");
 	}
-	LAYERS.setActive(FILES.loadPSDNode.lastLoadingElement);
 	FILES.loadPSDNode.lastLoadingElement=null; // release reference
 	CURSOR.setBusy(false); // free busy cursor
 	PERFORMANCE.idleTaskManager.startIdle();
+	/**
+	 * Here is a mysterious bug that thumb updating has to be call asynced.
+	 * At this point (here), all canvas contents of psd SHOULD have loaded into CanvasNodes
+	 * but calling LAYERS.updateAllThumbs stll (may) reports no src image buffer binding error.
+	 * I doubt that this may due to the loading mechanism of ag-psd.
+	 * Somehow using texImage2D has become unsynchronized (with an "onload" to which we cannot listen)
+	 * and we must queue thumb updating up to wait for fully loaded.
+	 * COMPOSITOR.updateLayerTreeStructure doesn't report an error because it is already async
+	 * 
+	 * Refer to FILES.loadAsImage, this loading doesn't cause any error like this
+	 */
+	// LAYERS.updateAllThumbs();
+	PERFORMANCE.idleTaskManager.addTask(e=>{
+		LAYERS.setActive(FILES.loadPSDNode.lastLoadingElement);
+		LAYERS.updateAllThumbs();
+	});
 }
 
 // Image Handlers
 FILES.loadAsImage=function(img){
 	const layer=LAYERS.addNewCanvasNode();
+	const oldActiveID=LAYERS.active.id;
+	LAYERS.setActive(layer); // also setup lastRawImageData (as empty here)
 	CANVAS.renderer.loadToImageData(layer.rawImageData,img);
 	layer.setRawImageDataInvalid();
 	layer.updateThumb();
-	LAYERS.setActive(layer);
 	COMPOSITOR.updateLayerTreeStructure();
 	CURSOR.setBusy(false); // free busy cursor
 	PERFORMANCE.idleTaskManager.startIdle();
+	HISTORY.addHistory({ // combine two steps
+		type: "bundle",
+		children:[
+			{
+				type: "node-structure",
+				id: layer.id,
+				from: null,
+				to: layer.parent.id,
+				oldIndex: null,
+				newIndex: layer.getIndex(),
+				oldActive: oldActiveID,
+				newActive: layer.id
+			},
+			{
+				type:"image-data",
+				id:CANVAS.nowLayer.id,
+				area:{...layer.rawImageData.validArea}
+			}
+
+		]
+	});
 }
 
 // ===================== Export operations ========================

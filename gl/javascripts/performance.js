@@ -12,6 +12,10 @@ PERFORMANCE.fpsCounter={
 PERFORMANCE.debugger={
 	isDrawingLayerBorder: false
 }
+PERFORMANCE.maxMem={ // maximum memory available in Bytes
+	ram: 2048*1024*1024, // init 2G
+	gpu: 2048*1024*1024 // init 2G
+}
 
 /**
  * init
@@ -29,6 +33,7 @@ PERFORMANCE.init=function(){
 }
 
 PERFORMANCE.getRAMEstimation=function(){ // in MB
+	// Do not believe in window.performance.memory
 	let ramBytes=0;
 	// LAYER memory
 	let imgDataRAMSize=0;

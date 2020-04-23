@@ -508,7 +508,7 @@ class GLRenderer extends BasicRenderer {
 			// else: no need to expand, simply don't move at all
 		}
 		else if(initSize.width>src.width||initSize.height>src.height) {
-			console.log("New Texture Change");
+			//console.log("New Texture Change");
 			initSize.width=Math.ceil(initSize.width/BLOCK_SIZE)*BLOCK_SIZE;
 			initSize.height=Math.ceil(initSize.height/BLOCK_SIZE)*BLOCK_SIZE;
 			initSize=GLProgram.borderIntersection(initSize,this.viewport); // cut again within viewport

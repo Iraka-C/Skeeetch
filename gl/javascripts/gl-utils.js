@@ -129,7 +129,7 @@ class GLProgram {
 
 		// attribute setting
 		let totalTurn=Infinity;
-		for(let v in this.attributeMap) { // set all attributes
+		for(const v in this.attributeMap) { // set all attributes
 			const attr=this.attributeMap[v];
 			gl.bindBuffer(gl.ARRAY_BUFFER,attr.buffer);
 			gl.enableVertexAttribArray(attr.location);
@@ -143,7 +143,7 @@ class GLProgram {
 		}
 
 		// uniform setting
-		for(let v in this.uniformMap) { // set all uniforms
+		for(const v in this.uniformMap) { // set all uniforms
 			const unif=this.uniformMap[v];
 			switch(unif.value.length) { // could not use var proxy for gl.uniformxfv
 				case 1: gl.uniform1fv(unif.location,unif.value); break; // vec1

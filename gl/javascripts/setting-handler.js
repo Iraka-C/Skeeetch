@@ -151,16 +151,16 @@ SettingHandler.initSystemSetting=function(sysParams){
 		newVal=>{ // set on input
 			newVal-=0;
 			if(newVal){
-				newVal=newVal.clamp(16,4096);
+				newVal=newVal.clamp(16,ENV.displaySettings.maxPaperSize);
 				SettingHandler.tempPaperSize.width=newVal;
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
-			let newVal=(SettingHandler.tempPaperSize.width+dW*20).clamp(16,4096);
+			let newVal=(SettingHandler.tempPaperSize.width+dW*20).clamp(16,ENV.displaySettings.maxPaperSize);
 			SettingHandler.tempPaperSize.width=newVal;
 		},
 		(dx,oldVal)=>{ // set on drag-x
-			let newVal=Math.round((oldVal-0)+dx).clamp(16,4096);
+			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.displaySettings.maxPaperSize);
 			SettingHandler.tempPaperSize.width=newVal;
 		}
 	);
@@ -169,17 +169,17 @@ SettingHandler.initSystemSetting=function(sysParams){
 		newVal=>{ // set on input
 			newVal-=0;
 			if(newVal){
-				newVal=newVal.clamp(16,4096);
+				newVal=newVal.clamp(16,ENV.displaySettings.maxPaperSize);
 				SettingHandler.tempPaperSize.height=newVal;
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
-			let newVal=(SettingHandler.tempPaperSize.height+dW*20).clamp(16,4096);
+			let newVal=(SettingHandler.tempPaperSize.height+dW*20).clamp(16,ENV.displaySettings.maxPaperSize);
 			SettingHandler.tempPaperSize.height=newVal;
 		},
 		(dx,oldVal)=>{ // set on drag-x
 
-			let newVal=Math.round((oldVal-0)+dx).clamp(16,4096);
+			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.displaySettings.maxPaperSize);
 			SettingHandler.tempPaperSize.height=newVal;
 		}
 	);

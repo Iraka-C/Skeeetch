@@ -12,7 +12,6 @@ HISTORY.list=[];
 HISTORY.nowId=-1; // no history yet
 HISTORY.MAX_HISTORY=100; // at most 100 steps
 
-HISTORY.MAX_MEMORY=1024*1024*1024; // at most 1GB
 HISTORY.nowRAMUsage=0; // how many RAM is history using?
 
 class HistoryItem{
@@ -87,7 +86,7 @@ class HistoryItem{
 				return size;
 			case "bundle":
 				for(const v of this.children){
-					size+=getHistoryItemRAMSize(v);
+					size+=v.getRAMSize();
 				}
 				return size;
 			default:
@@ -118,7 +117,7 @@ HISTORY.addHistory=function(param){ // see HistoryItem constructor for info stru
 	// if(HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
 	// 	HISTORY.popHead(); // pop the oldest history and release related resources
 	// }
-	while(HISTORY.nowRAMUsage>HISTORY.MAX_MEMORY){ // exceed max memory
+	while(HISTORY.nowRAMUsage>PERFORMANCE.maxMem.ram){ // exceed max memory
 		console.log("Pop");
 		HISTORY.popHead(); // pop the oldest history and release related resources
 	}
@@ -127,6 +126,11 @@ HISTORY.addHistory=function(param){ // see HistoryItem constructor for info stru
 	 * special treatment for imagedata change / node property:
 	 * Even there are several changes to the same image data during busy, only sumbit once
 	 * Even there are several property changes to the same layer, only sumbit once
+	 * 
+	 * ** NOTE ** "bundle" type may also containing "image-data" or "node-property"
+	 * but they are usually caused by single operation
+	 * and are (unlikely) to be merged together.
+	 * The uniqueness of each operation in the bundle is controlled by caller!
 	 */
 	if(param.type=="image-data"){
 		if(HISTORY.pendingImageDataChangeParam.has(param.id)){ // already submitted

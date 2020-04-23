@@ -194,9 +194,6 @@ class CanvasNode extends ContentNode {
 		const imgData2d=ctx.createImageData(w,h);
 
 		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(this.rawImageData,[w,h]); // get data
-		//const pid=CANVAS.renderer.imageDataFactory.imageDataToFloatRaw(this.rawImageData); // DEBUG (Slow!)
-		//console.log(pid.length*4/1024/1024+"MB");
-
 		imgData2d.data.set(pixels); // copy pixel data
 		ctx.putImageData(imgData2d,0,0);
 	}

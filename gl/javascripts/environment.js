@@ -32,7 +32,8 @@ ENV.window={
 
 ENV.displaySettings={
 	antiAlias:true,
-	enableTransformAnimation:true
+	enableTransformAnimation:true,
+	maxPaperSize:4096
 };
 
 
@@ -178,10 +179,10 @@ ENV.setPaperSize=function(w,h,isPreservingContents){
 
 	for(let k in LAYERS.layerHash){ // @TODO: copy image data
 		let layer=LAYERS.layerHash[k];
-		if(layer instanceof RootNode){ // root
-			layer.assignNewRawImageData(w,h,0,0);
-			layer.assignNewMaskedImageData(w,h,0,0);
-			layer.assignNewImageData(w,h,0,0);
+		if(layer instanceof RootNode){ // root !Buggy Here! assignNewRawImageData(w,h) didn't enabled a texture
+			layer.assignNewRawImageData(0,0);
+			layer.assignNewMaskedImageData(0,0);
+			layer.assignNewImageData(0,0);
 		}
 		else{ // contains renderable texture, delete
 			layer.assignNewRawImageData(0,0);

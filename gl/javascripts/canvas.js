@@ -216,15 +216,15 @@ CANVAS.stroke=function() {
 		return;
 	}
 	// render
-	if(CANVAS.renderer.brush.blendMode!=-1){ // not eraser, need to expand border
+	if(CANVAS.renderer.brush.blendMode!=-1&&!CANVAS.targetLayerOpacityLocked){ // need to expand border
 		CANVAS.renderer.adjustImageDataBorders(nowTarget,clippedTargetSize,true);
 		if(!nowTarget.width||!nowTarget.height){ // zero size. may happen when drawing out of canvas border
 			return;
 		}
 	}
-	else{ // eraser
+	else{ // eraser or opacity locked, won't expand target border
 		const intsc=GLProgram.borderIntersection(nowTarget.validArea,clippedTargetSize);
-		if(!intsc.width||!intsc.height){ // zero size. eraser won't erase anything
+		if(!intsc.width||!intsc.height){ // zero size. won't change anything
 			return;
 		}
 	}

@@ -262,17 +262,18 @@ class GLImageDataFactory {
 			targetRange=targetRange.slice(0,4);
 		}
 		let [W,H]=targetSize;
-
+		
 		// Setup temp texture for extracting data
 		tmpTexture=GLProgram.createAndSetupTexture(gl);
 		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,this.dataFormat,null);
 
 		// Run program to get a zoomed texture
-		program.setSourceTexture(src.data,src.width,src.height);
-		program.setTargetTexture(tmpTexture,W,H); // draw to canvas
+		program.setSourceTexture(src.data);
+		program.setTargetTexture(tmpTexture); // draw to canvas
 		program.setUniform("u_is_premult",0);
 		switch(this.dataFormat) {
-			case gl.FLOAT: program.setUniform("u_range",255.999); break; // map 0.0~1.0 to 0~255
+			case gl.FLOAT: program.setUniform("u_range",255.999); break; // map 0.0~1.0 to 0~255.
+			// Not 256 because some browser don't accept Uint8ClampedArray, and 256 cause overflow
 			case gl.UNSIGNED_SHORT_4_4_4_4: // @TODO: support these formats
 			case gl.HALF_FLOAT: break;
 			case gl.UNSIGNED_BYTE: program.setUniform("u_range",1); break;
