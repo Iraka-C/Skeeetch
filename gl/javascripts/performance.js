@@ -132,8 +132,7 @@ class IdleTaskManager{
 			return;
 		}
 		this.timer=setTimeout(event=>{
-			console.log("Start Idle");
-			
+			//console.log("Start Idle");
 			this._onIdle();
 		},250); // Start idle in 250ms. Do not start immediately to guarantee smooth pen strokes
 	}

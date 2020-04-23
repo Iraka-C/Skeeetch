@@ -176,6 +176,7 @@ EVENTS.keyDown=function(event){
 		functionKeyChanged=true;
 		// change cursor on picking color
 		CURSOR.updateAction();
+		$("#palette-selector").css("cursor","crosshair");
 		event.preventDefault(); // prevent browser menu
 	}
 	
@@ -206,6 +207,7 @@ EVENTS.keyUp=function(event){
 		EVENTS.key.alt=false;
 		functionKeyChanged=true;
 		CURSOR.updateAction();
+		$("#palette-selector").css("cursor","default");
 		event.preventDefault(); // prevent browser menu
 	}
 

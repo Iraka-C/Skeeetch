@@ -20,10 +20,10 @@ BrushManager.brushes=[
 	},
 	{
 		name:"spray gun",
-		size:50,
+		size:100,
 		minSize:0.4,
 		isSizePressure:1,
-		alpha:0.85,
+		alpha:0.8,
 		minAlpha:0,
 		isAlphaPressure:1,
 		edgeHardness:0,
@@ -51,7 +51,7 @@ BrushManager.brushes=[
 		size:80,
 		minSize:1,
 		isSizePressure:0,
-		alpha:0.2,
+		alpha:0, // no color at first
 		minAlpha:0,
 		isAlphaPressure:1,
 		edgeHardness:0.5,

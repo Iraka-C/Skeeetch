@@ -7,11 +7,7 @@
 }
 
 #palette-hue-info{
-	font-size: 100%;
-}
-
-#palette-hue-info *{
-	display: none;
+	height: 0em;
 }
 
 #layer-panel-title{

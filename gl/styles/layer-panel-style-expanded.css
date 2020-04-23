@@ -8,11 +8,7 @@
 }
 
 #palette-hue-info{
-	font-size: 125%;
-}
-
-#palette-hue-info *{
-	display: block;
+	height: 1.3em;
 }
 
 #layer-panel-title{

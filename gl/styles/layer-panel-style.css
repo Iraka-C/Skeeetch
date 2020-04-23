@@ -64,10 +64,10 @@
 	padding: 0.5em 0.5em 0em 0.5em;
 	margin-bottom: 0.5em;
 	pointer-events: none;
+	font-size: 125%;
 	overflow: hidden;
 }
 #palette-hue-value{
-	vertical-align: super;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -92,13 +92,6 @@
 #palette-hue-selector:hover > #palette-hue-selector-canvas{
 	opacity: 1;
 	pointer-events: all;
-}
-
-#palette-color-info{
-	font-size: 125%;
-	position: absolute;
-	padding: 0.5em;
-	display: none;
 }
 
 /* =================== Layer Panels =================== */

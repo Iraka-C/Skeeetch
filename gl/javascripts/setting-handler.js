@@ -202,7 +202,16 @@ SettingHandler.initSystemSetting=function(sysParams){
 		}
 	},()=>ENV.displaySettings.antiAlias?0:1);
 
+	// ======================= Palette Settings ==========================
+	sys.addSectionTitle(Lang("palette-title"));
+	sys.addSwitch(Lang("Color Selector"),[Lang("H-SV"),Lang("V-HS")],null,val=>{
+		PALETTE.changeColorSelector(val);
+	},()=>PALETTE.colorSelector?PALETTE.colorSelector.typeID:null);
+	sys.addSwitch(Lang("Color Information"),[Lang("None"),Lang("Web Safe Color"),Lang("Web Named Color"),Lang("Pantone Color"),Lang("Named Color")],null,val=>{
+		PALETTE.changeColorInfoManager(val);
+	},()=>PALETTE.colorSelector?PALETTE.colorSelector.getColorInfoManager().typeID:null);
 
+	// ======================== Display Settings ===========================
 	sys.addSectionTitle(Lang("Display"));
 	//sys.addHint(Lang("display-hint-1"));
 	sys.addSwitch(Lang("Transform Animation"),[Lang("On"),Lang("Off")],null,val=>{

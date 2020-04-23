@@ -10,6 +10,10 @@ LANG_ZH={
 	"New Layer":"新图层",
 	"New Group":"新组",
 
+	// Palette
+	"palette-hue-sign":"色相",
+	"palette-value-sign":"明度",
+
 	// Setting Menu
 	"System":"系统设置",
 	"Renderer":"渲染器",
@@ -75,7 +79,6 @@ LANG_ZH._id={
 	"palette-button-text":"调色盘",
 	"system-button":"设置",
 	"file-button":"文件",
-	"palette-hue-sign":"色相",
 	"layer-panel-name":"图层",
 	"":""
 }

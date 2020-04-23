@@ -1,6 +1,8 @@
 class H_SVSelector extends PaletteSelector{
-	constructor(rgb){
-		super(rgb);
+	constructor(rgb,colorInfoManager){
+		super(rgb,colorInfoManager);
+		this.typeID=0;
+		this.hueSign.text(Lang("palette-hue-sign"));
 	}
 	_updateBanner(x){ // x: 0~1 is the position selected on banner
 		
@@ -27,21 +29,14 @@ class H_SVSelector extends PaletteSelector{
 			
 			let centerColor=hsv2rgb([h,s,v]);
 			let pM=1-Math.abs(j*2-sW)/sW;
-			let aM=1-(pM*2<1?pM*2:1); // gradient opacity
+			let aM=1-(pM*2<1?pM*2:1); // gradient opacity on two ends
 			aM=Math.sqrt(1-aM*aM);
 	
 			for(let i=0;i<sH;i++){ // row
 				let id=(i*sW+j)*4;
-				let rP=centerColor[0];
-				let gP=centerColor[1];
-				let bP=centerColor[2];
 				let aP=(1-i/sH)*aM;
 				aP*=aP;
-	
-				pix[id]=rP;
-				pix[id+1]=gP;
-				pix[id+2]=bP;
-				pix[id+3]=aP*255;
+				[pix[id],pix[id+1],pix[id+2],pix[id+3]]=[...centerColor,aP*255];
 			}
 		}
 		hctx.putImageData(hueImgData,0,0);
@@ -81,45 +76,55 @@ class H_SVSelector extends PaletteSelector{
 				const gP=gTop*qi;
 				const bP=bTop*qi;
 
-				pix[id]=rP;
-				pix[id+1]=gP;
-				pix[id+2]=bP;
-				// pix[id]=webC[0];
-				// pix[id+1]=webC[1];
-				// pix[id+2]=webC[2];
-				pix[id+3]=255;
+				const qC=this.colorInfoManager.query([rP,gP,bP])[1];
+				[pix[id],pix[id+1],pix[id+2],pix[id+3]]=[...qC,255];
 			}
 		}
 		this.ctx.putImageData(paletteImgData,0,0);
 	}
-	_setCursor(){
-		const $cv=$(this.cv);
-		const cW=$cv.width();
-		const cH=$cv.height();
-		this.cursor.attr({
-			"cx":this.hsv[1]/180*cW,
-			"cy":(1-this.hsv[2]/255)*cH,
-			"stroke":this.hsv[2]>150?"#000000":"#ffffff"
-		});
+	_updateCursor(x,y){
+		if(isNaN(x)||isNaN(y)){
+			super._updateCursor(this.hsv[1]/180,1-this.hsv[2]/255);
+		}
+		else{
+			super._updateCursor(x,y);
+		}
 	}
-	_setInfo(){
-		$("#palette-hue-value").text(Math.round(this.hsv[0]));
+	_updateInfo(){
+		if(this.colorInfoManager.typeID==0){
+			this.hueSign.css("display","block");
+			this.hueSymbol.css("display","block");
+			this.hueValue.text(Math.round(this.hsv[0]));
+		}
+		else{
+			super._updateInfo();
+		}
 	}
 	onSelectBanner(x){ // x: 0~1 on banner
 		this.hsv[0]=H_SVSelector.hueSelectorFunc(x);
 		
-		this.setHSV(this.hsv,false); // update banner by myself
+		this.setHSV(this.hsv,true); // update banner by myself
 		this._updateBanner(x);
 		this._updateSelector();
 	}
-	onSelectSelector(x,y){ // (x,y): LU 0~1 in selector window
-		let newS=x*180;
-		let newV=(1-y)*255;
-		this.setHSV([this.hsv[0],newS,newV],true); // no need to update canvas
+	onSelectSelector(x,y,isPickingColor){ // (x,y): LU 0~1 in selector window
+		const newS=x*180;
+		const newV=(1-y)*255;
+		const newHSV=[this.hsv[0],newS,newV];
+		
+		if(isPickingColor&&this.colorInfoManager.typeID){ // color range rendered
+			const rgb=this.colorInfoManager.query(hsv2rgb(newHSV))[1];
+			this.setRGB(rgb);
+		}
+		else{
+			this._updateCursor(x,y);
+			this.setHSV(newHSV,true); // no need to update canvas
+		}
 	}
 	setRGB(rgb,isSelfCall){
 		super.setRGB(rgb);
 		if(!isSelfCall){
+			this._updateCursor();
 			this._updateBanner();
 			this._updateSelector();
 		}
@@ -127,6 +132,7 @@ class H_SVSelector extends PaletteSelector{
 	setHSV(hsv,isSelfCall){
 		super.setHSV(hsv);
 		if(!isSelfCall){
+			this._updateCursor();
 			this._updateBanner();
 			this._updateSelector();
 		}

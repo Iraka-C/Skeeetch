@@ -3,7 +3,11 @@
  */
 /* The definition of system setting as JSON:
 sysSettingParams={
-	paletteColor: [r,g,b], // (r,g,b) tuple from 0~255
+	palette:{
+		color: [r,g,b], // (r,g,b) tuple from 0~255
+		selector: 0, // H-SV selector
+		info: 0 // normal info
+	}
 	brush: [brushes], // refer to BrushManager.brushes
 	lastWorkspace: { // last opened workspace
 		file, // a reference in STORAGE.FILE, including the size of the paper
@@ -35,6 +39,7 @@ STORAGE.SETTING.init=function(callback){ // synced
 	}catch(err){
 		console.warn("System Setting read-error",err);
 	}
+	v.palette=v.palette||{};
 	v.preference=v.preference||{};
 	v.preference.displaySettings=v.preference.displaySettings||{};
 	v.preference.debugger=v.preference.debugger||{};
@@ -69,7 +74,11 @@ STORAGE.SETTING.saveAllSettings=function(){
 	 * See http://vaughnroyko.com/offline-storage-indexeddb-and-the-onbeforeunloadunload-problem/
 	 */
 	localStorage.setItem("system-setting",JSON.stringify({ // system setting structure
-		paletteColor: PALETTE.rgb,
+		palette:{
+			color: PALETTE.colorSelector.getRGB(),
+			selector: PALETTE.colorSelector.typeID,
+			info: PALETTE.colorSelector.getColorInfoManager().typeID
+		},
 		preference:{
 			language: LANG.nowLang,
 			channelBitDepth: CANVAS.rendererBitDepth,
