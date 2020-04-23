@@ -323,7 +323,9 @@ HISTORY.undoStructureChange=function(item){
 		obj.detach(); // detach node from layerTree
 		oldGroup.insertNode$UI(obj.$ui,item.oldIndex); // insert $ui at old place
 		oldGroup.insertNode(obj,item.oldIndex); // insert at old place
-		LAYERS.setActive(item.oldActive?item.oldActive:obj); // also refresh. setActive accepts string or Node
+		if(item.oldActive!=item.newActive){ // also refresh. setActive accepts string or Node
+			LAYERS.setActive(obj);
+		}
 		COMPOSITOR.updateLayerTreeStructure(); // call manually. setActive() won't update when active layer's unchanged
 	}
 	else{ // else: no old group, this is a create-new-layer action
@@ -344,7 +346,9 @@ HISTORY.redoStructureChange=function(item){
 		obj.detach(); // detach node from layerTree
 		newGroup.insertNode$UI(obj.$ui,item.newIndex); // insert $ui at new place
 		newGroup.insertNode(obj,item.newIndex); // insert at new place
-		LAYERS.setActive(item.newActive?item.newActive:obj); // also refresh. setActive accepts string or Node
+		if(item.oldActive!=item.newActive){ // also refresh. setActive accepts string or Node
+			LAYERS.setActive(obj);
+		}
 		COMPOSITOR.updateLayerTreeStructure(); // call manually. setActive() won't update when active layer's unchanged
 	}
 	else{ // else: no new group, this is a delete-layer action

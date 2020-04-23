@@ -407,44 +407,60 @@ LAYERS.replaceGroupWithLayer=function(group) {
 		oldIndex: null,
 		newIndex: layer.getIndex(),
 		oldActive: group.id,
-		newActive: layer.id
+		newActive: group.id // active layr not set yet
 	};
 
+	LAYERS.setActive(layer); // set lastImageData (as empty)
+
+	// copy properties, and adjust image data structures (such as clip mask...)
+	const prop=group.getProperties();
+	layer.setProperties(prop);
+	// Here, needless to set property change history: after all a "new" operation before
+
 	// transfer image data
-	const tR=layer.rawImageData;
-	layer.rawImageData=group.rawImageData;
-	layer.maskImageData=group.maskImageData;
-	layer.maskedImageData=group.maskedImageData;
-	layer.imageData=group.imageData;
+	CANVAS.renderer.adjustImageDataBorders(layer.rawImageData,group.rawImageData.validArea,false);
+	CANVAS.renderer.blendImageData(group.rawImageData,layer.rawImageData,{mode:GLTextureBlender.SOURCE});
+	// @TODO: layer.maskImageData
 	const hist2={ // add raw image data changed history
 		type:"image-data",
 		id:layer.id,
-		area:{...layer.rawImageData.validArea}
+		area:{...group.rawImageData.validArea}
 	};
-	// @MANY THINGS @TODO:
 
-	group.rawImageData=tR;
-	group.maskImageData=null;
-	group.maskedImageData=tR;
-	group.imageData=tR;
-
+	// delete old imageData to save space. @TODO: clear all non-leaf imageData
+	group.assignNewRawImageData(0,0);
+	group.assignNewMaskedImageData(0,0);
+	group.assignNewImageData(0,0);
+	group.maskImageData=null; // @TODO
+	group.setRawImageDataInvalid();
 	layer.setMaskedImageDataInvalid();
-	LAYERS.setActive(layer);
 
 	// remove group from ui
+	const groupId=group.id;
+	const fromId=group.parent.id;
+	const fromIndex=group.getIndex();
 	group.$ui.detach(); // remove layer ui
 	group.detach(); // remove from layer tree, also handles data/clip order invalidation
 
-	// copy properties
-	const prop=group.getProperties();
-	layer.setProperties(prop);
+	
+	const hist3={ // add a history item
+		type: "node-structure",
+		id: groupId,
+		from: fromId,
+		to: null,
+		oldIndex: fromIndex,
+		newIndex: null,
+		oldActive: groupId,
+		newActive: layer.id
+	};
+	HISTORY.addHistory({ // combine 3 steps
+		type: "bundle",
+		children:[hist1,hist2,hist3]
+	});
 
 	// recomposite
 	COMPOSITOR.updateLayerTreeStructure();
 	layer.updateThumb();
-
-	// remove group from memory @TODO: add to history
-	group.delete();
 }
 
 LAYERS.updateAllThumbs=function() {
