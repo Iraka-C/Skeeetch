@@ -29,6 +29,16 @@ LANG_ZH={
 	"sys-mem":"内存使用",
 	"sys-gpumem":"显存使用",
 	"toggle-fullscreen":"切换全屏幕模式",
+	"palette-title":"调色盘",
+	"Color Selector":"取色器",
+	"Color Information":"颜色信息",
+	"CIS-none":"默认",
+	"Web Safe Color":"Web安全色",
+	"Web Named Color":"Web颜色名",
+	"Pantone Color":"潘通色卡",
+	"Named Color":"颜色名",
+	"Developers":"开发者",
+	"Draw Layer Border":"绘制图层边缘",
 
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",
@@ -46,6 +56,7 @@ LANG_ZH={
 	"Pressure Controlled Opacity":"压感不透明度",
 	"Min Opacity":"最低不透明度",
 
+	"Stylus Control":"数位笔",
 	"stylus-pressure-sensitivity":"笔压灵敏度",
 	"stroke-smoothness":"抖动修正",
 

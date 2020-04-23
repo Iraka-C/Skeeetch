@@ -69,12 +69,9 @@ class V_HSSelector extends PaletteSelector{
 		for(let j=0;j<sH;j++){ // col
 			for(let i=0;i<sW;i++){ // row
 				const id=(j*sW+i)*4;
-				const x=i/sW,y=j/sH;
-				const hs=V_HSSelector.dxy2hs(x,y);
+				const hs=V_HSSelector.dxy2hs(i/sW,j/sH);
 				const rgb=hsv2rgb([...hs,v]);
-
 				const qC=this.colorInfoManager.query(rgb)[1];
-				
 				[pix[id],pix[id+1],pix[id+2],pix[id+3]]=[...qC,255];
 			}
 		}
@@ -86,12 +83,12 @@ class V_HSSelector extends PaletteSelector{
 		if(angle<0)angle+=2; // 0~2pi
 		const h=angle*180;
 		const dis=Math.hypot(dx,dy).clamp(0,1);
-		const s=dis*180;
+		const s=Math.pow(dis,1.25)*180; // enlarge white area
 		return [h,s];
 	}
 	static hs2dxy(h,s){ // x,y 0~1
 		let angle=(h/180-2/3)*Math.PI;
-		let dis=s/180;
+		let dis=Math.pow(s/180,0.8);
 		const x=dis*Math.cos(angle);
 		const y=dis*Math.sin(angle);
 		return [(x+1)/2,(y+1)/2];

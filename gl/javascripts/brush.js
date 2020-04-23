@@ -290,7 +290,7 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 }
 
 BrushManager.initPenSetting=function(brushMenu){
-	brushMenu.addSectionTitle("Stylus");
+	brushMenu.addSectionTitle("Stylus Control");
 	BrushManager.sensitivityUpdateFunc=brushMenu.addInstantNumberItem(
 		Lang("stylus-pressure-sensitivity"),()=>BrushManager.general.sensitivity.toFixed(1),"",
 		newVal=>{ // set on input

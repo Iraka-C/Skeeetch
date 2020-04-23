@@ -19,7 +19,7 @@ class PaletteSelector { // Abstract!
 		 * 1: V_HSSelector
 		 */
 		this.cv=$("#palette-canvas")[0];
-		this.cv.width=256; // fixed size
+		this.cv.width=256; // fixed size. Change to tune palette rendering performance
 		this.cv.height=256;
 		this.ctx=this.cv.getContext("2d");
 		// hue selector

@@ -208,7 +208,7 @@ SettingHandler.initSystemSetting=function(sysParams){
 	sys.addSwitch(Lang("Color Selector"),[Lang("H-SV"),Lang("V-HS")],null,val=>{
 		PALETTE.changeColorSelector(val);
 	},()=>PALETTE.colorSelector?PALETTE.colorSelector.typeID:null);
-	sys.addSwitch(Lang("Color Information"),[Lang("None"),Lang("Web Safe Color"),Lang("Web Named Color"),Lang("Pantone Color"),Lang("Named Color")],null,val=>{
+	sys.addSwitch(Lang("Color Information"),[Lang("CIS-none"),Lang("Web Safe Color"),Lang("Web Named Color"),Lang("Pantone Color"),Lang("Named Color")],null,val=>{
 		PALETTE.changeColorInfoManager(val);
 	},()=>PALETTE.colorSelector?PALETTE.colorSelector.getColorInfoManager().typeID:null);
 
