@@ -33,10 +33,13 @@ class HistoryItem{
 				const node=LAYERS.layerHash[param.id];
 				const newImageData=node.rawImageData; // fetch rawImgData
 				const oldImageData=node.lastRawImageData;
-				//const imgBuf=CANVAS.renderer.getBufferFromImageData(rawImageData); // TIME CONSUMING!!!
-				const oldArea=GLProgram.borderIntersection(oldImageData.validArea,param.area);
-				const newArea=GLProgram.borderIntersection(newImageData.validArea,param.area);
 
+				this.oldValidArea={...oldImageData.validArea};
+				this.newValidArea={...newImageData.validArea};
+
+				const area=param.area;
+				const oldArea=GLProgram.borderIntersection(this.oldValidArea,area);
+				const newArea=GLProgram.borderIntersection(this.newValidArea,area);
 				this.oldData=CANVAS.renderer.getBufferFromImageData(oldImageData,oldArea);
 				this.newData=CANVAS.renderer.getBufferFromImageData(newImageData,newArea);
 				
@@ -81,6 +84,7 @@ class HistoryItem{
 		let size=0;
 		switch(this.type){
 			case "image-data": // Do not access data directly as the implementation may change
+				//@TODO: stat in blocks
 				size+=this.oldData.width*this.oldData.height*pixelBytes;
 				size+=this.newData.width*this.newData.height*pixelBytes;
 				return size;
@@ -131,15 +135,22 @@ HISTORY.addHistory=function(param){ // see HistoryItem constructor for info stru
 	 * but they are usually caused by single operation
 	 * and are (unlikely) to be merged together.
 	 * The uniqueness of each operation in the bundle is controlled by caller!
+	 * 
+	 * Failed example: CANVAS.onEndRefresh
+	 * an "image-data" change might directly follow a "bundle" that also contains "image-data" change
+	 * the changed area is sampled twice.
+	 * @TODO: fix this bug
 	 */
 	if(param.type=="image-data"){
 		if(HISTORY.pendingImageDataChangeParam.has(param.id)){ // already submitted
 			const item=HISTORY.pendingImageDataChangeParam.get(param.id);
-			item.area=GLProgram.extendBorderSize(item.area,param.area); // extend area, needn't submit again
+			//item.areas.push(...param.areas); // extend area, needn't submit again
+			item.area=GLProgram.extendBorderSize(item.area,param.area);
 			return;
 		}
 		HISTORY.pendingImageDataChangeParam.set(param.id,param); // submit
 	}
+	// if(param.type=="bundle"){/* Do sth */}
 	if(param.type=="node-property"){
 		HISTORY.addPropertyHistory(param);
 		return;
@@ -248,8 +259,6 @@ HISTORY.undo=function(){ // undo 1 step
 }
 
 HISTORY.redo=function(){ // redo 1 step
-	console.log("Redo");
-
 	if(HISTORY.nowId>=HISTORY.list.length-1)return; // no newer history
 
 	const redoInstant=item=>{
@@ -288,8 +297,13 @@ HISTORY.redo=function(){ // redo 1 step
 HISTORY.undoImageDataChange=function(item){
 	const node=LAYERS.layerHash[item.id];
 	LAYERS.setActive(node); // also refresh and set lastRawImageData
-	CANVAS.renderer.clearScissoredImageData(node.rawImageData,item.newData);
-	CANVAS.renderer.loadToImageData(node.rawImageData,item.oldData);
+	const oldValidArea=item.oldValidArea;
+	CANVAS.renderer.resizeImageData(node.rawImageData,oldValidArea,true);
+	const oldData=item.oldData;
+	const newData=item.newData;
+	CANVAS.renderer.clearScissoredImageData(node.rawImageData,newData);
+	CANVAS.renderer.loadToImageData(node.rawImageData,oldData);
+
 	CANVAS.updateLastImageData(node);
 	node.setRawImageDataInvalid();
 	node.updateThumb();
@@ -299,8 +313,12 @@ HISTORY.undoImageDataChange=function(item){
 HISTORY.redoImageDataChange=function(item){
 	const node=LAYERS.layerHash[item.id];
 	LAYERS.setActive(node); // also refresh and set lastRawImageData
-	CANVAS.renderer.clearScissoredImageData(node.rawImageData,item.oldData);
-	CANVAS.renderer.loadToImageData(node.rawImageData,item.newData);
+	const newValidArea=item.newValidArea;
+	CANVAS.renderer.resizeImageData(node.rawImageData,newValidArea,true);
+	const oldData=item.oldData;
+	const newData=item.newData;
+	CANVAS.renderer.clearScissoredImageData(node.rawImageData,oldData);
+	CANVAS.renderer.loadToImageData(node.rawImageData,newData);
 	CANVAS.updateLastImageData(node);
 	node.setRawImageDataInvalid();
 	node.updateThumb();

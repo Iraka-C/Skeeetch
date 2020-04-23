@@ -191,7 +191,8 @@ SettingHandler.initSystemSetting=function(sysParams){
 	sys.addButton(Lang("Change Paper Size"),()=>{
 		if(SettingHandler.tempPaperSize.width!=ENV.paperSize.width
 		||SettingHandler.tempPaperSize.height!=ENV.paperSize.height){ // size changed
-			ENV.setPaperSize(SettingHandler.tempPaperSize.width,SettingHandler.tempPaperSize.height);
+			// preserve contents
+			ENV.setPaperSize(SettingHandler.tempPaperSize.width,SettingHandler.tempPaperSize.height,true);
 		}
 		sys.toggleExpand();
 	});

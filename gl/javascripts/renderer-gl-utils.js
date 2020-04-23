@@ -71,7 +71,7 @@ class GLTextureBlender {
 	 *    targetArea: the area to blend, {w,h,l,t} under paper coordinate. The smaller, the faster.
 	 * }
 	 * 
-	 * **NOTE** if src range exceeds dst size range, overflown parts will be discarded!
+	 * **NOTE** if src range exceeds dst size range, overflown parts will be discarded! (but irrelevant to viewport)
 	 * **NOTE** if not param.alphaLock, then the dst.validArea may change!
 	 */
 	blendTexture(src,dst,param) {
@@ -107,7 +107,7 @@ class GLTextureBlender {
 					gl.blendFunc(gl.ZERO,gl.ONE_MINUS_SRC_ALPHA); // no color
 				}
 				break;
-			case GLTextureBlender.NONE:
+			case GLTextureBlender.NONE: // Mainly for debugging
 				if(param.alphaLock) { // do not change target alpha
 					gl.blendFunc(gl.ZERO,gl.ONE); // do not change
 				}

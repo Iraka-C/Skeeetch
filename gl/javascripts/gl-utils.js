@@ -225,6 +225,22 @@ class GLProgram {
 		};
 	}
 
+	static borderSubtractionLRUB(s1,s2) { // s1-s2,!Noted in [l,r,u,b] format!
+		const isS1Zero=!(s1.width&&s1.height);
+		const isS2Zero=!(s2.width&&s2.height);
+		if(isS1Zero){ // certainly no subtraction
+			return [0,0,0,0];
+		}
+		if(isS2Zero){ // considered as shrink s1 to 0
+			return [0,s1.width,0,s1.height];
+		}
+		const dL=s2.left-s1.left;
+		const dU=s2.top-s1.top;
+		const dR=s1.left+s1.width-s2.left-s2.width;
+		const dB=s1.top+s1.height-s2.top-s2.height;
+		return [Math.max(dL,0),Math.max(dR,0),Math.max(dU,0),Math.max(dB,0)];
+	}
+
 	/**
 	 * 
 	 * @param {imageData} tgt the space to be sampled

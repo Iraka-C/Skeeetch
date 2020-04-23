@@ -283,6 +283,11 @@ CURSOR.up=function(event){
 		CURSOR.isDown=false;
 		//CURSOR.type=NaN;
 		if(CURSOR.panRecord.isPanned){ // There was a panning operation
+			// make borders integer
+			CANVAS.roundLayerPosition(LAYERS.active);
+			LAYERS.active.setImageDataInvalid(); // merge with clip mask
+			CANVAS.requestRefresh();
+			// record history
 			const imgData=LAYERS.active.rawImageData;
 			const startPos=CURSOR.panRecord.startPosition;
 			HISTORY.addHistory({

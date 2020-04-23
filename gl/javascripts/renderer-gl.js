@@ -225,21 +225,7 @@ class GLRenderer extends BasicRenderer {
 			);
 		}
 
-		// adjust valid area
-		if(this.brush.blendMode>=0){ // add sth
-			imgData.validArea=GLProgram.borderIntersection(
-				GLProgram.extendBorderSize(
-					imgData.validArea,
-					{ // area to draw in paper coordinate
-						width: wH-wL+1,
-						height: hH-hL+1,
-						left: wL,
-						top: hL
-					}
-				),
-				imgData // clip inside the image data
-			);
-		}
+		// Adjusting valid area is done by CANVAS.stroke
 
 		// update last circle
 		if(kPoints.length){
@@ -408,15 +394,16 @@ class GLRenderer extends BasicRenderer {
 	/**
 	 * Change src's size to newParam
 	 * The pointer of src won't change
+	 * if is toCopy, only copy part contained within a viewport size
 	 */
 	resizeImageData(src,newParam,toCopy) {
 		// copy to tmp
 		const tmp=this.tmpImageData;
 		if(toCopy) {
 			this.clearImageData(tmp,null,false);
-			tmp.left=Math.max(src.left,0);
-			tmp.top=Math.max(src.top,0);
-			//tmp.validArea={...src.validArea}; // src.validArea doesn't change
+			tmp.left=src.left;
+			tmp.top=src.top;
+			tmp.validArea={...src.validArea}; // src.validArea may shrink
 			this.blendImageData(src,tmp,{mode: BasicRenderer.SOURCE});
 		}
 
@@ -432,13 +419,11 @@ class GLRenderer extends BasicRenderer {
 		src.height=newParam.height;
 		src.left=newParam.left;
 		src.top=newParam.top;
+		src.validArea={width: 0,height: 0,left: 0,top: 0};
 
 		// copy back
 		if(toCopy) {
 			this.blendImageData(tmp,src,{mode: BasicRenderer.SOURCE});
-		}
-		else {
-			src.validArea={width: 0,height: 0,left: 0,top: 0};
 		}
 	}
 

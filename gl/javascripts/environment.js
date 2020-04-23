@@ -164,7 +164,7 @@ ENV.transformTo=function(x,y,r,s){ // four values, with hint
  * @TODO: Doesn't seem like memory leak, more like a memory allocation policy
  */
 ENV.setPaperSize=function(w,h,isPreservingContents){
-	isPreservingContents=isPreservingContents||false; // do not breserve by default
+	isPreservingContents=isPreservingContents||false; // do not reserve by default
 	if(!(w&&h)){ // w or h invalid or is 0
 		return;
 	}
@@ -177,19 +177,30 @@ ENV.setPaperSize=function(w,h,isPreservingContents){
 	$("#overlay-canvas").attr({"width":w,"height":h}); // set canvas pixel size
 	CANVAS.init(); // re-initialize CANVAS (and create new renderer)
 
-	for(let k in LAYERS.layerHash){ // @TODO: copy image data
+	for(let k in LAYERS.layerHash){ // @TODO: copy image data, mask image data
 		let layer=LAYERS.layerHash[k];
-		if(layer instanceof RootNode){ // root !Buggy Here! assignNewRawImageData(w,h) didn't enabled a texture
-			layer.assignNewRawImageData(0,0);
-			layer.assignNewMaskedImageData(0,0);
-			layer.assignNewImageData(0,0);
+		if(isPreservingContents){
+			if(layer instanceof CanvasNode){
+				const rImg=layer.rawImageData;
+				const tArea=GLProgram.borderIntersection(rImg.validArea,CANVAS.renderer.viewport); // target area
+				layer.assignNewRawImageData(tArea.width,tArea.height,tArea.left,tArea.top,true);
+				layer.assignNewMaskedImageData(0,0);
+				layer.assignNewImageData(0,0);
+				layer.setRawImageDataInvalid();
+			}
+			else{
+				layer.assignNewRawImageData(0,0);
+				layer.assignNewMaskedImageData(0,0);
+				layer.assignNewImageData(0,0);
+			}
 		}
-		else{ // contains renderable texture, delete
+		else{
 			layer.assignNewRawImageData(0,0);
 			layer.assignNewMaskedImageData(0,0);
 			layer.assignNewImageData(0,0);
-
-			layer.setRawImageDataInvalid();
+			if(layer instanceof CanvasNode){ // root **NOTE** assignNewRawImageData(w,h) didn't ensure a valid texture!
+				layer.setRawImageDataInvalid();
+			}
 		}
 	}
 

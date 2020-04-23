@@ -65,9 +65,16 @@ CANVAS.updateLastImageData=function(node){
 	const lastD=node.lastRawImageData;
 	const rawD=node.rawImageData;
 	// copy contents
-	CANVAS.renderer.adjustImageDataBorders(lastD,rawD,false);
+	if(lastD.width<rawD.validArea.width||lastD.height<rawD.validArea.height){ // enlarge
+		CANVAS.renderer.resizeImageData(lastD,rawD.validArea,false);
+	}
+	else{ // move
+		lastD.left=rawD.validArea.left;
+		lastD.top=rawD.validArea.top;
+	}
 	CANVAS.renderer.clearImageData(lastD);
-	// @TODO: only copy the changed part to save time
+	
+	// only copy the changed part to save time?
 	CANVAS.renderer.blendImageData(rawD,lastD,{mode:BasicRenderer.SOURCE});
 }
 
@@ -211,14 +218,19 @@ CANVAS.stroke=function() {
 	let [wL,wH,hL,hH,kPoints]=param;
 	const nowTarget=nowLayer.rawImageData;
 	const targetSize={width: wH-wL,height: hH-hL,left: wL,top: hL};
-	const clippedTargetSize=GLProgram.borderIntersection(targetSize,CANVAS.renderer.viewport);
-	if(!clippedTargetSize.width||!clippedTargetSize.height){ // now draw in the paper area
-		return;
-	}
+	let clippedTargetSize=targetSize;
+	// const clippedTargetSize=GLProgram.borderIntersection(targetSize,CANVAS.renderer.viewport);
+	// if(!clippedTargetSize.width||!clippedTargetSize.height){ // not drawing in the paper area
+	// 	return;
+	// }
 	// render
 	if(CANVAS.renderer.brush.blendMode!=-1&&!CANVAS.targetLayerOpacityLocked){ // need to expand border
 		CANVAS.renderer.adjustImageDataBorders(nowTarget,clippedTargetSize,true);
 		if(!nowTarget.width||!nowTarget.height){ // zero size. may happen when drawing out of canvas border
+			return;
+		}
+		clippedTargetSize=GLProgram.borderIntersection(nowTarget,clippedTargetSize);
+		if(!clippedTargetSize.width||!clippedTargetSize.height){ // zero size. drawing out of canvas border
 			return;
 		}
 	}
@@ -229,9 +241,17 @@ CANVAS.stroke=function() {
 		}
 	}
 	CANVAS.renderer.renderPoints(wL,wH,hL,hH,kPoints);
+	// adjust valid area
+	nowTarget.validArea=GLProgram.borderIntersection(
+		GLProgram.extendBorderSize(
+			nowTarget.validArea,
+			clippedTargetSize
+		),
+		nowTarget // clip inside the nowTarget image data
+	);
 
 	// render end
-	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize);
+	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize); // @TODO
 	nowLayer.setRawImageDataInvalid(); // the layers needs to be recomposited
 	CANVAS.requestRefresh(clippedTargetSize); // request a refresh on the screen. Saved Time?
 };
@@ -299,13 +319,13 @@ CANVAS.onRefresh=function() {
  * 
  * The antialiasing parameter 0.7 is a balance of sharpness and crispiness.
  */
-CANVAS.refreshScreen=function(dirtyArea) {
-	//console.log("Recomposite",dirtyArea);
+CANVAS.refreshScreen=function() {
 	//const startT=window.performance.now();
 	const antiAliasRadius=ENV.displaySettings.antiAlias?0.7*Math.max(1/ENV.window.scale-1,0):0;
-	COMPOSITOR.recompositeLayers(null,dirtyArea); // recomposite from root
+	COMPOSITOR.recompositeLayers(); // recomposite from root.
+	// **NOTE** No difference found with/without using dirty area only renewal
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
-	//console.log("Refresh Time = ",window.performance.now()-startT);
+	//console.log("Refresh Time = "+Math.round((window.performance.now()-startT)*1000)+" us");
 }
 
 /**
@@ -315,11 +335,35 @@ CANVAS.refreshScreen=function(dirtyArea) {
  */
 CANVAS.onEndRefresh=function() {
 	LAYERS.active.updateThumb();
-	HISTORY.addHistory({ // add raw image data changed history
-		type:"image-data",
-		id:CANVAS.nowLayer.id,
-		area:{...CANVAS.changedArea}
-	});
+	const nowLayer=CANVAS.nowLayer
+	const nowTarget=nowLayer.rawImageData;
+	const lastRaw=nowLayer.lastRawImageData;
+
+	const dLRUB=GLProgram.borderSubtractionLRUB(lastRaw.validArea,nowTarget.validArea); // calc difference
+	if(!dLRUB.every(v=>v<1E-6)){ // valid area shrinked
+		HISTORY.addHistory({ // add bundle
+			type:"bundle",
+			children:[
+				{ // deleted area
+					type:"image-data",
+					id:CANVAS.nowLayer.id,
+					area:{...lastRaw.validArea}
+				},
+				{ // new changes
+					type:"image-data",
+					id:CANVAS.nowLayer.id,
+					area:{...CANVAS.changedArea}
+				}
+			]
+		});
+	}
+	else{ // add raw image data changed history
+		HISTORY.addHistory({
+			type:"image-data",
+			id:CANVAS.nowLayer.id,
+			area:{...CANVAS.changedArea}
+		});
+	}
 	CANVAS.lastRefreshTime=NaN;
 	CANVAS.changedArea={width:0,height:0,left:0,top:0}; // reset changed area
 }
@@ -397,10 +441,39 @@ CANVAS.panLayer=function(targetLayer,dx,dy){
 	imgData.top+=dy;
 	imgData.validArea.left+=dx;
 	imgData.validArea.top+=dy;
+	if(targetLayer.lastRawImageData){ // also pan history records
+		const lastD=targetLayer.lastRawImageData;
+		lastD.left+=dx;
+		lastD.top+=dy;
+		lastD.validArea.left+=dx;
+		lastD.validArea.top+=dy;
+	}
 	// @TODO: pan Masked data // @TODO: link Mask data
 	if(targetLayer.children.length){
 		for(const v of targetLayer.children) {
 			CANVAS.panLayer(v,dx,dy);
+		}
+	}
+}
+
+// If targetLayer called by CANVAS.panLayer, then all of them should have same decimal part
+CANVAS.roundLayerPosition=function(targetLayer){
+	const imgData=targetLayer.rawImageData;
+	imgData.left=Math.round(imgData.left);
+	imgData.top=Math.round(imgData.top);
+	imgData.validArea.left=Math.round(imgData.validArea.left);
+	imgData.validArea.top=Math.round(imgData.validArea.top);
+	if(targetLayer.lastRawImageData){
+		const lastD=targetLayer.lastRawImageData;
+		lastD.left=Math.round(lastD.left);
+		lastD.top=Math.round(lastD.top);
+		lastD.validArea.left=Math.round(lastD.validArea.left);
+		lastD.validArea.top=Math.round(lastD.validArea.top);
+	}
+	// @TODO: pan Masked data // @TODO: link Mask data
+	if(targetLayer.children.length){
+		for(const v of targetLayer.children) {
+			CANVAS.roundLayerPosition(v);
 		}
 	}
 }
