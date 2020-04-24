@@ -14,6 +14,8 @@ Skeeetch支持许多常见的绘画软件操作，包括：
 
 ### [**使用最新版的Skeeetch!**](https://iraka-c.github.io/Skeeetch/index.html?lang=zh)
 
+[查看完整的帮助文档](./index.md)
+
 你可以在浏览器中收藏Skeeetch以便日后访问。
 
 
