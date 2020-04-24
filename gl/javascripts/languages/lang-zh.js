@@ -43,9 +43,9 @@ LANG_ZH={
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",
 	"Size Control":"笔刷尺寸控制",
-	"Brush Size":"大小",
+	"Brush Size":"尺寸",
 	"px":"点",
-	"Pressure Controlled Size":"压感大小",
+	"Pressure Controlled Size":"压感尺寸",
 	"Enabled":"开启",
 	"Disabled":"关闭",
 	"Min Size":"最小尺寸",
