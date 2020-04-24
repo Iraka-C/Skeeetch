@@ -5,7 +5,7 @@ BrushManager={};
 BrushManager.brushes=[
 	{
 		name:"pencil",
-		size:100, // diameter in sizeList[size]
+		size:20, // diameter in sizeList[size]
 		minSize:0.0, // 0~1 (0~100%) of size
 		isSizePressure:1, // 1: Enable, 0:Disable
 		alpha:1.0, // opacity 0~1 (0~100%)

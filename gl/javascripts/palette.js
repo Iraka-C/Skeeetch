@@ -212,7 +212,7 @@ PALETTE.newColorInfoManager=function(v){
 		case 2:
 		case 3:
 		case 4:
-			const colorList=[PALETTE.webColorList,PALETTE.pantoneColorList,PALETTE.namedColorList][v-2];
+			const colorList=[PALETTE.webColorList,PALETTE.pantoneColorList,LANG.target.namedColorList||LANG_EN.namedColorList][v-2];
 			return new ColorInfoManager({ // any named color
 				type: "color-list",
 				colorList: colorList,

@@ -50,11 +50,11 @@ Skeeetch的系统设置可以在**设置**菜单中调节。以下项目按从�
 
 ### 抗锯齿
 
-抗锯齿对画纸的显示和笔刷设置均有效。关闭抗锯齿时，笔刷和画布的渲染是点对点完成的。在缩放画纸或者使用硬边缘笔刷对时候将导致线条的边缘出现可见的锯齿。
+抗锯齿对画纸的显示和笔刷设置均有效。关闭抗锯齿时，笔刷和画布的渲染是点对点完成的。在缩放画纸或者使用硬边缘笔刷对时候将导致线条的边缘出现可见的锯齿（左）。
 
-（在这加一幅图）
+<img src="./images/antialiasing.png" width="400"/>
 
-打开抗锯齿后，Skeeetch将试图在渲染时通过插值的方式来降低这些像素锯齿对观感的干扰。注意如果希望渲染像素画，打开抗锯齿则会使得边缘模糊。
+打开抗锯齿后绘制（右），Skeeetch将试图在渲染时通过插值的方式来降低这些像素锯齿对观感的干扰。注意如果希望渲染像素画，打开抗锯齿反而会使得边缘模糊。
 
 ### 调色盘设置
 
@@ -74,9 +74,9 @@ Skeeetch在调整画纸位置的时候会启用平滑的过渡动画。如果你
 
 目前并没有设置更改语言选项。可以通过添加url的lang参数来切换语言。
 
-[英文版（未完善）](https://iraka-c.github.io/Skeeetch/gl/index.html?lang=en)
+https://iraka-c.github.io/Skeeetch/gl/index.html?lang=en 英文版（未完善）
 
-[中文版](https://iraka-c.github.io/Skeeetch/gl/index.html?lang=zh)
+https://iraka-c.github.io/Skeeetch/gl/index.html?lang=zh 中文版
 
 > 其他语言？看有没有人愿意翻译和检查咯。详见开发者。
 

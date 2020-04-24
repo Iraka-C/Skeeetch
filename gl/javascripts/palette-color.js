@@ -8,6 +8,8 @@ class ColorInfoManager {
 				throw new Error("No color list provided during construction!");
 			}
 			this.colorList=param.colorList;
+			console.log(this.colorList.length);
+
 			this._initColorList();
 		}
 
@@ -60,7 +62,7 @@ class ColorInfoManager {
 		 * for every RAD+1, average search in a ceil is doubled
 		 * RAD=3 seems to be at a balance of performance and precision
 		 */
-		const RAD=list.length>500? 3:4; // more element allows smaller search radius
+		const RAD=list.length>700? 3:list.length>300? 4:5; // more element allows smaller search radius
 		for(let l=0;l<list.length;l++) { // calculate minimum possible max dis to a cell
 			const v=list[l];
 			const rgb=v[1];
@@ -123,7 +125,7 @@ class ColorInfoManager {
 			}
 		}
 	}
-	
+
 	/**
 	 * Sumbit a query on target color
 	 * return [info,[r,g,b]]: r,g,b is the related color
@@ -157,7 +159,7 @@ class ColorInfoManager {
 		const yCell=Math.floor(tyuv[0]/10);
 		const uCell=Math.floor(tyuv[1]/10);
 		const vCell=Math.floor(tyuv[2]/10);
-	
+
 		const searchList=(yuv,list) => {
 			let minDis2=Infinity;
 			let item=null;
@@ -171,11 +173,11 @@ class ColorInfoManager {
 			}
 			return [item,minDis2];
 		}
-	
+
 		const id=yCell*494+uCell*26+vCell;
 		const cell1=this.cList1[id];
 		const [item1,minDis21]=searchList(tyuv,cell1);
-	
+
 		/**
 		 * THSHLD for filtering in 1RAD colors
 		 * Smaller: more precise, but slower
@@ -184,15 +186,15 @@ class ColorInfoManager {
 		if(item1&&minDis21<=100) { // find within nearest radius
 			return item1;
 		}
-	
+
 		const cell3=this.cList3[id];
 		const [item3,minDis23]=searchList(tyuv,cell3);
 		if(item3) { // Heuristic: consider as approx. final result
 			return minDis21<minDis23? item1:item3;
 		}
-	
+
 		// If not found, search the whole list
 		return searchList(tyuv,this.colorList)[0];
 	}
-	
+
 }
