@@ -10,7 +10,7 @@ Skeeetch支持许多常见的绘画软件操作，包括：
 * 历史记录
 * 常见图片格式和Photoshop的`.psd`格式文件导入导出
 
-**无需下载：**在浏览器中即开即用。
+**无需下载**：在浏览器中即开即用。
 
 ### [**使用最新版的Skeeetch!**](https://iraka-c.github.io/Skeeetch/index.html?lang=zh)
 
