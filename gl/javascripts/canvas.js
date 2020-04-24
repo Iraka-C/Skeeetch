@@ -219,10 +219,6 @@ CANVAS.stroke=function() {
 	const nowTarget=nowLayer.rawImageData;
 	const targetSize={width: wH-wL,height: hH-hL,left: wL,top: hL};
 	let clippedTargetSize=targetSize;
-	// const clippedTargetSize=GLProgram.borderIntersection(targetSize,CANVAS.renderer.viewport);
-	// if(!clippedTargetSize.width||!clippedTargetSize.height){ // not drawing in the paper area
-	// 	return;
-	// }
 	// render
 	if(CANVAS.renderer.brush.blendMode!=-1&&!CANVAS.targetLayerOpacityLocked){ // need to expand border
 		CANVAS.renderer.adjustImageDataBorders(nowTarget,clippedTargetSize,true);
@@ -240,18 +236,10 @@ CANVAS.stroke=function() {
 			return;
 		}
 	}
-	CANVAS.renderer.renderPoints(wL,wH,hL,hH,kPoints);
-	// adjust valid area
-	nowTarget.validArea=GLProgram.borderIntersection(
-		GLProgram.extendBorderSize(
-			nowTarget.validArea,
-			clippedTargetSize
-		),
-		nowTarget // clip inside the nowTarget image data
-	);
+	CANVAS.renderer.renderPoints(wL,wH,hL,hH,kPoints); // meanwhile expand valid area when blending brushtip
 
 	// render end
-	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize); // @TODO
+	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize);
 	nowLayer.setRawImageDataInvalid(); // the layers needs to be recomposited
 	CANVAS.requestRefresh(clippedTargetSize); // request a refresh on the screen. Saved Time?
 };

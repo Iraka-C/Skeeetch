@@ -103,7 +103,7 @@ class GLTextureBlender {
 					// Same as NORMAL-alphaLock
 					// This only works for brush-eraser
 				}
-				else {
+				else { // valid area won't change
 					gl.blendFunc(gl.ZERO,gl.ONE_MINUS_SRC_ALPHA); // no color
 				}
 				break;
@@ -174,7 +174,7 @@ class GLTextureBlender {
 		gl.viewport(0,0,dst.width,dst.height); // target area as dst
 		program.run();
 
-		if(!param.alphaLock) { // extend dst valid area, but not larger than dst size
+		if(!param.alphaLock&&param.mode!=GLTextureBlender.ERASE) { // extend dst valid area, but not larger than dst size
 			const extArea=GLProgram.borderIntersection(src.validArea,tA); // part blended
 			const tmpArea=GLProgram.extendBorderSize(extArea,dst.validArea); // extend valid
 			dst.validArea=GLProgram.borderIntersection(tmpArea,dst); // trim in dst borders
