@@ -153,15 +153,18 @@ SettingHandler.initSystemSetting=function(sysParams){
 			if(newVal){
 				newVal=newVal.clamp(16,ENV.displaySettings.maxPaperSize);
 				SettingHandler.tempPaperSize.width=newVal;
+				sizeChangeHint(true);
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
 			let newVal=(SettingHandler.tempPaperSize.width+dW*20).clamp(16,ENV.displaySettings.maxPaperSize);
 			SettingHandler.tempPaperSize.width=newVal;
+			sizeChangeHint(true);
 		},
 		(dx,oldVal)=>{ // set on drag-x
 			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.displaySettings.maxPaperSize);
 			SettingHandler.tempPaperSize.width=newVal;
+			sizeChangeHint(true);
 		}
 	);
 	sys.addInstantNumberItem(
@@ -171,29 +174,34 @@ SettingHandler.initSystemSetting=function(sysParams){
 			if(newVal){
 				newVal=newVal.clamp(16,ENV.displaySettings.maxPaperSize);
 				SettingHandler.tempPaperSize.height=newVal;
+				sizeChangeHint(true);
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
 			let newVal=(SettingHandler.tempPaperSize.height+dW*20).clamp(16,ENV.displaySettings.maxPaperSize);
 			SettingHandler.tempPaperSize.height=newVal;
+			sizeChangeHint(true);
 		},
 		(dx,oldVal)=>{ // set on drag-x
-
 			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.displaySettings.maxPaperSize);
 			SettingHandler.tempPaperSize.height=newVal;
+			sizeChangeHint(true);
 		}
 	);
 	EventDistributer.setClick($("#system-button"),event=>{ // refresh when open
 		SettingHandler.tempPaperSize.width=ENV.paperSize.width;
 		SettingHandler.tempPaperSize.height=ENV.paperSize.height;
 	});
-	sys.addHint(Lang("workspace-hint-1"));
+	const sizeChangeHint=sys.addHint(Lang("workspace-hint-1"));
+	sizeChangeHint(false);
+
 	sys.addButton(Lang("Change Paper Size"),()=>{
 		if(SettingHandler.tempPaperSize.width!=ENV.paperSize.width
 		||SettingHandler.tempPaperSize.height!=ENV.paperSize.height){ // size changed
 			// preserve contents
 			ENV.setPaperSize(SettingHandler.tempPaperSize.width,SettingHandler.tempPaperSize.height,true);
 		}
+		sizeChangeHint(false);
 		sys.toggleExpand();
 	});
 	sys.addSwitch(Lang("Anti-Aliasing"),[Lang("On"),Lang("Off")],null,val=>{

@@ -77,7 +77,7 @@ FILES.loadAsPSD=function(data,filename){
 	console.log(psdFile);
 	if(psdFile.width>ENV.displaySettings.maxPaperSize||psdFile.height>ENV.displaySettings.maxPaperSize){
 		// larger than maximum paper size
-		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.displaySettings.maxPaperSize+" px");
+		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.displaySettings.maxPaperSize+" px",2000);
 		CURSOR.setBusy(false); // free busy cursor
 		PERFORMANCE.idleTaskManager.startIdle();
 		return;
@@ -202,7 +202,7 @@ FILES.loadPSDNode=function(node,nowGroup,progressAmount){
 FILES.onPSDLoaded=function(){
 	COMPOSITOR.updateLayerTreeStructure(); // async!
 	if(FILES.loadPSDNode.isUnsupportedLayerFound){
-		EventDistributer.footbarHint.showInfo("Unsupported layers in this file are discarded");
+		EventDistributer.footbarHint.showInfo("Unsupported layers in this file are discarded",2000);
 	}
 	else{
 		EventDistributer.footbarHint.showInfo("Loaded");

@@ -36,6 +36,8 @@
 		<script src="./javascripts/event.js"></script>
 		<script src="./javascripts/event-hotkey.js"></script>
 		<script src="./javascripts/brush.js"></script>
+		<script src="./javascripts/brush-settings.js"></script>
+		<script src="./javascripts/brush-selector.js"></script>
 		<script src="./javascripts/cursor.js"></script>
 
 		<!-- Layer managements -->
@@ -92,6 +94,11 @@
 							<input id="brush-size" value="0" type="text" maxLength="3" size="3"/>
 						</div>
 						<div id="brush-selector-menu">
+							<div id="brush-selector-buttons">
+								<div id="brush-selector-new">+</div>
+								<div id="brush-selector-delete">-</div>
+								<div id="brush-selector-set">&para;</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -119,26 +126,6 @@
 							</div>
 						</div>
 						<div id="palette-selector">
-							<!-- svg palette gradient definition -->
-							<!--
-								NOT USED BECAUSE THE EFFECT IS NOT AS GOOD AS CANVAS
-								VERTICAL STRIPS CAN BE SEEN WHILE CANVAS DOESN'T
-							-->
-							<!--svg width="256" height="256" id="palette-background" xmlns="http://www.w3.org/2000/svg" version="1.1" viewbox="0 0 100 100">
-								<defs>
-									<linearGradient id="gradient-h" x1="0" x2="1" y1="0" y2="0">
-										<stop offset="0%" stop-color="var(--color-h-1)" />
-										<stop offset="100%" stop-color="var(--color-h-2)" />
-									</linearGradient>
-									<linearGradient id="gradient-v" x1="0" x2="0" y1="0" y2="1">
-										<stop offset="0%" stop-color="var(--color-v-1)" />
-										<stop offset="100%" stop-color="var(--color-v-2)" />
-									</linearGradient>
-								</defs>
-								<rect x="0" y="0" width="256" height="256" fill="url(#gradient-h)"/>
-								<rect x="0" y="0" width="256" height="256" fill="url(#gradient-v)"/>
-								<circle id="palette-cursor" cx="10" cy="10" r="2" stroke="#000000" stroke-width="1" fill="none" />
-							</svg-->
 							<svg id="palette-svg" class="layer-panel-block" width="256" height="256" xmlns="http://www.w3.org/2000/svg" version="1.1">
 								<circle id="palette-cursor" cx="0" cy="0" r="3" stroke="#000000" stroke-width="2" fill="none" />
 							</svg>

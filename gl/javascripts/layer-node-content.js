@@ -361,6 +361,18 @@ class ContentNode extends LayerNode {
 	// 		CANVAS.renderer.restoreImageData(this.imageData);
 	// 	}
 	// }
+	
+	discardUnusedImageData(){
+		for(const v of this.children){
+			v.isRawImageDataValid=false;
+			v.isMaskedImageDataValid=false;
+			v.isImageDataValid=false;
+			v.discardUnusedImageData();
+			// Discard in sub-classes
+		}
+	}
+
+	// ====================== In/Export =======================
 
 	// get a JSON object that is writable by ag-psd
 	getAgPSDCompatibleJSON(){

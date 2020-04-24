@@ -55,6 +55,7 @@ LANG_ZH={
 	"Extension":"延伸",
 	"Pressure Controlled Opacity":"压感不透明度",
 	"Min Opacity":"最低不透明度",
+	"Hard Edge":"边缘硬度",
 
 	"Stylus Control":"数位笔",
 	"stylus-pressure-sensitivity":"笔压灵敏度",
