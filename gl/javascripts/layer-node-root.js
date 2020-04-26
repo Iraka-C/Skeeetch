@@ -1,5 +1,5 @@
-class RootNode extends ContentNode{ // only one root node
-	constructor(){
+class RootNode extends ContentNode { // only one root node
+	constructor() {
 		super("root");
 		// this.rawImageData ==always== this.maskedImageData ==always== this.imageData
 		LAYERS.set$ElementAsLayerContainer($("#layer-panel-inner")); // root container
@@ -8,29 +8,29 @@ class RootNode extends ContentNode{ // only one root node
 		// assign image data at the whole canvas size
 		this.assignNewRawImageData(CANVAS.targetCanvas.width,CANVAS.targetCanvas.height,0,0);
 	}
-	insertNode$UI($ui,pos){ // insert a new node into children at pos
+	insertNode$UI($ui,pos) { // insert a new node into children at pos
 		const ct=$("#layer-panel-inner");
-		if(!pos){ // First position: pos===undefined or pos===0
+		if(!pos) { // First position: pos===undefined or pos===0
 			ct.prepend($ui);
 		}
-		else{ // other positions
+		else { // other positions
 			const $children=ct.children();
 			$children.eq(pos-1).after($ui);
 		}
 	}
 	// ================ ImageData management =================
-	setImageDataInvalid(){
+	setImageDataInvalid() {
 		//console.log("set invalid "+this.id);
-		if(!this.isImageDataValid)return; // already set
+		if(!this.isImageDataValid) return; // already set
 		this.isImageDataValid=false;
 		// no parent, stop here
 	}
 
 	// ================ Export =================
-	getAgPSDCompatibleJSON(){
+	getAgPSDCompatibleJSON() {
 		// do not use ContentNode function, create properties on this. own
 		let childrenJson=[];
-		for(let v=this.children.length-1;v>=0;v--){ // reversed order
+		for(let v=this.children.length-1;v>=0;v--) { // reversed order
 			// Add the JSON source from children
 			childrenJson.push(this.children[v].getAgPSDCompatibleJSON());
 		}
@@ -44,7 +44,8 @@ class RootNode extends ContentNode{ // only one root node
 			"colorMode": 3, // RGBA
 			"children": childrenJson,
 			"canvas": CANVAS.renderer.getContext2DCanvasFromImageData(
-				imgData,ENV.paperSize.width,ENV.paperSize.height,imgData.left,imgData.top)
+				imgData,ENV.paperSize.width,ENV.paperSize.height,imgData.left,imgData.top
+			)
 		};
 	}
 }

@@ -465,10 +465,32 @@ LAYERS.replaceGroupWithLayer=function(group) {
 
 LAYERS.updateAllThumbs=function() {
 	// refresh layer UI display
-	for(const k in LAYERS.layerHash) {
-		const layer=LAYERS.layerHash[k];
-		if(layer instanceof CanvasNode) {
-			layer.updateThumb();
-		}
+	// for(const k in LAYERS.layerHash) {
+	// 	const layer=LAYERS.layerHash[k];
+	// 	if(layer instanceof CanvasNode) {
+	// 		layer.updateThumb();
+	// 	}
+	// }
+	if(LAYERS.layerTree){
+		LAYERS.layerTree.updateThumb();
 	}
+}
+
+
+LAYERS.getStorageCompatibleJSON=function(){
+	let startT=Date.now();
+	// let j=LAYERS.layerTree.getStorageCompatibleJSON();
+	// let s=JSON.stringify(j);
+	// var compressed=LZString.compress(s);
+	const psdJSON=LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
+	const buffer=agPsd.writePsd(psdJSON); // also compress
+	console.log("Trans...");
+	
+	const ui8=new Uint8Array(buffer);
+	const b64s=ENV.Uint8Array2base64(ui8); // quite fast though
+
+	let endT=Date.now();
+	console.log("Size = "+(b64s.length/1024/1024).toFixed(2)+" MB");
+	console.log("Time = "+((endT-startT)/1000).toFixed(1)+"s");
+
 }

@@ -7,48 +7,48 @@ ENV={}; // Environment
 
 //===================== Settings =====================
 
-ENV.paperSize={width:0,height:0,diag:0}; // diag == sqrt(x^2+y^2)
+ENV.paperSize={width: 0,height: 0,diag: 0}; // diag == sqrt(x^2+y^2)
 ENV.window={
-	SIZE:{width:0,height:0}, // window size, unit: window pixel *** NOW READ ONLY! ***
+	SIZE: {width: 0,height: 0}, // window size, unit: window pixel *** NOW READ ONLY! ***
 	/**
 	 * Transform of the paper canvas related to the canvas window
 	 * all in window pixels
 	 * order: trans -> rot CW(paper center) -> scale(paper center)
 	 */
-	trans:{x:0,y:0}, // paper center translate from the window center. unit: window pixel (y)v >(x)coordinate
-	rot:0.0, // 0 degree CW
-	flip:false, // not flipped
-	scale:1.0, // not zoomed
-	_transAnimation:{ // translation control animation
-		time:1, // total time in s
-		target:[0,0,0,1], // end point
-		start:[0,0,0,1], // start point
-		now:[0,0,0,1], // present status
-		process:1, // the processed animation part, 0~1
-		isAnimationFired:false, // is animation running
-		lastTime:0 // last animation time, for stats
+	trans: {x: 0,y: 0}, // paper center translate from the window center. unit: window pixel (y)v >(x)coordinate
+	rot: 0.0, // 0 degree CW
+	flip: false, // not flipped
+	scale: 1.0, // not zoomed
+	_transAnimation: { // translation control animation
+		time: 1, // total time in s
+		target: [0,0,0,1], // end point
+		start: [0,0,0,1], // start point
+		now: [0,0,0,1], // present status
+		process: 1, // the processed animation part, 0~1
+		isAnimationFired: false, // is animation running
+		lastTime: 0 // last animation time, for stats
 	}
 };
 
 ENV.displaySettings={
-	antiAlias:true,
-	enableTransformAnimation:true,
-	maxPaperSize:4096
+	antiAlias: true,
+	enableTransformAnimation: true,
+	maxPaperSize: 4096
 };
 
 
 // ========================= Functions ============================
-ENV.init=function(){ // When the page is loaded
-	STORAGE.init(sysSettingParams=>{ // after loading all settings
+ENV.init=function() { // When the page is loaded
+	STORAGE.init(sysSettingParams => { // after loading all settings
 		LANG.init(sysSettingParams); // set all doms after load?
 		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
-		
+
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
 		ENV.setAntiAliasing(ENV.displaySettings.antiAlias); // set canvas css param
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
 		ENV.setPaperSize(window.screen.width,window.screen.height); // no layer yet, init CANVAS
-	
+
 		EVENTS.init();
 		EventDistributer.init();
 		PALETTE.init(sysSettingParams);
@@ -58,7 +58,7 @@ ENV.init=function(){ // When the page is loaded
 		HISTORY.init();
 		FILES.init();
 		PERFORMANCE.init();
-	
+
 		// prevent pen-dragging in Firefox causing window freezing
 		EVENTS.disableInputSelection($("#filename-input"));
 	});
@@ -68,7 +68,7 @@ ENV.init=function(){ // When the page is loaded
 /**
  * upload css transform from ENV.window settings
  */
-ENV.refreshTransform=function(){
+ENV.refreshTransform=function() {
 	ENV.fireTransformAnimation([
 		ENV.window.trans.x,
 		ENV.window.trans.y,
@@ -81,7 +81,7 @@ ENV.refreshTransform=function(){
 /**
  * Set is the paper flipped
  */
-ENV.setFlip=function(isFlip){
+ENV.setFlip=function(isFlip) {
 	ENV.window.flip=isFlip;
 	ENV.refreshTransform();
 }
@@ -90,7 +90,7 @@ ENV.setFlip=function(isFlip){
  * Set the scale to ratio (default 1.0)
  * center at the window center
  */
-ENV.scaleTo=function(ratio){
+ENV.scaleTo=function(ratio) {
 	let s=ENV.window.scale;
 	ENV.window.scale=ratio;
 	let tr=ratio/s;
@@ -102,7 +102,7 @@ ENV.scaleTo=function(ratio){
 /**
  * Set the rotation to angle (degree CW)
  */
-ENV.rotateTo=function(angle){ // degree
+ENV.rotateTo=function(angle) { // degree
 	let r=ENV.window.rot;
 	ENV.window.rot=angle;
 	let tx=ENV.window.trans.x;
@@ -119,9 +119,9 @@ ENV.rotateTo=function(angle){ // degree
 /**
  * set the translation from the screen center to (x,y) pixels
  */
-ENV.translateTo=function(x,y){ // pixelated
+ENV.translateTo=function(x,y) { // pixelated
 	let borderSize=ENV.paperSize.diag*ENV.window.scale;
-	if(Math.abs(x)>borderSize||Math.abs(y)>borderSize){
+	if(Math.abs(x)>borderSize||Math.abs(y)>borderSize) {
 		/**
 		 * @TODO: better clamp for paper inside window
 		 */
@@ -136,14 +136,14 @@ ENV.translateTo=function(x,y){ // pixelated
 /**
  * Set (x,y) translation, a rotation, r scaling in one function
  */
-ENV.transformTo=function(x,y,r,s){ // four values, with hint
+ENV.transformTo=function(x,y,r,s) { // four values, with hint
 	//console.log("x = "+x+" y = "+y+" a = "+a);
 	s=s.clamp(0.1,8.0);
 	ENV.window.rot=r;
 	ENV.window.scale=s;
 
 	let borderSize=ENV.paperSize.diag*s;
-	if(Math.abs(x)>borderSize||Math.abs(y)>borderSize){
+	if(Math.abs(x)>borderSize||Math.abs(y)>borderSize) {
 		//console.log("Reach Border");
 		x.clamp(-borderSize,borderSize);
 		y.clamp(-borderSize,borderSize);
@@ -163,24 +163,24 @@ ENV.transformTo=function(x,y,r,s){ // four values, with hint
  * @TODO: There's GPU memory leak!
  * @TODO: Doesn't seem like memory leak, more like a memory allocation policy
  */
-ENV.setPaperSize=function(w,h,isPreservingContents){
+ENV.setPaperSize=function(w,h,isPreservingContents) {
 	isPreservingContents=isPreservingContents||false; // do not reserve by default
-	if(!(w&&h)){ // w or h invalid or is 0
+	if(!(w&&h)) { // w or h invalid or is 0
 		return;
 	}
 	let isAnim=ENV.displaySettings.enableTransformAnimation; // store animation
 	ENV.displaySettings.enableTransformAnimation=false; // disable animation when changing size
 	HISTORY.clearAllHistory(); // remove histories
-	ENV.paperSize={width:w,height:h,diag:Math.sqrt(w*w+h*h)};
-	$("#canvas-container").css({"width":w+"px","height":h+"px"}); // set canvas view size
-	$("#main-canvas").attr({"width":w,"height":h}); // set canvas pixel size
-	$("#overlay-canvas").attr({"width":w,"height":h}); // set canvas pixel size
+	ENV.paperSize={width: w,height: h,diag: Math.sqrt(w*w+h*h)};
+	$("#canvas-container").css({"width": w+"px","height": h+"px"}); // set canvas view size
+	$("#main-canvas").attr({"width": w,"height": h}); // set canvas pixel size
+	$("#overlay-canvas").attr({"width": w,"height": h}); // set canvas pixel size
 	CANVAS.init(); // re-initialize CANVAS (and create new renderer)
 
-	for(let k in LAYERS.layerHash){ // @TODO: copy image data, mask image data
+	for(let k in LAYERS.layerHash) { // @TODO: copy image data, mask image data
 		let layer=LAYERS.layerHash[k];
-		if(isPreservingContents){
-			if(layer instanceof CanvasNode){
+		if(isPreservingContents) {
+			if(layer instanceof CanvasNode) {
 				const rImg=layer.rawImageData;
 				const tArea=GLProgram.borderIntersection(rImg.validArea,CANVAS.renderer.viewport); // target area
 				layer.assignNewRawImageData(tArea.width,tArea.height,tArea.left,tArea.top,true);
@@ -188,17 +188,17 @@ ENV.setPaperSize=function(w,h,isPreservingContents){
 				layer.assignNewImageData(0,0);
 				layer.setRawImageDataInvalid();
 			}
-			else{
+			else {
 				layer.assignNewRawImageData(0,0);
 				layer.assignNewMaskedImageData(0,0);
 				layer.assignNewImageData(0,0);
 			}
 		}
-		else{
+		else {
 			layer.assignNewRawImageData(0,0);
 			layer.assignNewMaskedImageData(0,0);
 			layer.assignNewImageData(0,0);
-			if(layer instanceof CanvasNode){ // root **NOTE** assignNewRawImageData(w,h) didn't ensure a valid texture!
+			if(layer instanceof CanvasNode) { // root **NOTE** assignNewRawImageData(w,h) didn't ensure a valid texture!
 				layer.setRawImageDataInvalid();
 			}
 		}
@@ -214,7 +214,7 @@ ENV.setPaperSize=function(w,h,isPreservingContents){
 	$("#canvas-container").css("background-size",Math.sqrt(Math.max(w,h))*2+"px"); // set transparent block size
 
 	const aL=LAYERS.active;
-	if(aL instanceof CanvasNode){ // if there is an active CV, refresh it
+	if(aL instanceof CanvasNode) { // if there is an active CV, refresh it
 		CANVAS.setTargetLayer(aL);
 	}
 	CANVAS.requestRefresh(); // @TODO: recomposite layer structure?
@@ -227,7 +227,7 @@ ENV.setPaperSize=function(w,h,isPreservingContents){
  * return [x,y] in paper
  */
 
-ENV.toPaperXY=function(x,y){
+ENV.toPaperXY=function(x,y) {
 	var xp=x-ENV.window.SIZE.width/2-ENV.window.trans.x;
 	var yp=y-ENV.window.SIZE.height/2-ENV.window.trans.y;
 
@@ -238,7 +238,7 @@ ENV.toPaperXY=function(x,y){
 	var yr=rotC*yp-rotS*xp;
 
 	var scale=ENV.window.scale;
-	var flip=ENV.window.flip?-1:1;
+	var flip=ENV.window.flip? -1:1;
 	var xc=xr*flip/scale+ENV.paperSize.width/2;
 	var yc=yr/scale+ENV.paperSize.height/2;
 
@@ -249,7 +249,7 @@ ENV.toPaperXY=function(x,y){
  * get transform matrix [a,b,c,d,e,f] from pArr = [x,y,r,s]
  * translate (x,y) rotate r scale s
  */
-ENV.getTransformMatrix=function(pArr){
+ENV.getTransformMatrix=function(pArr) {
 	let cpw=ENV.window.SIZE.width;
 	let cph=ENV.window.SIZE.height;
 
@@ -260,7 +260,7 @@ ENV.getTransformMatrix=function(pArr){
 	let rotS=Math.sin(rot);
 	let rotC=Math.cos(rot);
 	let scale=pArr[3];
-	let flip=ENV.window.flip?-1:1;
+	let flip=ENV.window.flip? -1:1;
 
 	let transWX=cpw/2+pArr[0];
 	let transWY=cph/2+pArr[1];
@@ -278,10 +278,10 @@ ENV.getTransformMatrix=function(pArr){
 /**
  * Update transform animation control
  */
-ENV.fireTransformAnimation=function(pArr){
+ENV.fireTransformAnimation=function(pArr) {
 	let anim=ENV.window._transAnimation;
 
-	if(!ENV.displaySettings.enableTransformAnimation){ // no animation
+	if(!ENV.displaySettings.enableTransformAnimation) { // no animation
 		let mat=ENV.getTransformMatrix(pArr)
 		let matrixStr="matrix("+mat[0]+","+mat[1]+","+mat[2]+","+mat[3]+","+mat[4]+","+mat[5]+")";
 		anim.target=pArr;
@@ -289,8 +289,8 @@ ENV.fireTransformAnimation=function(pArr){
 		anim.now=pArr;
 		anim.process=1;
 		$("#canvas-container").css({ // set style
-			"transform":matrixStr, // transform
-			"box-shadow":"0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
+			"transform": matrixStr, // transform
+			"box-shadow": "0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
 		});
 		CANVAS.requestRefresh(); // update canvas anti-aliasing
 		return;
@@ -298,29 +298,29 @@ ENV.fireTransformAnimation=function(pArr){
 	anim.target=pArr;
 	anim.start=anim.now;
 	anim.process=0;
-	if(!anim.isAnimationFired){ // no animation at present
+	if(!anim.isAnimationFired) { // no animation at present
 		anim.isAnimationFired=true;
 		requestAnimationFrame(ENV._transformAnimation);
 	}
 }
-ENV._transformAnimation=function(){
+ENV._transformAnimation=function() {
 	let anim=ENV.window._transAnimation;
 	let p=anim.process; // deal with animation effect
-	if(p<1-1E-6){ // continue animation, double check for unintentional fire
+	if(p<1-1E-6) { // continue animation, double check for unintentional fire
 		let nowTime=Date.now();
-		if(anim.lastTime>0){ // there's last animation
+		if(anim.lastTime>0) { // there's last animation
 			PERFORMANCE.submitFpsStat(nowTime-anim.lastTime);
 		}
 		anim.lastTime=nowTime;
 
 		let tP=anim.target;
-		let sP=anim.start; 
+		let sP=anim.start;
 		// if shift pressed, run animation 10x faster to reduce latency on dragging
 		let targetFPS=PERFORMANCE.fpsCounter.fps.clamp(30,300);
-		let nextFps=targetFPS/(CURSOR.nowActivity=="pan-paper"&&CURSOR.isDown?10:1);
+		let nextFps=targetFPS/(CURSOR.nowActivity=="pan-paper"&&CURSOR.isDown? 10:1);
 		let step=1/(anim.time*nextFps);
 		p+=step;
-		if(p>1)p=1; // end
+		if(p>1) p=1; // end
 		anim.process=p;
 		// interpolate by p
 		let q=1-p;
@@ -332,17 +332,17 @@ ENV._transformAnimation=function(){
 		let newM=ENV.getTransformMatrix(newP);
 		let matrixStr="matrix("+newM[0]+","+newM[1]+","+newM[2]+","+newM[3]+","+newM[4]+","+newM[5]+")";
 		$("#canvas-container").css({
-			"transform":matrixStr, // transform
-			"box-shadow":"0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
+			"transform": matrixStr, // transform
+			"box-shadow": "0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
 		});
 		CANVAS.requestRefresh(); // update canvas anti-aliasing
 
 		//console.log(matrixStr);
-		
-		if(p<1-1E-6){ // request new frame
+
+		if(p<1-1E-6) { // request new frame
 			requestAnimationFrame(ENV._transformAnimation);
 		}
-		else{
+		else {
 			anim.lastTime=0; // cancel timer
 			anim.isAnimationFired=false; // cancel animation
 		}
@@ -350,15 +350,15 @@ ENV._transformAnimation=function(){
 }
 
 // linear interpolation by k: (1-k)p1+kp2, special notice on angle and scale
-function pArrInterpolate(p1,p2,k){
+function pArrInterpolate(p1,p2,k) {
 	let x=(p2[0]-p1[0])*k+p1[0];
 	let y=(p2[1]-p1[1])*k+p1[1];
 
 	// angle interpolation around a circle
 	let d1=p1[2],d2=p2[2];
 	let dD=(d2-d1)%360;
-	if(dD<0)dD+=360;
-	if(dD>180){ // CCW
+	if(dD<0) dD+=360;
+	if(dD>180) { // CCW
 		dD-=360; // -180<dD<0
 	}
 	let r=d1+dD*k;
@@ -372,13 +372,13 @@ function pArrInterpolate(p1,p2,k){
 }
 
 // ===================== Other setting functions ==========================
-ENV.setAntiAliasing=function(isAntiAlias){
+ENV.setAntiAliasing=function(isAntiAlias) {
 	ENV.displaySettings.antiAlias=isAntiAlias;
 	// change the setting of each layer
-	if(isAntiAlias){
+	if(isAntiAlias) {
 		$("#canvas-container").find("canvas").removeClass("pixelated");
 	}
-	else{
+	else {
 		$("#canvas-container").find("canvas").addClass("pixelated");
 	}
 	CANVAS.requestRefresh(); // update canvas anti-alias renderings
@@ -387,15 +387,15 @@ ENV.setAntiAliasing=function(isAntiAlias){
 /**
  * change the animation when transforming the canvas
  */
-ENV.setTransformAnimation=function(isAnimate){
+ENV.setTransformAnimation=function(isAnimate) {
 	ENV.displaySettings.enableTransformAnimation=isAnimate;
 }
 
-ENV.setFileTitle=function(title){
+ENV.setFileTitle=function(title) {
 	$("#filename-input").val(title);
 }
 
-ENV.getFileTitle=function(){
+ENV.getFileTitle=function() {
 	return $("#filename-input").val();
 }
 // ====================== For Debugging ==========================
@@ -409,13 +409,31 @@ ENV.getFileTitle=function(){
  * load a text file
  * only works on web server
  */
-ENV.loadTextFile=function(url,callback){
+ENV.loadTextFile=function(url,callback) {
 	let request=new XMLHttpRequest();
 	request.open("GET",url,true);
-	request.addEventListener("load",function(){
+	request.addEventListener("load",function() {
 		callback(request.responseText);
 	});
 	request.send();
 }
 
-ENV.escapeHTML=str=>str.replace(/[&<>'"]/g,tag=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&#34;"}[tag]||tag));
+ENV.escapeHTML=str => str.replace(/[&<>'"]/g,tag => ({"&": "&amp;","<": "&lt;",">": "&gt;","'": "&#39;",'"': "&#34;"}[tag]||tag));
+
+ENV.b64="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+ENV.Uint8Array2base64=function(arr) {
+	const b64=ENV.b64;
+	let bitmap,a,b,c,result="",rest=arr.length%3; // To determine the final padding
+
+	for(let i=0;i<arr.length;) {
+		a=arr[i++];
+		b=arr[i++]; // if i out of bound, b/vc will be 0 (undefined)
+		c=arr[i++];
+		bitmap=(a<<16)|(b<<8)|c;
+		result+=b64.charAt(bitmap>>18&63)+b64.charAt(bitmap>>12&63)+b64.charAt(bitmap>>6&63)+b64.charAt(bitmap&63);
+	}
+
+	// If there's need of padding, replace the last 'A's with equal signs
+	return rest? result.slice(0,rest-3)+"===".substring(rest):result;
+};
+// Ref: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/btoa

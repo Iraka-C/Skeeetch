@@ -143,6 +143,7 @@ class CanvasNode extends ContentNode {
 	/**
 	 * Update the thumb image with this.rawImageData
 	 * sync
+	 * @TODO: clip to valid area
 	 */
 	updateThumb() {
 		let thumbCV=this.$thumb;
@@ -193,7 +194,7 @@ class CanvasNode extends ContentNode {
 		const w=thumbCV.width,h=thumbCV.height;
 		const imgData2d=ctx.createImageData(w,h);
 
-		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(this.rawImageData,[w,h]); // get data
+		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(this.rawImageData,null,[w,h]); // get data
 		imgData2d.data.set(pixels); // copy pixel data
 		ctx.putImageData(imgData2d,0,0);
 	}

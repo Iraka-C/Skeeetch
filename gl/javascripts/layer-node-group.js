@@ -127,6 +127,7 @@ class LayerGroupNode extends ContentNode {
 				$ct.removeClass("layer-group-container-collapsed");
 				$ct.slideDown(250,()=>{ // update scrollbar after toggle
 					LAYERS._updateScrollBar(true);
+					this.updateThumb(); // dimensions renewed
 				});
 			}
 			else{
@@ -404,6 +405,12 @@ class LayerGroupNode extends ContentNode {
 		.children(".group-opacity-label")
 		.children("input")
 		.val(prop.visible? Math.round(prop.opacity*100)+"%":"----");
+	}
+	updateThumb(){ // iterative
+		if(!this.isExpanded)return; // no need to update invisible thumb
+		for(const v of this.children){
+			v.updateThumb();
+		}
 	}
 	// ============== Export Control ================
 	getAgPSDCompatibleJSON(){

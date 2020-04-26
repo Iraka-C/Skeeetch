@@ -639,27 +639,28 @@ class GLRenderer extends BasicRenderer {
 		return this.imageDataFactory.getRAMBufFromTexture(source,area);
 	}
 
-	getUint8ArrayFromImageData(src,targetSize,targetRange) {
-		return this.imageDataFactory.imageDataToUint8(src,targetSize,targetRange);
+	getUint8ArrayFromImageData(src,srcRange,targetSize) {
+		return this.imageDataFactory.imageDataToUint8(src,srcRange,targetSize);
 	}
 
 	// Get a <canvas> element with a CanvasRenderingContext2D containing data in src
 	// left & top are used for indicating the left/top bias on the canvas
-	getContext2DCanvasFromImageData(src,width,height,left,top) {
+	getContext2DCanvasFromImageData(src,srcRange) {
 		const canvas=document.createElement("canvas");
-		canvas.width=width||src.width;
-		canvas.height=height||src.height;
+		srcRange=srcRange||src; // init all src range
+		canvas.width=srcRange.width||src.width;
+		canvas.height=srcRange.height||src.height;
 		if(!(src.width&&src.height)) { // the src is empty
 			return canvas; // return directly
 		}
 		const ctx2d=canvas.getContext("2d"); // Use Context2D mode
-		const imgData2D=ctx2d.createImageData(src.width,src.height);
-		const buffer=this.imageDataFactory.imageDataToUint8(src); // convert src into 8bit RGBA format
+		const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
+		const buffer=this.imageDataFactory.imageDataToUint8(src,srcRange); // convert src into 8bit RGBA format
 		let data=imgData2D.data;
 		for(let i=0;i<buffer.length;i++) { // copy buffer
 			data[i]=buffer[i];
 		}
-		ctx2d.putImageData(imgData2D,left||0,top||0); // put buffer data into canvas
+		ctx2d.putImageData(imgData2D,0,0); // put buffer data into canvas
 		return canvas;
 	}
 

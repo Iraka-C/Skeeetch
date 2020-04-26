@@ -372,6 +372,12 @@ class ContentNode extends LayerNode {
 		}
 	}
 
+	updateThumb(){ // iterative
+		for(const v of this.children){
+			v.updateThumb();
+		}
+	}
+
 	// ====================== In/Export =======================
 
 	// get a JSON object that is writable by ag-psd

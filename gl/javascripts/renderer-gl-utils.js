@@ -205,9 +205,10 @@ class GLImageDataFactory {
 		// draw source 
 		const vConverterShaderSource=glsl` // vertex shader for drawing a circle
 			attribute vec2 a_position; // vertex position
+			attribute vec2 a_src_position; // vertex position
 			varying vec2 v_position;
 			void main(){
-				v_position=vec2(a_position.x,1.0-a_position.y); // flip Y
+				v_position=vec2(1.-a_src_position.y,1.-a_src_position.x); // to Context2D ImageData order
 				gl_Position=vec4(a_position*2.0-1.0,0.0,1.0); // to clip space
 			}
 		`;
@@ -242,35 +243,28 @@ class GLImageDataFactory {
 	/**
 	 * src is a gl renderer img data
 	 * translate the whole src contents into Uint8
-	 * targetSize is [w,h]. if not specified, then regarded as same as src.
-	 * targetRange is [left,top,width,height], the range to take data from targetSized output
+	 * targetSize is [w,h]. if not specified, then regarded as same as srcRange.
+	 * srcRange is {left,top,width,height}, the range to copy from source
 	 * Use nearest neighbor interpolation for zooming in/out
 	 * return non-premultiplied uint8 result, y-flipped from GL Texture
 	 */
-	imageDataToUint8(src,targetSize,targetRange) {
+	imageDataToUint8(src,srcRange,targetSize) {
 		const gl=this.gl;
 		const program=this.converterProgram;
-		let tmpTexture=null;
-		if(!targetSize) { // init: same as source
-			targetSize=[src.width,src.height];
-			//targetSize=[src.validArea.width,src.validArea.height];
-		}
-		if(!targetRange) { // init: same as targetSize
-			targetRange=[0,0,targetSize[0],targetSize[1]];
-		}
-		else {
-			targetRange=targetRange.slice(0,4);
-		}
-		let [W,H]=targetSize;
+
+		srcRange=srcRange||src; // init: same as src
+		targetSize=targetSize||[srcRange.width,srcRange.height]; // init: same as srcRange
+		const [W,H]=targetSize;
 		
 		// Setup temp texture for extracting data
-		tmpTexture=GLProgram.createAndSetupTexture(gl);
+		const tmpTexture=GLProgram.createAndSetupTexture(gl);
 		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,this.dataFormat,null);
 
 		// Run program to get a zoomed texture
 		program.setSourceTexture(src.data);
 		program.setTargetTexture(tmpTexture); // draw to canvas
-		program.setUniform("u_is_premult",0);
+		program.setUniform("u_is_premult",0); // pre -> non-pre
+		program.setAttribute("a_src_position",GLProgram.getAttributeRect(srcRange,src),2);
 		switch(this.dataFormat) {
 			case gl.FLOAT: program.setUniform("u_range",255.999); break; // map 0.0~1.0 to 0~255.
 			// Not 256 because some browser don't accept Uint8ClampedArray, and 256 cause overflow
@@ -283,7 +277,7 @@ class GLImageDataFactory {
 		program.run();
 
 		// allocate proper buffer
-		const SIZE=targetRange[2]*targetRange[3]*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4? 1:4);
+		const SIZE=W*H*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4? 1:4);
 		let pixelsF;
 		switch(this.dataFormat) {
 			case gl.FLOAT: pixelsF=new Float32Array(SIZE); break;
@@ -293,7 +287,7 @@ class GLImageDataFactory {
 		}
 
 		// read pixels from texture, takes time (~3ms)
-		gl.readPixels(...targetRange,gl.RGBA,this.dataFormat,pixelsF); // read from buffer
+		gl.readPixels(0,0,W,H,gl.RGBA,this.dataFormat,pixelsF); // read from buffer
 		gl.deleteTexture(tmpTexture);
 
 		// format transform
