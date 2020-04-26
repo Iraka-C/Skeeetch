@@ -3,19 +3,30 @@
  */
 LANG_EN={
 	"pencil":"Pencil",
-	"brush":"Brush",
+	"spray gun":"Spray Gun",
 	"eraser":"Eraser",
-	"display-hint-1":"These settings does not affect rendering results.",
-	"brush-pressure-hint-1":"* Invalid when pressure is disabled",
+	"paint brush":"Paint Brush",
+	"smudge brush":"Smudge",
+	"stroke-smoothness":"Smoothness",
+	"stylus-pressure-sensitivity":"Sensitivity",
+	"brush-pressure-hint-1":"Invalid when pressure is disabled",
 	"layer-opacity-label-shown":"Change opacity. Right click to hide this layer.",
 	"layer-opacity-label-hidden":"Right click to show this layer.",
 
+	// Settings part
 	"sys-info":"Information",
-	"sys-mem":"Memory Usage",
+	"sys-mem":"RAM Usage",
+	"sys-gpumem":"VRAM Usage",
+	"workspace-hint-1":"Resizing paper clears all histories and the pixels out-of-bound!",
+	"workspace-title":"Paper",
+	"display-hint-1":"These settings does not affect rendering results.",
+	"toggle-fullscreen":"Toggle Fullscreen",
 
-	"stroke-smoothness":"Smoothness",
-	"stylus-pressure-sensitivity":"Sensitivity"
-};
+	// Palette part
+	"palette-hue-sign":"Hue",
+	"palette-value-sign":"Value",
+	"CIS-None":"Default",
+}
 LANG_EN._id={
 	"filename-input":"Skeeetch",
 	"palette-button-text":"Palette",
