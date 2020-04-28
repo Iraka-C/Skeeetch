@@ -499,30 +499,9 @@ LAYERS.getStorageCompatibleJSON=function() {
 LAYERS.debugRootStorage=function() {
 	let startT=Date.now();
 	const rootImg=CANVAS.renderer.getUint8ArrayFromImageData(LAYERS.layerTree.imageData);
-	const diff=new Int8Array(rootImg.length);
-	let nowVal=[0,0,0,0];
-	for(let i=0;i<rootImg.length;i+=4) {
-		diff[i]=rootImg[i]-nowVal[0];
-		diff[i+1]=rootImg[i+1]-nowVal[1];
-		diff[i+2]=rootImg[i+2]-nowVal[2];
-		diff[i+3]=rootImg[i+3]-nowVal[3];
-		nowVal[0]=rootImg[i];
-		nowVal[1]=rootImg[i+1];
-		nowVal[2]=rootImg[i+2];
-		nowVal[3]=rootImg[i+3];
-	}
-	const stat=new Array(256).fill(0);
-	for(let i=0;i<diff.length;i++) {
-		const v=diff[i];
-		if(v>=0){
-			stat[v*2]++;
-		}
-		else{
-			stat[-v*2-1]++;
-		}
-	}
-
-	console.log(JSON.stringify(stat));
+	
+	const cp=new Compressor();
+	cp.encode(rootImg);
 	let endT=Date.now();
 	console.log("Time = "+((endT-startT)/1000).toFixed(1)+"s");
 	

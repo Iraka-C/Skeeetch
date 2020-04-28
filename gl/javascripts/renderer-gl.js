@@ -648,8 +648,8 @@ class GLRenderer extends BasicRenderer {
 	getContext2DCanvasFromImageData(src,srcRange) {
 		const canvas=document.createElement("canvas");
 		srcRange=srcRange||src; // init all src range
-		canvas.width=srcRange.width||src.width;
-		canvas.height=srcRange.height||src.height;
+		canvas.width=srcRange.width;
+		canvas.height=srcRange.height;
 		if(!(src.width&&src.height)) { // the src is empty
 			return canvas; // return directly
 		}

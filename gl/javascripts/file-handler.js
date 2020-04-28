@@ -290,9 +290,9 @@ FILES.saveAsPSD=function(){ // @TODO: change to async function
 }
 
 FILES.saveAsPNG=function(){
-	const imgData=LAYERS.layerTree.rawImageData;
-	const canvas=CANVAS.renderer.getContext2DCanvasFromImageData(
-		imgData,ENV.paperSize.width,ENV.paperSize.height,imgData.left,imgData.top);
+	const imgData=LAYERS.layerTree.imageData;
+	const canvas=CANVAS.renderer.getContext2DCanvasFromImageData( // @TODO: function param format
+		imgData,CANVAS.renderer.viewport);
 	canvas.toBlob(blob=>{ // Only Context2D can be safely changed into blob
 		const filename=ENV.getFileTitle();
 		FILES.downloadBlob(filename+".png",blob);
