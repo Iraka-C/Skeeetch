@@ -6,14 +6,19 @@ class Compressor{
 		const diff=this._getDiff(uint8arr);
 		const rle=this.encodeRLE(diff);
 		const huffman=this.encodeHuffman(rle,16); // 16 as default
-		const result=huffman;//this.encodeRLE(huffman);
+		const result=huffman;
 
 		console.log(
 			(result.length/1024/1024).toFixed(2)+"MB",
 			(100*result.length/uint8arr.length).toFixed(2)+"%"
 		);
+		return result;
 	}
 
+	/**
+	 * Needn't group RGBA together:
+	 * only gets smaller when more details
+	 */
 	_getDiff(uint8arr){ // get the diff arr of arr
 		const data=uint8arr;
 		const diff=new Uint8Array(data.length);
@@ -32,7 +37,7 @@ class Compressor{
 	}
 
 	/**
-	 * encode an uint8arr (0~255) using Huffman + RLE
+	 * encode an uint8arr (0~255) using Huffman
 	 * Suppose that uint8arr follows the rule that
 	 * neighboring pixels have rather small difference.
 	 * @param {Uint8Array} uint8arr image data [r,g,b,a,...]
@@ -42,7 +47,7 @@ class Compressor{
 		// @TODO: when uint8arr.length==0
 		if(!uint8arr.length)return uint8arr;
 
-		maxDepth=isNaN(maxDepth)?12:Math.min(Math.max(maxDepth,9),16);
+		maxDepth=isNaN(maxDepth)?16:Math.min(Math.max(maxDepth,9),16);
 
 		const data=uint8arr;
 		const freq=new Uint32Array(256);
@@ -87,16 +92,14 @@ class Compressor{
 				elem1=q2.shift();
 				elem2=q2.shift();
 			}
-			
 			// push new node
 			q2.push(HuffmanNode.merge(elem1,elem2));
 		}
-		//console.log(q2[0].toString(),q2[0].depth);
 		maxDepth=Math.min(maxDepth,q2[0].depth);
 
 		// Optimize tree depth - sort according to depth
 		const depthSortList=[]; // construct depth list
-		const setVal=(node,d)=>{
+		const setVal=(node,d)=>{ // traverse tree
 			if(node.children){
 				setVal(node.children[0],d+1);
 				setVal(node.children[1],d+1);
@@ -144,10 +147,6 @@ class Compressor{
 			code256[v]=codeList[i];
 			dep256[v]=depList[i];
 		}
-		// for(let i=0;i<256;i++){
-		// 	if(dep256[i]!==undefined)
-		// 		console.log(i,code256[i].toString(2),dep256[i]);
-		// }
 
 		// Encode with constructed table
 		let totalLength=0;
@@ -155,10 +154,9 @@ class Compressor{
 			totalLength+=depList[i]*freq[symList[i]];
 		}
 		totalLength=Math.ceil(totalLength/8);
-		//console.log(totalLength,(100*totalLength/data.length).toFixed(2)+"%");
 
-		const encodedDiff=new Uint8Array(totalLength+512); // with dict padding
-		const code=new Uint32Array(1);
+		const encodedDiff=new Uint8Array(totalLength+768); // with dict padding
+		let buf=0; // 32bit
 		let pED=0,pBit=0;
 		for(let i=0;i<data.length;i++) { // count frequency
 			const v=data[i]; // 0~255
@@ -166,23 +164,20 @@ class Compressor{
 			const vLen=dep256[v];
 
 			pBit+=vLen;
-			code[0]|=vCode<<(32-vLen); // put into buffer
+			buf|=vCode<<(32-vLen); // put into buffer
 			if(pBit>=8){ // combined to 1 bit
-				encodedDiff[pED++]=code[0]>>>24; // copy value
-				code[0]<<=8; // move buffer
+				encodedDiff[pED++]=buf>>>24; // copy value
+				buf<<=8; // move buffer
 				pBit-=8;
 			}
 		}
-		encodedDiff[pED++]=code[0]>>>24; // pad the tail
+		encodedDiff[pED++]=buf>>>24; // pad the tail
 
-		for(let i=0;i<256;i++){ // Stored as Hi-Lo // @TODO: what about 0 freq?
-			encodedDiff[totalLength+i*2]=code256[i]>>>8;
-			encodedDiff[totalLength+i*2+1]=code256[i]&0xFF;
-		}
-
-		const freq1=new Uint32Array(256);
-		for(let i=0;i<encodedDiff.length;i++) { // count frequency
-			freq1[encodedDiff[i]]++;
+		for(let i=0;i<256;i++){ // Stored as Hi-Lo-len
+			const id=totalLength+i*3;
+			encodedDiff[id]=code256[i]>>>8;
+			encodedDiff[id+1]=code256[i]&0xFF;
+			encodedDiff[id+2]=dep256[i]; // length of code, 1~16
 		}
 
 		//console.log(totalLength,pED);

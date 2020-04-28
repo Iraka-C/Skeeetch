@@ -294,17 +294,19 @@ LAYERS.initLayerPanelButtons=function() {
 		const objId=LAYERS.active.id;
 		const fromId=LAYERS.active.parent.id;
 		const fromIndex=LAYERS.active.getIndex();
-		LAYERS.deleteItem(LAYERS.active);
-		HISTORY.addHistory({ // add a history item
-			type: "node-structure",
-			id: objId,
-			from: fromId,
-			to: null,
-			oldIndex: fromIndex,
-			newIndex: null,
-			oldActive: objId,
-			newActive: LAYERS.active.id
-		});
+		const isSuccess=LAYERS.deleteItem(LAYERS.active);
+		if(isSuccess){
+			HISTORY.addHistory({ // add a history item
+				type: "node-structure",
+				id: objId,
+				from: fromId,
+				to: null,
+				oldIndex: fromIndex,
+				newIndex: null,
+				oldActive: objId,
+				newActive: LAYERS.active.id
+			});
+		}
 	});
 	EventDistributer.footbarHint($("#delete-button"),() => Lang("Delete current layer / group"));
 
@@ -377,7 +379,7 @@ LAYERS.deleteItem=function(obj) {
 	}
 	if(newActive==LAYERS.layerTree) { // only the root remains
 		EventDistributer.footbarHint.showInfo(Lang("Cannot delete the only layer/group."));
-		return; // cannot delete
+		return false; // cannot delete
 	}
 
 	obj.$ui.detach(); // remove layer ui
@@ -388,6 +390,7 @@ LAYERS.deleteItem=function(obj) {
 	// remove from hash: in HISTORY.addHistory when this layer won't be retrieved
 	// The followings are only for debugging delete
 	//obj.delete();
+	return true;
 }
 
 /**
@@ -497,12 +500,11 @@ LAYERS.getStorageCompatibleJSON=function() {
 }
 
 LAYERS.debugRootStorage=function() {
-	let startT=Date.now();
 	const rootImg=CANVAS.renderer.getUint8ArrayFromImageData(LAYERS.layerTree.imageData);
 	
 	const cp=new Compressor();
+	let startT=Date.now();
 	cp.encode(rootImg);
 	let endT=Date.now();
-	console.log("Time = "+((endT-startT)/1000).toFixed(1)+"s");
-	
+	console.log("Time = "+((endT-startT)/1000).toFixed(2)+"s");
 }
