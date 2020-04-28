@@ -25,7 +25,7 @@ LANG_EN={
 	// Palette part
 	"palette-hue-sign":"Hue",
 	"palette-value-sign":"Value",
-	"CIS-None":"Default",
+	"CIS-none":"Default",
 }
 LANG_EN._id={
 	"filename-input":"Skeeetch",

@@ -12,7 +12,7 @@ FILES.init=function(){
 FILES.initFileMenu=function(){
 	let fileManager=new SettingManager($("#file-menu-panel"),Lang("Files"));
 	fileManager.setOpenButton($("#file-button"));
-	fileManager.addSectionTitle(Lang("Import / Export"));
+	fileManager.addSectionTitle(Lang("Import & Export"));
 	fileManager.addButton(Lang("Import File"),()=>{});
 	fileManager.addButton(Lang("Save as PNG"),e=>{
 		EventDistributer.footbarHint.showInfo("Saving ...");
