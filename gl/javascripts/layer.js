@@ -288,7 +288,7 @@ LAYERS.initLayerPanelButtons=function() {
 
 	// Delete layer / group button
 	$("#delete-button").on("click",event => {
-		if(LAYERS.active.isLocked()){ // locked layer
+		if(LAYERS.active.isLocked()) { // locked layer
 			return;
 		}
 		const objId=LAYERS.active.id;
@@ -310,7 +310,7 @@ LAYERS.initLayerPanelButtons=function() {
 
 	// Clear layer content button
 	$("#clear-button").on("click",event => {
-		if(LAYERS.active.isLocked()){ // locked layer
+		if(LAYERS.active.isLocked()) { // locked layer
 			return;
 		}
 		if(LAYERS.active instanceof LayerGroupNode) { // group: merge content
@@ -419,12 +419,12 @@ LAYERS.replaceGroupWithLayer=function(group) {
 
 	// transfer image data
 	CANVAS.renderer.adjustImageDataBorders(layer.rawImageData,group.rawImageData.validArea,false);
-	CANVAS.renderer.blendImageData(group.rawImageData,layer.rawImageData,{mode:GLTextureBlender.SOURCE});
+	CANVAS.renderer.blendImageData(group.rawImageData,layer.rawImageData,{mode: GLTextureBlender.SOURCE});
 	// @TODO: layer.maskImageData
 	const hist2={ // add raw image data changed history
-		type:"image-data",
-		id:layer.id,
-		area:{...group.rawImageData.validArea}
+		type: "image-data",
+		id: layer.id,
+		area: {...group.rawImageData.validArea}
 	};
 
 	// delete old imageData to save space. @TODO: clear all non-leaf imageData
@@ -442,7 +442,7 @@ LAYERS.replaceGroupWithLayer=function(group) {
 	group.$ui.detach(); // remove layer ui
 	group.detach(); // remove from layer tree, also handles data/clip order invalidation
 
-	
+
 	const hist3={ // add a history item
 		type: "node-structure",
 		id: groupId,
@@ -455,7 +455,7 @@ LAYERS.replaceGroupWithLayer=function(group) {
 	};
 	HISTORY.addHistory({ // combine 3 steps
 		type: "bundle",
-		children:[hist1,hist2,hist3]
+		children: [hist1,hist2,hist3]
 	});
 
 	// recomposite
@@ -471,13 +471,14 @@ LAYERS.updateAllThumbs=function() {
 	// 		layer.updateThumb();
 	// 	}
 	// }
-	if(LAYERS.layerTree){
+	if(LAYERS.layerTree) {
 		LAYERS.layerTree.updateThumb();
 	}
 }
 
+// ================ Debuggings ================
 
-LAYERS.getStorageCompatibleJSON=function(){
+LAYERS.getStorageCompatibleJSON=function() {
 	let startT=Date.now();
 	// let j=LAYERS.layerTree.getStorageCompatibleJSON();
 	// let s=JSON.stringify(j);
@@ -485,7 +486,7 @@ LAYERS.getStorageCompatibleJSON=function(){
 	const psdJSON=LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
 	const buffer=agPsd.writePsd(psdJSON); // also compress
 	console.log("Trans...");
-	
+
 	const ui8=new Uint8Array(buffer);
 	const b64s=ENV.Uint8Array2base64(ui8); // quite fast though
 
@@ -493,4 +494,36 @@ LAYERS.getStorageCompatibleJSON=function(){
 	console.log("Size = "+(b64s.length/1024/1024).toFixed(2)+" MB");
 	console.log("Time = "+((endT-startT)/1000).toFixed(1)+"s");
 
+}
+
+LAYERS.debugRootStorage=function() {
+	let startT=Date.now();
+	const rootImg=CANVAS.renderer.getUint8ArrayFromImageData(LAYERS.layerTree.imageData);
+	const diff=new Int8Array(rootImg.length);
+	let nowVal=[0,0,0,0];
+	for(let i=0;i<rootImg.length;i+=4) {
+		diff[i]=rootImg[i]-nowVal[0];
+		diff[i+1]=rootImg[i+1]-nowVal[1];
+		diff[i+2]=rootImg[i+2]-nowVal[2];
+		diff[i+3]=rootImg[i+3]-nowVal[3];
+		nowVal[0]=rootImg[i];
+		nowVal[1]=rootImg[i+1];
+		nowVal[2]=rootImg[i+2];
+		nowVal[3]=rootImg[i+3];
+	}
+	const stat=new Array(256).fill(0);
+	for(let i=0;i<diff.length;i++) {
+		const v=diff[i];
+		if(v>=0){
+			stat[v*2]++;
+		}
+		else{
+			stat[-v*2-1]++;
+		}
+	}
+
+	console.log(JSON.stringify(stat));
+	let endT=Date.now();
+	console.log("Time = "+((endT-startT)/1000).toFixed(1)+"s");
+	
 }

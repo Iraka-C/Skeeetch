@@ -45,7 +45,7 @@ class RootNode extends ContentNode { // only one root node
 			"children": childrenJson,
 			"canvas": CANVAS.renderer.getContext2DCanvasFromImageData(
 				imgData,ENV.paperSize.width,ENV.paperSize.height,imgData.left,imgData.top
-			)
+			) // @TODO: fix this!
 		};
 	}
 }
