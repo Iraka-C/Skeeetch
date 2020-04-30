@@ -32,7 +32,7 @@ sysSettingParams={
 
 STORAGE.SETTING={};
 
-STORAGE.SETTING.init=function(callback){ // synced
+STORAGE.SETTING.init=function(){ // synced
 	let v={};
 	try{
 		v=JSON.parse(localStorage.getItem("system-setting"))||{};
@@ -44,7 +44,8 @@ STORAGE.SETTING.init=function(callback){ // synced
 	v.preference.displaySettings=v.preference.displaySettings||{};
 	v.preference.debugger=v.preference.debugger||{};
 	v.windowParams=STORAGE.SETTING.initWindowParams();
-	callback(v);
+	//(v);
+	return v;
 }
 STORAGE.SETTING.initWindowParams=function(){
 	const query=window.location.search;

@@ -216,7 +216,7 @@ class GLImageDataFactory {
 			precision mediump float;
 			precision mediump sampler2D;
 			uniform sampler2D u_image;
-			uniform float u_is_premult; // 1: premult alpha, 0: non-premult result
+			uniform float u_is_premult; // 1: premult->none alpha, 0: not change
 			uniform float u_range; // target range 0~u_range
 			varying vec2 v_position;
 			void main(){
@@ -246,15 +246,16 @@ class GLImageDataFactory {
 	 * targetSize is [w,h]. if not specified, then regarded as same as srcRange.
 	 * srcRange is {left,top,width,height}, the range to copy from source
 	 * Use nearest neighbor interpolation for zooming in/out
-	 * return non-premultiplied uint8 result, y-flipped from GL Texture
+	 * return non-premultiplied uint8 result, y-flipped from GL Texture as default
 	 */
-	imageDataToUint8(src,srcRange,targetSize) {
+	imageDataToUint8(src,srcRange,targetSize,isResultPremultAlpha) {
 		const gl=this.gl;
 		const program=this.converterProgram;
 
 		srcRange=srcRange||src; // init: same as src
 		targetSize=targetSize||[srcRange.width,srcRange.height]; // init: same as srcRange
 		const [W,H]=targetSize;
+		isResultPremultAlpha=isResultPremultAlpha||false;
 		
 		// Setup temp texture for extracting data
 		const tmpTexture=GLProgram.createAndSetupTexture(gl);
@@ -263,7 +264,7 @@ class GLImageDataFactory {
 		// Run program to get a zoomed texture
 		program.setSourceTexture(src.data);
 		program.setTargetTexture(tmpTexture); // draw to canvas
-		program.setUniform("u_is_premult",0); // pre -> non-pre
+		program.setUniform("u_is_premult",isResultPremultAlpha?1:0); // pre -> non-pre
 		program.setAttribute("a_src_position",GLProgram.getAttributeRect(srcRange,src),2);
 		switch(this.dataFormat) {
 			case gl.FLOAT: program.setUniform("u_range",255.999); break; // map 0.0~1.0 to 0~255.
@@ -306,6 +307,7 @@ class GLImageDataFactory {
 	/**
 	 * src is a gl renderer img data
 	 * return premultiplied, Y-non-flipped (raw) result
+	 * the result is a typed array of this.dataFormat
 	 */
 	imageDataToBuffer(src) {
 		const gl=this.gl;
@@ -333,10 +335,11 @@ class GLImageDataFactory {
 			case gl.UNSIGNED_BYTE: pixels=new Uint8Array(SIZE); break;
 		}
 		gl.readPixels(0,0,src.width,src.height,gl.RGBA,this.dataFormat,pixels); // read from buffer
+		
 		return pixels;
 	}
 
-	// src is a GLRAMBuf, tgt is a GLTexture. load the contents of src into tgt
+	//src is a GLRAMBuf, tgt is a GLTexture. load the contents of src into tgt
 	// loadRAMBufToTexture(src,tgt) {
 	// 	if(tgt.type!="GLTexture") {
 	// 		throw new Error("Cannot load data into "+tgt.type);
@@ -403,6 +406,7 @@ class GLImageDataFactory {
 			height: area.height,
 			left: area.left,
 			top: area.top,
+			bitDepth: src.bitDepth,
 			tagColor: src.tagColor, // same color
 			validArea: {...area}
 		};

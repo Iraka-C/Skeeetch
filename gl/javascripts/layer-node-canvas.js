@@ -71,11 +71,11 @@ LAYERS.$newCanvasLayerUI=function(id) {
 
 // ============= Node ===============
 class CanvasNode extends ContentNode {
-	constructor() {
-		super();
+	constructor(id) {
+		super(id);
 
 		// store the last imageData, managed by LAYER & HISTORY
-		this.lastRawImageData=null;//CANVAS.renderer.createImageData();
+		this.lastRawImageData=null;
 
 		// Layer panel UI
 		this.$ui=LAYERS.$newCanvasLayerUI(this.id); // set ui in layer list
@@ -117,7 +117,9 @@ class CanvasNode extends ContentNode {
 		this.initInputs();
 	}
 	delete() { // delete buffer image data
-		if(this.lastRawImageData) CANVAS.renderer.deleteImageData(this.lastRawImageData);
+		// lastRawImageData handled by CANVAS
+		//if(this.lastRawImageData) CANVAS.renderer.deleteImageData(this.lastRawImageData);
+		STORAGE.FILES.removeContent(this.id); // remove storage resources
 		super.delete();
 	}
 	getName() {
@@ -192,6 +194,9 @@ class CanvasNode extends ContentNode {
 		const thumbCV=this.$thumb[0];
 		const ctx=thumbCV.getContext("2d");
 		const w=thumbCV.width,h=thumbCV.height;
+		if(!(w&&h)){ // thumb not shown
+			return;
+		}
 		const imgData2d=ctx.createImageData(w,h);
 
 		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(this.rawImageData,null,[w,h]); // get data
@@ -485,6 +490,11 @@ class CanvasNode extends ContentNode {
 		const imgData=this.rawImageData;
 		return Object.assign(json,{
 			"canvas": CANVAS.renderer.getContext2DCanvasFromImageData(imgData) // left & top info are handled by json
+		});
+	}
+	getStorageJSON(){
+		return Object.assign(super.getStorageJSON(),{
+			type: "CanvasNode"
 		});
 	}
 }

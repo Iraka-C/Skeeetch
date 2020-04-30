@@ -169,6 +169,7 @@ class GLRenderer extends BasicRenderer {
 		super.init(param); // init canvas
 
 		if(param.imageData.type!="GLTexture") { // not GL texture type
+			// @TODO: check texture bitdepth
 			console.warn(param.imageData);
 			throw new Error("ImageData not a GLTexture");
 		}
@@ -310,6 +311,7 @@ class GLRenderer extends BasicRenderer {
 			type: isFrozen? "GLRAMBuf":"GLTexture",
 			data: imgData,
 			id: LAYERS.generateHash("t"), // for DEBUG ONLY! DO NOT use this as a hash
+			bitDepth: this.bitDepth,
 			width: w, // width and ...
 			height: h, // ... height are immutable: do not change by assignment!
 			left: 0, // left & top can be changed directly: all relative to the viewport
@@ -607,22 +609,42 @@ class GLRenderer extends BasicRenderer {
 	// Load/Get
 	loadToImageData(target,img) { // load img into target
 		const gl=this.gl;
-		if(img.type&&img.type=="GLRAMBuf") { // load a buffer
-			// Here, suppose that the size of target will always contain img @TODO: Buggy?
-			// Setup temp texture for extracting data
-			const tmpTexture=GLProgram.createAndSetupTexture(gl);
-			gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,img.width,img.height,0,gl.RGBA,this.dataFormat,img.data);
-			const tmpImageData={ // create a GLTexture copy of img
-				type: "GLTexture",
-				data: tmpTexture,
-				width: img.width,
-				height: img.height,
-				left: img.left,
-				top: img.top,
-				validArea: img // borrow values
+		if(img.type){
+			if(img.type=="GLRAMBuf") { // load a buffer
+				// Here, suppose that the size of target will always contain img @TODO: Buggy?
+				// Setup temp texture for extracting data
+				const tmpTexture=GLProgram.createAndSetupTexture(gl);
+				gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,img.width,img.height,0,gl.RGBA,this.dataFormat,img.data);
+				const tmpImageData={ // create a GLTexture copy of img
+					type: "GLTexture",
+					bitDepth: img.bitDepth,
+					data: tmpTexture,
+					width: img.width,
+					height: img.height,
+					left: img.left,
+					top: img.top,
+					validArea: img.validArea // borrow values
+				}
+				this.textureBlender.blendTexture(tmpImageData,target,{mode:GLRenderer.SOURCE});
+				gl.deleteTexture(tmpTexture);
 			}
-			this.textureBlender.blendTexture(tmpImageData,target,{mode:GLRenderer.SOURCE});
-			gl.deleteTexture(tmpTexture);
+			else if(img.type=="GLRAMBuf8") { // load a CTX2D ImageData, defined in Storage
+				if(!(target.width&&target.height)) { // the target is empty
+					return; // return directly
+				}
+				if(!(img.width&&img.height)) { // the img is empty
+					return; // return directly
+				}
+				const canvas=document.createElement("canvas");
+				canvas.width=img.width;
+				canvas.height=img.height;
+				const ctx2d=canvas.getContext("2d"); // Use Context2D mode
+				const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
+				console.log(img);
+				
+				imgData2D.data.set(img.data);
+				this.loadToImageData(target,imgData2D);
+			}
 		}
 		else {
 			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true); // non-premult img
@@ -634,21 +656,36 @@ class GLRenderer extends BasicRenderer {
 		}
 	}
 
-	getBufferFromImageData(source,area) {
-		// get a RAM buffer copy of source (area part)
-		return this.imageDataFactory.getRAMBufFromTexture(source,area);
+	getBufferFromImageData(src,srcRange) {
+		// get a RAM buffer copy of source
+		// Note: this is a precise copy of texture!
+		// To get a buffer used for CG, use getUint8ArrayFromImageData
+		return this.imageDataFactory.getRAMBufFromTexture(src,srcRange);
 	}
 
 	getUint8ArrayFromImageData(src,srcRange,targetSize) {
 		return this.imageDataFactory.imageDataToUint8(src,srcRange,targetSize);
 	}
 
+	loadUint8ArrayToImageData(target,buffer){
+		if(!(target.width&&target.height)) { // the src is empty
+			return; // return directly
+		}
+		const canvas=document.createElement("canvas");
+		canvas.width=target.width;
+		canvas.height=target.height;
+		const ctx2d=canvas.getContext("2d"); // Use Context2D mode
+		const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
+		imgData2D.data.set(buffer);
+		this.loadToImageData(target,imgData2D);
+	}
+
 	// Get a <canvas> element with a CanvasRenderingContext2D containing data in src
 	// left & top are used for indicating the left/top bias on the canvas
+	// srcRange cuts out the part of src from the screen.
 	getContext2DCanvasFromImageData(src,srcRange) {
 		const canvas=document.createElement("canvas");
 		srcRange=srcRange||src; // init all src range
-		console.log(srcRange);
 		
 		canvas.width=srcRange.width;
 		canvas.height=srcRange.height;
@@ -658,10 +695,7 @@ class GLRenderer extends BasicRenderer {
 		const ctx2d=canvas.getContext("2d"); // Use Context2D mode
 		const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
 		const buffer=this.imageDataFactory.imageDataToUint8(src,srcRange); // convert src into 8bit RGBA format
-		let data=imgData2D.data;
-		for(let i=0;i<buffer.length;i++) { // copy buffer
-			data[i]=buffer[i];
-		}
+		imgData2D.data.set(buffer);
 		ctx2d.putImageData(imgData2D,0,0); // put buffer data into canvas
 		return canvas;
 	}

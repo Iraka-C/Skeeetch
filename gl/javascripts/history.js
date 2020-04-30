@@ -305,6 +305,8 @@ HISTORY.undoImageDataChange=function(item){
 	CANVAS.renderer.loadToImageData(node.rawImageData,oldData);
 
 	CANVAS.updateLastImageData(node);
+	STORAGE.FILES.saveContentChanges(node);
+	//STORAGE.FILES.reportUnsavedContentChanges();
 	node.setRawImageDataInvalid();
 	node.updateThumb();
 	CANVAS.requestRefresh(); // setActive does not guarantee refresh
@@ -319,7 +321,9 @@ HISTORY.redoImageDataChange=function(item){
 	const newData=item.newData;
 	CANVAS.renderer.clearScissoredImageData(node.rawImageData,oldData);
 	CANVAS.renderer.loadToImageData(node.rawImageData,newData);
+
 	CANVAS.updateLastImageData(node);
+	STORAGE.FILES.saveContentChanges(node);
 	node.setRawImageDataInvalid();
 	node.updateThumb();
 	CANVAS.requestRefresh(); // setActive does not guarantee refresh

@@ -45,19 +45,30 @@ ENV.init=function() { // When the page is loaded
 
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
 		ENV.setAntiAliasing(ENV.displaySettings.antiAlias); // set canvas css param
+
+		const lastLayerTreeJSON=STORAGE.FILES.getLayerTree();
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
-		ENV.setPaperSize(window.screen.width,window.screen.height); // no layer yet, init CANVAS
+		if(lastLayerTreeJSON){
+			console.log("Reading File...",lastLayerTreeJSON);
+			ENV.setPaperSize(...lastLayerTreeJSON.paperSize);
+			ENV.setFileTitle(lastLayerTreeJSON.title);
+		}
+		else{ // no layer yet, init CANVAS
+			ENV.setPaperSize(window.screen.width,window.screen.height);
+		}
 
 		EVENTS.init();
 		EventDistributer.init();
 		PALETTE.init(sysSettingParams);
-		LAYERS.init();
-		BrushManager.init();
+
 		CURSOR.init();
+		PERFORMANCE.init();
+		LAYERS.init(lastLayerTreeJSON);
+
+		BrushManager.init();
 		HISTORY.init();
 		FILES.init();
-		PERFORMANCE.init();
 
 		// prevent pen-dragging in Firefox causing window freezing
 		EVENTS.disableInputSelection($("#filename-input"));
@@ -175,11 +186,11 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	$("#canvas-container").css({"width": w+"px","height": h+"px"}); // set canvas view size
 	$("#main-canvas").attr({"width": w,"height": h}); // set canvas pixel size
 	$("#overlay-canvas").attr({"width": w,"height": h}); // set canvas pixel size
-	CANVAS.init(); // re-initialize CANVAS (and create new renderer)
+	CANVAS.init(); // re-initialize CANVAS (and create new renderer, viewport)
 
-	for(let k in LAYERS.layerHash) { // @TODO: copy image data, mask image data
-		let layer=LAYERS.layerHash[k];
-		if(isPreservingContents) {
+	if(isPreservingContents){ // save all contents
+		for(const k in LAYERS.layerHash) { // @TODO: copy image data, mask image data
+			const layer=LAYERS.layerHash[k];
 			if(layer instanceof CanvasNode) {
 				const rImg=layer.rawImageData;
 				const tArea=GLProgram.borderIntersection(rImg.validArea,CANVAS.renderer.viewport); // target area
@@ -187,6 +198,7 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 				layer.assignNewMaskedImageData(0,0);
 				layer.assignNewImageData(0,0);
 				layer.setRawImageDataInvalid();
+				STORAGE.FILES.saveContentChanges(layer);
 			}
 			else {
 				layer.assignNewRawImageData(0,0);
@@ -194,16 +206,31 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 				layer.assignNewImageData(0,0);
 			}
 		}
-		else {
-			layer.assignNewRawImageData(0,0);
-			layer.assignNewMaskedImageData(0,0);
-			layer.assignNewImageData(0,0);
-			if(layer instanceof CanvasNode) { // root **NOTE** assignNewRawImageData(w,h) didn't ensure a valid texture!
-				layer.setRawImageDataInvalid();
-			}
+		
+		CANVAS.requestRefresh(); // No need to recomposite layer structure
+		LAYERS.updateAllThumbs();
+		const aL=LAYERS.active; // if there is an active layer, refresh it
+		if(aL instanceof CanvasNode) {
+			CANVAS.setTargetLayer(aL);
 		}
 	}
+	else{ // delete all
+		LAYERS.active=null; // disable layer operation and canvas
+		CANVAS.setTargetLayer(null);
+		if(LAYERS.layerTree){ // layer tree constructed
+			for(const v of LAYERS.layerTree.children){
+				// delete these layers and resources
+				// and children
+				// and file storage
+				v.delete();
+			}
+			LAYERS.layerTree.children=[];
+			LAYERS.layerTree.assignNewRawImageData(0,0); // root does not have masked or imageData
+		}
+		$("#layer-panel-inner").empty();
+	}
 
+	// update transform
 	let k1=ENV.window.SIZE.width/w;
 	let k2=ENV.window.SIZE.height/h;
 	let k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
@@ -212,13 +239,6 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 
 	ENV.displaySettings.enableTransformAnimation=isAnim; // restore animation setting
 	$("#canvas-container").css("background-size",Math.sqrt(Math.max(w,h))*2+"px"); // set transparent block size
-
-	const aL=LAYERS.active;
-	if(aL instanceof CanvasNode) { // if there is an active CV, refresh it
-		CANVAS.setTargetLayer(aL);
-	}
-	CANVAS.requestRefresh(); // @TODO: recomposite layer structure?
-	LAYERS.updateAllThumbs();
 };
 // ====================== Tools functions ==========================
 /**
@@ -421,7 +441,7 @@ ENV.loadTextFile=function(url,callback) {
 ENV.escapeHTML=str => str.replace(/[&<>'"]/g,tag => ({"&": "&amp;","<": "&lt;",">": "&gt;","'": "&#39;",'"': "&#34;"}[tag]||tag));
 
 ENV.b64="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-ENV.Uint8Array2base64=function(arr) {
+ENV.uint8Array2base64=function(arr) {
 	const b64=ENV.b64;
 	let bitmap,a,b,c,result="",rest=arr.length%3; // To determine the final padding
 
@@ -437,3 +457,26 @@ ENV.Uint8Array2base64=function(arr) {
 	return rest? result.slice(0,rest-3)+"===".substring(rest):result;
 };
 // Ref: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/btoa
+
+ENV.uint8Array2base32k=function(data){
+	const len=Math.ceil(data.length/4)+1
+	const u32=new Uint32Array(len);
+	u32[0]=data.length;
+	for(let i=0,j=1;i<data.length;i+=4,j++){
+		u32[j]=(data[i]<<24)|(data[i+1]<<16)|(data[i+2]<<8)|data[i+3];
+	}
+	return base32k.encode(u32);
+}
+
+ENV.base32k2uint8Array=function(b32k){
+	const u32=base32k.decode(b32k);
+	const len=u32[0];
+	const data=new Uint8Array(len);
+	for(let i=0,j=1;i<data.length;i+=4,j++){
+		data[i]=u32[j]>>24;
+		data[i+1]=u32[j]>>16;
+		data[i+2]=u32[j]>>8;
+		data[i+3]=u32[j];
+	}
+	return data;
+}

@@ -1,25 +1,27 @@
 class Compressor{
-	constructor(){
+	// targetSize is in bytes
+	// Although rle sometimes gives worse result after huffman
+	// under most cases it works well
+	static encode(uint8arr){
+		const diff=Compressor._getDiff(uint8arr);
+		const rle=Compressor.encodeRLE(diff);
+		const result=Compressor.encodeHuffman(rle);
+		return result;
 	}
 
-	encode(uint8arr){
-		const diff=this._getDiff(uint8arr);
-		const rle=this.encodeRLE(diff);
-		const huffman=this.encodeHuffman(rle,16); // 16 as default
-		const result=huffman;
-
-		console.log(
-			(result.length/1024/1024).toFixed(2)+"MB",
-			(100*result.length/uint8arr.length).toFixed(2)+"%"
-		);
+	// uint8arr is huffman encoded
+	static decode(uint8arr){
+		const rle=Compressor.decodeHuffman(uint8arr);
+		const diff=Compressor.decodeRLE(rle);
+		const result=Compressor._getSum(diff);
 		return result;
 	}
 
 	/**
-	 * Needn't group RGBA together:
+	 * Needn't group vertical lines together:
 	 * only gets smaller when more details
 	 */
-	_getDiff(uint8arr){ // get the diff arr of arr
+	static _getDiff(uint8arr){ // get the diff arr of arr
 		const data=uint8arr;
 		const diff=new Uint8Array(data.length);
 		let nowVal=new Uint8Array(4);
@@ -37,19 +39,31 @@ class Compressor{
 	}
 
 	/**
-	 * encode an uint8arr (0~255) using Huffman
-	 * Suppose that uint8arr follows the rule that
-	 * neighboring pixels have rather small difference.
-	 * @param {Uint8Array} uint8arr image data [r,g,b,a,...]
-	 * @param {Number>=8} maxDepth max tree depth, 9~16, init 12
+	 * The inverse function of _getDiff
 	 */
-	encodeHuffman(uint8arr,maxDepth){
-		// @TODO: when uint8arr.length==0
-		if(!uint8arr.length)return uint8arr;
+	static _getSum(diff){
+		const data=new Uint8Array(diff.length);
+		let nowVal=new Uint8Array(4);
+		for(let i=0;i<data.length;i+=4) {
+			data[i]=diff[i]+nowVal[0];
+			data[i+1]=diff[i+1]+nowVal[1];
+			data[i+2]=diff[i+2]+nowVal[2];
+			data[i+3]=diff[i+3]+nowVal[3];
+			nowVal[0]=data[i];
+			nowVal[1]=data[i+1];
+			nowVal[2]=data[i+2];
+			nowVal[3]=data[i+3];
+		}
+		return data;
+	}
 
-		maxDepth=isNaN(maxDepth)?16:Math.min(Math.max(maxDepth,9),16);
-
-		const data=uint8arr;
+	/**
+	 * encode an rle (0~255) using Huffman
+	 * max tree depth is 12
+	 * @param {Uint8Array} rlearr rle compressed data
+	 */
+	static encodeHuffman(rlearr){
+		const data=rlearr; // except last byte
 		const freq=new Uint32Array(256);
 		for(let i=0;i<data.length;i++) { // count frequency
 			freq[data[i]]++;
@@ -95,7 +109,6 @@ class Compressor{
 			// push new node
 			q2.push(HuffmanNode.merge(elem1,elem2));
 		}
-		maxDepth=Math.min(maxDepth,q2[0].depth);
 
 		// Optimize tree depth - sort according to depth
 		const depthSortList=[]; // construct depth list
@@ -122,11 +135,13 @@ class Compressor{
 			symList[i]=depthSortList[i].symbol;
 			depList[i]=depthSortList[i].depth;
 		}
-		while(depList[N-1]>maxDepth){ // not satisfied
+
+		const MAX_DEPTH=12;
+		while(depList[N-1]>MAX_DEPTH){ // not satisfied
 			for(let k=N-1;k>=0;k--){ // find the item to promote
-				if(depList[k]<maxDepth){ // the first to promote
-					const num=1<<(maxDepth-depList[k]); // items it may generate
-					depList.splice(k,1,...new Array(num).fill(maxDepth)); // replace
+				if(depList[k]<MAX_DEPTH){ // the first to promote
+					const num=1<<(MAX_DEPTH-depList[k]); // items it may generate
+					depList.splice(k,1,...new Array(num).fill(MAX_DEPTH)); // replace
 					break;
 				}
 			}
@@ -134,14 +149,12 @@ class Compressor{
 
 		// Construct flattened huffman coding table
 		const codeList=new Uint16Array(N); // 0 as init
-		//console.log(symList[0],depList[0],codeList[0].toString(2));
 		for(let i=1;i<N;i++){ // only lower-dep[i] bit of codeList[i] is valid, else is 0
 			codeList[i]=(codeList[i-1]+1)<<(depList[i]-depList[i-1]);
-			//console.log(symList[i],depList[i],codeList[i].toString(2));
 		}
 
 		const code256=new Uint16Array(256);
-		const dep256=new Array(256);
+		const dep256=new Uint8Array(256); // if dep256[i]==0, i doesn't have any coding
 		for(let i=0;i<N;i++){ // indexed to table
 			const v=symList[i];
 			code256[v]=codeList[i];
@@ -155,63 +168,138 @@ class Compressor{
 		}
 		totalLength=Math.ceil(totalLength/8);
 
-		const encodedDiff=new Uint8Array(totalLength+768); // with dict padding
-		let buf=0; // 32bit
+		// with dict padding, total length(32bit)
+		const encoded=new Uint8Array(totalLength+516);
+		let buf=0; // 32bit buf for encoding
 		let pED=0,pBit=0;
-		for(let i=0;i<data.length;i++) { // count frequency
+		for(let i=0;i<data.length;i++) { // encode each byte
 			const v=data[i]; // 0~255
 			const vCode=code256[v];
 			const vLen=dep256[v];
 
 			pBit+=vLen;
-			buf|=vCode<<(32-vLen); // put into buffer
-			if(pBit>=8){ // combined to 1 bit
-				encodedDiff[pED++]=buf>>>24; // copy value
+			buf|=vCode<<(32-pBit); // put into buffer, left aligned
+
+			while(pBit>=8){ // combined to 1 bit
+				const code=buf>>>24;
+				encoded[pED++]=code; // copy value
 				buf<<=8; // move buffer
 				pBit-=8;
 			}
 		}
-		encodedDiff[pED++]=buf>>>24; // pad the tail
+		encoded[pED++]=buf>>>24; // pad the tail
 
-		for(let i=0;i<256;i++){ // Stored as Hi-Lo-len
-			const id=totalLength+i*3;
-			encodedDiff[id]=code256[i]>>>8;
-			encodedDiff[id+1]=code256[i]&0xFF;
-			encodedDiff[id+2]=dep256[i]; // length of code, 1~16
+		for(let i=0;i<256;i++){ // Stored as Hi(8),Lo(4)-Len(4)
+			const id=totalLength+i*2;
+			encoded[id]=code256[i]>>>4; // high 8 bits
+			encoded[id+1]=(code256[i]<<4)&0xF0|dep256[i]&0xF; // low 4 bits + length 4 bits
 		}
 
-		//console.log(totalLength,pED);
-		return encodedDiff;
+		const dLen=data.length;
+		encoded[totalLength+512]=dLen>>24&0xFF; // note length
+		encoded[totalLength+513]=dLen>>16&0xFF;
+		encoded[totalLength+514]=dLen>>8&0xFF;
+		encoded[totalLength+515]=dLen&0xFF;
+
+		return encoded;
+	}
+
+	static decodeHuffman(hfmData){
+		const totalLength=hfmData.length-516; // exclude dict padding
+		const dLen= // total decoded data length
+			(hfmData[totalLength+512]<<24)|
+			(hfmData[totalLength+513]<<16)|
+			(hfmData[totalLength+514]<<8)|
+			(hfmData[totalLength+515]);
+
+		const dict=new Array(4096); // 12bit dict
+		for(let i=0;i<256;i++){
+			const hi=hfmData[totalLength+i*2];
+			const lo=hfmData[totalLength+i*2+1];
+			const code=(hi<<4)|(lo>>4)&0xF;
+			const len=lo&0xF;
+			if(!len)continue; // not coded
+			const mov=12-len; // highest bit align
+			dict.fill({ // fill with an Object reference
+				symbol:i,
+				len:len
+			},code<<mov,(code+1)<<mov);
+		}
+
+		const decoded=new Uint8Array(dLen); // with huffmanCnt
+		let pDD=0;
+
+		let buf=0; // 32bit buf for decoding
+		let pED=0; // encoded element pos
+		let pBit=0; // tail position in buf (after lowest valid bit)
+		while(pDD<dLen){
+			const b=hfmData[pED++];
+			pBit+=8;
+			buf|=b<<(32-pBit);
+			
+			while(pBit>=12&&pDD<dLen){
+				const code=buf>>>20; // highest 12 bit decides the code
+				const elem=dict[code];
+
+				decoded[pDD++]=elem.symbol;
+				buf<<=elem.len; // throw highest elem.len bits
+				pBit-=elem.len;
+			}
+		}
+		return decoded;
 	}
 
 	/**
 	 * using PackBits algorithm
 	 * @param {*} data uint8arr
 	 */
-	encodeRLE(data){
-		if(!data.length)return data;
+	static encodeRLE(data){
+		if(!data.length){
+			return new Uint8Array(); // a single 0
+		}
 		if(data.length==1){ // construct [0,d0]
 			const res=new Uint8Array(2);
 			res[1]=data[0];
 			return res;
 		}
 
-		const res=[];
+		let res=new Uint8Array(1048576); // 1MB
+		let resPos=0; // length
+
 		let buf=[];
 		let pos=0; // which data to add
 		let isRLE=false; // state: raw or rle
 		let repeatCnt=0;
 
-		function finishRaw(){ // push the buffer
-			if(!buf.length)return;
-			res.push(buf.length-1);
-			res.push(...buf);
+		function extendResult(){ // extend the length of res for 1MB
+			const newRes=new Uint8Array(res.length+1048576);
+			newRes.set(res,0);
+			res=newRes;
+		}
+		function pushVal(val){ // number
+			if(resPos==res.length){
+				extendResult();
+			}
+			res[resPos++]=val;
+		};
+		function pushBuf(){ // buffer
+			if(resPos+buf.length>res.length){
+				extendResult();
+			}
+			res.set(buf,resPos);
+			resPos+=buf.length;
 			buf=[];
 		}
 
+		function finishRaw(){ // push the buffer
+			if(!buf.length)return;
+			pushVal(buf.length-1);
+			pushBuf();
+		}
+
 		function finishRLE(){ // push RLE part
-			res.push(257-repeatCnt);
-			res.push(data[pos]);
+			pushVal(257-repeatCnt);
+			pushVal(data[pos]);
 		}
 
 		while(pos<data.length-1){
@@ -258,7 +346,60 @@ class Compressor{
 			finishRaw();
 		}
 
-		return new Uint8Array(res);
+		return res.slice(0,resPos);
+	}
+
+	/**
+	 * using PackBits algorithm
+	 * @param {*} data uint8arr
+	 */
+	static decodeRLE(data){
+		if(!data.length){
+			return data;
+		}
+
+		let res=new Uint8Array(1048576); // 1MB
+		let resPos=0; // length
+		function extendResult(){ // extend the length of res for 1MB
+			const newRes=new Uint8Array(res.length+1048576);
+			newRes.set(res,0);
+			res=newRes;
+		}
+		function pushVal(val,cnt){ // push several same numbers
+			if(resPos+cnt>res.length){
+				extendResult();
+			}
+			for(let i=0;i<cnt;i++){
+				res[resPos++]=val;
+			}
+		};
+		function pushData(start,cnt){ // push several numbers from data
+			if(resPos+cnt>res.length){
+				extendResult();
+			}
+			for(let i=0;i<cnt;i++){
+				res[resPos++]=data[start+i];
+			}
+		};
+
+		let pos=0;
+		while(pos<data.length){
+			let header=data[pos++];
+			if(header>127)header-=256; // repeating part
+
+			if(header>=0){ // consecutive bytes
+				pushData(pos,header+1); // extend
+				pos+=header+1; // pass header+1 bytes
+			}
+			else if(header==-128){ // invalid
+				continue;
+			}
+			else{ // -1~-127, repeating part
+				pushVal(data[pos],1-header); // extend
+				pos++;
+			}
+		}
+		return res.slice(0,resPos);
 	}
 }
 
@@ -267,12 +408,10 @@ class HuffmanNode{
 		this.symbol=symbol;
 		this.weight=weight;
 		this.children=null;
-		this.depth=0;
 	}
 	static merge(node1,node2){
 		const node=new HuffmanNode(null,node1.weight+node2.weight);
 		node.children=[node1,node2];
-		node.depth=Math.max(node1.depth,node2.depth)+1;
 		return node;
 	}
 	toString(){

@@ -49,8 +49,8 @@ LAYERS.$newLayerGroupUI=function(id) {
 
 // ============= Node ===============
 class LayerGroupNode extends ContentNode {
-	constructor() {
-		super();
+	constructor(id) {
+		super(id);
 		this.$ui=LAYERS.$newLayerGroupUI(this.id); // set ui in layer list
 
 		// Properties
@@ -426,5 +426,12 @@ class LayerGroupNode extends ContentNode {
 			"opened": this.isExpanded,
 			"children": childrenJson
 		});
+	}
+
+	getStorageJSON(){
+		return Object.assign(super.getStorageJSON(),{
+			isExpanded: this.isExpanded,
+			type: "LayerGroupNode"
+		}); // extra expanded info
 	}
 }

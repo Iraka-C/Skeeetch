@@ -44,8 +44,22 @@ class RootNode extends ContentNode { // only one root node
 			"colorMode": 3, // RGBA
 			"children": childrenJson,
 			"canvas": CANVAS.renderer.getContext2DCanvasFromImageData(
-				imgData,ENV.paperSize.width,ENV.paperSize.height,imgData.left,imgData.top
-			) // @TODO: fix this!
+				imgData,CANVAS.renderer.viewport
+			)
+		};
+	}
+
+	getStorageJSON(){
+		const childrenJson=[];
+		for(let v=this.children.length-1;v>=0;v--){ // reversed order
+			// Add the JSON source from children
+			childrenJson.push(this.children[v].getStorageJSON());
+		}
+
+		return {
+			id: this.id,
+			children: childrenJson,
+			type: "RootNode"
 		};
 	}
 }

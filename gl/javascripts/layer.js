@@ -61,14 +61,6 @@ class LayerNode {
 	}
 	// ============= Node Position Operation =============
 	getIndex() { // get the index of this node in the parent's children
-		// if(!this.parent)return NaN; // no parent
-		// const children=this.parent.children;
-		// for(let i=0;i<children.length;i++){
-		// 	if(children[i]==this){ // found
-		// 		return i;
-		// 	}
-		// }
-		// return NaN; // not found
 		return this.index;
 	}
 	detach() { // remove this object from the parent
@@ -178,11 +170,9 @@ LAYERS.onOrderChanged=function(event) {
 /**
  * Init layer panels and functions
  */
-LAYERS.init=function() {
+LAYERS.init=function(layerTreeJSON) {
 
 	LAYERS.layerTree=new RootNode(); // The root of the layer tree
-
-	LAYERS.initFirstLayer();
 	LAYERS.initLayerPanelButtons();
 	LAYERS.initScrollbar();
 
@@ -190,6 +180,14 @@ LAYERS.init=function() {
 	$("#layer-panel").on("pointerdown",event => {
 		event.stopPropagation();
 	});
+
+	if(!layerTreeJSON){
+		LAYERS.initFirstLayer();
+	}
+	else{ // blabla
+		console.log("loading layer tree");
+		STORAGE.FILES.loadLayerTree(layerTreeJSON);
+	}
 }
 
 /**
@@ -207,6 +205,7 @@ LAYERS.initFirstLayer=function() {
 	// Set Properties
 	layer.setProperties({name: Lang("Background"),pixelOpacityLocked: true});
 	LAYERS.setActive(layer);
+	STORAGE.FILES.saveContentChanges(layer);
 }
 
 /**
@@ -242,6 +241,7 @@ LAYERS._inactive=function() {
 	if(!LAYERS.active) { // already deactivated
 		return;
 	}
+	STORAGE.FILES.requestSaveContentChanges(); // check is saved
 	LAYERS.active.setActiveUI(false);
 	LAYERS.active=null;
 }
@@ -262,6 +262,7 @@ LAYERS.initLayerPanelButtons=function() {
 			newActive: layer.id
 		});
 		LAYERS.setActive(layer);
+		STORAGE.FILES.saveContentChanges(layer);
 		// No need to refresh canvas: a transparent layer
 	});
 	EventDistributer.footbarHint($("#new-layer-button"),() => Lang("Add a new layer"));
@@ -319,7 +320,9 @@ LAYERS.initLayerPanelButtons=function() {
 			LAYERS.replaceGroupWithLayer(LAYERS.active);
 		}
 		else { // canvas: clear image data
-			CANVAS.clearAll();
+			if(CANVAS.clearAll()){ // successfully cleared
+				STORAGE.FILES.saveContentChanges(CANVAS.nowLayer);
+			}
 		}
 	});
 	EventDistributer.footbarHint($("#clear-button"),() => {
@@ -463,6 +466,7 @@ LAYERS.replaceGroupWithLayer=function(group) {
 
 	// recomposite
 	COMPOSITOR.updateLayerTreeStructure();
+	STORAGE.FILES.saveContentChanges(layer);
 	layer.updateThumb();
 }
 
@@ -481,30 +485,45 @@ LAYERS.updateAllThumbs=function() {
 
 // ================ Debuggings ================
 
-LAYERS.getStorageCompatibleJSON=function() {
-	let startT=Date.now();
-	// let j=LAYERS.layerTree.getStorageCompatibleJSON();
-	// let s=JSON.stringify(j);
-	// var compressed=LZString.compress(s);
-	const psdJSON=LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
-	const buffer=agPsd.writePsd(psdJSON); // also compress
-	console.log("Trans...");
-
-	const ui8=new Uint8Array(buffer);
-	const b64s=ENV.Uint8Array2base64(ui8); // quite fast though
-
-	let endT=Date.now();
-	console.log("Size = "+(b64s.length/1024/1024).toFixed(2)+" MB");
-	console.log("Time = "+((endT-startT)/1000).toFixed(1)+"s");
-
+LAYERS.getStorageJSON=function() {
+	const layerTreeJSON=LAYERS.layerTree.getStorageJSON();
+	return Object.assign(layerTreeJSON,{
+		title: ENV.getFileTitle(),
+		paperSize: [ENV.paperSize.width,ENV.paperSize.height],
+		active: LAYERS.active.id
+		// @TODO: add trans?
+	});
 }
 
 LAYERS.debugRootStorage=function() {
-	const rootImg=CANVAS.renderer.getUint8ArrayFromImageData(LAYERS.layerTree.imageData);
-	
-	const cp=new Compressor();
 	let startT=Date.now();
-	cp.encode(rootImg);
+
+	const rootImg=CANVAS.renderer.getUint8ArrayFromImageData(LAYERS.layerTree.imageData);
+	const encoded=Compressor.encode(rootImg);
+	const b32k=ENV.uint8Array2base32k(encoded);
+
 	let endT=Date.now();
-	console.log("Time = "+((endT-startT)/1000).toFixed(2)+"s");
+	console.log("Encoding Time = "+((endT-startT)/1000).toFixed(2)+"s");
+	console.log(
+		(encoded.length/1024/1024).toFixed(2)+"MB",
+		(b32k.length*2/1024/1024).toFixed(2)+"MB b32k",
+		(200*b32k.length/rootImg.length).toFixed(2)+"%"
+	);
+	//console.log(b32k.substring(0,100));
+	
+
+	startT=Date.now();
+	const oriEncoded=ENV.base32k2uint8Array(b32k);
+	const newImg=Compressor.decode(oriEncoded);
+
+	endT=Date.now();
+	console.log("Decoding Time = "+((endT-startT)/1000).toFixed(2)+"s");
+	let isSame=true;
+	for(let i=0;i<rootImg.length;i++){
+		if(rootImg[i]!=newImg[i]){
+			isSame=false;
+			break;
+		}
+	}
+	console.log("Is same: "+(isSame?"true":"false"));
 }

@@ -399,6 +399,21 @@ class ContentNode extends LayerNode {
 		};
 	}
 
+	// get a JSON to fit into storage
+	getStorageJSON(){
+		const childrenJson=[];
+		for(let v=this.children.length-1;v>=0;v--){ // reversed order
+			// Add the JSON source from children
+			childrenJson.push(this.children[v].getStorageJSON());
+		}
+
+		return Object.assign({
+			"children": childrenJson,
+			"id": this.id,
+			"name": this.getName()
+		},this.properties);
+	}
+
 	_getTreeNodeString(_depth){
 		_depth=_depth||0; // start from 0
 		let str="   ".repeat(_depth)

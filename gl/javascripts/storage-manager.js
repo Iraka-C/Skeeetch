@@ -11,10 +11,12 @@ STORAGE={};
  * and the file part
  */
 STORAGE.init=function(callback){
-	STORAGE.SETTING.init(callback); // async init!
-	// @TODO: file init, this is an async loading
+	const sysSettings=STORAGE.SETTING.init(); // sync
+	STORAGE.FILES.init(); // sync: creating localForage instance
+	callback(sysSettings);
 };
 
-STORAGE.saveOnExit=function(){
+STORAGE.saveOnExit=function(){ // This must be synced function
 	STORAGE.SETTING.saveAllSettings();
+	STORAGE.FILES.saveLayerTree();
 };

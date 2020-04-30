@@ -267,6 +267,16 @@ SettingHandler.initSystemSetting=function(sysParams){
 		const mem=PERFORMANCE.getGPUMemEstimation();
 		return mem.toFixed(mem>2000?0:1);
 	});
+	sys.addInfo(Lang("sys-disk"),"MB",callback=>{
+		if(navigator.storage){
+			navigator.storage.estimate().then(est=>{
+				const usage=est.usage/1024/1024;
+				//const quota=est.quota/1024/1024;
+				//console.log("Total "+quota.toFixed(quota>2000?0:1)+" MB");
+				callback(usage.toFixed(usage>2000?0:1));
+			});
+		}
+	});
 
 	return sys;
 }

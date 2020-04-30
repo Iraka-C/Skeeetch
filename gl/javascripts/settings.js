@@ -270,7 +270,12 @@ class SettingManager{
 		);
 		let _updateFunc=function(){
 			if(valFunc){
-				item.find(".value").text(valFunc());
+				const val=valFunc(v=>{ // async ver
+					item.find(".value").text(v);
+				})
+				if(!isNaN(val)){ // sync ver
+					item.find(".value").text(val);
+				}
 			}
 		}
 		this._updateFuncList.push(_updateFunc);

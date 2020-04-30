@@ -1,5 +1,6 @@
 /**
  * Canvas manager
+ * @TODO: check all places using texImage2d, this may cause memory leak!
  */
 
 CANVAS={};
@@ -40,7 +41,6 @@ CANVAS.setTargetLayer=function(targetLayer) {
 		const lastD=CANVAS.nowLayer.lastRawImageData; // release its lastRawImageData
 		CANVAS.renderer.deleteImageData(lastD);
 		CANVAS.nowLayer.lastRawImageData=null;
-		//CANVAS.nowLayer.strokeBuffer=null; // release strokeBuffer
 	}
 	CANVAS.nowLayer=targetLayer;
 	if(!targetLayer) { // no active target
@@ -352,6 +352,7 @@ CANVAS.onEndRefresh=function() {
 			area:{...CANVAS.changedArea}
 		});
 	}
+	STORAGE.FILES.reportUnsavedContentChanges(); // report that there are changes unsaved
 	CANVAS.lastRefreshTime=NaN;
 	CANVAS.changedArea={width:0,height:0,left:0,top:0}; // reset changed area
 }
@@ -361,7 +362,7 @@ CANVAS.onEndRefresh=function() {
 CANVAS.clearAll=function() {
 	if(!CANVAS.renderer||!CANVAS.settings.enabled) {
 		// No canvas, can't draw on it
-		return;
+		return false;
 	}
 
 	// get params of this layer in a tree
@@ -369,7 +370,7 @@ CANVAS.clearAll=function() {
 	CANVAS.targetLayerLocked=CANVAS.nowLayer.isLocked();
 	CANVAS.targetLayerOpacityLocked=CANVAS.nowLayer.isOpacityLocked();
 	if(!CANVAS.targetLayerVisible||CANVAS.targetLayerLocked) { // locked
-		return;
+		return false;
 	}
 
 	// @TODO: consider mask
@@ -383,6 +384,7 @@ CANVAS.clearAll=function() {
 	CANVAS.nowLayer.updateThumb();
 	CANVAS.nowLayer.setRawImageDataInvalid(); // the data is invalid now
 	CANVAS.requestRefresh(); // refresh display
+	return true;
 }
 
 // ================ Other tools ==================
