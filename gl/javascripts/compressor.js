@@ -3,6 +3,9 @@ class Compressor{
 	// Although rle sometimes gives worse result after huffman
 	// under most cases it works well
 	static encode(uint8arr){
+		if(!uint8arr.length){ // 0 length
+			return uint8arr;
+		}
 		const diff=Compressor._getDiff(uint8arr);
 		const rle=Compressor.encodeRLE(diff);
 		const result=Compressor.encodeHuffman(rle);
@@ -11,6 +14,9 @@ class Compressor{
 
 	// uint8arr is huffman encoded
 	static decode(uint8arr){
+		if(!uint8arr.length){ // 0 length
+			return uint8arr;
+		}
 		const rle=Compressor.decodeHuffman(uint8arr);
 		const diff=Compressor.decodeRLE(rle);
 		const result=Compressor._getSum(diff);

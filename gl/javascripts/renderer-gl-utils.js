@@ -208,8 +208,9 @@ class GLImageDataFactory {
 			attribute vec2 a_src_position; // vertex position
 			varying vec2 v_position;
 			void main(){
-				v_position=vec2(1.-a_src_position.y,1.-a_src_position.x); // to Context2D ImageData order
-				gl_Position=vec4(a_position*2.0-1.0,0.0,1.0); // to clip space
+				v_position=a_src_position; // to Context2D ImageData order
+				vec2 clipPos=(a_position*2.-1.)*vec2(1.,-1.);
+				gl_Position=vec4(clipPos,0.,1.); // to clip space
 			}
 		`;
 		const fConverterShaderSource=glsl`
@@ -221,19 +222,20 @@ class GLImageDataFactory {
 			varying vec2 v_position;
 			void main(){
 				vec4 pix=texture2D(u_image,v_position); // float operation
-				if(u_is_premult!=0.0){
+				if(u_is_premult!=0.){
 					gl_FragColor=pix*u_range;
 				}
-				else if(pix.w!=0.0){
+				else if(pix.w!=0.){
 					gl_FragColor=vec4(pix.xyz/pix.w,pix.w)*u_range;
 				}
 				else{
-					gl_FragColor=vec4(0.0,0.0,0.0,0.0);
+					gl_FragColor=vec4(0.,0.,0.,0.);
 				}
 			}
 		`;
 		this.converterProgram=new GLProgram(this.gl,vConverterShaderSource,fConverterShaderSource);
 		this.converterProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
+		// a_position shall be the same rect order as a_src_position (getAttributeRect)
 	}
 
 	free() {
@@ -254,8 +256,11 @@ class GLImageDataFactory {
 
 		srcRange=srcRange||src; // init: same as src
 		targetSize=targetSize||[srcRange.width,srcRange.height]; // init: same as srcRange
-		const [W,H]=targetSize;
 		isResultPremultAlpha=isResultPremultAlpha||false;
+		const [W,H]=targetSize;
+		if(!(W&&H)){
+			return new Uint8ClampedArray();
+		}
 		
 		// Setup temp texture for extracting data
 		const tmpTexture=GLProgram.createAndSetupTexture(gl);
@@ -265,7 +270,8 @@ class GLImageDataFactory {
 		program.setSourceTexture(src.data);
 		program.setTargetTexture(tmpTexture); // draw to canvas
 		program.setUniform("u_is_premult",isResultPremultAlpha?1:0); // pre -> non-pre
-		program.setAttribute("a_src_position",GLProgram.getAttributeRect(srcRange,src),2);
+		const attrRect=GLProgram.getAttributeRect(srcRange,src);
+		program.setAttribute("a_src_position",attrRect,2);
 		switch(this.dataFormat) {
 			case gl.FLOAT: program.setUniform("u_range",255.999); break; // map 0.0~1.0 to 0~255.
 			// Not 256 because some browser don't accept Uint8ClampedArray, and 256 cause overflow

@@ -261,6 +261,6 @@ class GLProgram {
 		rT/=img.height;
 		rR/=img.width;
 		rB/=img.height;
-		return [rL,rT,rL,rB,rR,rT,rR,rT,rL,rB,rR,rB];
+		return [rL,rB,rR,rB,rL,rT,rL,rT,rR,rB,rR,rT];
 	}
 }

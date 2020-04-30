@@ -309,7 +309,7 @@ class GLBrushRenderer {
 	}
 
 	/**
-	 * Allow using blurring to mitigate hard edges
+	 * Allow using directional blurring to mitigate hard edges
 	 * Used for brush.blendMode==<-1|0|1|>
 	 */
 	blendBrushtip(src,tgt,param){
@@ -350,7 +350,13 @@ class GLBrushRenderer {
 		else if(brush.blendMode<=0){ // erase, normal
 			this.renderSolidCircle(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange);
 		}
-		
+
+		target.validArea={
+			left: Math.floor(target.validArea.left),
+			top: Math.floor(target.validArea.top),
+			width: Math.ceil(target.validArea.width),
+			height: Math.ceil(target.validArea.height)
+		};
 	}
 	renderSolidCircle(target,brush,pos,prevPos,radius,colorRGB,opacity,pressure,isOpacityLocked,softRange){
 		// Step 1: render colored brushtip to this.brushtipImageData

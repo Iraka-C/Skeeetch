@@ -206,7 +206,7 @@ FILES.loadPSDNodes=function(node) {
 	for(let i=0;i<loadQueue.length;i++) {
 		setTimeout(e=>{
 			EventDistributer.footbarHint.showInfo(
-				"Loading "+(i/loadQueue.length*100).toFixed(2)+"% ...");
+				"Loading "+(i/loadQueue.length*100).toFixed(2)+"% ...",5000);
 			loadQueue[i].load();
 			if(i==loadQueue.length-1){ // all loaded
 				FILES.onPSDLoaded();

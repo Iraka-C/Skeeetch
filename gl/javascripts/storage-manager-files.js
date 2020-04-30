@@ -30,23 +30,23 @@ STORAGE.FILES.requestSaveContentChanges=function() {
 STORAGE.FILES.savingList=new Set();
 STORAGE.FILES.saveContentChanges=function(node) { // @TODO: Empty Layer
 	if(node) { // operating on a CanvasNode
-		const htmlEtt=ENV.escapeHTML($("#filename-input").val()); // busy sign
-		$("title").html("&malt;&nbsp;"+htmlEtt);
 		STORAGE.FILES.savingList.add(node.id);
+		$("#icon").attr("href","./resources/favicon-working.png");
 
-		// Get buffer
+		// Get buffer out of valid area
 		const imgData=node.rawImageData;
+		const vArea=imgData.validArea;
 		const imgBuf={
 			type: "GLRAMBuf8",
 			id: imgData.id,
 			tagColor: imgData.tagColor,
 			bitDepth: 8,
-			data: CANVAS.renderer.getUint8ArrayFromImageData(imgData),
-			width: imgData.width,
-			height: imgData.height,
-			left: imgData.left,
-			top: imgData.top,
-			validArea: imgData.validArea // borrow values
+			data: CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea),
+			width: vArea.width,
+			height: vArea.height,
+			left: vArea.left,
+			top: vArea.top,
+			validArea: vArea // borrow values
 		};
 
 		// Start Saving
@@ -73,13 +73,14 @@ STORAGE.FILES.saveContentChanges=function(node) { // @TODO: Empty Layer
 			STORAGE.FILES.savingList.delete(node.id);
 			
 			if(!STORAGE.FILES.savingList.size){ // all saved
-				$("title").text($("#filename-input").val());
 				STORAGE.FILES.isNowActiveLayerSaved=true;
+				$("#icon").attr("href","./resources/favicon.png");
 			}
 		}).catch(err => {
 			STORAGE.FILES.savingList.delete(node.id);
-			$("title").text("X "+$("#filename-input").val());
 			STORAGE.FILES.isNowActiveLayerSaved=true;
+			$("#icon").attr("href","./resources/favicon.png");
+
 			console.warn(err);
 		});
 
@@ -265,7 +266,7 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	for(let i=0;i<loadQueue.length;i++) {
 		setTimeout(e => {
 			EventDistributer.footbarHint.showInfo(
-				"Loading "+(i/loadQueue.length*100).toFixed(2)+"% ...");
+				"Loading "+(i/loadQueue.length*100).toFixed(2)+"% ...",5000);
 			loadQueue[i].load();
 		},0);
 	}

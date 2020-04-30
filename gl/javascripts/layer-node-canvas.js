@@ -163,7 +163,7 @@ class CanvasNode extends ContentNode {
 		// plave in canvas
 		let kw=uW/w,kh=uH/h;
 		if(kw<=kh) { // left/right overflow
-			let nW=w*kh; // new width
+			let nW=Math.round(w*kh); // new width
 			thumbCV.attr({ // also clear the content
 				width: nW,
 				height: uH
@@ -176,7 +176,7 @@ class CanvasNode extends ContentNode {
 			this._drawThumb();
 		}
 		else { // top/bottom overflow
-			let nH=h*kw; // new height
+			let nH=Math.round(h*kw); // new height
 			thumbCV.attr({ // also clear the content
 				width: uW,
 				height: nH
@@ -199,7 +199,9 @@ class CanvasNode extends ContentNode {
 		}
 		const imgData2d=ctx.createImageData(w,h);
 
-		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(this.rawImageData,null,[w,h]); // get data
+		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(
+			this.rawImageData,null,[w,h]); // get data
+		
 		imgData2d.data.set(pixels); // copy pixel data
 		ctx.putImageData(imgData2d,0,0);
 	}

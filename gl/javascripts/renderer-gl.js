@@ -640,8 +640,6 @@ class GLRenderer extends BasicRenderer {
 				canvas.height=img.height;
 				const ctx2d=canvas.getContext("2d"); // Use Context2D mode
 				const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
-				console.log(img);
-				
 				imgData2D.data.set(img.data);
 				this.loadToImageData(target,imgData2D);
 			}
