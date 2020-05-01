@@ -26,6 +26,7 @@ FILES.initFileMenu=function() {
 	});
 	fileManager.addButton(Lang("Open File"),() => {
 		$fileInput[0].click();
+		fileManager.toggleExpand();
 	});
 
 	fileManager.addSectionTitle(Lang("Export Content"));
