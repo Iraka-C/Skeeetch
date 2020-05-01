@@ -429,7 +429,7 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
  * After panning, the masked/imageData become invalid (as they didn't moved)
  * but if no rendering into these layers happen, there will be no difference.
  */
-CANVAS.panLayer=function(targetLayer,dx,dy){
+CANVAS.panLayer=function(targetLayer,dx,dy,isToSetInvalid){
 	const imgData=targetLayer.rawImageData;
 	imgData.left+=dx;
 	imgData.top+=dy;
@@ -444,6 +444,9 @@ CANVAS.panLayer=function(targetLayer,dx,dy){
 	}
 	// @TODO: pan Masked data // @TODO: link Mask data
 	if(targetLayer.children.length){
+		if(isToSetInvalid){
+			targetLayer.setRawImageDataInvalid();
+		}
 		for(const v of targetLayer.children) {
 			CANVAS.panLayer(v,dx,dy);
 		}
@@ -466,6 +469,7 @@ CANVAS.roundLayerPosition=function(targetLayer){
 	}
 	// @TODO: pan Masked data // @TODO: link Mask data
 	if(targetLayer.children.length){
+		targetLayer.setRawImageDataInvalid(); // recomposite out-of-viewport part
 		for(const v of targetLayer.children) {
 			CANVAS.roundLayerPosition(v);
 		}
