@@ -76,6 +76,10 @@ class GLRenderer extends BasicRenderer {
 		this.textureBlender=new GLTextureBlender(gl);
 		this.imageDataFactory=new GLImageDataFactory(gl,this.dataFormat);
 		this.brushRenderer=new GLBrushRenderer(this);
+		this.vramManager=new GLVRAMManager(this);
+
+		this.vramManager.addWhiteList(this.tmpImageData);
+		this.vramManager.addWhiteList(this.brushRenderer.brushtipImageData);
 	}
 	free() { // death
 		const gl=this.gl;
@@ -93,10 +97,9 @@ class GLRenderer extends BasicRenderer {
 
 	getGPUMemUsage() { // return GPU Memory usage in bytes
 		const pixMem=this.bitDepth/8*4; // 1 pixel(RGBA)
-		const bImgData=this.brushRenderer.brushtipImageData;
-		const bMem=bImgData.width*bImgData.height*pixMem
-		const cMem=this.canvas.width*this.canvas.height*pixMem*2; // canvas and tmpImageData
-		return bMem+cMem;
+		const cMem=this.canvas.width*this.canvas.height*pixMem; // canvas
+		const tMem=this.vramManager.vRAMUsage; // verified texture VRAM
+		return cMem+tMem;
 	}
 	getRAMUsage() {
 		return 0;
@@ -167,6 +170,7 @@ class GLRenderer extends BasicRenderer {
 	// Init on specifying a new texture to be rendered
 	init(param) {
 		super.init(param); // init canvas
+		this.vramManager.verify(param.imageData); // verify Texture
 
 		if(param.imageData.type!="GLTexture") { // not GL texture type
 			// @TODO: check texture bitdepth
@@ -218,6 +222,7 @@ class GLRenderer extends BasicRenderer {
 			const pressure=p[3]; // pressure considered sensitivity
 
 			// set circle size and radius, adjust position according to the imgData, radius+0.1 for gl clipping
+			this.vramManager.verify(imgData);
 			this.brushRenderer.render(
 				imgData,this.brush,
 				[p[0],p[1]],[prevP[0],prevP[1]],rad,
@@ -250,6 +255,7 @@ class GLRenderer extends BasicRenderer {
 		const tmp=this.tmpImageData;
 		// horizontal blur
 		if(isToDraw) {
+			this.vramManager.verify(imgData);
 			program.setTargetTexture(tmp.data); // draw to temp data
 			gl.viewport(0,0,w,h);
 			gl.clearColor(0,0,0,0);
@@ -332,7 +338,10 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	deleteImageData(imgData) { // discard an image data after being used
-		this.gl.deleteTexture(imgData.data);
+		if(imgData.type=="GLTexture"){
+			this.gl.deleteTexture(imgData.data);
+		}
+		imgData.isDeleted=true; // set tag
 	}
 
 	// clear the contents with transparent black or white
@@ -343,6 +352,7 @@ class GLRenderer extends BasicRenderer {
 		if(!(target.width&&target.height)) { // No pixel, needless to clear
 			return;
 		}
+		this.vramManager.verify(target);
 		const gl=this.gl;
 		const tmpColor=color? [...color]:isOpacityLocked? [1,1,1,1]:[0,0,0,0];
 		tmpColor[0]*=tmpColor[3];
@@ -382,6 +392,7 @@ class GLRenderer extends BasicRenderer {
 		if(!(target.width&&target.height)) { // No pixel, needless to clear
 			return;
 		}
+		this.vramManager.verify(target);
 		range=range||target; // default: clear all
 		const gl=this.gl;
 		gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuffer); // render to a texture
@@ -399,6 +410,7 @@ class GLRenderer extends BasicRenderer {
 	 * if is toCopy, only copy part contained within a viewport size
 	 */
 	resizeImageData(src,newParam,toCopy) {
+		this.vramManager.verify(src);
 		// copy to tmp
 		const tmp=this.tmpImageData;
 		if(toCopy) {
@@ -436,6 +448,7 @@ class GLRenderer extends BasicRenderer {
 	 * **NOTE** This function does not certainly clear the src contents even if isPreservingContents==false
 	 */
 	adjustImageDataBorders(src,targetRange,isPreservingContents) {
+		this.vramManager.verify(src);
 		const BLOCK_SIZE=512; // pixels to extend when drawing out of an imageData, better to be 2^N to fit GPU memory
 		// 512^2 takes each single block 4MB
 		const tmp=this.tmpImageData;
@@ -536,12 +549,16 @@ class GLRenderer extends BasicRenderer {
 	// ====================== Blend Functions =========================
 	// add source to target (all imagedata),
 	blendImageData(src,tgt,param) {
+		this.vramManager.verify(src);
+		this.vramManager.verify(tgt);
 		this.textureBlender.blendTexture(src,tgt,param);
 	}
 
 	// debug: add wire frame
 	// draw a border wire frame of the source.color on the target
 	drawEdge(src,tgt,optArea) {
+		this.vramManager.verify(src);
+		this.vramManager.verify(tgt);
 		const WIDTH=4;
 		const VA_WIDTH=4;
 		const gl=this.gl;
@@ -608,6 +625,7 @@ class GLRenderer extends BasicRenderer {
 	// ====================== Data type transforms =======================
 	// Load/Get
 	loadToImageData(target,img) { // load img into target
+		this.vramManager.verify(target);
 		const gl=this.gl;
 		if(img.type){
 			if(img.type=="GLRAMBuf") { // load a buffer
@@ -655,6 +673,7 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	getBufferFromImageData(src,srcRange) {
+		this.vramManager.verify(src);
 		// get a RAM buffer copy of source
 		// Note: this is a precise copy of texture!
 		// To get a buffer used for CG, use getUint8ArrayFromImageData
@@ -662,21 +681,22 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	getUint8ArrayFromImageData(src,srcRange,targetSize) {
+		this.vramManager.verify(src);
 		return this.imageDataFactory.imageDataToUint8(src,srcRange,targetSize);
 	}
 
-	loadUint8ArrayToImageData(target,buffer){
-		if(!(target.width&&target.height)) { // the src is empty
-			return; // return directly
-		}
-		const canvas=document.createElement("canvas");
-		canvas.width=target.width;
-		canvas.height=target.height;
-		const ctx2d=canvas.getContext("2d"); // Use Context2D mode
-		const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
-		imgData2D.data.set(buffer);
-		this.loadToImageData(target,imgData2D);
-	}
+	// loadUint8ArrayToImageData(target,buffer){
+	// 	if(!(target.width&&target.height)) { // the src is empty
+	// 		return; // return directly
+	// 	}
+	// 	const canvas=document.createElement("canvas");
+	// 	canvas.width=target.width;
+	// 	canvas.height=target.height;
+	// 	const ctx2d=canvas.getContext("2d"); // Use Context2D mode
+	// 	const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
+	// 	imgData2D.data.set(buffer);
+	// 	this.loadToImageData(target,imgData2D);
+	// }
 
 	// Get a <canvas> element with a CanvasRenderingContext2D containing data in src
 	// left & top are used for indicating the left/top bias on the canvas
@@ -690,6 +710,8 @@ class GLRenderer extends BasicRenderer {
 		if(!(src.width&&src.height)) { // the src is empty
 			return canvas; // return directly
 		}
+
+		this.vramManager.verify(src);
 		const ctx2d=canvas.getContext("2d"); // Use Context2D mode
 		const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
 		const buffer=this.imageDataFactory.imageDataToUint8(src,srcRange); // convert src into 8bit RGBA format
@@ -703,15 +725,15 @@ class GLRenderer extends BasicRenderer {
 		return src.type=="GLRAMBuf";
 	}
 	freezeImageData(src) { // in-place
-		if(src.type!="GLTexture") { // only freezes GLTexture
-			return;
-		}
+		// if(src.type!="GLTexture") { // only freezes GLTexture
+		// 	return;
+		// }
 		this.imageDataFactory.convertGLTextureToRAMBuf(src);
 	}
 	restoreImageData(src) { // in-place
-		if(this.isImageDataFrozen(src)) { // only restore frozen data
-			return;
-		}
+		// if(this.isImageDataFrozen(src)) { // only restore frozen data
+		// 	return;
+		// }
 		this.imageDataFactory.convertGLRAMBufToTexture(src);
 	}
 }

@@ -173,10 +173,16 @@ table{
 }
 #front-info-panel{
 	pointer-events: none;
-	opacity: 0;
-	transition: opacity 0.3s;
+	display: flex;
+	flex-direction: row;
+}
+#front-info-indicator{
+	margin-right: 0.3em;
+	width: 1em;
 }
 #front-info-box, #bottom-info-box{
+	opacity: 0;
+	transition: opacity 0.3s;
 	white-space: nowrap;
 }
 #bottom-info-panel{

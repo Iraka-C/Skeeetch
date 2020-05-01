@@ -34,17 +34,23 @@ STORAGE.SETTING={};
 
 STORAGE.SETTING.init=function(){ // synced
 	let v={};
-	try{
-		v=JSON.parse(localStorage.getItem("system-setting"))||{};
-	}catch(err){
-		console.warn("System Setting read-error",err);
+	const windowParams=STORAGE.SETTING.initWindowParams();
+	if(windowParams.query.reset){
+		STORAGE.FILES.clearLayerTree(); // Do not get files
 	}
+	else{
+		try{
+			v=JSON.parse(localStorage.getItem("system-setting"))||{};
+		}catch(err){
+			console.warn("System Setting read-error",err);
+		}
+	}
+	
 	v.palette=v.palette||{};
 	v.preference=v.preference||{};
 	v.preference.displaySettings=v.preference.displaySettings||{};
 	v.preference.debugger=v.preference.debugger||{};
-	v.windowParams=STORAGE.SETTING.initWindowParams();
-	//(v);
+	v.windowParams=windowParams;
 	return v;
 }
 STORAGE.SETTING.initWindowParams=function(){

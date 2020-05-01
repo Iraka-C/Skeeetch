@@ -80,7 +80,7 @@ class SettingManager{
 			}
 		}
 		SettingManager.setInputInstantNumberInteraction(
-			$input,$row,inputUpdateFunc,scrollUpdateFunc,dragUpdateFunc,_updateFunc);
+			$input,null,inputUpdateFunc,scrollUpdateFunc,dragUpdateFunc,_updateFunc);
 		
 		this._updateFuncList.push(_updateFunc);
 		return _updateFunc;

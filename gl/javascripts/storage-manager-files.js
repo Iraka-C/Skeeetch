@@ -33,60 +33,62 @@ STORAGE.FILES.saveContentChanges=function(node) { // @TODO: Empty Layer
 		STORAGE.FILES.savingList.add(node.id);
 		$("#icon").attr("href","./resources/favicon-working.png");
 
-		// Get buffer out of valid area
-		const imgData=node.rawImageData;
-		const vArea=imgData.validArea;
-		const imgBuf={
-			type: "GLRAMBuf8",
-			id: imgData.id,
-			tagColor: imgData.tagColor,
-			bitDepth: 8,
-			data: CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea),
-			width: vArea.width,
-			height: vArea.height,
-			left: vArea.left,
-			top: vArea.top,
-			validArea: vArea // borrow values
-		};
+		// There shouldn't be several save requests in 1 frame...
+		requestAnimationFrame(()=>{ // give icon a chance to change
+			// Get buffer out of valid area
+			const imgData=node.rawImageData;
+			const vArea=imgData.validArea;
+			const imgBuf={
+				type: "GLRAMBuf8",
+				id: imgData.id,
+				tagColor: imgData.tagColor,
+				bitDepth: 8,
+				data: CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea),
+				width: vArea.width,
+				height: vArea.height,
+				left: vArea.left,
+				top: vArea.top,
+				validArea: vArea // borrow values
+			};
 
-		// Start Saving
-		const CHUNK_SIZE=1024*1024*64; // largest chunk Chrome may store
+			// Start Saving
+			const CHUNK_SIZE=1024*1024*64; // largest chunk Chrome may store
 
-		const rawData=imgBuf.data;
-		const data=Compressor.encode(rawData);
-		console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
+			const rawData=imgBuf.data;
+			const data=Compressor.encode(rawData);
+			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
 
-		const chunkN=Math.ceil(data.length/CHUNK_SIZE);
-		imgBuf.data=chunkN; // record the number
-		const bufPromise=STORAGE.FILES.layerStore.setItem(node.id,imgBuf);
+			const chunkN=Math.ceil(data.length/CHUNK_SIZE);
+			imgBuf.data=chunkN; // record the number
+			const bufPromise=STORAGE.FILES.layerStore.setItem(node.id,imgBuf);
 
-		const chunkPromises=[bufPromise];
-		for(let i=0;i<chunkN;i++) { // save a slice of data
-			const key=node.id+"#"+i;
-			const chunk=data.slice(i*CHUNK_SIZE,(i+1)*CHUNK_SIZE);
-			const kPromise=STORAGE.FILES.layerStore.setItem(key,chunk);
-			chunkPromises.push(kPromise);
-		}
+			const chunkPromises=[bufPromise];
+			for(let i=0;i<chunkN;i++) { // save a slice of data
+				const key=node.id+"#"+i;
+				const chunk=data.slice(i*CHUNK_SIZE,(i+1)*CHUNK_SIZE);
+				const kPromise=STORAGE.FILES.layerStore.setItem(key,chunk);
+				chunkPromises.push(kPromise);
+			}
 
-		Promise.all(chunkPromises).then(v => {
-			console.log(node.id+" Saved");
-			STORAGE.FILES.savingList.delete(node.id);
-			
-			if(!STORAGE.FILES.savingList.size){ // all saved
+			Promise.all(chunkPromises).then(v => {
+				//console.log(node.id+" Saved");
+				STORAGE.FILES.savingList.delete(node.id);
+				
+				if(!STORAGE.FILES.savingList.size){ // all saved
+					STORAGE.FILES.isNowActiveLayerSaved=true;
+					$("#icon").attr("href","./resources/favicon.png");
+				}
+			}).catch(err => {
+				STORAGE.FILES.savingList.delete(node.id);
 				STORAGE.FILES.isNowActiveLayerSaved=true;
 				$("#icon").attr("href","./resources/favicon.png");
-			}
-		}).catch(err => {
-			STORAGE.FILES.savingList.delete(node.id);
-			STORAGE.FILES.isNowActiveLayerSaved=true;
-			$("#icon").attr("href","./resources/favicon.png");
 
-			console.warn(err);
+				console.warn(err);
+			});
+
+			STORAGE.FILES.removeContent(node.id,chunkN); // do separately
 		});
-
-		STORAGE.FILES.removeContent(node.id,chunkN); // do separately
 	}
-
 }
 
 
@@ -102,6 +104,7 @@ STORAGE.FILES.isUnsaved=function(){
 
 STORAGE.FILES.getContent=function(id){
 	return STORAGE.FILES.layerStore.getItem(id).then(imgBuf => {
+		// @TODO: if imgBuf==null, then set related layers as empty
 		const chunkN=imgBuf.data;
 		const chunkPromises=[];
 		for(let i=0;i<chunkN;i++) { // get data slices
@@ -132,7 +135,7 @@ STORAGE.FILES.removeContent=function(id,startChunk) {
 	if(id) {
 		if(isNaN(startChunk)){ // remove whole id
 			STORAGE.FILES.layerStore.removeItem(id).then(()=>{
-				console.log("removed",id);
+				//console.log("removed",id);
 			});
 		}
 		// remove chunk larger/equal startChunk
@@ -145,7 +148,7 @@ STORAGE.FILES.removeContent=function(id,startChunk) {
 					const chunkId=parseInt(v.substring(sPos+1));
 					if(chunkId>=startChunk){ // to remove
 						STORAGE.FILES.layerStore.removeItem(v).then(()=>{
-							console.log("removed",v);
+							//console.log("removed",v);
 						});
 					}
 				}
@@ -161,6 +164,10 @@ STORAGE.FILES.removeContent=function(id,startChunk) {
 		STORAGE.FILES.layerStore.clear();
 	}
 
+}
+
+STORAGE.FILES.clearLayerTree=function() {
+	localStorage.setItem("layer-tree","");
 }
 
 STORAGE.FILES.saveLayerTree=function() {

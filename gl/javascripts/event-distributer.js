@@ -178,12 +178,12 @@ EventDistributer.footbarHint=function($el,infoFunc){ // infoFunc put in closure
 		const content=EventDistributer.footbarHint.infoFunc();
 		if(content){
 			$("#front-info-box").html(content);
-			$("#front-info-panel").css("opacity","1");
+			$("#front-info-box").css("opacity","1");
 		}
 	});
 	$el.on("pointerout",event=>{
 		EventDistributer.footbarHint.infoFunc=null;
-		$("#front-info-panel").css("opacity","0");
+		$("#front-info-box").css("opacity","0");
 	});
 };
 EventDistributer.footbarHint.infoFunc=null;
@@ -203,9 +203,9 @@ EventDistributer.footbarHint.showInfo=function(text,time){
 	}
 	EventDistributer.footbarHint.infoFunc=null;
 	$("#front-info-box").text(text);
-	$("#front-info-panel").css("opacity","1");
+	$("#front-info-box").css("opacity","1");
 	EventDistributer.footbarHint.timer=setTimeout(event=>{
-		$("#front-info-panel").css("opacity","0");
+		$("#front-info-box").css("opacity","0");
 		EventDistributer.footbarHint.timer=null;
 	},time||1000);
 }

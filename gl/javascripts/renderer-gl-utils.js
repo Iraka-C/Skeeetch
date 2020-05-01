@@ -433,6 +433,7 @@ class GLImageDataFactory {
 		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,target.width,target.height,0,gl.RGBA,this.dataFormat,target.data);
 		target.type="GLTexture";
 		target.data=texture;
+		//console.log("RAM->TEX",target);
 	}
 
 	// ============== Loading functions ==============

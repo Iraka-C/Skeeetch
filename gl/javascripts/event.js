@@ -16,7 +16,7 @@ EVENTS.init=function(){
 	 */
 
 	// disable pen long press => context menu
-	$(window).on("contextmenu",e=>false);
+	//$(window).on("contextmenu",e=>false);
 
 	// let isWindowBlurred=false;
 	// $(window).on("blur focus",e=>{

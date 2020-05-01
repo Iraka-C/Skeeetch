@@ -75,26 +75,26 @@ PERFORMANCE.getGPUMemEstimation=function(){
 	let gpuBytes=0;
 	// LAYER memory
 	let imgDataGPUSize=0;
-	const pixelBytes=CANVAS.rendererBitDepth/8*4; // RGBA Float(4bytes)
-	const alphaBytes=4; // Float
-	for(let id in LAYERS.layerHash){ // for all canvases
-		// @TODO: split into GPU mem or RAM
-		const item=LAYERS.layerHash[id];
-		if(item.rawImageData.type=="GLTexture"){
-			imgDataGPUSize+=item.rawImageData.width*item.rawImageData.height*pixelBytes;
-		}
-		if(item.maskedImageData!=item.rawImageData){
-			if(item.rawImageData.type=="GLTexture"){
-				imgDataGPUSize+=item.maskImageData.width*item.maskImageData.height*alphaBytes; // Only alpha
-				imgDataGPUSize+=item.maskedImageData.width*item.maskedImageData.height*pixelBytes;
-			}
-		}
-		if(item.imageData!=item.maskedImageData){
-			if(item.rawImageData.type=="GLTexture"){
-				imgDataGPUSize+=item.imageData.width*item.imageData.height*pixelBytes;
-			}
-		}
-	}
+	// const pixelBytes=CANVAS.rendererBitDepth/8*4; // RGBA Float(4bytes)
+	// const alphaBytes=4; // Float
+	// for(let id in LAYERS.layerHash){ // for all canvases
+	// 	// @TODO: split into GPU mem or RAM
+	// 	const item=LAYERS.layerHash[id];
+	// 	if(item.rawImageData.type=="GLTexture"){
+	// 		imgDataGPUSize+=item.rawImageData.width*item.rawImageData.height*pixelBytes;
+	// 	}
+	// 	if(item.maskedImageData!=item.rawImageData){
+	// 		if(item.rawImageData.type=="GLTexture"){
+	// 			imgDataGPUSize+=item.maskImageData.width*item.maskImageData.height*alphaBytes; // Only alpha
+	// 			imgDataGPUSize+=item.maskedImageData.width*item.maskedImageData.height*pixelBytes;
+	// 		}
+	// 	}
+	// 	if(item.imageData!=item.maskedImageData){
+	// 		if(item.rawImageData.type=="GLTexture"){
+	// 			imgDataGPUSize+=item.imageData.width*item.imageData.height*pixelBytes;
+	// 		}
+	// 	}
+	// }
 	if(CANVAS.renderer){
 		imgDataGPUSize+=CANVAS.renderer.getGPUMemUsage();
 	}

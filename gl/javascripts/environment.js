@@ -4,6 +4,7 @@
 */
 
 ENV={}; // Environment
+ENV.version="20200501";
 
 //===================== Settings =====================
 
@@ -33,7 +34,7 @@ ENV.window={
 ENV.displaySettings={
 	antiAlias: true,
 	enableTransformAnimation: true,
-	maxPaperSize: 4096
+	maxPaperSize: 6400
 };
 
 
