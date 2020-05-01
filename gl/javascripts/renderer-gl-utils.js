@@ -371,7 +371,7 @@ class GLImageDataFactory {
 	// get a new GLRAMBuf (with similar ids) from texture
 	/**
 	 * src is a gl renderer img data
-	 * return premultiplied, Y-non-flipped (raw) result
+	 * return premultiplied, Y-non-flipped (raw) result (quite large!)
 	 * targetArea is the range to extract imageData {width,height,left,top}, in paper coordinate
 	 * ** NOTE **
 	 * if the targetArea is out of the src size range, then only the intersection part will be clipped

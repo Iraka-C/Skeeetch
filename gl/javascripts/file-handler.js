@@ -12,7 +12,7 @@ FILES.init=function() {
 FILES.initFileMenu=function() {
 	let fileManager=new SettingManager($("#file-menu-panel"),Lang("Files"));
 	fileManager.setOpenButton($("#file-button"));
-	fileManager.addSectionTitle("Paper");
+	fileManager.addSectionTitle(Lang("Add Content"));
 	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
 		// @TODO: clear storage
 		ENV.setFileTitle("Skeeetch");
@@ -20,15 +20,15 @@ FILES.initFileMenu=function() {
 		LAYERS.initFirstLayer();
 		fileManager.toggleExpand();
 	});
-
-	fileManager.addSectionTitle(Lang("Import & Export"));
+	const $fileInput=$("<input type='file' style='display:none;position:fixed;top:-1000em'/>");
+	$fileInput.on("change",e=>{ // file selected
+		FILES.onFilesLoaded($fileInput[0].files);
+	});
 	fileManager.addButton(Lang("Open File"),() => {
-		const $fileInput=$("<input type='file' style='display:none;position:fixed;top:-1000em'/>");
-		$fileInput.on("change",e=>{ // file selected
-			FILES.onFilesLoaded($fileInput[0].files);
-		});
 		$fileInput[0].click();
 	});
+
+	fileManager.addSectionTitle(Lang("Export Content"));
 	fileManager.addButton(Lang("Save as PNG"),e => {
 		EventDistributer.footbarHint.showInfo("Saving ...");
 		CURSOR.setBusy(true); // set busy cursor

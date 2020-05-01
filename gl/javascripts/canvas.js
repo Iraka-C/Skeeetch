@@ -395,8 +395,12 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 
 	const p=ENV.toPaperXY(x,y);
 	const imgData=LAYERS.layerTree.imageData;
-	const buffer=CANVAS.renderer.getUint8ArrayFromImageData(
-		imgData,null,[Math.round(p[0])-EXT-imgData.left,Math.round(p[1])-EXT-imgData.top,RANGE,RANGE]);
+	const buffer=CANVAS.renderer.getUint8ArrayFromImageData(imgData,{
+		left: Math.round(p[0])-EXT-imgData.left,
+		top: Math.round(p[1])-EXT-imgData.top,
+		width: RANGE,
+		height: RANGE
+	});
 	
 	const pSum=[0,0,0,0];
 	for(let i=0;i<buffer.length;i+=4){
