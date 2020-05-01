@@ -22,7 +22,13 @@ FILES.initFileMenu=function() {
 	});
 
 	fileManager.addSectionTitle(Lang("Import & Export"));
-	fileManager.addButton(Lang("Open File"),() => {});
+	fileManager.addButton(Lang("Open File"),() => {
+		const $fileInput=$("<input type='file' style='display:none;position:fixed;top:-1000em'/>");
+		$fileInput.on("change",e=>{ // file selected
+			FILES.onFilesLoaded($fileInput[0].files);
+		});
+		$fileInput[0].click();
+	});
 	fileManager.addButton(Lang("Save as PNG"),e => {
 		EventDistributer.footbarHint.showInfo("Saving ...");
 		CURSOR.setBusy(true); // set busy cursor
@@ -45,35 +51,39 @@ FILES.initImportDropHandler=function() {
 	$("body").on("dragenter dragleave dragover drop",e => {
 		e.preventDefault();
 		if(e.type=="drop") {
-			let file=e.originalEvent.dataTransfer.files[0]; // @TODO: open multiple files
-			console.log(file);
-
-			if(!file) return; // dragging layer
-
-			// Check file type
-			if(file.name.endsWith(".psd")) { // a Photoshop file
-				CURSOR.setBusy(true); // set busy cursor
-				PERFORMANCE.idleTaskManager.startBusy();
-				let reader=new FileReader();
-				reader.readAsArrayBuffer(file);
-				reader.onload=function() {
-					FILES.loadAsPSD(this.result,file.name.slice(0,-4));
-				}
-			}
-
-			if(file.type&&file.type.match(/image*/)) { // an image file
-				CURSOR.setBusy(true); // set busy cursor
-				PERFORMANCE.idleTaskManager.startBusy();
-				window.URL=window.URL||window.webkitURL;
-				const img=new Image();
-				img.src=window.URL.createObjectURL(file);
-				img.filename=file.name;
-				img.onload=function(e) {
-					FILES.loadAsImage(this);
-				}
-			}
+			FILES.onFilesLoaded(e.originalEvent.dataTransfer.files);
 		}
 	});
+}
+
+FILES.onFilesLoaded=function(files){
+	let file=files[0]; // @TODO: open multiple files
+	console.log(file);
+
+	if(!file) return; // dragging layer
+
+	// Check file type
+	if(file.name.endsWith(".psd")) { // a Photoshop file
+		CURSOR.setBusy(true); // set busy cursor
+		PERFORMANCE.idleTaskManager.startBusy();
+		let reader=new FileReader();
+		reader.readAsArrayBuffer(file);
+		reader.onload=function() {
+			FILES.loadAsPSD(this.result,file.name.slice(0,-4));
+		}
+	}
+
+	if(file.type&&file.type.match(/image*/)) { // an image file
+		CURSOR.setBusy(true); // set busy cursor
+		PERFORMANCE.idleTaskManager.startBusy();
+		window.URL=window.URL||window.webkitURL;
+		const img=new Image();
+		img.src=window.URL.createObjectURL(file);
+		img.filename=file.name;
+		img.onload=function(e) {
+			FILES.loadAsImage(this);
+		}
+	}
 }
 
 // PSD handlers
