@@ -38,7 +38,7 @@ STORAGE.FILES.saveContentChanges=function(node) { // @TODO: Empty Layer
 			// Get buffer out of valid area
 			const imgData=node.rawImageData;
 			const vArea=imgData.validArea;
-			const imgBuf={
+			const imgBuf={ // @TODO: move this to worker?
 				type: "GLRAMBuf8",
 				id: imgData.id,
 				tagColor: imgData.tagColor,
@@ -60,14 +60,22 @@ STORAGE.FILES.saveContentChanges=function(node) { // @TODO: Empty Layer
 
 			const chunkN=Math.ceil(data.length/CHUNK_SIZE);
 			imgBuf.data=chunkN; // record the number
-			const bufPromise=STORAGE.FILES.layerStore.setItem(node.id,imgBuf);
+			
+			ENV.taskCounter.startTask(); // start node imagedata structure task
+			const bufPromise=STORAGE.FILES.layerStore.setItem(node.id,imgBuf).finally(()=>{
+				ENV.taskCounter.finishTask();
+			});
 
+			ENV.taskCounter.startTask(); // start save chunk task
 			const chunkPromises=[bufPromise];
 			for(let i=0;i<chunkN;i++) { // save a slice of data
 				const key=node.id+"#"+i;
 				const chunk=data.slice(i*CHUNK_SIZE,(i+1)*CHUNK_SIZE);
 				const kPromise=STORAGE.FILES.layerStore.setItem(key,chunk);
-				chunkPromises.push(kPromise);
+				ENV.taskCounter.startTask(); // start save chunk i task
+				chunkPromises.push(kPromise.finally(()=>{
+					ENV.taskCounter.finishTask(); // end save chunk i task
+				}));
 			}
 
 			Promise.all(chunkPromises).then(v => {
@@ -84,6 +92,8 @@ STORAGE.FILES.saveContentChanges=function(node) { // @TODO: Empty Layer
 				$("#icon").attr("href","./resources/favicon.png");
 
 				console.warn(err);
+			}).finally(()=>{
+				ENV.taskCounter.finishTask(); // finish save chunk task
 			});
 
 			STORAGE.FILES.removeContent(node.id,chunkN); // do separately
@@ -134,8 +144,11 @@ STORAGE.FILES.getContent=function(id){
 STORAGE.FILES.removeContent=function(id,startChunk) {
 	if(id) {
 		if(isNaN(startChunk)){ // remove whole id
+			ENV.taskCounter.startTask(); // start remove task
 			STORAGE.FILES.layerStore.removeItem(id).then(()=>{
 				//console.log("removed",id);
+			}).finally(()=>{
+				ENV.taskCounter.finishTask(); // end remove task
 			});
 		}
 		// remove chunk larger/equal startChunk
@@ -147,13 +160,16 @@ STORAGE.FILES.removeContent=function(id,startChunk) {
 					if(sPos<0)continue; // not a chunk
 					const chunkId=parseInt(v.substring(sPos+1));
 					if(chunkId>=startChunk){ // to remove
+						ENV.taskCounter.startTask(); // start remove chunk task
 						STORAGE.FILES.layerStore.removeItem(v).then(()=>{
 							//console.log("removed",v);
+						}).finally(()=>{
+							ENV.taskCounter.finishTask(); // end remove chunk task
 						});
 					}
 				}
 			}
-		}).catch(function(err) {
+		}).catch(function(err) { // get key promise
 			console.log(err);
 		});
 	}
@@ -196,6 +212,7 @@ STORAGE.FILES.loadLayerTree=function(node) {
 			this.elem=null;
 			this.N=0; // total children
 			this.loadedChildrenCnt=0; // loaded children number
+			ENV.taskCounter.startTask(1); // start loading layer task
 		}
 		load() { // sync function, can be called async
 			// **NOTE** setProperties() actually requested screen refresh
@@ -220,10 +237,11 @@ STORAGE.FILES.loadLayerTree=function(node) {
 					CANVAS.renderer.resizeImageData(newElement.rawImageData,imgBuf);
 					CANVAS.renderer.loadToImageData(newElement.rawImageData,imgBuf);
 					newElement.setProperties(sNode);
-					this.loaded();
 				}).catch(err => { // load failed
 					console.warn("ImageData Loading Failed");
 					console.error(err);
+				}).finally(()=>{
+					this.loaded();
 				});
 				this.elem=newElement;
 			}
@@ -240,6 +258,7 @@ STORAGE.FILES.loadLayerTree=function(node) {
 			}
 		}
 		loaded() {
+			ENV.taskCounter.finishTask(1); // end loading layer task
 			if(this.parent) {
 				this.parent.reportLoad(this);
 			}
@@ -273,7 +292,7 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	for(let i=0;i<loadQueue.length;i++) {
 		setTimeout(e => {
 			EventDistributer.footbarHint.showInfo(
-				"Loading "+(i/loadQueue.length*100).toFixed(2)+"% ...",5000);
+				"Loading "+(i/loadQueue.length*100).toFixed(1)+"% ...",5000);
 			loadQueue[i].load();
 		},0);
 	}
@@ -296,12 +315,15 @@ STORAGE.FILES.clearUnusedContents=function() {
 	STORAGE.FILES.layerStore.keys().then(keys => {
 		for(const v of keys) { // remove unused keys
 			if(!LAYERS.layerHash.hasOwnProperty(v.replace(/#.*$/,""))) {
+				ENV.taskCounter.startTask(); // start remove unused task
 				STORAGE.FILES.layerStore.removeItem(v).then(()=>{
 					console.log("Clear unused",v);
+				}).finally(()=>{
+					ENV.taskCounter.finishTask(); // end remove unused task
 				});
 			}
 		}
-	}).catch(function(err) {
+	}).catch(function(err) { // get keys promise
 		console.log(err);
 	});
 }

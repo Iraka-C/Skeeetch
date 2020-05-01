@@ -34,8 +34,8 @@ ENV.window={
 ENV.displaySettings={
 	antiAlias: true,
 	enableTransformAnimation: true,
-	maxPaperSize: 6400
 };
+ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
 
 
 // ========================= Functions ============================
@@ -46,6 +46,7 @@ ENV.init=function() { // When the page is loaded
 
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
 		ENV.setAntiAliasing(ENV.displaySettings.antiAlias); // set canvas css param
+		ENV.taskCounter.init();
 
 		const lastLayerTreeJSON=STORAGE.FILES.getLayerTree();
 		ENV.window.SIZE.width=$("#canvas-window").width();
@@ -70,6 +71,8 @@ ENV.init=function() { // When the page is loaded
 		BrushManager.init();
 		HISTORY.init();
 		FILES.init();
+
+		ENV.debug();
 
 		// prevent pen-dragging in Firefox causing window freezing
 		EVENTS.disableInputSelection($("#filename-input"));
@@ -265,132 +268,6 @@ ENV.toPaperXY=function(x,y) {
 
 	return [xc,yc];
 };
-
-/**
- * get transform matrix [a,b,c,d,e,f] from pArr = [x,y,r,s]
- * translate (x,y) rotate r scale s
- */
-ENV.getTransformMatrix=function(pArr) {
-	let cpw=ENV.window.SIZE.width;
-	let cph=ENV.window.SIZE.height;
-
-	let transCX=-ENV.paperSize.width/2;
-	let transCY=-ENV.paperSize.height/2;
-
-	let rot=pArr[2]/180*Math.PI;
-	let rotS=Math.sin(rot);
-	let rotC=Math.cos(rot);
-	let scale=pArr[3];
-	let flip=ENV.window.flip? -1:1;
-
-	let transWX=cpw/2+pArr[0];
-	let transWY=cph/2+pArr[1];
-
-	let c=-scale*rotS;
-	let d=scale*rotC;
-	let a=d*flip;
-	let b=-c*flip;
-
-	let e=transCX+transWX;
-	let f=transCY+transWY;
-	return [a,b,c,d,e,f];
-}
-
-/**
- * Update transform animation control
- */
-ENV.fireTransformAnimation=function(pArr) {
-	let anim=ENV.window._transAnimation;
-
-	if(!ENV.displaySettings.enableTransformAnimation) { // no animation
-		let mat=ENV.getTransformMatrix(pArr)
-		let matrixStr="matrix("+mat[0]+","+mat[1]+","+mat[2]+","+mat[3]+","+mat[4]+","+mat[5]+")";
-		anim.target=pArr;
-		anim.start=pArr;
-		anim.now=pArr;
-		anim.process=1;
-		$("#canvas-container").css({ // set style
-			"transform": matrixStr, // transform
-			"box-shadow": "0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
-		});
-		CANVAS.requestRefresh(); // update canvas anti-aliasing
-		return;
-	}
-	anim.target=pArr;
-	anim.start=anim.now;
-	anim.process=0;
-	if(!anim.isAnimationFired) { // no animation at present
-		anim.isAnimationFired=true;
-		requestAnimationFrame(ENV._transformAnimation);
-	}
-}
-ENV._transformAnimation=function() {
-	let anim=ENV.window._transAnimation;
-	let p=anim.process; // deal with animation effect
-	if(p<1-1E-6) { // continue animation, double check for unintentional fire
-		let nowTime=Date.now();
-		if(anim.lastTime>0) { // there's last animation
-			PERFORMANCE.submitFpsStat(nowTime-anim.lastTime);
-		}
-		anim.lastTime=nowTime;
-
-		let tP=anim.target;
-		let sP=anim.start;
-		// if shift pressed, run animation 10x faster to reduce latency on dragging
-		let targetFPS=PERFORMANCE.fpsCounter.fps.clamp(60,240);
-		let nextFps=targetFPS/(CURSOR.nowActivity=="pan-paper"&&CURSOR.isDown? 10:1);
-		let step=1/(anim.time*nextFps);
-		p+=step;
-		if(p>1) p=1; // end
-		anim.process=p;
-		// interpolate by p
-		let q=1-p;
-		q*=q; // (1-p)^2
-		q=1-q*q; // 4th order 1-(1-p)^4
-
-		let newP=pArrInterpolate(sP,tP,q);
-		anim.now=newP;
-		let newM=ENV.getTransformMatrix(newP);
-		let matrixStr="matrix("+newM[0]+","+newM[1]+","+newM[2]+","+newM[3]+","+newM[4]+","+newM[5]+")";
-		$("#canvas-container").css({
-			"transform": matrixStr, // transform
-			"box-shadow": "0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
-		});
-		CANVAS.requestRefresh(); // update canvas anti-aliasing
-
-		//console.log(matrixStr);
-
-		if(p<1-1E-6) { // request new frame
-			requestAnimationFrame(ENV._transformAnimation);
-		}
-		else {
-			anim.lastTime=0; // cancel timer
-			anim.isAnimationFired=false; // cancel animation
-		}
-	}
-}
-
-// linear interpolation by k: (1-k)p1+kp2, special notice on angle and scale
-function pArrInterpolate(p1,p2,k) {
-	let x=(p2[0]-p1[0])*k+p1[0];
-	let y=(p2[1]-p1[1])*k+p1[1];
-
-	// angle interpolation around a circle
-	let d1=p1[2],d2=p2[2];
-	let dD=(d2-d1)%360;
-	if(dD<0) dD+=360;
-	if(dD>180) { // CCW
-		dD-=360; // -180<dD<0
-	}
-	let r=d1+dD*k;
-
-	// scale interpolation using log scale
-	let sL1=Math.log(p1[3]);
-	let sL2=Math.log(p2[3]);
-	let s=Math.exp((sL2-sL1)*k+sL1);
-
-	return [x,y,r,s];
-}
 
 // ===================== Other setting functions ==========================
 ENV.setAntiAliasing=function(isAntiAlias) {

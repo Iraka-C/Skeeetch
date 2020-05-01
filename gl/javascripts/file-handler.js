@@ -67,6 +67,7 @@ FILES.onFilesLoaded=function(files){
 	if(file.name.endsWith(".psd")) { // a Photoshop file
 		CURSOR.setBusy(true); // set busy cursor
 		PERFORMANCE.idleTaskManager.startBusy();
+		ENV.taskCounter.startTask(1); // register load file task
 		let reader=new FileReader();
 		reader.readAsArrayBuffer(file);
 		reader.onload=function() {
@@ -95,9 +96,9 @@ FILES.onFilesLoaded=function(files){
 FILES.loadAsPSD=function(data,filename) {
 	let psdFile=agPsd.readPsd(data); // ag-psd function, use raw Context2D ImageData rather than loading into canvas
 	console.log(psdFile);
-	if(psdFile.width>ENV.displaySettings.maxPaperSize||psdFile.height>ENV.displaySettings.maxPaperSize) {
+	if(psdFile.width>ENV.maxPaperSize||psdFile.height>ENV.maxPaperSize) {
 		// larger than maximum paper size
-		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.displaySettings.maxPaperSize+" px",2000);
+		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.maxPaperSize+"px",2000);
 		CURSOR.setBusy(false); // free busy cursor
 		PERFORMANCE.idleTaskManager.startIdle();
 		return;
@@ -122,6 +123,7 @@ FILES.loadPSDNodes=function(node) {
 			this.elem=null;
 			this.N=0; // total children
 			this.loadedChildrenCnt=0; // loaded children number
+			ENV.taskCounter.startTask(1); // register load node
 		}
 		load() { // sync function, can be called async
 			// **NOTE** setProperties() actually requested screen refresh
@@ -137,7 +139,7 @@ FILES.loadPSDNodes=function(node) {
 			}
 			else if(sNode.canvas) { // canvas node, load image data from canvas
 				const newElement=new CanvasNode();
-				CANVAS.renderer.loadToImageData(newElement.rawImageData,sNode.canvas);
+				CANVAS.renderer.loadToImageData(newElement.rawImageData,sNode.canvas); // load data
 				if(sNode.hasOwnProperty("left")) { // set both border and valid area
 					newElement.rawImageData.left=sNode.left;
 					newElement.rawImageData.validArea.left=sNode.left;
@@ -146,12 +148,12 @@ FILES.loadPSDNodes=function(node) {
 					newElement.rawImageData.top=sNode.top;
 					newElement.rawImageData.validArea.top=sNode.top;
 				}
-				STORAGE.FILES.saveContentChanges(newElement);
+
 				// UI/status settings
 				const lockStatus=sNode.transparencyProtected?
 					sNode.protected.transparency?
 						1:2:0; // a bit weird
-				newElement.setProperties({ // @TODO: add initial value,
+				newElement.setProperties({ // also requested recomposition @TODO: add initial value
 					locked: lockStatus==2,
 					pixelOpacityLocked: lockStatus>=1,
 					opacity: sNode.opacity/255, // in psd, opacity is from 0 to 255
@@ -160,6 +162,9 @@ FILES.loadPSDNodes=function(node) {
 					name: sNode.name,
 					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode)
 				});
+				
+				// store contents
+				STORAGE.FILES.saveContentChanges(newElement); // save loaded contents
 				this.elem=newElement;
 			}
 			else { // unsupported node (yet)
@@ -183,13 +188,17 @@ FILES.loadPSDNodes=function(node) {
 			}
 		}
 		loaded() {
+			// report sth
+			ENV.taskCounter.finishTask(1); // register load node
 			if(this.parent){
 				this.parent.append(this);
 				if(this.parent.elem.id=="root"){ // parent is root
 					FILES.loadPSDNodes.lastLoadingElement=this.elem;
 				}
-			} // else: root node
-			// report sth
+			}
+			else{ // root loaded
+				FILES.onPSDLoaded();
+			}
 		}
 	}
 
@@ -217,11 +226,8 @@ FILES.loadPSDNodes=function(node) {
 	for(let i=0;i<loadQueue.length;i++) {
 		setTimeout(e=>{
 			EventDistributer.footbarHint.showInfo(
-				"Loading "+(i/loadQueue.length*100).toFixed(2)+"% ...",5000);
+				"Loading "+(i/loadQueue.length*100).toFixed(1)+"% ...",5000);
 			loadQueue[i].load();
-			if(i==loadQueue.length-1){ // all loaded
-				FILES.onPSDLoaded();
-			}
 		},0);
 	}
 }
@@ -245,6 +251,7 @@ FILES.onPSDLoaded=function() {
 	}
 	CURSOR.setBusy(false); // free busy cursor
 	PERFORMANCE.idleTaskManager.startIdle();
+	ENV.taskCounter.finishTask(1);
 	/**
 	 * Here is a mysterious bug that thumb updating has to be call asynced.
 	 * At this point (here), all canvas contents of psd SHOULD have loaded into CanvasNodes

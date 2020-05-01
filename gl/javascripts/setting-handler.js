@@ -151,18 +151,18 @@ SettingHandler.initSystemSetting=function(sysParams){
 		newVal=>{ // set on input
 			newVal-=0;
 			if(newVal){
-				newVal=newVal.clamp(16,ENV.displaySettings.maxPaperSize);
+				newVal=newVal.clamp(16,ENV.maxPaperSize);
 				SettingHandler.tempPaperSize.width=newVal;
 				sizeChangeHint(true);
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
-			let newVal=(SettingHandler.tempPaperSize.width+dW*20).clamp(16,ENV.displaySettings.maxPaperSize);
+			let newVal=(SettingHandler.tempPaperSize.width+dW*20).clamp(16,ENV.maxPaperSize);
 			SettingHandler.tempPaperSize.width=newVal;
 			sizeChangeHint(true);
 		},
 		(dx,oldVal)=>{ // set on drag-x
-			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.displaySettings.maxPaperSize);
+			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.maxPaperSize);
 			SettingHandler.tempPaperSize.width=newVal;
 			sizeChangeHint(true);
 		}
@@ -172,18 +172,18 @@ SettingHandler.initSystemSetting=function(sysParams){
 		newVal=>{ // set on input
 			newVal-=0;
 			if(newVal){
-				newVal=newVal.clamp(16,ENV.displaySettings.maxPaperSize);
+				newVal=newVal.clamp(16,ENV.maxPaperSize);
 				SettingHandler.tempPaperSize.height=newVal;
 				sizeChangeHint(true);
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
-			let newVal=(SettingHandler.tempPaperSize.height+dW*20).clamp(16,ENV.displaySettings.maxPaperSize);
+			let newVal=(SettingHandler.tempPaperSize.height+dW*20).clamp(16,ENV.maxPaperSize);
 			SettingHandler.tempPaperSize.height=newVal;
 			sizeChangeHint(true);
 		},
 		(dx,oldVal)=>{ // set on drag-x
-			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.displaySettings.maxPaperSize);
+			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.maxPaperSize);
 			SettingHandler.tempPaperSize.height=newVal;
 			sizeChangeHint(true);
 		}
