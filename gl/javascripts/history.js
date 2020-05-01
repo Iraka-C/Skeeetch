@@ -305,8 +305,12 @@ HISTORY.undoImageDataChange=function(item){
 	CANVAS.renderer.loadToImageData(node.rawImageData,oldData);
 
 	CANVAS.updateLastImageData(node);
-	STORAGE.FILES.saveContentChanges(node);
-	//STORAGE.FILES.reportUnsavedContentChanges();
+	if(CURSOR.isShown){ // save later
+		STORAGE.FILES.reportUnsavedContentChanges();
+	}
+	else{ // save now
+		STORAGE.FILES.saveContentChanges(node);
+	}
 	node.setRawImageDataInvalid();
 	node.updateThumb();
 	CANVAS.requestRefresh(); // setActive does not guarantee refresh
@@ -323,7 +327,12 @@ HISTORY.redoImageDataChange=function(item){
 	CANVAS.renderer.loadToImageData(node.rawImageData,newData);
 
 	CANVAS.updateLastImageData(node);
-	STORAGE.FILES.saveContentChanges(node);
+	if(CURSOR.isShown){ // save later
+		STORAGE.FILES.reportUnsavedContentChanges();
+	}
+	else{ // save now
+		STORAGE.FILES.saveContentChanges(node);
+	}
 	node.setRawImageDataInvalid();
 	node.updateThumb();
 	CANVAS.requestRefresh(); // setActive does not guarantee refresh
