@@ -180,9 +180,11 @@ table{
 	margin-right: 0.3em;
 	width: 1em;
 }
-#front-info-box, #bottom-info-box{
+#front-info-box{
 	opacity: 0;
 	transition: opacity 0.3s;
+}
+#front-info-box, #bottom-info-box{
 	white-space: nowrap;
 }
 #bottom-info-panel{
@@ -201,7 +203,7 @@ table{
 .bottom-info-block{
 	margin-left: 2em;
 	opacity: 0;
-	transition: opacity 0.5s;
+	transition: opacity 0.3s;
 }
 #bottom-info-panel:hover .bottom-info-block{
 	opacity: 1;

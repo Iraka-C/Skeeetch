@@ -13,6 +13,9 @@ STORAGE={};
 STORAGE.init=function(callback){
 	const sysSettings=STORAGE.SETTING.init(); // sync
 	STORAGE.FILES.init(); // sync: creating localForage instance
+	// if(sysSettings.windowParams.query["clear"]){
+	// 	STORAGE.FILES.removeContent();
+	// }
 	callback(sysSettings);
 };
 

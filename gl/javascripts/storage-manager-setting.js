@@ -35,12 +35,20 @@ STORAGE.SETTING={};
 STORAGE.SETTING.init=function(){ // synced
 	let v={};
 	const windowParams=STORAGE.SETTING.initWindowParams();
-	if(windowParams.query.reset){
-		STORAGE.FILES.clearLayerTree(); // Do not get files
+
+	if(windowParams.query["clear"]){ // requested contents clear
+		STORAGE.FILES.clearLayerTree();
+	}
+	if(windowParams.query["reset"]){
+		// Empty
 	}
 	else{
 		try{
 			v=JSON.parse(localStorage.getItem("system-setting"))||{};
+			const version=v.version||0;
+			if(version<ENV.version){ // low version settings
+				console.log("Low version "+version+" to "+ENV.version);
+			}
 		}catch(err){
 			console.warn("System Setting read-error",err);
 		}
@@ -90,6 +98,7 @@ STORAGE.SETTING.saveAllSettings=function(){
 			language: LANG.nowLang,
 			channelBitDepth: CANVAS.rendererBitDepth,
 			displaySettings: ENV.displaySettings
-		}
+		},
+		version: ENV.version
 	}));
 }

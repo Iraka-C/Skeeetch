@@ -79,10 +79,12 @@ EVENTS.init=function(){
 	$canvasWindow.on("pointerout",event=>{
 		CURSOR.setIsShown(false); // pen away, disable cursor
 		if(!CURSOR.isDown){ // not down and away: may be trying to close the window!
-			setTimeout(e=>{ // try to save at once
-				// Try to save the contents
-				STORAGE.FILES.requestSaveContentChanges();
-			},0);
+			if(event.relatedTarget!=$("#bottom-info-panel")[0]){ // not operating bottom panel
+				setTimeout(e=>{ // try to save at once
+					// Try to save the contents
+					STORAGE.FILES.requestSaveContentChanges();
+				},0);
+			}
 		}
 	});
 
