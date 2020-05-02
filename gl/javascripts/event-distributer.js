@@ -66,6 +66,7 @@ EventDistributer.button={
 		let isDown=false;
 		let origin={};
 		let initVal={};
+		$element.css("touch-action","none"); // prevent touch action on dragging
 		$element.on("pointerdown",event=>{
 			const e=event.originalEvent;
 			initVal=initFunc();
@@ -87,7 +88,6 @@ EventDistributer.button={
 			origin={};
 			initVal={};
 			isDown=false;
-			if(upFunc)upFunc();
 		});
 	}
 };
@@ -132,6 +132,7 @@ EventDistributer.setClick=function($element,callback){
 // 		$(window).on("pointermove",EventDistributer.button._onpointermove);
 // 		$(window).on("pointerup pointercancel",EventDistributer.button._onpointerup);
 // 	},
+// 	_nowPointerID: -1,
 // 	isDragging:false,
 // 	_origin:{x:NaN,y:NaN},
 // 	_nowListener:null, // a DOM Object
@@ -140,6 +141,9 @@ EventDistributer.setClick=function($element,callback){
 // 	addListener:function($element,callback,initFunc){ // $element is a jQuery Object
 // 		let el=$element[0];
 // 		el.addEventListener("pointerdown",event=>{
+// 			console.log("down");
+			
+// 			EventDistributer.button._nowPointerID=event.originalEvent.pointerId;
 // 			EventDistributer.button._nowListener=el;
 // 			EventDistributer.button._nowFunction=callback;
 // 			EventDistributer.button._nowInitValue=initFunc();
@@ -148,6 +152,8 @@ EventDistributer.setClick=function($element,callback){
 // 		},true);
 // 	},
 // 	_onpointermove:function(event){ // send the {dx,dy}
+	
+// 		console.log("move");
 // 		if(EventDistributer.button._nowListener&&EventDistributer.button._nowFunction){
 // 			// There is a pointer down
 // 			// @TODO: disable drawing when dragging here
@@ -158,6 +164,8 @@ EventDistributer.setClick=function($element,callback){
 // 		}
 // 	},
 // 	_onpointerup:function(event){
+		
+// 		console.log("up");
 // 		EventDistributer.button._nowListener=null;
 // 		EventDistributer.button._origin={x:NaN,y:NaN};
 // 		EventDistributer.button._nowInitValue={};

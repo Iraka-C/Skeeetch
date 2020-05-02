@@ -24,6 +24,7 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
+	touch-action: none;
 }
 /* ================ Setting menu styles ================= */
 #left-menu-panels{
@@ -46,7 +47,6 @@
 	transition-property: width;
 	transition-duration: 0.5s;
 	transition-timing-function: ease;
-	touch-action: pan-y;
 	cursor: auto;
 
 	height: 100%;
@@ -57,22 +57,19 @@
 .setting-panel-collapsed{
 	width: 0em;
 }
-.menu-scroll-wrapper{
+.menu-scroll-wrapper, .left-menu-scroll-wrapper{
 	position: absolute;
 	overflow-x: hidden;
 	overflow-y: scroll;
 	top: 0px;
-	left: 0px;
 	bottom: 0px;
 	right: -100px; /* hide scroll bar */
+	touch-action: pan-y;
+}
+.menu-scroll-wrapper{
+	left: 0px;
 }
 .left-menu-scroll-wrapper{
-	position: absolute;
-	overflow-x: hidden;
-	overflow-y: scroll;
-	top: 0px;
-	bottom: 0px;
-	right: -100px; /* hide scroll bar */
 	width: calc(var(--menu-width) + 100px); /* stick to right */
 }
 .setting-table-container{
@@ -242,7 +239,6 @@ table{
 	height: 100%;
 	overflow: hidden;
 	/* no touch action on this panel */
-	/* touch-action: none;*/
 	/*cursor: none;*/
 }
 #canvas-container{
