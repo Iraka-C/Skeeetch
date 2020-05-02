@@ -100,8 +100,6 @@ CURSOR.moveCursor=function(event){
 			CANVAS.panLayer(LAYERS.active,cp0[0]-cp1[0],cp0[1]-cp1[1],false);
 			LAYERS.active.setImageDataInvalid(); // merge with clip mask
 			CANVAS.requestRefresh();
-			// @TODO: now after layer recomposition the raw data is cropped by canvas viewport
-			// This happens at top/left
 		}
 		else if(CURSOR.nowActivity=="pick"){
 			if(isNaN(CURSOR.p0[0])||isNaN(CURSOR.p0[1]))return;

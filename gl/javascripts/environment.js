@@ -185,7 +185,7 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	}
 	let isAnim=ENV.displaySettings.enableTransformAnimation; // store animation
 	ENV.displaySettings.enableTransformAnimation=false; // disable animation when changing size
-	HISTORY.clearAllHistory(); // remove histories
+	HISTORY.clearAllHistory(); // remove histories //@TODO: preserve history
 	ENV.paperSize={width: w,height: h,diag: Math.sqrt(w*w+h*h)};
 	$("#canvas-container").css({"width": w+"px","height": h+"px"}); // set canvas view size
 	$("#main-canvas").attr({"width": w,"height": h}); // set canvas pixel size
@@ -197,16 +197,10 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 		for(const k in LAYERS.layerHash) { // @TODO: copy image data, mask image data
 			const layer=LAYERS.layerHash[k];
 			if(layer instanceof CanvasNode) {
-				const rImg=layer.rawImageData;
-				const tArea=GLProgram.borderIntersection(rImg.validArea,CANVAS.renderer.viewport); // target area
-				layer.assignNewRawImageData(tArea.width,tArea.height,tArea.left,tArea.top,true);
-				//console.log(tArea);
 				// Do not change raw data
-				
 				layer.assignNewMaskedImageData(0,0);
 				layer.assignNewImageData(0,0);
 				layer.setMaskedImageDataInvalid();
-				STORAGE.FILES.saveContentChanges(layer); // unchanged
 			}
 			else {
 				layer.assignNewRawImageData(0,0);

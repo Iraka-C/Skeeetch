@@ -23,7 +23,7 @@ COMPOSITOR.updateLayerTreeStructure=function(){
  * This function entrance assumes that all nodes have valid imageData.
  */
 COMPOSITOR.onUpdate=function(){
-	console.log("Update");
+	//console.log("Update");
 	if(!LAYERS.layerTree.isImageDataValid){
 		//console.warn(LAYERS.layerTree._getTreeNodeString()); // print the present layer tree
 		//throw new Error("Try to construct cache structure while there are invalid image data.");

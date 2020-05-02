@@ -38,31 +38,31 @@ STORAGE.FILES.saveContentChanges=function(node) {
 			// Get buffer out of valid area
 			const imgData=node.rawImageData;
 			const vArea=imgData.validArea;
-			const imgBuf={ // @TODO: move this to worker?
-				type: "GLRAMBuf8",
-				id: imgData.id,
-				tagColor: imgData.tagColor,
-				bitDepth: 8,
-				data: CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea),
-				width: vArea.width,
-				height: vArea.height,
-				left: vArea.left,
-				top: vArea.top,
-				validArea: vArea // borrow values
-			};
+			// const imgBuf={ // @TODO: move this to worker?
+			// 	type: "GLRAMBuf8",
+			// 	id: imgData.id,
+			// 	tagColor: imgData.tagColor,
+			// 	bitDepth: 8,
+			// 	data: CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea),
+			// 	width: vArea.width,
+			// 	height: vArea.height,
+			// 	left: vArea.left,
+			// 	top: vArea.top,
+			// 	validArea: vArea // borrow values
+			// };
 
 			// Start Saving
 			const CHUNK_SIZE=1024*1024*64; // largest chunk Chrome may store
 
-			const rawData=imgBuf.data;
+			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea);
 			const data=Compressor.encode(rawData);
-			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
+			//console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
 
 			const chunkN=Math.ceil(data.length/CHUNK_SIZE);
-			imgBuf.data=chunkN; // record the number
+			//imgBuf.data=chunkN; // record the number
 			
 			ENV.taskCounter.startTask(); // start node imagedata structure task
-			const bufPromise=STORAGE.FILES.layerStore.setItem(node.id,imgBuf).finally(()=>{
+			const bufPromise=STORAGE.FILES.layerStore.setItem(node.id,chunkN).finally(()=>{
 				ENV.taskCounter.finishTask();
 			});
 
@@ -113,12 +113,12 @@ STORAGE.FILES.isUnsaved=function(){
 }
 
 STORAGE.FILES.getContent=function(id){
-	return STORAGE.FILES.layerStore.getItem(id).then(imgBuf => {
-		if(!imgBuf){ // Not stored
+	return STORAGE.FILES.layerStore.getItem(id).then(chunkN => {
+		if(!chunkN){ // Not stored or zero chunk
 			return null;
 		}
 
-		const chunkN=imgBuf.data;
+		//const chunkN=imgBuf.data;
 		const chunkPromises=[];
 		for(let i=0;i<chunkN;i++) { // get data slices
 			const key=id+"#"+i;
@@ -138,8 +138,8 @@ STORAGE.FILES.getContent=function(id){
 				offset+=v.length;
 			}
 
-			imgBuf.data=Compressor.decode(data); // extract
-			return imgBuf;
+			//imgBuf.data=Compressor.decode(data);
+			return Compressor.decode(data); // extract
 		});
 	});
 }
@@ -243,11 +243,13 @@ STORAGE.FILES.loadLayerTree=function(node) {
 				this.parent.elem.insertNode$UI(newElement.$ui,0);
 				newElement.setRawImageDataInvalid();
 				STORAGE.FILES.getContent(sNode.id).then(imgBuf => {
-					if(imgBuf){ // contents get
-						CANVAS.renderer.resizeImageData(newElement.rawImageData,imgBuf);
-						CANVAS.renderer.loadToImageData(newElement.rawImageData,imgBuf);
+					if(imgBuf&&sNode.rawImageData){ // contents get
+						sNode.rawImageData.data=imgBuf;
+						CANVAS.renderer.resizeImageData(newElement.rawImageData,sNode.rawImageData);
+						CANVAS.renderer.loadToImageData(newElement.rawImageData,sNode.rawImageData);
+						sNode.rawImageData.data=1; // release object
 					}
-					else{
+					else{ // failed to get content, delete broken chunk
 						STORAGE.FILES.removeContent(sNode.id);
 						STORAGE.FILES.isFailedLayer=true;
 					}

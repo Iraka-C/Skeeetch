@@ -467,6 +467,7 @@ CANVAS.roundLayerPosition=function(targetLayer){
 		lastD.validArea.left=Math.round(lastD.validArea.left);
 		lastD.validArea.top=Math.round(lastD.validArea.top);
 	}
+	targetLayer.setRawImageDataInvalid(); // render out-of-viewport-before-panning area
 	// @TODO: pan Masked data // @TODO: link Mask data
 	if(targetLayer.children.length){
 		for(const v of targetLayer.children) {

@@ -495,20 +495,22 @@ class CanvasNode extends ContentNode {
 		});
 	}
 	getStorageJSON(){
-		//const img=this.rawImageData; // @TODO: mask
+		const img=this.rawImageData; // @TODO: mask
+		const vArea=img.validArea;
 		return Object.assign(super.getStorageJSON(),{
-			type: "CanvasNode"
-			// rawImageData: { // @TODO: save imagedata structure in storageJSON
-			// 	type: "GLRAMBuf8",
-			// 	id: img.id,
-			// 	tagColor: img.tagColor,
-			// 	bitDepth: 8,
-			// 	width: vArea.width,
-			// 	height: vArea.height,
-			// 	left: vArea.left,
-			// 	top: vArea.top,
-			// 	validArea: vArea // borrow values
-			// }
+			type: "CanvasNode",
+			rawImageData: { // Dummy structure for loading
+				type: "GLRAMBuf8",
+				data: 1, // not yet, assign when loading
+				id: img.id,
+				tagColor: img.tagColor,
+				bitDepth: 8,
+				width: vArea.width,
+				height: vArea.height,
+				left: vArea.left,
+				top: vArea.top,
+				validArea: vArea // borrow values
+			}
 		});
 	}
 }

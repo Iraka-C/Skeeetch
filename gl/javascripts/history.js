@@ -62,6 +62,10 @@ class HistoryItem{
 				this.prevStatus=param.prevStatus;
 				this.nowStatus=param.nowStatus;
 				break;
+			case "paper-size": // @TODO
+				this.prevSize=param.prevSize;
+				this.nowSize=param.nowSize;
+				break;
 			case "bundle":
 				this.children=[];
 				for(const v of param.children){ // recursive, ascending order
