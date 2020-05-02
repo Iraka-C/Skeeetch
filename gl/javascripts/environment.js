@@ -242,7 +242,7 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	$("#scale-info-input").val(Math.round(k*100));
 
 	ENV.displaySettings.enableTransformAnimation=isAnim; // restore animation setting
-	$("#canvas-container").css("background-size",Math.sqrt(Math.max(w,h))*2+"px"); // set transparent block size
+	$("#main-canvas-background").css("background-size",Math.sqrt(Math.max(w,h))*2+"px"); // set transparent block size
 };
 // ====================== Tools functions ==========================
 /**

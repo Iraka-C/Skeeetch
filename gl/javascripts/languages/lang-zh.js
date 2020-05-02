@@ -24,7 +24,7 @@ LANG_ZH={
 	"Anti-Aliasing":"抗锯齿",
 	"On":"开启",
 	"Off":"关闭",
-	"Transform Animation":"过渡动画",
+	"Transform Animation":"平滑滚动",
 	"sys-info":"系统信息",
 	"sys-mem":"内存使用",
 	"sys-gpumem":"显存使用",

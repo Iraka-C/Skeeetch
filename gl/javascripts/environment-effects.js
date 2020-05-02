@@ -6,6 +6,7 @@
 /**
  * get transform matrix [a,b,c,d,e,f] from pArr = [x,y,r,s]
  * translate (x,y) rotate r scale s
+ * order: trans -> rot CW(paper center) -> scale(paper center)
  */
 ENV.getTransformMatrix=function(pArr) {
 	let cpw=ENV.window.SIZE.width;
@@ -121,10 +122,13 @@ function pArrInterpolate(p1,p2,k) {
 	}
 	let r=d1+dD*k;
 
-	// scale interpolation using log scale
-	let sL1=Math.log(p1[3]);
-	let sL2=Math.log(p2[3]);
-	let s=Math.exp((sL2-sL1)*k+sL1);
+	// scale interpolation using log scale (X) causes trembling
+	// let sL1=Math.log(p1[3]);
+	// let sL2=Math.log(p2[3]);
+	// let s=Math.exp((sL2-sL1)*k+sL1);
+	let sL1=p1[3];
+	let sL2=p2[3];
+	let s=(sL2-sL1)*k+sL1;
 
 	return [x,y,r,s];
 }

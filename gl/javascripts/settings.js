@@ -83,7 +83,7 @@ class SettingManager{
 			}
 		}
 		SettingManager.setInputInstantNumberInteraction(
-			$input,null,inputUpdateFunc,scrollUpdateFunc,dragUpdateFunc,_updateFunc);
+			$input,$row,inputUpdateFunc,scrollUpdateFunc,dragUpdateFunc,_updateFunc);
 		
 		this._updateFuncList.push(_updateFunc);
 		return _updateFunc;
@@ -119,7 +119,7 @@ class SettingManager{
 			let v=$input[0];
 			v.selectionStart=v.selectionEnd;
 		});
-		EventDistributer.wheel.addListener($parent,dw=>{ // Scroll
+		EventDistributer.wheel.addListener($input,dw=>{ // Scroll on ONLY input
 			let val=$input.val();
 			if(scrollUpdateFunc){
 				scrollUpdateFunc(dw,val);
