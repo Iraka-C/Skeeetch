@@ -164,10 +164,14 @@ STORAGE.FILES.removeContent=function(id,startChunk) {
 		});
 	}
 	else { // clear all
-		console.log("IDB: Remove all");
-		console.trace();
-
-		STORAGE.FILES.layerStore.clear();
+		ENV.taskCounter.startTask();
+		STORAGE.FILES.layerStore.clear().then(()=>{
+			console.log("IDB: Remove all");
+		}).catch(err=>{
+			console.log(err);
+		}).finally(()=>{
+			ENV.taskCounter.finishTask();
+		});
 	}
 
 }
@@ -321,7 +325,6 @@ STORAGE.FILES.loadLayerTree=function(node) {
 STORAGE.FILES.onLayerTreeLoad=function(activeID) {
 	STORAGE.FILES.clearUnusedContents(); // maybe uncleared history
 	COMPOSITOR.updateLayerTreeStructure(); // async!
-	console.log("Active",activeID);
 	CURSOR.setBusy(false); // free busy cursor
 	PERFORMANCE.idleTaskManager.startIdle();
 	LAYERS.setActive(activeID);

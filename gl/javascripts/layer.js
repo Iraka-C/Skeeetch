@@ -490,7 +490,7 @@ LAYERS.getStorageJSON=function() {
 	return Object.assign(layerTreeJSON,{
 		title: ENV.getFileTitle(),
 		paperSize: [ENV.paperSize.width,ENV.paperSize.height],
-		active: LAYERS.active.id
+		active: LAYERS.active?LAYERS.active.id:null
 		// @TODO: add trans?
 	});
 }

@@ -14,7 +14,7 @@ FILES.initFileMenu=function() {
 	fileManager.setOpenButton($("#file-button"));
 	fileManager.addSectionTitle(Lang("Add Content"));
 	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
-		// @TODO: clear storage
+		STORAGE.FILES.removeContent();
 		ENV.setFileTitle("Skeeetch");
 		ENV.setPaperSize(ENV.paperSize.width,ENV.paperSize.height);
 		LAYERS.initFirstLayer();
@@ -92,7 +92,7 @@ FILES.initImportDropHandler=function() {
  */
 FILES.loadAsPSD=function(data,filename) {
 	let psdFile=agPsd.readPsd(data); // ag-psd function, use raw Context2D ImageData rather than loading into canvas
-	console.log(psdFile);
+	//console.log(psdFile);
 	if(psdFile.width>ENV.maxPaperSize||psdFile.height>ENV.maxPaperSize) {
 		// larger than maximum paper size
 		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.maxPaperSize+"px",2000);
@@ -206,7 +206,7 @@ FILES.loadPSDNodes=function(node) {
 			ENV.taskCounter.finishTask(1); // register load node
 			if(this.parent){
 				this.parent.append(this);
-				if(this.parent.elem.id=="root"){ // parent is root
+				if(this.parent.elem.id=="root"&&this.elem){ // parent is root
 					FILES.loadPSDNodes.lastLoadingElement=this.elem;
 				}
 			}
