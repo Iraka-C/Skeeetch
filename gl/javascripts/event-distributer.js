@@ -88,6 +88,7 @@ EventDistributer.button={
 			origin={};
 			initVal={};
 			isDown=false;
+			if(upFunc)upFunc();
 		});
 	}
 };

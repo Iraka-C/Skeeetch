@@ -121,6 +121,19 @@ class H_SVSelector extends PaletteSelector{
 			this.setHSV(newHSV,true); // no need to update canvas
 		}
 	}
+	onScrollBanner(dw){
+		const oldH=this.hsv[0];
+		let newH=oldH-dw*3;
+		if(newH>=360)newH-=360;
+		if(newH<0)newH+=360;
+		this.hsv[0]=newH;
+		this.setHSV(this.hsv,true);
+		this._updateBanner();
+		this._updateSelector();
+	}
+
+	// ================= Set colors ===================
+
 	setRGB(rgb,isSelfCall){
 		super.setRGB(rgb);
 		if(!isSelfCall){

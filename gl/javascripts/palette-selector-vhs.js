@@ -118,7 +118,7 @@ class V_HSSelector extends PaletteSelector{
 		this.setHSV(this.hsv,true); // update banner by myself
 		this._updateBanner(x);
 		this._updateSelector();
-		this._updateCursor(); // color may change
+		this._updateCursor(); // cursor color may change
 	}
 	onSelectSelector(x,y,isPickingColor){ // (x,y): LU 0~1 in selector window
 		const hs=V_HSSelector.dxy2hs(x,y);
@@ -133,6 +133,18 @@ class V_HSSelector extends PaletteSelector{
 			this.setHSV(newHSV,true); // no need to update selector
 		}
 	}
+	onScrollBanner(dw){
+		const oldV=this.hsv[2];
+		let newV=(oldV-dw*3).clamp(0,255);
+		this.hsv[2]=newV;
+		this.setHSV(this.hsv,true);
+		this._updateBanner();
+		this._updateSelector();
+		this._updateCursor(); // cursor color may change
+	}
+
+	// ================= Set colors ===================
+
 	setRGB(rgb,isSelfCall){
 		super.setRGB(rgb);
 		if(!isSelfCall){

@@ -83,12 +83,15 @@ class PaletteSelector { // Abstract!
 	 * 
 	 * @param {String} s "normal"|"web-safe-color"|"web-named-color"|"named-color"|"8bit"
 	 */
-	// setColorRange(s){
-	// 	this.colorRange=s;
-	// }
 	onSelectBanner(x) { // x: 0~1 on banner
 	}
 	onSelectSelector(x,y,isPickingColor) { // (x,y): LU 0~1 in selector window. isPickingColor: is the user trying to pick color
+	}
+	onScrollBanner(dw){
+
+	}
+	onScrollSelector(dx,dy){
+
 	}
 	static getColorString(rgb) {
 		if(rgb[3]) {
@@ -285,6 +288,10 @@ PALETTE.initPaletteWindow=function() {
 	$("#palette-hue-selector-canvas").on("pointerout pointercancel",event => {
 		PALETTE.isSelectingHue=false;
 		//PALETTE.drawHueSelector();
+	});
+
+	EventDistributer.wheel.addListener($hcv,(wY,wX)=>{
+		PALETTE.colorSelector.onScrollBanner(wY);
 	});
 
 	//PALETTE.initHueSelector();
