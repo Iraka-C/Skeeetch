@@ -114,7 +114,10 @@ STORAGE.FILES.isUnsaved=function(){
 
 STORAGE.FILES.getContent=function(id){
 	return STORAGE.FILES.layerStore.getItem(id).then(imgBuf => {
-		// @TODO: if imgBuf==null, then set related layers as empty
+		if(!imgBuf){ // Not stored
+			return null;
+		}
+
 		const chunkN=imgBuf.data;
 		const chunkPromises=[];
 		for(let i=0;i<chunkN;i++) { // get data slices
@@ -203,7 +206,9 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	CURSOR.setBusy(true); // set busy cursor
 	PERFORMANCE.idleTaskManager.startBusy();
 	EventDistributer.footbarHint.showInfo("Loading saved paper ...");
+	STORAGE.FILES.isFailedLayer=false;
 
+	const loadQueue=[]; // A queue of StackNodes
 
 	class StackNode {
 		constructor(json,parent) {
@@ -212,7 +217,11 @@ STORAGE.FILES.loadLayerTree=function(node) {
 			this.elem=null;
 			this.N=0; // total children
 			this.loadedChildrenCnt=0; // loaded children number
-			ENV.taskCounter.startTask(1); // start loading layer task
+
+			// Loading queue related
+			this.index=0;
+			this.nextNodeToLoad=null;
+			ENV.taskCounter.startTask(1); // register load node
 		}
 		load() { // sync function, can be called async
 			// **NOTE** setProperties() actually requested screen refresh
@@ -234,12 +243,19 @@ STORAGE.FILES.loadLayerTree=function(node) {
 				this.parent.elem.insertNode$UI(newElement.$ui,0);
 				newElement.setRawImageDataInvalid();
 				STORAGE.FILES.getContent(sNode.id).then(imgBuf => {
-					CANVAS.renderer.resizeImageData(newElement.rawImageData,imgBuf);
-					CANVAS.renderer.loadToImageData(newElement.rawImageData,imgBuf);
+					if(imgBuf){ // contents get
+						CANVAS.renderer.resizeImageData(newElement.rawImageData,imgBuf);
+						CANVAS.renderer.loadToImageData(newElement.rawImageData,imgBuf);
+					}
+					else{
+						STORAGE.FILES.removeContent(sNode.id);
+						STORAGE.FILES.isFailedLayer=true;
+					}
 					newElement.setProperties(sNode);
 				}).catch(err => { // load failed
 					console.warn("ImageData Loading Failed");
 					console.error(err);
+					STORAGE.FILES.isFailedLayer=true;
 				}).finally(()=>{
 					this.loaded();
 				});
@@ -248,6 +264,14 @@ STORAGE.FILES.loadLayerTree=function(node) {
 			else { // Other layers
 				// ...?
 				this.loaded();
+			}
+
+			if(this.nextNodeToLoad){ // prepare to load the next node
+				setTimeout(e=>{
+					const percentage=(this.index/loadQueue.length*100).toFixed(1);
+					EventDistributer.footbarHint.showInfo("Loading "+percentage+"% ...",5000);
+					this.nextNodeToLoad.load();
+				},0);
 			}
 		}
 		reportLoad(child) {
@@ -274,10 +298,15 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	rootStackNode.elem=LAYERS.layerTree; // set (already loaded) element
 	rootStackNode.N=node.children.length;
 
-	const loadQueue=[];
 	const traverse=function(jsonNode,parentStackNode) {
 		const stackNode=new StackNode(jsonNode,parentStackNode);
+		const M=loadQueue.length;
+		stackNode.index=M;
+		if(M){ // create linked list of loading items
+			loadQueue[M-1].nextNodeToLoad=stackNode;
+		}
 		loadQueue.push(stackNode);
+
 		if(jsonNode.children) { // load children json
 			for(let i=0;i<jsonNode.children.length;i++) {
 				traverse(jsonNode.children[i],stackNode);
@@ -289,13 +318,15 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	}
 
 	// Load all children async
-	for(let i=0;i<loadQueue.length;i++) {
-		setTimeout(e => {
-			EventDistributer.footbarHint.showInfo(
-				"Loading "+(i/loadQueue.length*100).toFixed(1)+"% ...",5000);
-			loadQueue[i].load();
-		},0);
-	}
+	EventDistributer.footbarHint.showInfo("Loading 0.0% ...",5000);
+	// for(let i=0;i<loadQueue.length;i++) {
+	// 	setTimeout(e => {
+	// 		EventDistributer.footbarHint.showInfo(
+	// 			"Loading "+(i/loadQueue.length*100).toFixed(1)+"% ...",5000);
+	// 		loadQueue[i].load();
+	// 	},0);
+	// }
+	loadQueue[0].load(); // kick
 }
 
 STORAGE.FILES.onLayerTreeLoad=function(activeID) {
@@ -306,7 +337,12 @@ STORAGE.FILES.onLayerTreeLoad=function(activeID) {
 	PERFORMANCE.idleTaskManager.startIdle();
 	LAYERS.setActive(activeID);
 	LAYERS.updateAllThumbs();
-	EventDistributer.footbarHint.showInfo("Loaded");
+	if(STORAGE.FILES.isFailedLayer){
+		EventDistributer.footbarHint.showInfo("ERROR: Loaded with corrupted layers",2000);
+	}
+	else{
+		EventDistributer.footbarHint.showInfo("Loaded");
+	}
 }
 
 // clear buf/chunk unused by any layer

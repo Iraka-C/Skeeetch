@@ -28,6 +28,7 @@ LANG_ZH={
 	"sys-info":"系统信息",
 	"sys-mem":"内存使用",
 	"sys-gpumem":"显存使用",
+	"sys-disk":"硬盘使用",
 	"toggle-fullscreen":"切换全屏幕模式",
 	"palette-title":"调色盘",
 	"Color Selector":"取色器",
@@ -85,6 +86,12 @@ LANG_ZH={
 
 	// Files
 	"Files":"文件",
+	"Add Content":"新建内容",
+	"New Paper":"新建画纸",
+	"Open File":"打开文件",
+	"Export Content":"导出内容",
+	"Save as PNG":"保存为PNG图片",
+	"Save as PSD":"保存为PSD文档",
 };
 LANG_ZH._id={
 	"filename-input":"Skeeetch",

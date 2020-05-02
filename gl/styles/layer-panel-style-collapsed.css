@@ -1,5 +1,5 @@
 .layer-panel-block{ /* The width of all elements in layer block */
-	width: 3em;
+	width: var(--collapsed-layer-ui-size);
 }
 
 .layer-panel-button-to-collapse{
@@ -14,7 +14,7 @@
 	font-size: 100%;
 }
 .layer-ui{
-	height: 3em;
+	height: var(--collapsed-layer-ui-size);
 }
 
 .layer-opacity-label{

@@ -95,6 +95,12 @@
 }
 
 /* =================== Layer Panels =================== */
+:root { /* Sizes */
+	--expanded-layer-ui-width: 10em;
+	--expanded-layer-namelabel-margin: 0.3em;
+	--collapsed-layer-ui-size: 3em;
+}
+
 #layer-panel{
 	background: #aaa;
 	flex: auto;

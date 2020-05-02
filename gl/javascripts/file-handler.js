@@ -67,6 +67,7 @@ FILES.onFilesLoaded=function(files){
 	if(file.name.endsWith(".psd")) { // a Photoshop file
 		CURSOR.setBusy(true); // set busy cursor
 		PERFORMANCE.idleTaskManager.startBusy();
+		EventDistributer.footbarHint.showInfo("Reading file contents ...");
 		ENV.taskCounter.startTask(1); // register load file task
 		let reader=new FileReader();
 		reader.readAsArrayBuffer(file);
@@ -116,6 +117,8 @@ FILES.loadAsPSD=function(data,filename) {
  * which can save memory during composition
  */
 FILES.loadPSDNodes=function(node) {
+	const loadQueue=[]; // A queue of StackNodes
+
 	class StackNode {
 		constructor(json,parent) {
 			this.parent=parent;
@@ -123,6 +126,10 @@ FILES.loadPSDNodes=function(node) {
 			this.elem=null;
 			this.N=0; // total children
 			this.loadedChildrenCnt=0; // loaded children number
+
+			// Loading queue related
+			this.index=0;
+			this.nextNodeToLoad=null;
 			ENV.taskCounter.startTask(1); // register load node
 		}
 		load() { // sync function, can be called async
@@ -140,6 +147,10 @@ FILES.loadPSDNodes=function(node) {
 			else if(sNode.canvas) { // canvas node, load image data from canvas
 				const newElement=new CanvasNode();
 				CANVAS.renderer.loadToImageData(newElement.rawImageData,sNode.canvas); // load data
+				// Release canvas contents
+				sNode.canvas.width=0;
+				sNode.canvas.height=0;
+				// Set image data position
 				if(sNode.hasOwnProperty("left")) { // set both border and valid area
 					newElement.rawImageData.left=sNode.left;
 					newElement.rawImageData.validArea.left=sNode.left;
@@ -171,6 +182,14 @@ FILES.loadPSDNodes=function(node) {
 				FILES.loadPSDNodes.isUnsupportedLayerFound=true;
 			}
 
+			if(this.nextNodeToLoad){ // prepare to load the next node
+				setTimeout(e=>{
+					const percentage=(this.index/loadQueue.length*100).toFixed(1);
+					EventDistributer.footbarHint.showInfo("Loading "+percentage+"% ...",5000);
+					this.nextNodeToLoad.load();
+				},0);
+			}
+
 			if(this.N==0){ // no children
 				this.loaded();
 			}
@@ -183,7 +202,6 @@ FILES.loadPSDNodes=function(node) {
 			}
 			this.loadedChildrenCnt++;
 			if(this.loadedChildrenCnt==this.N){ // all children loaded
-				// may do compression / composition here
 				this.loaded();
 			}
 		}
@@ -205,13 +223,18 @@ FILES.loadPSDNodes=function(node) {
 	// Construct loading queue using DFS
 	// 1 exception: root stack node doesn't belong to queue: already in layerTree
 	const rootStackNode=new StackNode(node,null);
-	rootStackNode.elem=LAYERS.layerTree; // set (already loaded) element
+	rootStackNode.elem=LAYERS.layerTree; // set (regarded as already loaded) root element
 	rootStackNode.N=node.children.length;
-
-	const loadQueue=[];
+	
 	const traverse=function(jsonNode,parentStackNode) {
 		const stackNode=new StackNode(jsonNode,parentStackNode);
+		const M=loadQueue.length;
+		stackNode.index=M;
+		if(M){ // create linked list of loading items
+			loadQueue[M-1].nextNodeToLoad=stackNode;
+		}
 		loadQueue.push(stackNode);
+
 		if(jsonNode.children) { // load children json
 			for(let i=0;i<jsonNode.children.length;i++) {
 				traverse(jsonNode.children[i],stackNode);
@@ -223,13 +246,9 @@ FILES.loadPSDNodes=function(node) {
 	}
 
 	// Load all children async
-	for(let i=0;i<loadQueue.length;i++) {
-		setTimeout(e=>{
-			EventDistributer.footbarHint.showInfo(
-				"Loading "+(i/loadQueue.length*100).toFixed(1)+"% ...",5000);
-			loadQueue[i].load();
-		},0);
-	}
+	// @TODO: length==0?
+	EventDistributer.footbarHint.showInfo("Loading 0.0% ...",5000);
+	loadQueue[0].load(); // kick!
 }
 
 /**
@@ -251,7 +270,7 @@ FILES.onPSDLoaded=function() {
 	}
 	CURSOR.setBusy(false); // free busy cursor
 	PERFORMANCE.idleTaskManager.startIdle();
-	ENV.taskCounter.finishTask(1);
+	ENV.taskCounter.finishTask(1); // finish file loading task
 	/**
 	 * Here is a mysterious bug that thumb updating has to be call asynced.
 	 * At this point (here), all canvas contents of psd SHOULD have loaded into CanvasNodes

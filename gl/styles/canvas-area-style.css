@@ -1,3 +1,8 @@
+:root { /* Sizes */
+	--menu-width: 16em;
+	--menu-margin: 1em;
+}
+
 #canvas-area-panel{
 	position: relative;
 	cursor: none;
@@ -25,9 +30,6 @@
 	position: absolute;
 	height: 100%;
 }
-#left-menu-panels .setting-table-container{
-	right: 0em; /* slipping in/out effect sick to right edge */
-}
 #right-menu-panels{
 	position: absolute;
 	right: 0em;
@@ -39,9 +41,8 @@
 .setting-panel{
 	position: relative;
 	pointer-events: all; /* Clickable */
-	overflow-x: hidden;
-	overflow-y: auto;
-	width: 16em; /* hard coded for animation */
+	overflow: hidden;
+	width: var(--menu-width);
 	transition-property: width;
 	transition-duration: 0.5s;
 	transition-timing-function: ease;
@@ -56,9 +57,27 @@
 .setting-panel-collapsed{
 	width: 0em;
 }
+.menu-scroll-wrapper{
+	position: absolute;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	top: 0px;
+	left: 0px;
+	bottom: 0px;
+	right: -100px; /* hide scroll bar */
+}
+.left-menu-scroll-wrapper{
+	position: absolute;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	top: 0px;
+	bottom: 0px;
+	right: -100px; /* hide scroll bar */
+	width: calc(var(--menu-width) + 100px); /* stick to right */
+}
 .setting-table-container{
 	position: absolute;
-	margin: 1em;
+	margin: var(--menu-margin);
 }
 /* ===================== General setting styles ======================= */
 
@@ -69,7 +88,8 @@ table{
 .setting-table{
 	margin: 0em;
 	table-layout: fixed;
-	width: 14em;
+	width: calc(var(--menu-width) - 2 * var(--menu-margin));
+	/* display: table doesn't accept normal width value */
 }
 .setting-table th{
 	font-size: 125%;
@@ -168,7 +188,6 @@ table{
 	overflow: hidden;
 	bottom: 0px;
 	color: #cc6735;
-	mix-blend-mode: exclusion;
 }
 #front-info-panel{
 	pointer-events: none;
@@ -176,6 +195,7 @@ table{
 	flex-direction: row;
 }
 #front-info-indicator{
+	/* Indicator uses absolute color */
 	display: none;
 	margin: 0.3em 0em 0.3em 0.3em;
 }
@@ -183,6 +203,7 @@ table{
 	margin: 0.5em;
 	opacity: 0;
 	transition: opacity 0.3s;
+	mix-blend-mode: exclusion;
 }
 #front-info-box, #bottom-info-box{
 	white-space: nowrap;
@@ -191,6 +212,7 @@ table{
 	padding: 0.5em;
 	right: 0px;
 	cursor: auto;
+	mix-blend-mode: exclusion;
 }
 #bottom-info-panel *{
 	display: flex;

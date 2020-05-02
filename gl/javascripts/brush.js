@@ -111,10 +111,14 @@ BrushManager.init=function(){
 }
 
 BrushManager.initBrushSettingMenu=function(){
-	return new SettingManager(
+	const menu=new SettingManager(
 		$("#brush-menu-panel"),
 		Lang("Paint Brush") // title
 	);
+	const menuWrapper=$("#brush-menu-panel").children();
+	menuWrapper.removeClass("menu-scroll-wrapper");
+	menuWrapper.addClass("left-menu-scroll-wrapper");
+	return menu;
 };
 
 // ====================== Brush Size =======================

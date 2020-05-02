@@ -1,6 +1,5 @@
 .layer-panel-block{ /* The width of all elements in layer block */
-	width: 10em;
-	/* Also note that .layer-name-label uses this value */
+	width: var(--expanded-layer-ui-width);
 }
 
 .layer-panel-button-to-collapse{
@@ -27,8 +26,8 @@
 }
 .layer-name-label{
 	display: block;
-	margin: 0.3em; /* 10 em in total */
-	width: 9.4em;
+	margin: var(--expanded-layer-namelabel-margin);
+	width: calc(var(--expanded-layer-ui-width) - 2*var(--expanded-layer-namelabel-margin));
 }
 .group-name-label{
 	display: block;

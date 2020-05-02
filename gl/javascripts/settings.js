@@ -1,6 +1,7 @@
 class SettingManager{
 	// Add a setting table named "name" to frame
-	constructor($frame,name){
+	constructor($outerFrame,name){
+		const $frame=$("<div class='menu-scroll-wrapper'>");
 		this.$frame=$frame;
 		this._updateFuncList=[];
 		this.tempVal=null;
@@ -20,16 +21,18 @@ class SettingManager{
 		let container=$("<div class='setting-table-container'>");
 		container.append(table);
 		$frame.append(container);
-		$frame.addClass("setting-panel");
 
+		// Set outer frame properties
 		// set a button to control the expansion
+		$outerFrame.append($frame);
+		$outerFrame.addClass("setting-panel");
 		this.toggleExpand=()=>{
-			if(this.$frame.hasClass("setting-panel-collapsed")){ // not opened
+			if($outerFrame.hasClass("setting-panel-collapsed")){ // not opened
 				this.update();
-				this.$frame.removeClass("setting-panel-collapsed");
+				$outerFrame.removeClass("setting-panel-collapsed");
 			}
 			else{ // opened
-				this.$frame.addClass("setting-panel-collapsed");
+				$outerFrame.addClass("setting-panel-collapsed");
 			}
 		};
 	}
