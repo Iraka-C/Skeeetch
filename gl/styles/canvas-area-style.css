@@ -168,6 +168,7 @@ table{
 	overflow: hidden;
 	bottom: 0px;
 	color: #cc6735;
+	mix-blend-mode: exclusion;
 }
 #front-info-panel{
 	pointer-events: none;
@@ -185,7 +186,6 @@ table{
 }
 #front-info-box, #bottom-info-box{
 	white-space: nowrap;
-	mix-blend-mode: exclusion;
 }
 #bottom-info-panel{
 	padding: 0.5em;

@@ -162,18 +162,18 @@ ENV.taskCounter._updateIndicator=function(){
 	if(tc.foregroundTaskCnt){ // there's foreground task
 		const angle=tc.foregroundTaskCompleted/tc.foregroundTaskCnt*359.9;
 		$("#front-info-indicator").css("display","block");
-		$("#work-indicator-arc-background").attr("stroke","#cc673522");
+		$("#work-indicator-arc-background").attr("stroke","#3398ca22");
 		$("#work-indicator-arc").attr({
-			"stroke":"#cc6735",
+			"stroke":"#3398ca",
 			"d":describeSVGArc(50,50,40,0,angle)
 		});
 	}
 	else if(tc.backgroundTaskCnt){ // there's background task
 		const angle=tc.backgroundTaskCompleted/tc.backgroundTaskCnt*359.9;
 		$("#front-info-indicator").css("display","block");
-		$("#work-indicator-arc-background").attr("stroke","#3398ca22");
+		$("#work-indicator-arc-background").attr("stroke","#cc673522");
 		$("#work-indicator-arc").attr({
-			"stroke":"#3398ca",
+			"stroke":"#cc6735",
 			"d":describeSVGArc(50,50,40,0,angle)
 		});
 	}
