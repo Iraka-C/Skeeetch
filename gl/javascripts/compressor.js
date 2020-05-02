@@ -30,16 +30,15 @@ class Compressor{
 	static _getDiff(uint8arr){ // get the diff arr of arr
 		const data=uint8arr;
 		const diff=new Uint8Array(data.length);
-		let nowVal=new Uint8Array(4);
-		for(let i=0;i<data.length;i+=4) {
-			diff[i]=data[i]-nowVal[0];
-			diff[i+1]=data[i+1]-nowVal[1];
-			diff[i+2]=data[i+2]-nowVal[2];
-			diff[i+3]=data[i+3]-nowVal[3];
-			nowVal[0]=data[i];
-			nowVal[1]=data[i+1];
-			nowVal[2]=data[i+2];
-			nowVal[3]=data[i+3];
+		diff[0]=data[0];
+		diff[1]=data[1];
+		diff[2]=data[2];
+		diff[3]=data[3];
+		for(let i=4;i<data.length;i+=4) {
+			diff[i]=data[i]-data[i-4];
+			diff[i+1]=data[i+1]-data[i-3];
+			diff[i+2]=data[i+2]-data[i-2];
+			diff[i+3]=data[i+3]-data[i-1];
 		}
 		return diff;
 	}
@@ -49,16 +48,15 @@ class Compressor{
 	 */
 	static _getSum(diff){
 		const data=new Uint8Array(diff.length);
-		let nowVal=new Uint8Array(4);
-		for(let i=0;i<data.length;i+=4) {
-			data[i]=diff[i]+nowVal[0];
-			data[i+1]=diff[i+1]+nowVal[1];
-			data[i+2]=diff[i+2]+nowVal[2];
-			data[i+3]=diff[i+3]+nowVal[3];
-			nowVal[0]=data[i];
-			nowVal[1]=data[i+1];
-			nowVal[2]=data[i+2];
-			nowVal[3]=data[i+3];
+		data[0]=diff[0];
+		data[1]=diff[1];
+		data[2]=diff[2];
+		data[3]=diff[3];
+		for(let i=4;i<data.length;i+=4) {
+			data[i]=diff[i]+data[i-4];
+			data[i+1]=diff[i+1]+data[i-3];
+			data[i+2]=diff[i+2]+data[i-2];
+			data[i+3]=diff[i+3]+data[i-1];
 		}
 		return data;
 	}
@@ -186,7 +184,7 @@ class Compressor{
 			pBit+=vLen;
 			buf|=vCode<<(32-pBit); // put into buffer, left aligned
 
-			while(pBit>=8){ // combined to 1 bit
+			while(pBit>=8){ // combined to 1 byte
 				const code=buf>>>24;
 				encoded[pED++]=code; // copy value
 				buf<<=8; // move buffer
@@ -233,7 +231,7 @@ class Compressor{
 		}
 
 		const decoded=new Uint8Array(dLen); // with huffmanCnt
-		let pDD=0;
+		let pDD=0; // now tail position in decoded
 
 		let buf=0; // 32bit buf for decoding
 		let pED=0; // encoded element pos
@@ -304,7 +302,7 @@ class Compressor{
 		}
 
 		function finishRLE(){ // push RLE part
-			pushVal(257-repeatCnt);
+			pushVal(1-repeatCnt);
 			pushVal(data[pos]);
 		}
 
@@ -313,7 +311,7 @@ class Compressor{
 
 			if(d==data[pos+1]){ // same
 				if(isRLE){ // still RLE
-					if(repeatCnt==127){ //restart RLE
+					if(repeatCnt==127){ // restart RLE
 						finishRLE();
 						repeatCnt=0;
 					}
@@ -372,12 +370,12 @@ class Compressor{
 			res=newRes;
 		}
 		function pushVal(val,cnt){ // push several same numbers
-			if(resPos+cnt>res.length){
+			const newResPos=resPos+cnt;
+			if(newResPos>res.length){
 				extendResult();
 			}
-			for(let i=0;i<cnt;i++){
-				res[resPos++]=val;
-			}
+			res.fill(val,resPos,newResPos);
+			resPos=newResPos;
 		};
 		function pushData(start,cnt){ // push several numbers from data
 			if(resPos+cnt>res.length){
@@ -391,19 +389,14 @@ class Compressor{
 		let pos=0;
 		while(pos<data.length){
 			let header=data[pos++];
-			if(header>127)header-=256; // repeating part
-
-			if(header>=0){ // consecutive bytes
+			if(header<128){ // consecutive bytes
 				pushData(pos,header+1); // extend
 				pos+=header+1; // pass header+1 bytes
 			}
-			else if(header==-128){ // invalid
-				continue;
+			else if(header>128){ // -1~-127, repeating part
+				pushVal(data[pos++],257-header); // extend
 			}
-			else{ // -1~-127, repeating part
-				pushVal(data[pos],1-header); // extend
-				pos++;
-			}
+			// 128 is ignored
 		}
 		return res.slice(0,resPos);
 	}

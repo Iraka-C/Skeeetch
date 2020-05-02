@@ -38,18 +38,6 @@ STORAGE.FILES.saveContentChanges=function(node) {
 			// Get buffer out of valid area
 			const imgData=node.rawImageData;
 			const vArea=imgData.validArea;
-			// const imgBuf={ // @TODO: move this to worker?
-			// 	type: "GLRAMBuf8",
-			// 	id: imgData.id,
-			// 	tagColor: imgData.tagColor,
-			// 	bitDepth: 8,
-			// 	data: CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea),
-			// 	width: vArea.width,
-			// 	height: vArea.height,
-			// 	left: vArea.left,
-			// 	top: vArea.top,
-			// 	validArea: vArea // borrow values
-			// };
 
 			// Start Saving
 			const CHUNK_SIZE=1024*1024*64; // largest chunk Chrome may store
@@ -59,7 +47,6 @@ STORAGE.FILES.saveContentChanges=function(node) {
 			//console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
 
 			const chunkN=Math.ceil(data.length/CHUNK_SIZE);
-			//imgBuf.data=chunkN; // record the number
 			
 			ENV.taskCounter.startTask(); // start node imagedata structure task
 			const bufPromise=STORAGE.FILES.layerStore.setItem(node.id,chunkN).finally(()=>{
