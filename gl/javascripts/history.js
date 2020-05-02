@@ -399,13 +399,13 @@ HISTORY.redoStructureChange=function(item){
 HISTORY.undoNodePan=function(item){
 	const obj=LAYERS.layerHash[item.id];
 	CANVAS.panLayer(obj,-item.dx,-item.dy,true); // reversely, reconstruct the "could have been moved out of viewport" group image data part
-	obj.setImageDataInvalid(); // merge with clip mask
+	//obj.setImageDataInvalid(); // merge with clip mask
 	CANVAS.requestRefresh();
 }
 HISTORY.redoNodePan=function(item){
 	const obj=LAYERS.layerHash[item.id];
 	CANVAS.panLayer(obj,item.dx,item.dy,true); // again
-	obj.setImageDataInvalid(); // merge with clip mask
+	//obj.setImageDataInvalid(); // merge with clip mask
 	CANVAS.requestRefresh();
 }
 

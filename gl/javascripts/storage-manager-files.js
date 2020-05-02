@@ -28,7 +28,7 @@ STORAGE.FILES.requestSaveContentChanges=function() {
 // @TODO: change flag into all + hint when exit
 // Max length of 1 key-value is 127MB!
 STORAGE.FILES.savingList=new Set();
-STORAGE.FILES.saveContentChanges=function(node) { // @TODO: Empty Layer
+STORAGE.FILES.saveContentChanges=function(node) {
 	if(node) { // operating on a CanvasNode
 		STORAGE.FILES.savingList.add(node.id);
 		$("#icon").attr("href","./resources/favicon-working.png");

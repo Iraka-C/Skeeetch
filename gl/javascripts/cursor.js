@@ -285,7 +285,6 @@ CURSOR.up=function(event){
 		if(CURSOR.panRecord.isPanned){ // There was a panning operation
 			// make borders integer
 			CANVAS.roundLayerPosition(LAYERS.active);
-			LAYERS.active.setImageDataInvalid(); // merge with clip mask
 			CANVAS.requestRefresh();
 			// record history
 			const imgData=LAYERS.active.rawImageData;

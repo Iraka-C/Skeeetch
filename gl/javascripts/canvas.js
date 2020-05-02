@@ -442,13 +442,13 @@ CANVAS.panLayer=function(targetLayer,dx,dy,isToSetInvalid){
 		lastD.validArea.left+=dx;
 		lastD.validArea.top+=dy;
 	}
+	if(isToSetInvalid){
+		targetLayer.setRawImageDataInvalid();
+	}
 	// @TODO: pan Masked data // @TODO: link Mask data
 	if(targetLayer.children.length){
-		if(isToSetInvalid){
-			targetLayer.setRawImageDataInvalid();
-		}
 		for(const v of targetLayer.children) {
-			CANVAS.panLayer(v,dx,dy);
+			CANVAS.panLayer(v,dx,dy,isToSetInvalid);
 		}
 	}
 }
@@ -469,7 +469,6 @@ CANVAS.roundLayerPosition=function(targetLayer){
 	}
 	// @TODO: pan Masked data // @TODO: link Mask data
 	if(targetLayer.children.length){
-		targetLayer.setRawImageDataInvalid(); // recomposite out-of-viewport part
 		for(const v of targetLayer.children) {
 			CANVAS.roundLayerPosition(v);
 		}

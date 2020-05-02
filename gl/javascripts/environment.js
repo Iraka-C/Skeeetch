@@ -193,16 +193,20 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	CANVAS.init(); // re-initialize CANVAS (and create new renderer, viewport)
 
 	if(isPreservingContents){ // save all contents
+		// @TODO: copy position error
 		for(const k in LAYERS.layerHash) { // @TODO: copy image data, mask image data
 			const layer=LAYERS.layerHash[k];
 			if(layer instanceof CanvasNode) {
 				const rImg=layer.rawImageData;
 				const tArea=GLProgram.borderIntersection(rImg.validArea,CANVAS.renderer.viewport); // target area
 				layer.assignNewRawImageData(tArea.width,tArea.height,tArea.left,tArea.top,true);
+				//console.log(tArea);
+				// Do not change raw data
+				
 				layer.assignNewMaskedImageData(0,0);
 				layer.assignNewImageData(0,0);
-				layer.setRawImageDataInvalid();
-				STORAGE.FILES.saveContentChanges(layer);
+				layer.setMaskedImageDataInvalid();
+				STORAGE.FILES.saveContentChanges(layer); // unchanged
 			}
 			else {
 				layer.assignNewRawImageData(0,0);
