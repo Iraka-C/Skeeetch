@@ -251,7 +251,7 @@ class GLProgram {
 		let rR=rL+tgt.width;
 		let rT=img.top+img.height-tgt.top;
 		let rB=rT-tgt.height;
-		if(isRound){ // round to nearest pixel, crucial for smudge brush like pixel copying operation
+		if(isRound){ // round to nearest pixel
 			rL=Math.round(rL);
 			rT=Math.round(rT);
 			rR=Math.round(rR);

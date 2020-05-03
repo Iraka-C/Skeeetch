@@ -39,33 +39,48 @@ class GLVRAMManager {
 		let sizeToRelease=size-remainingSize; // how many space needed to release from VRAM
 
 		if(sizeToRelease>0) { // need to release this much VRAM space into RAM
-			for(const [oldData,oldSize] of this.activeTextures) { // Delete first
-				// Even if oldData size has changed, use stored oldSize to update usage
+			for(const [verifiedData,verifiedSize] of this.activeTextures) { // Delete first
+				// Even if verifiedData size has changed, use stored verifiedSize to update usage
 				// The more you expanded, the more you will be frozen
-				if(oldData.isDeleted) { // already deleted/released
-					if(oldData.type=="GLTexture") {
-						this.vRAMUsage-=oldSize;
-						sizeToRelease-=oldSize;
-						//console.log("Deleted Texture "+oldData.id+" release "+(oldSize/1048576).toFixed(2)+"MB");
+				if(verifiedData.isDeleted) { // already deleted/released
+					if(verifiedData.type=="GLTexture") {
+						this.vRAMUsage-=verifiedSize;
+						sizeToRelease-=verifiedSize;
+						//console.log("Deleted Texture "+verifiedData.id+" release "+(verifiedSize/1048576).toFixed(2)+"MB");
 					}
-					else { // GLRAMBuf
-						this.ramUsage-=oldSize;
+					else { // GLRAMBuf, remove directly
+						this.ramUsage-=verifiedSize;
 					}
-					this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
+					this.activeTextures.delete(verifiedData); // Safely delete, as the for loop uses iterator
 				}
+				// **NOTE**: Invalid after shrinking!
+				// The cost is it needs to be expanded to Leaf and re-render every time
+				// else if(verifiedData.shrinkable){ // able to shrink to zero: faster than compression
+				// 	// Must be GLTexture
+				// 	console.log("Shrink "+(verifiedSize/1048576).toFixed(2)+"MB");
+				// 	this.renderer.resizeImageData(verifiedData,{ // resize to 0*0
+				// 		width: 0,
+				// 		height: 0,
+				// 		left: 0,
+				// 		top: 0
+				// 	},false);
+				// 	this.vRAMUsage-=verifiedSize;
+				// 	sizeToRelease-=verifiedSize;
+				// 	this.activeTextures.delete(verifiedData);
+				// }
 				if(sizeToRelease<=0) { // get enough space
 					break;
 				}
 			}
 		}
 		if(sizeToRelease>0) { // still need to release
-			for(const [oldData,oldSize] of this.activeTextures) {
-				this.renderer.freezeImageData(oldData); // move VRAM to RAM
+			for(const [verifiedData,verifiedSize] of this.activeTextures) {
+				this.renderer.freezeImageData(verifiedData); // move VRAM to RAM
 				this.ramUsage+=size;
-				console.log("Compressed "+(oldSize/1048576).toFixed(2)+"MB");
-				this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
-				this.vRAMUsage-=oldSize;
-				sizeToRelease-=oldSize;
+				console.log("Compressed "+(verifiedSize/1048576).toFixed(2)+"MB");
+				this.activeTextures.delete(verifiedData); // Safely delete, as the for loop uses iterator
+				this.vRAMUsage-=verifiedSize;
+				sizeToRelease-=verifiedSize;
 				if(sizeToRelease<=0) { // get enough space
 					break;
 				}
@@ -93,11 +108,5 @@ class GLVRAMManager {
 		const size=imgData.width*imgData.height*4*imgData.bitDepth/8; // in bytes
 		this.whiteList.set(imgData,size);
 		this.vRAMUsage+=size;
-
-		if(this.activeTextures.has(imgData)){ // remove from active texture
-			const prevSize=this.activeTextures.get(imgData);
-			this.activeTextures.delete(imgData); // anyway take it out first
-			this.vRAMUsage-=prevSize;
-		}
 	}
 }

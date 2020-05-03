@@ -53,6 +53,9 @@ class LayerGroupNode extends ContentNode {
 		super(id);
 		this.$ui=LAYERS.$newLayerGroupUI(this.id); // set ui in layer list
 
+		// image data managements
+		this.rawImageData.shrinkable=true;
+
 		// Properties
 		this.isExpanded=true; // is the container of this group expanded?
 

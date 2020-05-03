@@ -322,6 +322,7 @@ class GLRenderer extends BasicRenderer {
 			height: h, // ... height are immutable: do not change by assignment!
 			left: 0, // left & top can be changed directly: all relative to the viewport
 			top: 0,
+			shrinkable: false, // is size able to shrink to 0 when managed by VRAMManager
 			tagColor: [
 				Math.random()*0.6+0.2,
 				Math.random()*0.7+0.1,
@@ -405,7 +406,7 @@ class GLRenderer extends BasicRenderer {
 		gl.disable(gl.SCISSOR_TEST);
 	}
 	/**
-	 * Change src's size to newParam, size may be smaller
+	 * Change src's size to newParam
 	 * The pointer of src won't change
 	 * if is toCopy, only copy part contained within a viewport size
 	 */
@@ -413,11 +414,6 @@ class GLRenderer extends BasicRenderer {
 		this.vramManager.verify(src);
 		// copy to tmp
 		const tmp=this.tmpImageData;
-		if(src.width>tmp.width||src.height>tmp.height){
-			console.warn("Resize Imagedata: Tmp texture ("
-			+tmp.width+"x"+tmp.height+") smaller than target ("
-			+src.width+"x"+src.height+"), may be cropped");
-		}
 		if(toCopy) {
 			this.clearImageData(tmp,null,false);
 			tmp.left=src.left;

@@ -199,11 +199,6 @@ SettingHandler.initSystemSetting=function(sysParams){
 		if(SettingHandler.tempPaperSize.width!=ENV.paperSize.width
 		||SettingHandler.tempPaperSize.height!=ENV.paperSize.height){ // size changed
 			// preserve contents
-			// HISTORY.addHistory({
-			// 	type: "paper-size",
-			// 	prevSize: [ENV.paperSize.width,ENV.paperSize.height],
-			// 	nowSize: [SettingHandler.tempPaperSize.width,SettingHandler.tempPaperSize.height]
-			// });
 			ENV.setPaperSize(SettingHandler.tempPaperSize.width,SettingHandler.tempPaperSize.height,true);
 		}
 		sizeChangeHint(false);

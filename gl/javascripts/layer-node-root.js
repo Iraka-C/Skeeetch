@@ -2,6 +2,8 @@ class RootNode extends ContentNode { // only one root node
 	constructor() {
 		super("root");
 		// this.rawImageData ==always== this.maskedImageData ==always== this.imageData
+		this.rawImageData.shrinkable=true; // able to shrink to 0 when needed
+
 		LAYERS.set$ElementAsLayerContainer($("#layer-panel-inner")); // root container
 		this.$ui=$("#layer-panel-scroll");
 

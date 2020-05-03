@@ -194,6 +194,8 @@ STORAGE.FILES.getLayerTree=function() {
 
 STORAGE.FILES.loadLayerTree=function(node) {
 	// set busy status
+	CURSOR.setBusy(true); // set busy cursor
+	PERFORMANCE.idleTaskManager.startBusy();
 	EventDistributer.footbarHint.showInfo("Loading saved paper ...");
 	STORAGE.FILES.isFailedLayer=false;
 
@@ -323,6 +325,8 @@ STORAGE.FILES.loadLayerTree=function(node) {
 STORAGE.FILES.onLayerTreeLoad=function(activeID) {
 	STORAGE.FILES.clearUnusedContents(); // maybe uncleared history
 	COMPOSITOR.updateLayerTreeStructure(); // async!
+	CURSOR.setBusy(false); // free busy cursor
+	PERFORMANCE.idleTaskManager.startIdle();
 	LAYERS.setActive(activeID);
 	LAYERS.updateAllThumbs();
 	if(STORAGE.FILES.isFailedLayer){

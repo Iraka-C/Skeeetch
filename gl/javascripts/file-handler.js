@@ -32,14 +32,16 @@ FILES.initFileMenu=function() {
 	fileManager.addSectionTitle(Lang("Export Content"));
 	fileManager.addButton(Lang("Save as PNG"),e => {
 		EventDistributer.footbarHint.showInfo("Saving ...");
+		CURSOR.setBusy(true); // set busy cursor
+		PERFORMANCE.idleTaskManager.startBusy();
 		fileManager.toggleExpand();
-		ENV.taskCounter.startTask(1); // save PNG task
 		setTimeout(FILES.saveAsPNG,1000); // @TODO: mark IdleTask as Busy?
 	});
 	fileManager.addButton(Lang("Save as PSD"),e => {
 		EventDistributer.footbarHint.showInfo("Rendering ...");
+		CURSOR.setBusy(true); // set busy cursor
+		PERFORMANCE.idleTaskManager.startBusy();
 		fileManager.toggleExpand();
-		ENV.taskCounter.startTask(1); // start PSD task
 		setTimeout(FILES.saveAsPSD,1000); // @TODO: mark IdleTask as Busy?
 	});
 }
@@ -57,6 +59,8 @@ FILES.initImportDropHandler=function() {
 
 			// Check file type
 			if(file.name.endsWith(".psd")) { // a Photoshop file
+				CURSOR.setBusy(true); // set busy cursor
+				PERFORMANCE.idleTaskManager.startBusy();
 				EventDistributer.footbarHint.showInfo("Reading file contents ...");
 				ENV.taskCounter.startTask(1); // register load file task
 				let reader=new FileReader();
@@ -67,6 +71,8 @@ FILES.initImportDropHandler=function() {
 			}
 
 			if(file.type&&file.type.match(/image*/)) { // an image file
+				CURSOR.setBusy(true); // set busy cursor
+				PERFORMANCE.idleTaskManager.startBusy();
 				window.URL=window.URL||window.webkitURL;
 				const img=new Image();
 				img.src=window.URL.createObjectURL(file);
@@ -90,6 +96,8 @@ FILES.loadAsPSD=function(data,filename) {
 	if(psdFile.width>ENV.maxPaperSize||psdFile.height>ENV.maxPaperSize) {
 		// larger than maximum paper size
 		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.maxPaperSize+"px",2000);
+		CURSOR.setBusy(false); // free busy cursor
+		PERFORMANCE.idleTaskManager.startIdle();
 		return;
 	}
 	ENV.setPaperSize(psdFile.width,psdFile.height); // change paper size to fit the file, clear all contents and histories
@@ -256,6 +264,8 @@ FILES.onPSDLoaded=function() {
 	else {
 		EventDistributer.footbarHint.showInfo("Loaded");
 	}
+	CURSOR.setBusy(false); // free busy cursor
+	PERFORMANCE.idleTaskManager.startIdle();
 	ENV.taskCounter.finishTask(1); // finish file loading task
 	/**
 	 * Here is a mysterious bug that thumb updating has to be call asynced.
@@ -286,6 +296,8 @@ FILES.loadAsImage=function(img) {
 	layer.setRawImageDataInvalid();
 	layer.updateThumb();
 	COMPOSITOR.updateLayerTreeStructure();
+	CURSOR.setBusy(false); // free busy cursor
+	PERFORMANCE.idleTaskManager.startIdle();
 	HISTORY.addHistory({ // combine two steps
 		type: "bundle",
 		children: [
@@ -323,17 +335,16 @@ FILES.saveAsPSD=function() { // @TODO: change to async function
 	 */
 	const psdJSON=LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
 
-	ENV.taskCounter.startTask(1); // start PSD encoding task
 	EventDistributer.footbarHint.showInfo("Encoding ...");
 	setTimeout(e => { // convert into binary stream
 		const buffer=agPsd.writePsd(psdJSON);
-		ENV.taskCounter.finishTask(1); // finish PSD encoding task
 		EventDistributer.footbarHint.showInfo("Exporting ...");
 		setTimeout(e => { // Download
 			const blob=new Blob([buffer],{type: "application/octet-stream"});
 			const filename=ENV.getFileTitle();
 			FILES.downloadBlob(filename+".psd",blob);
-			ENV.taskCounter.finishTask(1); // finish PSD task
+			CURSOR.setBusy(false); // free busy cursor
+			PERFORMANCE.idleTaskManager.startIdle();
 		},0);
 	},0);
 }
@@ -345,7 +356,8 @@ FILES.saveAsPNG=function() {
 	canvas.toBlob(blob => { // Only Context2D can be safely changed into blob
 		const filename=ENV.getFileTitle();
 		FILES.downloadBlob(filename+".png",blob);
-		ENV.taskCounter.finishTask(1); // finish PNG task
+		CURSOR.setBusy(false); // free busy cursor
+		PERFORMANCE.idleTaskManager.startIdle();
 	});
 }
 

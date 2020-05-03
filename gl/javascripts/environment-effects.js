@@ -189,10 +189,6 @@ ENV.taskCounter._updateIndicator=function(){
 ENV.taskCounter.startTask=function(taskKind){ // 0: background, else: foreground
 	const tc=ENV.taskCounter;
 	if(taskKind){ // foreground
-		if(!tc.foregroundTaskCnt){ // start to have busy tasks
-			CURSOR.setBusy(true);
-			PERFORMANCE.idleTaskManager.startBusy();
-		}
 		tc.foregroundTaskCnt++;
 	}
 	else{
@@ -209,8 +205,6 @@ ENV.taskCounter.finishTask=function(taskKind){ // 0: background, else: foregroun
 		if(tc.foregroundTaskCompleted>=tc.foregroundTaskCnt){ // reset
 			tc.foregroundTaskCnt=0;
 			tc.foregroundTaskCompleted=0;
-			CURSOR.setBusy(false);
-			PERFORMANCE.idleTaskManager.startIdle();
 		}
 	}
 	else{
@@ -221,10 +215,6 @@ ENV.taskCounter.finishTask=function(taskKind){ // 0: background, else: foregroun
 		}
 	}
 	tc._updateIndicator();
-}
-
-ENV.taskCounter.isWorking=function(){
-	return !!(tc.foregroundTaskCnt||tc.backgroundTaskCnt);
 }
 
 ENV.debug=function() {

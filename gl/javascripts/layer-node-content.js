@@ -181,32 +181,11 @@ class ContentNode extends LayerNode {
 		}
 		return true;
 	}
-	isDescendantLocked(){ // tell if there is a descendant locked
-		for(const v of this.children){
-			if(v.properties.locked){
-				return true;
-			}
-			if(v.isDescendantLocked()){
-				return true;
-			}
-		}
-		return false;
-	}
-	isDescendantOpacityLocked(){ // tell if there is a descendant's opacity locked
-		for(const v of this.children){
-			if(v.properties.pixelOpacityLocked){
-				return true;
-			}
-			if(v.isDescendantOpacityLocked()){
-				return true;
-			}
-		}
-		return false;
-	}
 	// =============== mask & clip mask ==================
 	createImageData(){
 		if(this.imageData!=this.maskedImageData)return; // already created
 		this.imageData=CANVAS.renderer.createImageData();
+		this.imageData.shrinkable=true;
 		this.imageDataCombinedCnt=1;
 	}
 	deleteImageData(){
@@ -219,6 +198,7 @@ class ContentNode extends LayerNode {
 		if(this.maskImageData)return; // already created
 		this.maskImageData=CANVAS.renderer.createImageData(); // todo: luminance
 		this.maskedImageData=CANVAS.renderer.createImageData();
+		this.maskedImageData.shrinkable=true;
 	}
 	deleteMaskImageData(){
 		if(!this.maskImageData)return; // already deleted
@@ -383,6 +363,16 @@ class ContentNode extends LayerNode {
 	// 		CANVAS.renderer.restoreImageData(this.imageData);
 	// 	}
 	// }
+	
+	discardUnusedImageData(){
+		for(const v of this.children){
+			v.isRawImageDataValid=false;
+			v.isMaskedImageDataValid=false;
+			v.isImageDataValid=false;
+			v.discardUnusedImageData();
+			// Discard in sub-classes
+		}
+	}
 
 	updateThumb(){ // iterative
 		for(const v of this.children){
@@ -431,9 +421,13 @@ class ContentNode extends LayerNode {
 		let str="   ".repeat(_depth)
 			+(this.properties.clipMask?"┌":" ")
 			+this.id+"["+this.imageDataCombinedCnt+"] "
-			+(CANVAS.renderer.isImageDataFrozen(this.imageData)?" ":this.isImageDataValid?"I":"i")
-			+(CANVAS.renderer.isImageDataFrozen(this.maskedImageData)?" ":this.isMaskedImageDataValid?"M":"m")
-			+(CANVAS.renderer.isImageDataFrozen(this.rawImageData)?" ":this.isRawImageDataValid?"R":"r")
+			+(CANVAS.renderer.isImageDataFrozen(this.imageData)?"F":this.isImageDataValid?"I":"i")
+			+(CANVAS.renderer.isImageDataFrozen(this.maskedImageData)?"F":this.isMaskedImageDataValid?"M":"m")
+			+(CANVAS.renderer.isImageDataFrozen(this.rawImageData)?"F":this.isRawImageDataValid?"R":"r")
+			+" "
+			+(this.imageData.shrinkable?"S":"N")
+			+(this.maskedImageData.shrinkable?"S":"N")
+			+(this.rawImageData.shrinkable?"S":"N")
 			+"\n";
 		for(let v of this.children){
 			str+=v._getTreeNodeString(_depth+1);

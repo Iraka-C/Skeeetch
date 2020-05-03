@@ -42,9 +42,6 @@ class HistoryItem{
 				const newArea=GLProgram.borderIntersection(this.newValidArea,area);
 				this.oldData=CANVAS.renderer.getBufferFromImageData(oldImageData,oldArea);
 				this.newData=CANVAS.renderer.getBufferFromImageData(newImageData,newArea);
-
-				this.oldIntersectionArea=oldArea;
-				this.newIntersectionArea=newArea;
 				
 				// copy contents
 				CANVAS.updateLastImageData(node);
@@ -65,10 +62,9 @@ class HistoryItem{
 				this.prevStatus=param.prevStatus;
 				this.nowStatus=param.nowStatus;
 				break;
-			case "paper-size":
-				// this.id is redundant
-				this.prevSize=param.prevSize; // [w,h]
-				this.nowSize=param.nowSize; // [w,h]
+			case "paper-size": // @TODO
+				this.prevSize=param.prevSize;
+				this.nowSize=param.nowSize;
 				break;
 			case "bundle":
 				this.children=[];
@@ -245,9 +241,6 @@ HISTORY.undo=function(){ // undo 1 step
 		case "node-property":
 			HISTORY.undoNodeProperty(item);
 			break;
-		case "paper-size":
-			HISTORY.undoPaperSizeChange(item);
-			break;
 		case "bundle": // pre-order traversal
 			for(let i=item.children.length-1;i>=0;i--){
 				undoInstant(item.children[i]); // backwards
@@ -286,9 +279,6 @@ HISTORY.redo=function(){ // redo 1 step
 		case "node-property":
 			HISTORY.redoNodeProperty(item);
 			break;
-		case "paper-size":
-			HISTORY.redoPaperSizeChange(item);
-			break;
 		case "bundle": // pre-order traversal
 			for(const v of item.children){
 				redoInstant(v);
@@ -313,7 +303,6 @@ HISTORY.undoImageDataChange=function(item){
 	LAYERS.setActive(node); // also refresh and set lastRawImageData
 	const oldValidArea=item.oldValidArea;
 	CANVAS.renderer.resizeImageData(node.rawImageData,oldValidArea,true);
-
 	const oldData=item.oldData;
 	const newData=item.newData;
 	CANVAS.renderer.clearScissoredImageData(node.rawImageData,newData);
@@ -336,7 +325,6 @@ HISTORY.redoImageDataChange=function(item){
 	LAYERS.setActive(node); // also refresh and set lastRawImageData
 	const newValidArea=item.newValidArea;
 	CANVAS.renderer.resizeImageData(node.rawImageData,newValidArea,true);
-	
 	const oldData=item.oldData;
 	const newData=item.newData;
 	CANVAS.renderer.clearScissoredImageData(node.rawImageData,oldData);
@@ -440,19 +428,6 @@ HISTORY.undoNodeProperty=function(item){
 HISTORY.redoNodeProperty=function(item){
 	const obj=LAYERS.layerHash[item.id];
 	obj.setProperties(item.nowStatus);
-}
-
-/**
- * ----------------------------------------------------
- * "paper-size" type
- * {type,id,prevSize=[w,h],nowSize=[w,h]}
- * ----------------------------------------------------
- */
-HISTORY.undoPaperSizeChange=function(item){
-	ENV.setPaperSize(item.prevSize[0],item.prevSize[1],true);
-}
-HISTORY.redoPaperSizeChange=function(item){
-	ENV.setPaperSize(item.nowSize[0],item.nowSize[1],true);
 }
 // ====================================== Other manip ========================================
 // remove the first history record

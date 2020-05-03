@@ -6,6 +6,15 @@ class GLTextureBlender {
 	// Enums at the end of class definition
 
 	constructor(gl) {
+		// Normal or Copy version
+		// const vBlendShaderSource=glsl` // vertex shader for drawing a circle
+		// 	attribute vec2 a_position; // vertex position
+		// 	varying vec2 v_position;
+		// 	void main(){
+		// 		v_position=a_position;
+		// 		gl_Position=vec4(a_position*2.-1.,0.,1.); // to clip space
+		// 	}
+		// `;
 		const vBlendShaderSource=glsl`
 			attribute vec2 a_dst_pos; // drawing area on target
 			attribute vec2 a_src_pos; // sample area from source
@@ -15,6 +24,16 @@ class GLTextureBlender {
 				gl_Position=vec4(a_dst_pos*2.-1.,0.,1.); // to clip space
 			}
 		`;
+		// const fBlendShaderSource=glsl` // blend1
+		// 	precision mediump float;
+		// 	precision mediump sampler2D;
+		// 	uniform sampler2D u_image;
+		// 	uniform float u_image_alpha;
+		// 	varying vec2 v_position;
+		// 	void main(){
+		// 		gl_FragColor=texture2D(u_image,v_position)*u_image_alpha;
+		// 	}
+		// `;
 		const fBlendShaderSource=glsl`
 			precision mediump float;
 			precision mediump sampler2D;
@@ -394,6 +413,7 @@ class GLImageDataFactory {
 			left: area.left,
 			top: area.top,
 			bitDepth: src.bitDepth,
+			shrinkable: src.shrinkable,
 			tagColor: src.tagColor, // same color
 			validArea: {...area}
 		};

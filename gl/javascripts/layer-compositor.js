@@ -96,11 +96,6 @@ COMPOSITOR.recompositeLayers=function(node) {
 			}
 			i-=child.clipMaskChildrenCnt+1; // skip clip masks
 		}
-		// Make sizes integer to contain all layers
-		initSize.left=Math.round(initSize.left);
-		initSize.top=Math.round(initSize.top);
-		initSize.width=Math.round(initSize.width);
-		initSize.height=Math.round(initSize.height);
 
 		// Now the initSize contains the minimum size to contain the children's imageData
 		let bg=node.rawImageData; // present uncleared imagedata
