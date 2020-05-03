@@ -408,6 +408,7 @@ class GLRenderer extends BasicRenderer {
 	 * Change src's size to newParam, size may be smaller
 	 * The pointer of src won't change
 	 * if is toCopy, only copy part contained within a viewport size
+	 * // @TODO: use new image data to replace, regardless of viewport size
 	 */
 	resizeImageData(src,newParam,toCopy) {
 		this.vramManager.verify(src);
@@ -418,10 +419,20 @@ class GLRenderer extends BasicRenderer {
 			+tmp.width+"x"+tmp.height+") smaller than target ("
 			+src.width+"x"+src.height+"), may be cropped");
 		}
-		if(toCopy) {
+		if(toCopy) { // Try the best to cover larger area
 			this.clearImageData(tmp,null,false);
-			tmp.left=src.left;
-			tmp.top=src.top;
+			const l1=src.validArea.left;
+			const l2=src.validArea.left+src.validArea.width-tmp.width;
+			tmp.left=0;
+			if(l1>0)tmp.left=l1;
+			if(l2<0)tmp.left=l2;
+
+			const t1=src.validArea.top;
+			const t2=src.validArea.top+src.validArea.height-tmp.height;
+			tmp.top=0;
+			if(t1>0)tmp.top=t1;
+			if(t2<0)tmp.top=t2;
+
 			tmp.validArea={...src.validArea}; // src.validArea may shrink
 			this.blendImageData(src,tmp,{mode: BasicRenderer.SOURCE});
 		}
@@ -448,7 +459,7 @@ class GLRenderer extends BasicRenderer {
 
 	/**
 	 * Adjust the size/position of src imageData so that targetRange={width,height,left,top} fits in
-	 * During adjustment, the contents in src will be cropped into the viewport
+	 * During adjustment, the contents in src will be CROPPED into the viewport
 	 * **The memories aren't infinite!**
 	 * **NOTE** This function does not certainly clear the src contents even if isPreservingContents==false
 	 */
