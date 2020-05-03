@@ -16,26 +16,13 @@ EVENTS.init=function(){
 	 */
 
 	// disable pen long press => context menu
-	$(window).on("contextmenu",e=>false);
+	//$(window).on("contextmenu",e=>false);
 
-	// let isWindowBlurred=false;
-	// $(window).on("blur focus",e=>{
-	// 	isWindowBlurred=(e.type=="blur"); // or "focus"
-	// 	/**
-	// 	 * @TODO:
-	// 	 * set the page title
-	// 	 * also: set title when renaming the page
-	// 	 * save imagedata on blur is a good idea.
-	// 	 */
-		
-	// 	const htmlEtt=ENV.escapeHTML($("#filename-input").val());
-	// 	if(isWindowBlurred){
-	// 		$("title").html("&bull;&nbsp;"+htmlEtt);
-	// 	}
-	// 	else{
-	// 		$("title").html(htmlEtt);
-	// 	}
-	// });
+	// ============ Auto File saving related ==============
+	$(window).on("blur",e=>{
+		EventDistributer.footbarHint.showInfo("Saving contents ...");
+		STORAGE.FILES.requestSaveContentChanges();
+	});
 	$(window).on("beforeunload",e=>{
 		// see STORAGE.SETTING.saveAllSettings
 		STORAGE.saveOnExit();
@@ -45,7 +32,13 @@ EVENTS.init=function(){
 			return "";
 		}
 	});
+	$("#canvas-area-panel").on("pointerleave",event=>{
+		if(event.originalEvent.relatedTarget){ // moving to other blocks
+			STORAGE.FILES.requestSaveContentChanges();
+		}
+	});
 
+	// ============= Cursor related ==============
 	const $canvasWindow=$("#canvas-window");
 	/**
 	 * Window resize handler
@@ -78,14 +71,6 @@ EVENTS.init=function(){
 	});
 	$canvasWindow.on("pointerout",event=>{
 		CURSOR.setIsShown(false); // pen away, disable cursor
-		if(!CURSOR.isDown){ // not down and away: may be trying to close the window!
-			if(event.relatedTarget!=$("#bottom-info-panel")[0]){ // not operating bottom panel
-				setTimeout(e=>{ // try to save at once
-					// Try to save the contents
-					STORAGE.FILES.requestSaveContentChanges();
-				},0);
-			}
-		}
 	});
 
 	// do sth to each menu panel

@@ -210,12 +210,12 @@ class GLRenderer extends BasicRenderer {
 		for(let k=0;k<kPoints.length;k++) { // each circle in sequence
 			const p=kPoints[k];
 			const lastP=this.lastCircleFromPrevStroke;
-			const prevP=k?kPoints[k-1]:lastP?lastP:p; // p as fallback
+			const prevP=k? kPoints[k-1]:lastP? lastP:p; // p as fallback
 			const strokeOpa=p[4];
 			const plateOpa=p[5]; // plate opacity
 			const softRange=this.softness+fixedSoftEdge/p[2];
 			let rad=p[2];
-			if(this.antiAlias&&rad<2){
+			if(this.antiAlias&&rad<2) {
 				rad=0.2+rad*0.9; // thickness compensation for thin stroke
 			}
 
@@ -234,7 +234,7 @@ class GLRenderer extends BasicRenderer {
 		// Adjusting valid area is done by CANVAS.stroke
 
 		// update last circle
-		if(kPoints.length){
+		if(kPoints.length) {
 			this.lastCircleFromPrevStroke=kPoints[kPoints.length-1];
 		}
 	}
@@ -338,7 +338,7 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	deleteImageData(imgData) { // discard an image data after being used
-		if(imgData.type=="GLTexture"){
+		if(imgData.type=="GLTexture") {
 			this.gl.deleteTexture(imgData.data);
 		}
 		imgData.isDeleted=true; // set tag
@@ -388,7 +388,7 @@ class GLRenderer extends BasicRenderer {
 		}
 	}
 
-	clearScissoredImageData(target,range){ // target, range, all in paper coordinate
+	clearScissoredImageData(target,range) { // target, range, all in paper coordinate
 		if(!(target.width&&target.height)) { // No pixel, needless to clear
 			return;
 		}
@@ -411,27 +411,33 @@ class GLRenderer extends BasicRenderer {
 	 * // @TODO: use new image data to replace, regardless of viewport size
 	 */
 	resizeImageData(src,newParam,toCopy) {
+		if(src.width==newParam.width
+			&&src.height==newParam.height
+			&&src.left==newParam.left
+			&&src.top==newParam.top) { // No need to change
+			return;
+		}
 		this.vramManager.verify(src);
 		// copy to tmp
 		const tmp=this.tmpImageData;
-		if(src.width>tmp.width||src.height>tmp.height){
+		if(src.width>tmp.width||src.height>tmp.height) {
 			console.warn("Resize Imagedata: Tmp texture ("
-			+tmp.width+"x"+tmp.height+") smaller than target ("
-			+src.width+"x"+src.height+"), may be cropped");
+				+tmp.width+"x"+tmp.height+") smaller than target ("
+				+src.width+"x"+src.height+"), may be cropped");
 		}
 		if(toCopy) { // Try the best to cover larger area
 			this.clearImageData(tmp,null,false);
 			const l1=src.validArea.left;
 			const l2=src.validArea.left+src.validArea.width-tmp.width;
 			tmp.left=0;
-			if(l1>0)tmp.left=l1;
-			if(l2<0)tmp.left=l2;
+			if(l1>0) tmp.left=l1;
+			if(l2<0) tmp.left=l2;
 
 			const t1=src.validArea.top;
 			const t2=src.validArea.top+src.validArea.height-tmp.height;
 			tmp.top=0;
-			if(t1>0)tmp.top=t1;
-			if(t2<0)tmp.top=t2;
+			if(t1>0) tmp.top=t1;
+			if(t2<0) tmp.top=t2;
 
 			tmp.validArea={...src.validArea}; // src.validArea may shrink
 			this.blendImageData(src,tmp,{mode: BasicRenderer.SOURCE});
@@ -603,24 +609,24 @@ class GLRenderer extends BasicRenderer {
 		L1=src.validArea.left-tgt.left;
 		H1=tgt.top+tgt.height-src.validArea.top;
 		H2=H1-src.validArea.height;
-		for(let i=L1;i<L1+src.validArea.width-VA_WIDTH;i+=VA_WIDTH*2){
+		for(let i=L1;i<L1+src.validArea.width-VA_WIDTH;i+=VA_WIDTH*2) {
 			gl.scissor(i,H1-VA_WIDTH,VA_WIDTH,VA_WIDTH);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 		}
-		for(let i=H2;i<H2+src.validArea.height-VA_WIDTH;i+=VA_WIDTH*2){
+		for(let i=H2;i<H2+src.validArea.height-VA_WIDTH;i+=VA_WIDTH*2) {
 			gl.scissor(L1,i,VA_WIDTH,VA_WIDTH);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 		}
-		for(let i=L1;i<L1+src.validArea.width-VA_WIDTH;i+=VA_WIDTH*2){
+		for(let i=L1;i<L1+src.validArea.width-VA_WIDTH;i+=VA_WIDTH*2) {
 			gl.scissor(i,H2,VA_WIDTH,VA_WIDTH);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 		}
-		for(let i=H2;i<H2+src.validArea.height-VA_WIDTH;i+=VA_WIDTH*2){
+		for(let i=H2;i<H2+src.validArea.height-VA_WIDTH;i+=VA_WIDTH*2) {
 			gl.scissor(L1+src.validArea.width-VA_WIDTH,i,VA_WIDTH,VA_WIDTH);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 		}
 
-		if(optArea){ // Draw optional border
+		if(optArea) { // Draw optional border
 			const O_WIDTH=Math.floor(WIDTH/2);
 			let L1=optArea.left-tgt.left;
 			let H1=tgt.top+tgt.height-optArea.top;
@@ -643,7 +649,7 @@ class GLRenderer extends BasicRenderer {
 	loadToImageData(target,img) { // load img into target
 		this.vramManager.verify(target);
 		const gl=this.gl;
-		if(img.type){
+		if(img.type) {
 			if(img.type=="GLRAMBuf") { // load a buffer
 				// Here, suppose that the size of target will always contain img @TODO: Buggy?
 				// Setup temp texture for extracting data
@@ -659,7 +665,7 @@ class GLRenderer extends BasicRenderer {
 					top: img.top,
 					validArea: img.validArea // borrow values
 				}
-				this.textureBlender.blendTexture(tmpImageData,target,{mode:GLRenderer.SOURCE});
+				this.textureBlender.blendTexture(tmpImageData,target,{mode: GLRenderer.SOURCE});
 				gl.deleteTexture(tmpTexture);
 			}
 			else if(img.type=="GLRAMBuf8") { // load a CTX2D ImageData, defined in Storage
@@ -720,7 +726,7 @@ class GLRenderer extends BasicRenderer {
 	getContext2DCanvasFromImageData(src,srcRange) {
 		const canvas=document.createElement("canvas");
 		srcRange=srcRange||src; // init all src range
-		
+
 		canvas.width=srcRange.width;
 		canvas.height=srcRange.height;
 		if(!(src.width&&src.height)) { // the src is empty

@@ -19,7 +19,8 @@ STORAGE.FILES.reportUnsavedContentChanges=function() {
 
 // save file when there is a change
 STORAGE.FILES.requestSaveContentChanges=function() {
-	if(!STORAGE.FILES.isNowActiveLayerSaved) {
+	// If save not requested
+	if(!STORAGE.FILES.isNowActiveLayerSaved&&!STORAGE.FILES.savingList.has(CANVAS.nowLayer.id)) {
 		STORAGE.FILES.saveContentChanges(CANVAS.nowLayer);
 	}
 }
@@ -30,6 +31,8 @@ STORAGE.FILES.requestSaveContentChanges=function() {
 STORAGE.FILES.savingList=new Set();
 STORAGE.FILES.saveContentChanges=function(node) {
 	if(node) { // operating on a CanvasNode
+		console.log("Saving contents ...");
+		
 		STORAGE.FILES.savingList.add(node.id);
 		$("#icon").attr("href","./resources/favicon-working.png");
 
@@ -67,17 +70,14 @@ STORAGE.FILES.saveContentChanges=function(node) {
 
 			Promise.all(chunkPromises).then(v => {
 				//console.log(node.id+" Saved");
-				STORAGE.FILES.savingList.delete(node.id);
-				
+				STORAGE.FILES.savingList.delete(node.id); // delete first
 				if(!STORAGE.FILES.savingList.size){ // all saved
 					STORAGE.FILES.isNowActiveLayerSaved=true;
 					$("#icon").attr("href","./resources/favicon.png");
 				}
 			}).catch(err => {
-				STORAGE.FILES.savingList.delete(node.id);
-				STORAGE.FILES.isNowActiveLayerSaved=true;
+				STORAGE.FILES.savingList.delete(node.id); // remove failed task
 				$("#icon").attr("href","./resources/favicon.png");
-
 				console.warn(err);
 			}).finally(()=>{
 				ENV.taskCounter.finishTask(); // finish save chunk task

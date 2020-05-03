@@ -185,7 +185,9 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	}
 	let isAnim=ENV.displaySettings.enableTransformAnimation; // store animation
 	ENV.displaySettings.enableTransformAnimation=false; // disable animation when changing size
-	HISTORY.clearAllHistory(); // remove histories //@TODO: preserve history
+	if(!isPreservingContents){
+		HISTORY.clearAllHistory(); // remove histories //@TODO: preserve history
+	}
 	ENV.paperSize={width: w,height: h,diag: Math.sqrt(w*w+h*h)};
 	$("#canvas-container").css({"width": w+"px","height": h+"px"}); // set canvas view size
 	$("#main-canvas").attr({"width": w,"height": h}); // set canvas pixel size
