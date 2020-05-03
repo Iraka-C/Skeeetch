@@ -39,19 +39,19 @@ class GLVRAMManager {
 		let sizeToRelease=size-remainingSize; // how many space needed to release from VRAM
 
 		if(sizeToRelease>0) { // need to release this much VRAM space into RAM
-			for(const [imgData,imgSize] of this.activeTextures) { // Delete first
-				// Even if imgData size has changed, use stored imgSize to update usage
+			for(const [oldData,oldSize] of this.activeTextures) { // Delete first
+				// Even if oldData size has changed, use stored oldSize to update usage
 				// The more you expanded, the more you will be frozen
-				if(imgData.isDeleted) { // already deleted/released
-					if(imgData.type=="GLTexture") {
-						this.vRAMUsage-=imgSize;
-						sizeToRelease-=imgSize;
-						//console.log("Deleted Texture "+imgData.id+" release "+(imgSize/1048576).toFixed(2)+"MB");
+				if(oldData.isDeleted) { // already deleted/released
+					if(oldData.type=="GLTexture") {
+						this.vRAMUsage-=oldSize;
+						sizeToRelease-=oldSize;
+						//console.log("Deleted Texture "+oldData.id+" release "+(oldSize/1048576).toFixed(2)+"MB");
 					}
 					else { // GLRAMBuf
-						this.ramUsage-=imgSize;
+						this.ramUsage-=oldSize;
 					}
-					this.activeTextures.delete(imgData); // Safely delete, as the for loop uses iterator
+					this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
 				}
 				if(sizeToRelease<=0) { // get enough space
 					break;
@@ -59,13 +59,13 @@ class GLVRAMManager {
 			}
 		}
 		if(sizeToRelease>0) { // still need to release
-			for(const [imgData,imgSize] of this.activeTextures) {
-				this.renderer.freezeImageData(imgData); // move VRAM to RAM
+			for(const [oldData,oldSize] of this.activeTextures) {
+				this.renderer.freezeImageData(oldData); // move VRAM to RAM
 				this.ramUsage+=size;
-				console.log("Compressed "+(imgSize/1048576).toFixed(2)+"MB");
-				this.activeTextures.delete(imgData); // Safely delete, as the for loop uses iterator
-				this.vRAMUsage-=imgSize;
-				sizeToRelease-=imgSize;
+				console.log("Compressed "+(oldSize/1048576).toFixed(2)+"MB");
+				this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
+				this.vRAMUsage-=oldSize;
+				sizeToRelease-=oldSize;
 				if(sizeToRelease<=0) { // get enough space
 					break;
 				}
@@ -93,5 +93,11 @@ class GLVRAMManager {
 		const size=imgData.width*imgData.height*4*imgData.bitDepth/8; // in bytes
 		this.whiteList.set(imgData,size);
 		this.vRAMUsage+=size;
+
+		if(this.activeTextures.has(imgData)){ // remove from active texture
+			const prevSize=this.activeTextures.get(imgData);
+			this.activeTextures.delete(imgData); // anyway take it out first
+			this.vRAMUsage-=prevSize;
+		}
 	}
 }

@@ -36,27 +36,27 @@ CURSOR.panRecord={ // recording the status of panning a layer/group
  * @TODO: Bug! error cx,cy attribute on window resize
  */
 
-CURSOR.init=function(){
+CURSOR.init=function() {
 	$("#brush-cursor-layer").attr({
-		width:ENV.window.SIZE.width,
-		height:ENV.window.SIZE.height
+		width: ENV.window.SIZE.width,
+		height: ENV.window.SIZE.height
 	});
 	CURSOR.updateColor(PALETTE.colorSelector.getRGB());
 }
 
-CURSOR.moveCursor=function(event){
+CURSOR.moveCursor=function(event) {
 	let type=event.originalEvent.pointerType;
-	
+
 	// push one id in
 	CURSOR.eventIdList[2]=CURSOR.eventIdList[1];
 	CURSOR.eventIdList[1]=CURSOR.eventIdList[0];
 	CURSOR.eventIdList[0]=type;
 
 	if(CURSOR.eventIdList[2]==CURSOR.eventIdList[1]
-	 &&CURSOR.eventIdList[1]==type){ // same for 3 events
+		&&CURSOR.eventIdList[1]==type) { // same for 3 events
 		CURSOR.type=type;
 	}
-	if(CURSOR.type!=type){ // not the present id, no moving
+	if(CURSOR.type!=type) { // not the present id, no moving
 		return;
 	}
 
@@ -64,25 +64,27 @@ CURSOR.moveCursor=function(event){
 	CURSOR.p0=[ // new movement
 		event.originalEvent.offsetX,
 		event.originalEvent.offsetY,
-		type=="pen"?event.originalEvent.pressure:1 // 1 as default
+		type=="pen"? event.originalEvent.pressure:1 // 1 as default
 	];
 	// set cursor size
 	CURSOR.updateXYR();
 
 	// canvas operation
 	CANVAS.updateCursor(CURSOR.p0,CURSOR.isDown);
-	if(CURSOR.isDown){
-		if(CURSOR.nowActivity=="pan-paper"){ // shift: pan the whole canvas
+	if(CURSOR.isDown) {
+		if(CURSOR.nowActivity=="pan-paper") { // shift: pan the whole canvas
 			let dx=CURSOR.p0[0]-CURSOR.p1[0];
 			let dy=CURSOR.p0[1]-CURSOR.p1[1];
-			if(isNaN(dx)||isNaN(dy))return;
+			if(isNaN(dx)||isNaN(dy)) return;
 			let newTx=ENV.window.trans.x+dx;
 			let newTy=ENV.window.trans.y+dy;
 			ENV.translateTo(newTx,newTy);
 		}
-		else if(CURSOR.nowActivity=="pan-layer"){ // ctrl: pan canvas only
-			if(!LAYERS.active.isVisible()||LAYERS.active.isLocked()||LAYERS.active.isOpacityLocked()){
-				// if locked/invisible in layer tree, cannot move
+		else if(CURSOR.nowActivity=="pan-layer") { // ctrl: pan canvas only
+			if(!LAYERS.active.isVisible()
+				||LAYERS.active.isLocked()||LAYERS.active.isDescendantLocked()
+				||LAYERS.active.isOpacityLocked()||LAYERS.active.isDescendantOpacityLocked()) {
+				// if locked in layer tree, or the layer is invisible, cannot move
 				return;
 			}
 			// @TODO: move all cursor coordinate translate into CURSOR
@@ -90,9 +92,9 @@ CURSOR.moveCursor=function(event){
 			const cp1=ENV.toPaperXY(CURSOR.p1[0],CURSOR.p1[1]);
 			const dxP=cp0[0]-cp1[0]; // difference in paper coordinate
 			const dyP=cp0[1]-cp1[1];
-			if(isNaN(dxP)||isNaN(dyP))return;
-			
-			if(!CURSOR.panRecord.isPanned){ // record panning status
+			if(isNaN(dxP)||isNaN(dyP)) return;
+
+			if(!CURSOR.panRecord.isPanned) { // record panning status
 				CURSOR.panRecord.isPanned=true;
 				const imgData=LAYERS.active.rawImageData;
 				CURSOR.panRecord.startPosition=[imgData.left,imgData.top];
@@ -101,50 +103,50 @@ CURSOR.moveCursor=function(event){
 			LAYERS.active.setImageDataInvalid(); // merge with clip mask
 			CANVAS.requestRefresh();
 		}
-		else if(CURSOR.nowActivity=="pick"){
-			if(isNaN(CURSOR.p0[0])||isNaN(CURSOR.p0[1]))return;
+		else if(CURSOR.nowActivity=="pick") {
+			if(isNaN(CURSOR.p0[0])||isNaN(CURSOR.p0[1])) return;
 			const pix=CANVAS.pickColor(CURSOR.p0[0],CURSOR.p0[1]);
 			PALETTE.colorSelector.setRGB(pix.slice(0,3));
 			// PALETTE.drawPalette();
 			// PALETTE.setCursor();
 		}
-		else{ // is drawing
+		else { // is drawing
 			CANVAS.stroke();
 		}
 	}
-	
+
 };
 
-CURSOR.updateXYR=function(){
+CURSOR.updateXYR=function() {
 	if(!BrushManager.activeBrush // no brush at present
-		||isNaN(CURSOR.p0[0])){ // no valid coordinate (when resizing window)
+		||isNaN(CURSOR.p0[0])) { // no valid coordinate (when resizing window)
 		return;
 	}
-	
+
 	let r=BrushManager.activeBrush.size*ENV.window.scale/2;
 	$("#brush-cursor-round").attr({
-		"cx":CURSOR.p0[0],
-		"cy":CURSOR.p0[1],
-		"r":r
+		"cx": CURSOR.p0[0],
+		"cy": CURSOR.p0[1],
+		"r": r
 	});
 	$("#brush-cursor-outer").attr({
-		"cx":CURSOR.p0[0],
-		"cy":CURSOR.p0[1],
-		"r":r+1
+		"cx": CURSOR.p0[0],
+		"cy": CURSOR.p0[1],
+		"r": r+1
 	});
 	$("#brush-cursor-center").attr({
-		"cx":CURSOR.p0[0],
-		"cy":CURSOR.p0[1]
+		"cx": CURSOR.p0[0],
+		"cy": CURSOR.p0[1]
 	});
 	$("#brush-cursor-center-outer").attr({
-		"cx":CURSOR.p0[0],
-		"cy":CURSOR.p0[1]
+		"cx": CURSOR.p0[0],
+		"cy": CURSOR.p0[1]
 	});
 }
 
-CURSOR.updateColor=function(rgb){
+CURSOR.updateColor=function(rgb) {
 	const colorString=PaletteSelector.getColorString(rgb);
-	const outerString=Math.max(...rgb)>150?"#00000033":"#ffffff33"; // @TODO: use luminosity instead?
+	const outerString=Math.max(...rgb)>150? "#00000033":"#ffffff33"; // @TODO: use luminosity instead?
 	$("#brush-cursor-round").attr("stroke",colorString);
 	$("#brush-cursor-center").attr("fill",colorString);
 
@@ -154,11 +156,11 @@ CURSOR.updateColor=function(rgb){
 
 
 CURSOR._isBusy=false;
-CURSOR.setBusy=function(isBusy){
+CURSOR.setBusy=function(isBusy) {
 	CURSOR._isBusy=isBusy;
 	CURSOR.updateAction();
 }
-CURSOR.setIsShown=function(isShown){
+CURSOR.setIsShown=function(isShown) {
 	CURSOR.isShown=isShown;
 	CURSOR.updateAction();
 }
@@ -166,33 +168,33 @@ CURSOR.setIsShown=function(isShown){
 /**
  * Change the present action of the cursor
  */
-CURSOR.updateAction=function(event){
-	if(CURSOR._isBusy){ // is busy has the highest priority
+CURSOR.updateAction=function(event) {
+	if(CURSOR._isBusy) { // is busy has the highest priority
 		CURSOR.nowActivity="busy";
 	}
-	else if(!CURSOR.isShown){ // hidden has the next priority
+	else if(!CURSOR.isShown) { // hidden has the next priority
 		CURSOR.nowActivity="hidden";
 	}
-	else if(event&&(event.originalEvent.buttons&0x2)){ // 2^1==2, right button
+	else if(event&&(event.originalEvent.buttons&0x2)) { // 2^1==2, right button
 		CURSOR.nowActivity="pick";
 	}
-	else if(EVENTS.key.shift){
+	else if(EVENTS.key.shift) {
 		CURSOR.nowActivity="pan-paper";
 		// used as a flag in ENV._transformAnimation
 	}
-	else if(EVENTS.key.ctrl){
+	else if(EVENTS.key.ctrl) {
 		CURSOR.nowActivity="pan-layer";
 	}
-	else if(EVENTS.key.alt){
+	else if(EVENTS.key.alt) {
 		CURSOR.nowActivity="pick";
 	}
-	else if(!CANVAS.drawSuccessful&&CURSOR.isDown){
+	else if(!CANVAS.drawSuccessful&&CURSOR.isDown) {
 		CURSOR.nowActivity="disable";
 	}
-	else{
+	else {
 		CURSOR.nowActivity="stroke";
 	}
-	
+
 	CURSOR.setCursor();
 }
 
@@ -201,7 +203,7 @@ CURSOR.updateAction=function(event){
 /**
  * Disable cursor data
  */
-CURSOR.disableCursor=function(){
+CURSOR.disableCursor=function() {
 	CURSOR.p0=[NaN,NaN,NaN];
 	CURSOR.p1=[NaN,NaN,NaN];
 	CANVAS.updateCursor(CURSOR.p0,CURSOR.isDown);
@@ -210,20 +212,20 @@ CURSOR.disableCursor=function(){
 /**
  * Change the appearance of the cursor
  */
-CURSOR.setCursor=function(){
+CURSOR.setCursor=function() {
 	// filter style
-	if(CURSOR.nowActivity==CURSOR.setCursor.lastType){
+	if(CURSOR.nowActivity==CURSOR.setCursor.lastType) {
 		return;
 	}
 	CURSOR.setCursor.lastType=CURSOR.nowActivity;
 
-	if(CURSOR.nowActivity=="busy"){ // is busy has the highest priority
+	if(CURSOR.nowActivity=="busy") { // is busy has the highest priority
 		$("#brush-cursor").css("display","none");
 		$("#canvas-area-panel").css("cursor","wait");
 		return;
 	}
 
-	if(CURSOR.nowActivity=="hidden"){ // hide cursor has the next priority
+	if(CURSOR.nowActivity=="hidden") { // hide cursor has the next priority
 		$("#brush-cursor").css("display","none");
 		$("#canvas-area-panel").css("cursor","none");
 		CURSOR.disableCursor(); // provide dummy value
@@ -235,7 +237,7 @@ CURSOR.setCursor=function(){
 	// * pan-layer: panning a single layer/group
 	// * select: seleting an area
 	// * disable: invalid operation
-	switch(CURSOR.nowActivity){
+	switch(CURSOR.nowActivity) {
 		default:
 		case "stroke": // normal: svg cursor
 			$("#canvas-area-panel").css("cursor","none");
@@ -265,8 +267,8 @@ CURSOR.setCursor.lastType=null;
  * Cursor click control
  */
 
-CURSOR.down=function(event){
-	if(CURSOR.isDown){
+CURSOR.down=function(event) {
+	if(CURSOR.isDown) {
 		return;
 		//CURSOR.type=event.originalEvent.pointerId;
 	}
@@ -274,13 +276,13 @@ CURSOR.down=function(event){
 	CURSOR.panRecord.isPanned=false;
 }
 
-CURSOR.up=function(event){
+CURSOR.up=function(event) {
 	if(CURSOR.isDown&&(
 		CURSOR.type==event.originalEvent.pointerType // on the target leave
-		||CURSOR.type===null)){ // on init
+		||CURSOR.type===null)) { // on init
 		CURSOR.isDown=false;
 		//CURSOR.type=NaN;
-		if(CURSOR.panRecord.isPanned){ // There was a panning operation
+		if(CURSOR.panRecord.isPanned) { // There was a panning operation
 			// make borders integer
 			CANVAS.roundLayerPosition(LAYERS.active);
 			CANVAS.requestRefresh();
@@ -288,8 +290,8 @@ CURSOR.up=function(event){
 			const imgData=LAYERS.active.rawImageData;
 			const startPos=CURSOR.panRecord.startPosition;
 			HISTORY.addHistory({
-				type:"node-pan",
-				id:LAYERS.active.id,
+				type: "node-pan",
+				id: LAYERS.active.id,
 				dx: imgData.left-startPos[0],
 				dy: imgData.top-startPos[1]
 			});

@@ -181,6 +181,28 @@ class ContentNode extends LayerNode {
 		}
 		return true;
 	}
+	isDescendantLocked(){ // tell if there is a descendant locked
+		for(const v of this.children){
+			if(v.properties.locked){
+				return true;
+			}
+			if(v.isDescendantLocked()){
+				return true;
+			}
+		}
+		return false;
+	}
+	isDescendantOpacityLocked(){ // tell if there is a descendant's opacity locked
+		for(const v of this.children){
+			if(v.properties.pixelOpacityLocked){
+				return true;
+			}
+			if(v.isDescendantOpacityLocked()){
+				return true;
+			}
+		}
+		return false;
+	}
 	// =============== mask & clip mask ==================
 	createImageData(){
 		if(this.imageData!=this.maskedImageData)return; // already created
@@ -361,16 +383,6 @@ class ContentNode extends LayerNode {
 	// 		CANVAS.renderer.restoreImageData(this.imageData);
 	// 	}
 	// }
-	
-	discardUnusedImageData(){
-		for(const v of this.children){
-			v.isRawImageDataValid=false;
-			v.isMaskedImageDataValid=false;
-			v.isImageDataValid=false;
-			v.discardUnusedImageData();
-			// Discard in sub-classes
-		}
-	}
 
 	updateThumb(){ // iterative
 		for(const v of this.children){
