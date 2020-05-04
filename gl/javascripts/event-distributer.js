@@ -189,6 +189,7 @@ EventDistributer.footbarHint=function($el,infoFunc){ // infoFunc put in closure
 			$("#front-info-box").html(content);
 			$("#front-info-box").css("opacity","1");
 		}
+		event.stopPropagation();
 	});
 	$el.on("pointerout",event=>{
 		EventDistributer.footbarHint.infoFunc=null;

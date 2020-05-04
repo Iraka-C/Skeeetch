@@ -76,6 +76,21 @@ LANG_ZH={
 	"Activate the mask layer":"切换蒙版编辑（未完成）",
 	"Merge group contents into one layer":"合并图层组",
 
+	// Blend Modes
+	"blend-mode-hint":"混合模式 - ",
+	"blend-normal":"正常",
+	"blend-multiply":"正片叠底",
+	"blend-screen":"滤色",
+	"blend-overlay":"叠加",
+	"blend-hard-light":"强光",
+	"blend-soft-light":"柔光",
+	"blend-darken":"变暗",
+	"blend-lighten":"变亮",
+	"blend-color-dodge":"颜色减淡",
+	"blend-color-burn":"颜色加深",
+	"blend-difference":"差值",
+	"blend-exclusion":"排除",
+
 	// Workspace
 	"workspace-title":"纸张",
 	"Paper Width":"宽度",

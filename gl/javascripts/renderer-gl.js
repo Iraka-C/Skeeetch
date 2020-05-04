@@ -73,7 +73,7 @@ class GLRenderer extends BasicRenderer {
 		//this.brushtipImageData=this.createImageData();
 
 		// children renderers
-		this.textureBlender=new GLTextureBlender(gl);
+		this.textureBlender=new GLTextureBlender(this);
 		this.imageDataFactory=new GLImageDataFactory(gl,this.dataFormat);
 		this.brushRenderer=new GLBrushRenderer(this);
 		this.vramManager=new GLVRAMManager(this);

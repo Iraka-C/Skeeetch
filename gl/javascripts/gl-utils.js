@@ -40,6 +40,9 @@ class GLProgram {
 		this.attributeMap={}; // name-{size,turn,buffer}
 		this.uniformMap={}; // name-{setUnifFunc,value}
 
+		this.defaultTexture=null; // without name: default texture unit 0
+		this.textureMap={}; // name-{texture,location}
+
 		// frame buffer for texture rendering
 		// create a new framebuffer from gl
 		this.framebuffer=gl.createFramebuffer();
@@ -94,10 +97,24 @@ class GLProgram {
 	}
 
 	/**
-	 * set texture 0
+	 * set source texture
+	 * @param {*} texture
+	 * @param {*} texName
 	 */
-	setSourceTexture(texture) {
-		this.srcTexture=texture;
+	setSourceTexture(texture,texName) {
+		const gl=this.gl;
+		const program=this.program;
+		if(texName){
+			if(!this.textureMap[texName]){ // texture not assigned yet
+				this.textureMap[texName]={};
+			}
+			const tex=this.textureMap[texName];
+			tex.texture=texture;
+			tex.location=gl.getUniformLocation(program,texName);
+		}
+		else{ // default texture
+			this.defaultTexture=texture;
+		}
 	}
 
 	/**
@@ -153,7 +170,22 @@ class GLProgram {
 			}
 		}
 
-		gl.bindTexture(gl.TEXTURE_2D,this.srcTexture); // set this texture as source
+		// textures setting
+		let iTex=0; // the next vacant texture unit
+		if(this.defaultTexture){
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D,this.defaultTexture);
+			iTex++;
+		}
+		const texNames=Object.keys(this.textureMap);
+		for(let i=0;i<texNames.length;i++,iTex++){
+			const tex=this.textureMap[texNames[i]];
+			if(tex){ // set this texture as source
+				gl.uniform1i(tex.location,iTex); // activate texture unit iTex
+				gl.activeTexture(gl.TEXTURE0+iTex);
+				gl.bindTexture(gl.TEXTURE_2D,tex.texture);
+			}
+		}
 
 		// if the target needs to be cleared, it should be done before running the program
 		// run program several times

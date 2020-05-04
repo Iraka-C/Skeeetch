@@ -171,7 +171,7 @@ class IdleTaskManager{
 			// task might not be a function
 		}
 		const dT=Date.now()-startT; // time consuming
-		console.log(dT);
+		//console.log(dT);
 		
 		if(dT>33){ // less than 30fps
 			// show task name or content for anonymous

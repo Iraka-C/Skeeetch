@@ -317,7 +317,9 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	// 		loadQueue[i].load();
 	// 	},0);
 	// }
-	loadQueue[0].load(); // kick
+	if(loadQueue.length){
+		loadQueue[0].load(); // kick
+	}
 }
 
 STORAGE.FILES.onLayerTreeLoad=function(activeID) {

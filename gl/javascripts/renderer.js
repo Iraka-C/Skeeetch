@@ -268,12 +268,65 @@ class BasicRenderer{
 			case BasicRenderer.EXCLUSION: return "exclusion";
 		}
 	}
+
+	static blendModeEnumToID(mode){
+		switch(mode) {
+			default:
+			case BasicRenderer.NORMAL: return 0;
+			case BasicRenderer.MULTIPLY: return 1;
+			case BasicRenderer.SCREEN: return 2;
+			case BasicRenderer.OVERLAY: return 3;
+			case BasicRenderer.HARD_LIGHT: return 4;
+			case BasicRenderer.SOFT_LIGHT: return 5;
+			case BasicRenderer.DARKEN: return 6;
+			case BasicRenderer.LIGHTEN: return 7;
+			case BasicRenderer.COLOR_DODGE: return 8;
+			case BasicRenderer.COLOR_BURN: return 9;
+			case BasicRenderer.DIFFERENCE: return 10;
+			case BasicRenderer.EXCLUSION: return 11;
+		}
+	}
+
+	static blendModeIDToEnum(id){
+		const blendModeID2EnumList=[
+			BasicRenderer.NORMAL,BasicRenderer.MULTIPLY,BasicRenderer.SCREEN,BasicRenderer.OVERLAY,
+			BasicRenderer.HARD_LIGHT,BasicRenderer.SOFT_LIGHT,BasicRenderer.DARKEN,BasicRenderer.LIGHTEN,
+			BasicRenderer.COLOR_DODGE,BasicRenderer.COLOR_BURN,BasicRenderer.DIFFERENCE,BasicRenderer.EXCLUSION
+		];
+		return blendModeID2EnumList[id];
+	}
+
+	static blendModeEnumToDisplayedName(mode){
+		switch(mode) {
+			default:
+			case BasicRenderer.NORMAL: return Lang("blend-normal");
+			case BasicRenderer.MULTIPLY: return Lang("blend-multiply");
+			case BasicRenderer.SCREEN: return Lang("blend-screen");
+			case BasicRenderer.OVERLAY: return Lang("blend-overlay");
+			case BasicRenderer.HARD_LIGHT: return Lang("blend-hard-light");
+			case BasicRenderer.SOFT_LIGHT: return Lang("blend-soft-light");
+			case BasicRenderer.DARKEN: return Lang("blend-darken");
+			case BasicRenderer.LIGHTEN: return Lang("blend-lighten");
+			case BasicRenderer.COLOR_DODGE: return Lang("blend-color-dodge");
+			case BasicRenderer.COLOR_BURN: return Lang("blend-color-burn");
+			case BasicRenderer.DIFFERENCE: return Lang("blend-difference");
+			case BasicRenderer.EXCLUSION: return Lang("blend-exclusion");
+		}
+	}
 }
 
-// Blend Mode enums
+// Blend Mode enums, 1 for source-only, minus value for ither porter-duff operations
 BasicRenderer.NORMAL=0;
 BasicRenderer.MULTIPLY=2;
 BasicRenderer.SCREEN=3;
+BasicRenderer.OVERLAY=4;
+BasicRenderer.HARD_LIGHT=5;
+BasicRenderer.SOFT_LIGHT=6;
+BasicRenderer.DARKEN=7;
+BasicRenderer.LIGHTEN=8;
+BasicRenderer.DIFFERENCE=9;
 BasicRenderer.EXCLUSION=10;
+BasicRenderer.COLOR_DODGE=11;
+BasicRenderer.COLOR_BURN=12;
 
 BasicRenderer._sBase=5; // power base 5^(sensitivity-1)

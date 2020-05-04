@@ -5,7 +5,9 @@
 class GLTextureBlender {
 	// Enums at the end of class definition
 
-	constructor(gl) {
+	constructor(renderer) {
+		this.renderer=renderer;
+		const gl=renderer.gl;
 		const vBlendShaderSource=glsl`
 			attribute vec2 a_dst_pos; // drawing area on target
 			attribute vec2 a_src_pos; // sample area from source
@@ -22,7 +24,7 @@ class GLTextureBlender {
 			uniform float u_image_alpha;
 			varying vec2 v_pos;
 			void main(){
-				if(v_pos.x<0.||v_pos.y<0.||v_pos.x>1.||v_pos.y>1.){ // out of bound
+				if(v_pos.x<0.||v_pos.y<0.||v_pos.x>1.||v_pos.y>1.){ // out of bound, sharp cut
 					gl_FragColor=vec4(0.,0.,0.,0.); // transparent
 				}
 				else{ // sample from u_image
@@ -30,13 +32,66 @@ class GLTextureBlender {
 				}
 			}
 		`;
+		const fAdvancedBlendShaderSource=glsl`
+			precision mediump float;
+			precision mediump sampler2D;
+			uniform sampler2D u_image_0; // src (on top) : provides Cs
+			uniform sampler2D u_image_1; // dst (backdrop) : provides Cb
+			uniform float u_image_alpha; // src alpha
+			uniform float u_blend_mode; // according to enums
+			varying vec2 v_pos_0; // vertex from src
+			varying vec2 v_pos_1; // vertex from dst
+
+			vec3 multiply(vec3 Cb,vec3 Cs){return Cb*Cs;} // #2
+			vec3 screen(vec3 Cb,vec3 Cs){return Cb+Cs-Cb*Cs;} // #3
+			vec3 darken(vec3 Cb,vec3 Cs){return min(Cb,Cs);} // #7
+			vec3 lighten(vec3 Cb,vec3 Cs){return max(Cb,Cs);} // #8 May overflow than alpha!
+			vec3 color_dodge(vec3 Cb,vec3 Cs){return clamp(Cb/(vec3(1.,1.,1.)-Cs),0.,1.);} // #11 clamped
+			vec3 color_burn(vec3 Cb,vec3 Cs){return vec3(1.,1.,1.)-clamp((vec3(1.,1.,1.)-Cb)/Cs,0.,1.);} // #12 clamped
+
+			void main(){
+				vec4 pix0=vec4(0.,0.,0.,0.); // src pixel
+				vec4 pix1=vec4(0.,0.,0.,0.); // dst pixel
+				if(v_pos_0.x>=0.&&v_pos_0.x<=1.&&v_pos_0.y>=0.&&v_pos_0.y<=1.){
+					pix0=texture2D(u_image_0,v_pos_0)*u_image_alpha;
+				}
+				if(v_pos_1.x>=0.&&v_pos_1.x<=1.&&v_pos_1.y>=0.&&v_pos_1.y<=1.){
+					pix1=texture2D(u_image_1,v_pos_1);
+				}
+				if(pix1.w==0.){ // dst alpha is 0, maintain src pixel
+					gl_FragColor=pix0;
+					return;
+				}
+				if(pix0.w==0.){ // src alpha is 0, no effect
+					gl_FragColor=pix1;
+					return;
+				}
+
+				// premult => non premult
+				vec3 Cs=pix0.xyz/pix0.w;
+				vec3 Cb=pix1.xyz/pix1.w;
+
+				vec3 Cm=vec3(0.,0.,0.); // blended result
+				if(u_blend_mode<2.5){Cm=multiply(Cb,Cs);}
+				else if(u_blend_mode<3.5){Cm=screen(Cb,Cs);}
+				else if(u_blend_mode<7.5){Cm=darken(Cb,Cs);}
+				else if(u_blend_mode<8.5){Cm=lighten(Cb,Cs);}
+				else if(u_blend_mode<11.5){Cm=color_dodge(Cb,Cs);}
+				else if(u_blend_mode<12.5){Cm=color_burn(Cb,Cs);}
+
+				vec3 Cr=Cs+pix1.w*(Cm-Cs); // interpolation by backdrop alpha
+				gl_FragColor=vec4(Cr*pix0.w,pix0.w); // return modified Cs
+			}
+		`;
 
 		this.gl=gl;
 		this.blendProgram=new GLProgram(gl,vBlendShaderSource,fBlendShaderSource);
+		this.advancedBlendProgram=new GLProgram(gl,vBlendShaderSource,fAdvancedBlendShaderSource);
 	}
 
 	free() {
 		this.blendProgram.free();
+		this.advancedBlendProgram.free();
 	}
 	/**
 	 * blend the src and dst textures in corresponding ranges
@@ -161,17 +216,37 @@ class GLTextureBlender {
 			dst.validArea=GLProgram.borderIntersection(tmpArea,dst); // trim in dst borders
 		}
 	}
+
+	/**
+	 * Blending that cannot be done with simple blendFunc()
+	 * and has to follow Porter Duff Compositing Operators and blend mode functions
+	 * @param {*} src 
+	 * @param {*} dst 
+	 * @param {*} param 
+	 */
+	advancedBlendTexture(src,dst,param){
+
+	}
 }
 
 // Mode enums, shall be the same def as BasicRenderer
-GLTextureBlender.NORMAL=BasicRenderer.NORMAL;
 GLTextureBlender.AVERAGE=-3;
 GLTextureBlender.ERASE=-2;
 GLTextureBlender.NONE=-1;
 GLTextureBlender.SOURCE=1;
+GLTextureBlender.NORMAL=BasicRenderer.NORMAL;
 GLTextureBlender.MULTIPLY=BasicRenderer.MULTIPLY;
 GLTextureBlender.SCREEN=BasicRenderer.SCREEN;
+GLTextureBlender.OVERLAY=BasicRenderer.OVERLAY;
+GLTextureBlender.HARD_LIGHT=BasicRenderer.HARD_LIGHT;
+GLTextureBlender.SOFT_LIGHT=BasicRenderer.SOFT_LIGHT;
+GLTextureBlender.DARKEN=BasicRenderer.DARKEN;
+GLTextureBlender.LIGHTEN=BasicRenderer.LIGHTEN;
+GLTextureBlender.DIFFERENCE=BasicRenderer.DIFFERENCE;
 GLTextureBlender.EXCLUSION=BasicRenderer.EXCLUSION;
+GLTextureBlender.COLOR_DODGE=BasicRenderer.COLOR_DODGE;
+GLTextureBlender.COLOR_BURN=BasicRenderer.COLOR_BURN;
+
 
 class GLImageDataFactory {
 	/**

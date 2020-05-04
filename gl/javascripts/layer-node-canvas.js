@@ -12,9 +12,43 @@ LAYERS.$newCanvasLayerUI=function(id) {
 	// Layer buttons
 	let buttons=$("<div class='layer-buttons'>");
 	let lockButton=$("<div class='layer-lock-button'>").append($("<img>")); // layer lock
-	let blendModeButton=$("<div class='layer-blend-mode-button layer-button-to-hide'>").append($("<img>")); // layer blend mode
+
+	// blend mode selector
+	let blendModeSelector=$("<div class='layer-blend-mode-selector'>");
+	blendModeSelector.append($("<table>").append( // lblend mode table
+		$("<tr>").append(
+			$("<td colspan='4'>").append(
+				$("<div class='layer-blend-mode-selector-title'>")
+					.text("Normal"),
+				$("<div>&nbsp;</div>")
+			)
+		),
+		$("<tr>").append(
+			$("<td>").append($("<img src='./resources/blend-mode/normal.svg'>")),
+			$("<td>").append($("<img src='./resources/blend-mode/multiply.svg'>")),
+			$("<td>").append($("<img src='./resources/blend-mode/screen.svg'>")),
+			$("<td>").append($("<img src='./resources/blend-mode/overlay.svg'>"))
+		),
+		$("<tr>").append(
+			$("<td>").append($("<img src='./resources/blend-mode/hard-light.svg'>")),
+			$("<td>").append($("<img src='./resources/blend-mode/soft-light.svg'>")),
+			$("<td>").append($("<img src='./resources/blend-mode/darken.svg'>")),
+			$("<td>").append($("<img src='./resources/blend-mode/lighten.svg'>"))
+		),
+		$("<tr>").append(
+			$("<td>").append($("<img src='./resources/blend-mode/color-dodge.svg'>")),
+			$("<td>").append($("<img src='./resources/blend-mode/color-burn.svg'>")),
+			$("<td>").append($("<img src='./resources/blend-mode/difference.svg'>")),
+			$("<td>").append($("<img src='./resources/blend-mode/exclusion.svg'>"))
+		)
+	));
+	let blendModeButton=$("<div class='layer-blend-mode-button layer-button-to-hide'>")
+		.append($("<img>"),blendModeSelector); // layer blend mode
+
+	// mask buttons
 	let clipMaskButton=$("<div class='layer-clip-mask-button layer-button-to-hide'>").append($("<img>")); // layer clip mask
 	let maskButton=$("<div class='layer-mask-button'>").append($("<img>")); // layer mask
+
 	//buttons.append(lockButton,blendModeButton,clipMaskButton,maskButton);
 	buttons.append($("<table>").append( // layer button table 2x2
 		$("<tr>").append(
@@ -57,7 +91,7 @@ LAYERS.$newCanvasLayerUI=function(id) {
 	opacityLabel.on("pointerdown",event => event.stopPropagation());
 	buttons.on("pointerdown",event => event.stopPropagation());
 
-	layerUI.append(cvUI,maskUI2,maskUI,opacityLabel,buttons,nameLabel,clipHint);
+	layerUI.append(cvUI,maskUI2,maskUI,opacityLabel,nameLabel,clipHint,buttons);
 
 	// prevent layerUI from dragging on pen: causes freezing in Firefox
 	// causes dragged object stuck in Chrome
@@ -194,14 +228,14 @@ class CanvasNode extends ContentNode {
 		const thumbCV=this.$thumb[0];
 		const ctx=thumbCV.getContext("2d");
 		const w=thumbCV.width,h=thumbCV.height;
-		if(!(w&&h)){ // thumb not shown
+		if(!(w&&h)) { // thumb not shown
 			return;
 		}
 		const imgData2d=ctx.createImageData(w,h);
 
 		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(
 			this.rawImageData,null,[w,h]); // get data
-		
+
 		imgData2d.data.set(pixels); // copy pixel data
 		ctx.putImageData(imgData2d,0,0);
 	}
@@ -319,55 +353,79 @@ class CanvasNode extends ContentNode {
 
 		// blend mode button
 		const $blendButton=$buttons.find(".layer-blend-mode-button");
+		const $blendButtons=$buttons.find(".layer-blend-mode-selector").find("img").parent();
+		const $blendNameTitle=$buttons.find(".layer-blend-mode-selector").find(".layer-blend-mode-selector-title");
 		const setBlendButtonStatus=v => {
-			if(this.properties.locked)return;
 			const $blendButtonImg=$blendButton.children("img");
-			switch(v) {
-				case 0: // normal
-					this.properties.blendMode=BasicRenderer.NORMAL;
-					$blendButtonImg.attr("src","./resources/blend-mode/normal.svg");
-					break;
-				case 1: // multiply
-					this.properties.blendMode=BasicRenderer.MULTIPLY;
-					$blendButtonImg.attr("src","./resources/blend-mode/multiply.svg");
-					break;
-				case 2: // screen
-					this.properties.blendMode=BasicRenderer.SCREEN;
-					$blendButtonImg.attr("src","./resources/blend-mode/screen.svg");
-					break;
-			}
+			const $prevTargetButton=$blendButtons.eq(BasicRenderer.blendModeEnumToID(this.properties.blendMode));
+			const $targetButton=$blendButtons.eq(v);
+			$blendButtonImg.attr("src",$targetButton.children("img").attr("src")); // copy url
+			this.properties.blendMode=BasicRenderer.blendModeIDToEnum(v);
+			$blendNameTitle.text(BasicRenderer.blendModeEnumToDisplayedName(this.properties.blendMode));
+
+			// Switch selector button opacity
+			$prevTargetButton.css("opacity","var(--blend-selector-button-opacity)");
+			$targetButton.css("opacity","1");
 		}
-		const blendButtonHistoryCallback={
-			prevStatus: null,
-			before: () => {
-				blendButtonHistoryCallback.prevStatus={
-					blendMode: this.properties.blendMode
-				}
-			},
-			after: () => {
-				if(this.properties.locked)return;
+		// const blendButtonHistoryCallback={
+		// 	prevStatus: null,
+		// 	before: () => {
+		// 		blendButtonHistoryCallback.prevStatus={
+		// 			blendMode: this.properties.blendMode
+		// 		}
+		// 	},
+		// 	after: () => {
+		// 		if(this.properties.locked) return;
+		// 		HISTORY.addHistory({ // add a history
+		// 			type: "node-property",
+		// 			id: this.id,
+		// 			prevStatus: blendButtonHistoryCallback.prevStatus,
+		// 			nowStatus: {blendMode: this.properties.blendMode}
+		// 		});
+		// 	}
+		// };
+		// const fBlend=SettingManager.setSwitchInteraction($blendButton,null,3,($el,v) => {
+		// 	setBlendButtonStatus(v);
+		// 	this.setImageDataInvalid();
+		// 	COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
+		// },blendButtonHistoryCallback);
+		for(let i=0;i<$blendButtons.length;i++) {
+			const $targetButton=$blendButtons.eq(i);
+			$targetButton.on("click",e => {
+				if(this.properties.locked) return;
+				const prevStatus={blendMode: this.properties.blendMode};
+				setBlendButtonStatus(i);
+				this.setImageDataInvalid();
+				COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
+				const nowStatus={blendMode: this.properties.blendMode};
 				HISTORY.addHistory({ // add a history
 					type: "node-property",
 					id: this.id,
-					prevStatus: blendButtonHistoryCallback.prevStatus,
-					nowStatus: {blendMode: this.properties.blendMode}
+					prevStatus: prevStatus,
+					nowStatus: nowStatus
 				});
-			}
-		};
-		const fBlend=SettingManager.setSwitchInteraction($blendButton,null,3,($el,v) => {
-			setBlendButtonStatus(v);
+			});
+			$targetButton.on("pointerover",e=>{ // show name
+				$blendNameTitle.text(
+					BasicRenderer.blendModeEnumToDisplayedName(
+						BasicRenderer.blendModeIDToEnum(i)
+					)
+				);
+			});
+			$targetButton.on("pointerout",e=>{ // hide name
+				$blendNameTitle.text(
+					BasicRenderer.blendModeEnumToDisplayedName(
+						this.properties.blendMode
+					)
+				);
+			});
+		}
+		this.buttonUpdateFuncs.blendButton=() => {
+			setBlendButtonStatus(BasicRenderer.blendModeEnumToID(this.properties.blendMode));
 			this.setImageDataInvalid();
 			COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
-		},blendButtonHistoryCallback);
-		const blendModeToIdList=mode => {
-			switch(mode) {
-				default:
-				case BasicRenderer.NORMAL: return 0;
-				case BasicRenderer.MULTIPLY: return 1;
-				case BasicRenderer.SCREEN: return 2;
-			}
 		};
-		this.buttonUpdateFuncs.blendButton=() => fBlend(blendModeToIdList(this.properties.blendMode));
+		this.buttonUpdateFuncs.blendButton(); // init
 
 		// mask button. @TODO: the logic is much more difficult to tidy
 		const $maskButton=$buttons.find(".layer-mask-button");
@@ -392,7 +450,7 @@ class CanvasNode extends ContentNode {
 		const $opacityLabel=this.$ui.children(".layer-opacity-label");
 		const $opacityInput=$opacityLabel.children("input");
 		const setOpacity=opacity => { // set opacity function
-			if(this.properties.locked)return; // locked, doen't change
+			if(this.properties.locked) return; // locked, doen't change
 			const prevOpacity=this.properties.opacity;
 			this.properties.opacity=opacity;
 			this.setImageDataInvalid(); // In fact this is a little more, only need to set parent/clip parent
@@ -462,7 +520,7 @@ class CanvasNode extends ContentNode {
 				nowStatus: {name: this.getName()}
 			});
 		});
-		EventDistributer.footbarHint($nameInput,() =>this.id);
+		EventDistributer.footbarHint($nameInput,() => this.id);
 	}
 	// ======================= Property control =========================
 	getProperties() {
@@ -494,7 +552,7 @@ class CanvasNode extends ContentNode {
 			"canvas": CANVAS.renderer.getContext2DCanvasFromImageData(imgData) // left & top info are handled by json
 		});
 	}
-	getStorageJSON(){
+	getStorageJSON() {
 		const img=this.rawImageData; // @TODO: mask
 		const vArea=img.validArea;
 		return Object.assign(super.getStorageJSON(),{

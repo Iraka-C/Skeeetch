@@ -33,11 +33,17 @@ EVENTS.init=function(){
 		}
 	});
 	$("#canvas-area-panel").on("pointerleave",event=>{
-		if(event.originalEvent.relatedTarget){ // moving to other blocks
+		// const offset=$("#canvas-area-panel").offset();
+		// const w=$("#canvas-area-panel").width();
+		// const h=$("#canvas-area-panel").height();
+		// let dX=offset.left+w-event.originalEvent.clientX;
+		// let dY=offset.top+h-event.originalEvent.clientY;
+		// console.log("Pointer left at "+dX+" "+dY);
+
+		if(!CURSOR.isDown&&event.originalEvent.relatedTarget){ // moving to other blocks
 			STORAGE.FILES.requestSaveContentChanges();
 		}
 	});
-
 	// ============= Cursor related ==============
 	const $canvasWindow=$("#canvas-window");
 	/**

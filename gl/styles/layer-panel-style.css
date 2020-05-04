@@ -99,6 +99,9 @@
 	--expanded-layer-ui-width: 10em;
 	--expanded-layer-namelabel-margin: 0.3em;
 	--collapsed-layer-ui-size: 3em;
+	--layer-button-size: 1em;
+	--layer-button-interval: 0.15em;
+	--blend-selector-button-opacity: 0.5;
 }
 
 #layer-panel{
@@ -228,12 +231,13 @@
 	margin: 0.2em;
 }
 .layer-buttons td{
+	position: relative;
 	padding: 0em;
 }
 .layer-buttons img{
 	display: block;
-	width: 1em;
-	margin: 0.15em;
+	width: var(--layer-button-size);
+	margin: var(--layer-button-interval);
 }
 /* show/hide effect of some layer buttons */
 .layer-buttons .layer-button-to-hide{
@@ -278,6 +282,44 @@
 	right: 0em;
 	bottom: 0em;
 	display: block;
+}
+
+/* Layer blend mode selector */
+.layer-blend-mode-selector{
+	position: absolute;
+	top: 0px;
+	right: 0px; /* Extending left */
+	z-index: 2; /* on top of other buttons */
+	color: #000; /* invert to get white */
+
+	background-color: #000000CC;
+	border-radius: 0.5em;
+	opacity: 0;
+	transition: opacity 0.5s;
+	pointer-events: none;
+}
+.layer-blend-mode-button:hover > .layer-blend-mode-selector{
+	opacity: 1;
+	pointer-events: all;
+}
+.layer-blend-mode-selector td{
+	filter: invert(100%);
+	opacity: var(--blend-selector-button-opacity);
+	transition: opacity 0.25s;
+}
+.layer-blend-mode-selector td:hover{
+	opacity: 1;
+}
+.layer-blend-mode-selector-title{
+	font-size: 80%;
+	position: absolute;
+	left: var(--layer-button-interval);
+	right: var(--layer-button-interval);
+	text-overflow: ellipsis;
+	overflow: hidden;
+	text-align: center;
+	white-space: nowrap;
+	font-weight: bold;
 }
 
 /* ========================== layer groups ========================= */
