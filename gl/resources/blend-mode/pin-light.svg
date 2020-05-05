@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 22.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 28.3 28.3" style="enable-background:new 0 0 28.3 28.3;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;stroke:#000000;stroke-miterlimit:10;}
+	.st1{fill:url(#SVGID_1_);}
+	.st2{fill-opacity:0.15;}
+</style>
+<g id="图层_1">
+	<circle class="st0" cx="14.2" cy="14.2" r="12.8"/>
+	<line class="st0" x1="4.61" y1="22.677" x2="23.79" y2="22.677"/>
+</g>
+<g id="图层_2">
+	<radialGradient id="SVGID_1_" cx="14.1688" cy="13.6948" r="11.769" fx="14.1688" fy="1.9258" gradientUnits="userSpaceOnUse">
+		<stop  offset="2.445319e-08" style="stop-color:#000000;stop-opacity:0"/>
+		<stop  offset="1" style="stop-color:#000000"/>
+	</radialGradient>
+	<path class="st1" d="M27,14.2c0-7.069-5.731-12.8-12.8-12.8C7.131,1.4,1.4,7.131,1.4,14.2c0,3.256,1.226,6.218,3.227,8.477h19.145
+		C25.774,20.418,27,17.456,27,14.2z"/>
+	<path class="st2" d="M4.628,22.677C6.972,25.323,10.386,27,14.2,27s7.228-1.677,9.573-4.323H4.628z"/>
+</g>
+</svg>

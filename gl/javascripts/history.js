@@ -123,7 +123,8 @@ HISTORY.init=function(){ // init anyways
  * Add History item
  * A HistoryItem shall be added by USER ACTIONS, rather than property manipulation functions
  */
-HISTORY.pendingHistoryCnt=0; // How many history item still at pending status? (not added to list)
+ // How many history item still at pending status?
+HISTORY.pendingHistoryCnt=0; // not added to list, waiting for idle task
 HISTORY.pendingImageDataChangeParam=new Map(); // pending during busy
 HISTORY.addHistory=function(param){ // see HistoryItem constructor for info structure
 	// if(HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
@@ -257,16 +258,16 @@ HISTORY.undo=function(){ // undo 1 step
 		}
 	};
 	
-	if(HISTORY.nowId<0)return; // no older history
-	if(HISTORY.pendingHistoryCnt==0){ // no pending history items, undo immediately
-		undoInstant(HISTORY.list[HISTORY.nowId--]);
+	if(HISTORY.pendingHistoryCnt==0&&!HISTORY.pendingNodePropertyItem&&HISTORY.nowId<0){
+		return; // no older history
 	}
-	else{ // this task is certainly added after all pending tasks
-		HISTORY.submitPropertyHistory(); // submit all property change first
-		PERFORMANCE.idleTaskManager.addTask(e=>{
-			undoInstant(HISTORY.list[HISTORY.nowId--]);
-		});
-	}
+	HISTORY.submitPropertyHistory(); // submit all property change first
+	const id=HISTORY.nowId--; // subtract id first to prevent next coming undo
+	PERFORMANCE.idleTaskManager.addTask(e=>{
+		// this task is certainly added after all pending tasks
+		// including other undo/redos
+		undoInstant(HISTORY.list[id]);
+	});
 }
 
 HISTORY.redo=function(){ // redo 1 step
@@ -297,8 +298,12 @@ HISTORY.redo=function(){ // redo 1 step
 		default: // uncategorized
 		}
 	}
-	// redo is always instant
-	redoInstant(HISTORY.list[++HISTORY.nowId]);
+	// pend redo after last task (may be an undo)
+	const id=++HISTORY.nowId; // block next coming redo (may over history length)
+	PERFORMANCE.idleTaskManager.addTask(e=>{
+		redoInstant(HISTORY.list[id]);
+	});
+	
 }
 
 // ================= Deal with each type of Undo/Redo ==================

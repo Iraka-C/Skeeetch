@@ -2595,10 +2595,14 @@ function addChildren(layers, children) {
         if (c.children && c.canvas) {
             throw new Error("Invalid layer: cannot have both 'canvas' and 'children' properties set");
         }
-        if (c.children) {
+        if (c.children) { // @Iraka-C: a group here
+			function groupBlendModeKey(mode){ // blend mode to key
+				return {"normal":"norm","multiply":"mul ","screen":"scrn","overlay":"over","darken":"dark","color burn":"idiv","linear burn":"lbrn","darker color":"dkCl","lighten":"lite","color dodge":"div ","linear dodge":"lddg","lighter color":"lgCl","soft light":"sLit","hard light":"hLit","vivid light":"vLit","linear light":"lLit","pin light":"pLit","hard mix":"hMix","difference":"diff","exclusion":"smud","subtract":"fsub","divide":"fdiv","hue":"hue ","saturation":"sat ","color":"colr","luminosity":"lum "
+				}[mode]||"norm"; // regardless of "pass", which is not supported in Skeeetch (yet)
+			}
             var sectionDivider = {
                 type: c.opened === false ? 2 /* ClosedFolder */ : 1 /* OpenFolder */,
-                key: 'pass',
+                key: groupBlendModeKey(c.blendMode), // @Iraka-C: modified here for group compability
                 subtype: 0,
             };
             layers.push({

@@ -261,7 +261,7 @@ class GLRenderer extends BasicRenderer {
 			gl.clearColor(0,0,0,0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 
-			program.setSourceTexture(imgData.data);
+			program.setSourceTexture("u_image",imgData.data);
 			program.setUniform("u_aa_step",[1/w,0]);
 			program.setUniform("u_aa_cnt",antiAliasRadius);
 			gl.viewport(imgData.left,h-ih-imgData.top,iw,ih); // set viewport according to the image data
@@ -278,7 +278,7 @@ class GLRenderer extends BasicRenderer {
 			return;
 		}
 
-		program.setSourceTexture(tmp.data);
+		program.setSourceTexture("u_image",tmp.data);
 		program.setUniform("u_aa_step",[0,1/h]);
 		program.setUniform("u_aa_cnt",antiAliasRadius);
 		gl.blendFunc(this.gl.ONE,this.gl.ZERO); // copy

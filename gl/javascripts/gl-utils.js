@@ -101,20 +101,15 @@ class GLProgram {
 	 * @param {*} texture
 	 * @param {*} texName
 	 */
-	setSourceTexture(texture,texName) {
+	setSourceTexture(texName,texture) {
 		const gl=this.gl;
 		const program=this.program;
-		if(texName){
-			if(!this.textureMap[texName]){ // texture not assigned yet
-				this.textureMap[texName]={};
-			}
-			const tex=this.textureMap[texName];
-			tex.texture=texture;
-			tex.location=gl.getUniformLocation(program,texName);
+		if(!this.textureMap[texName]){ // texture not assigned yet
+			this.textureMap[texName]={};
 		}
-		else{ // default texture
-			this.defaultTexture=texture;
-		}
+		const tex=this.textureMap[texName];
+		tex.texture=texture;
+		tex.location=gl.getUniformLocation(program,texName);
 	}
 
 	/**
@@ -171,18 +166,12 @@ class GLProgram {
 		}
 
 		// textures setting
-		let iTex=0; // the next vacant texture unit
-		if(this.defaultTexture){
-			gl.activeTexture(gl.TEXTURE0);
-			gl.bindTexture(gl.TEXTURE_2D,this.defaultTexture);
-			iTex++;
-		}
 		const texNames=Object.keys(this.textureMap);
-		for(let i=0;i<texNames.length;i++,iTex++){
+		for(let i=0;i<texNames.length;i++){ // assign a texture unit ID
 			const tex=this.textureMap[texNames[i]];
 			if(tex){ // set this texture as source
-				gl.uniform1i(tex.location,iTex); // activate texture unit iTex
-				gl.activeTexture(gl.TEXTURE0+iTex);
+				gl.uniform1i(tex.location,i); // activate texture unit iTex
+				gl.activeTexture(gl.TEXTURE0+i);
 				gl.bindTexture(gl.TEXTURE_2D,tex.texture);
 			}
 		}
@@ -190,6 +179,13 @@ class GLProgram {
 		// if the target needs to be cleared, it should be done before running the program
 		// run program several times
 		gl.drawArrays(gl.TRIANGLES,0,totalTurn);
+
+		// disable all attributes
+		// prevent INVALID_OPERATION: drawArrays: no buffer is bound to enabled attribute
+		for(const v in this.attributeMap) {
+			const attr=this.attributeMap[v];
+			gl.disableVertexAttribArray(attr.location);
+		}
 	}
 
 	// statics

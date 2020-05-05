@@ -425,6 +425,10 @@ class LayerGroupNode extends ContentNode {
 		return Object.assign(json,{
 			"opened": this.isExpanded,
 			"children": childrenJson
+			/**
+			 * **NOTE**
+			 * modified ag-psd function addChildren(): group blend type keys
+			 */
 		});
 	}
 

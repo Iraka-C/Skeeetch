@@ -51,7 +51,7 @@ FILES.initImportDropHandler=function() {
 		e.preventDefault();
 		if(e.type=="drop") {
 			let file=e.originalEvent.dataTransfer.files[0]; // @TODO: open multiple files
-			console.log(file);
+			//console.log(file);
 
 			if(!file) return; // dragging layer
 
@@ -86,7 +86,7 @@ FILES.initImportDropHandler=function() {
  */
 FILES.loadAsPSD=function(data,filename) {
 	let psdFile=agPsd.readPsd(data); // ag-psd function, use raw Context2D ImageData rather than loading into canvas
-	//console.log(psdFile);
+	console.log(psdFile);
 	if(psdFile.width>ENV.maxPaperSize||psdFile.height>ENV.maxPaperSize) {
 		// larger than maximum paper size
 		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.maxPaperSize+"px",2000);
@@ -124,11 +124,26 @@ FILES.loadPSDNodes=function(node) {
 			// **NOTE** setProperties() actually requested screen refresh
 			const sNode=this.json;
 			if(sNode.hasOwnProperty("children")) { // group node
+				console.log(sNode.name+": "+sNode.blendMode+", '"+sNode.sectionDivider.key+"'");
 				this.N=sNode.children.length; // children count
 				const newElement=new LayerGroupNode();
+
+				/**
+				 * (p.t,tP) -> (lock,oplock)
+				 * (0,0) - (0,0)
+				 * (1,1) - (0,1)
+				 * (0,1) - (1,1)
+				 */
+				const lockStatus=sNode.protected.transparency?1:sNode.transparencyProtected?2:0; // a bit weird
 				newElement.setProperties({ // @TODO: add initial value
 					name: sNode.name,
-					isExpanded: sNode.opened
+					isExpanded: sNode.opened,
+					locked: lockStatus==2,
+					pixelOpacityLocked: lockStatus>=1,
+					opacity: sNode.opacity/255, // in psd, opacity is from 0 to 255
+					visible: !sNode.hidden,
+					clipMask: sNode.clipping,
+					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode)
 				});
 				this.elem=newElement;
 			}
@@ -149,9 +164,7 @@ FILES.loadPSDNodes=function(node) {
 				}
 
 				// UI/status settings
-				const lockStatus=sNode.transparencyProtected?
-					sNode.protected.transparency?
-						1:2:0; // a bit weird
+				const lockStatus=sNode.protected.transparency?1:sNode.transparencyProtected?2:0; // a bit weird
 				newElement.setProperties({ // also requested recomposition @TODO: add initial value
 					locked: lockStatus==2,
 					pixelOpacityLocked: lockStatus>=1,
@@ -162,6 +175,7 @@ FILES.loadPSDNodes=function(node) {
 					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode)
 				});
 				
+
 				// store contents
 				STORAGE.FILES.saveContentChanges(newElement); // save loaded contents
 				this.elem=newElement;
@@ -257,24 +271,10 @@ FILES.onPSDLoaded=function() {
 		EventDistributer.footbarHint.showInfo("Loaded");
 	}
 	ENV.taskCounter.finishTask(1); // finish file loading task
-	/**
-	 * Here is a mysterious bug that thumb updating has to be call asynced.
-	 * At this point (here), all canvas contents of psd SHOULD have loaded into CanvasNodes
-	 * but calling LAYERS.updateAllThumbs stll (may) reports no src image buffer binding error.
-	 * I doubt that this may due to the loading mechanism of ag-psd.
-	 * Somehow using texImage2D has become unsynchronized (with an "onload" to which we cannot listen)
-	 * and we must queue thumb updating up to wait for fully loaded.
-	 * COMPOSITOR.updateLayerTreeStructure doesn't report an error because it is already async
-	 * 
-	 * Refer to FILES.loadAsImage, this loading doesn't cause any error like this
-	 */
-	// LAYERS.updateAllThumbs();
 	const toActive=FILES.loadPSDNodes.lastLoadingElement;
 	FILES.loadPSDNodes.lastLoadingElement=null; // release ref
-	PERFORMANCE.idleTaskManager.addTask(e => {
-		LAYERS.setActive(toActive);
-		LAYERS.updateAllThumbs();
-	});
+	LAYERS.setActive(toActive);
+	LAYERS.updateAllThumbs();
 }
 
 // Image Handlers
@@ -312,7 +312,7 @@ FILES.loadAsImage=function(img) {
 
 // ===================== Export operations ========================
 
-FILES.saveAsPSD=function() { // @TODO: change to async function
+FILES.saveAsPSD=function(psdJSON) { // @TODO: change to async function
 	/**
 	 * **NOTE** Should not use Promise for asynchronized JSON composition:
 	 * Promise() creates microtasks in the task loop,
@@ -321,7 +321,7 @@ FILES.saveAsPSD=function() { // @TODO: change to async function
 	 * 
 	 * **What it combining setTimeOut & Promise? Better grammar that doesn't block the UI?
 	 */
-	const psdJSON=LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
+	psdJSON=psdJSON||LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
 
 	ENV.taskCounter.startTask(1); // start PSD encoding task
 	EventDistributer.footbarHint.showInfo("Encoding ...");

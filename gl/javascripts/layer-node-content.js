@@ -403,7 +403,12 @@ class ContentNode extends LayerNode {
 			"right": ENV.paperSize.width-imgData.left-imgData.width,
 			"blendMode": BasicRenderer.blendModeEnumToName(prop.blendMode),
 			"opacity": Math.round(prop.opacity*255),
-			"transparencyProtected": false, // @TODO
+			"transparencyProtected": prop.locked,
+			"protected": { // problematic! maybe ag-psd?
+				"transparency": prop.pixelOpacityLocked,
+				"position": prop.pixelOpacityLocked,
+				"composite": prop.locked
+			},
 			"hidden": !prop.visible,
 			"clipping": prop.clipMask,
 			"name": this.getName()

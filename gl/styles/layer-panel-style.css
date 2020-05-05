@@ -310,6 +310,9 @@
 .layer-blend-mode-selector td:hover{
 	opacity: 1;
 }
+.layer-blend-mode-selector .active-blend-mode{
+	opacity: 1;
+}
 .layer-blend-mode-selector-title{
 	font-size: 80%;
 	position: absolute;

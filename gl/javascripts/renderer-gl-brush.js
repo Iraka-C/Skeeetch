@@ -318,7 +318,7 @@ class GLBrushRenderer {
 		gl.clearColor(0,0,0,0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		program.setSourceTexture(src.data);
+		program.setSourceTexture("u_image",src.data);
 		program.setUniform("u_aa_step",[1/w,0]);
 		program.setUniform("u_aa_cnt",antiAliasRadius);
 		gl.viewport(imgData.left,h-ih-imgData.top,iw,ih); // set viewport according to the image data
@@ -455,7 +455,7 @@ class GLBrushRenderer {
 		program.setUniform("u_color",color); // set circle color, alpha pre-multiply
 		program.setUniform("u_softness",softRange);
 
-		program.setSourceTexture(sampImgData.data); // sample from sampImgData
+		program.setSourceTexture("u_image",sampImgData.data); // sample from sampImgData
 		program.setUniform("u_res_tex",[sampImgData.width,sampImgData.height]);
 		program.setUniform("u_pos_tex",[sampPos[0]-sampImgData.left,sampPos[1]-sampImgData.top]);
 		program.setUniform("u_pos_dst",[tgtPos[0]-sampImgData.left,tgtPos[1]-sampImgData.top]);
@@ -514,7 +514,7 @@ class GLBrushRenderer {
 		program.setUniform("u_color",color); // set circle color, alpha pre-multiply
 		program.setUniform("u_softness",softRange);
 
-		program.setSourceTexture(sampImgData.data); // sample from sampImgData
+		program.setSourceTexture("u_image",sampImgData.data); // sample from sampImgData
 		program.setUniform("u_res_tex",[sampImgData.width,sampImgData.height]);
 		program.setUniform("u_pos_tex",[sampPos[0]-sampImgData.left,sampPos[1]-sampImgData.top]);
 		program.setUniform("u_opa_tex",sampOpacity); // sampling opacity factor

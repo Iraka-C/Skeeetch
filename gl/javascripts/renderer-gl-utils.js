@@ -32,6 +32,18 @@ class GLTextureBlender {
 				}
 			}
 		`;
+		const vAdvancedBlendShaderSource=glsl`
+			attribute vec2 a_pos_0; // src area
+			attribute vec2 a_pos_1; // dst area
+			attribute vec2 a_pos_tgt; // render to area (new src)
+			varying vec2 v_pos_0;
+			varying vec2 v_pos_1;
+			void main(){
+				v_pos_0=a_pos_0;
+				v_pos_1=a_pos_1;
+				gl_Position=vec4(a_pos_tgt*2.-1.,0.,1.); // to clip space
+			}
+		`;
 		const fAdvancedBlendShaderSource=glsl`
 			precision mediump float;
 			precision mediump sampler2D;
@@ -48,6 +60,28 @@ class GLTextureBlender {
 			vec3 lighten(vec3 Cb,vec3 Cs){return max(Cb,Cs);} // #8 May overflow than alpha!
 			vec3 color_dodge(vec3 Cb,vec3 Cs){return clamp(Cb/(vec3(1.,1.,1.)-Cs),0.,1.);} // #11 clamped
 			vec3 color_burn(vec3 Cb,vec3 Cs){return vec3(1.,1.,1.)-clamp((vec3(1.,1.,1.)-Cb)/Cs,0.,1.);} // #12 clamped
+			vec3 hard_light(vec3 Cb,vec3 Cs){
+				vec3 stepCs=step(0.5,Cs); // Cs>0.5: 1, Cs<0.5: 0
+				vec3 signCs=2.*stepCs-1.; // Cs>0.5: 1, Cs<0.5: -1
+				vec3 p1=2.*(Cb+Cs)-vec3(1.,1.,1.);
+				vec3 p2=2.*Cb*Cs;
+				return p1*stepCs-p2*signCs;
+			} // #4, #5
+			float soft_light_channel(float Pb,float Ps){
+				float Rs=2.*Ps-1.;
+				if(Ps<0.5)return Pb+Rs*Pb*(1.-Pb);
+				if(Pb<0.25)return Pb+Rs*Pb*((16.*Pb-12.)*Pb+3.);
+				return Pb+Rs*(sqrt(Pb)-Pb);
+			}
+			vec3 soft_light(vec3 Cb,vec3 Cs){
+				return vec3(
+					soft_light_channel(Cb.x,Cs.x),
+					soft_light_channel(Cb.y,Cs.y),
+					soft_light_channel(Cb.z,Cs.z)
+				);
+			} // #6
+			vec3 difference(vec3 Cb,vec3 Cs){return abs(Cb-Cs);} // #9
+			vec3 exclusion(vec3 Cb,vec3 Cs){return Cb+Cs-2.*Cb*Cs;} // #10
 
 			void main(){
 				vec4 pix0=vec4(0.,0.,0.,0.); // src pixel
@@ -63,7 +97,7 @@ class GLTextureBlender {
 					return;
 				}
 				if(pix0.w==0.){ // src alpha is 0, no effect
-					gl_FragColor=pix1;
+					gl_FragColor=vec4(0.,0.,0.,0.);
 					return;
 				}
 
@@ -74,8 +108,13 @@ class GLTextureBlender {
 				vec3 Cm=vec3(0.,0.,0.); // blended result
 				if(u_blend_mode<2.5){Cm=multiply(Cb,Cs);}
 				else if(u_blend_mode<3.5){Cm=screen(Cb,Cs);}
+				else if(u_blend_mode<4.5){Cm=hard_light(Cs,Cb);} // overlay is inversed hard light
+				else if(u_blend_mode<5.5){Cm=hard_light(Cb,Cs);}
+				else if(u_blend_mode<6.5){Cm=soft_light(Cb,Cs);}
 				else if(u_blend_mode<7.5){Cm=darken(Cb,Cs);}
 				else if(u_blend_mode<8.5){Cm=lighten(Cb,Cs);}
+				else if(u_blend_mode<9.5){Cm=difference(Cb,Cs);}
+				else if(u_blend_mode<10.5){Cm=exclusion(Cb,Cs);}
 				else if(u_blend_mode<11.5){Cm=color_dodge(Cb,Cs);}
 				else if(u_blend_mode<12.5){Cm=color_burn(Cb,Cs);}
 
@@ -86,7 +125,7 @@ class GLTextureBlender {
 
 		this.gl=gl;
 		this.blendProgram=new GLProgram(gl,vBlendShaderSource,fBlendShaderSource);
-		this.advancedBlendProgram=new GLProgram(gl,vBlendShaderSource,fAdvancedBlendShaderSource);
+		this.advancedBlendProgram=new GLProgram(gl,vAdvancedBlendShaderSource,fAdvancedBlendShaderSource);
 	}
 
 	free() {
@@ -111,7 +150,9 @@ class GLTextureBlender {
 	 * **NOTE** if not param.alphaLock, then the dst.validArea may change!
 	 */
 	blendTexture(src,dst,param) {
-		if(!src.width||!src.height||!dst.width||!dst.height) { // one of the target contains zero pixel
+		if(!param.targetArea)param.targetArea=src.validArea; // blend all src valid pixels
+		param.targetArea=GLProgram.borderIntersection(param.targetArea,dst);
+		if(!param.targetArea.width||!param.targetArea.height) { // target contains zero pixel
 			return; // needless to blend
 		}
 
@@ -120,7 +161,6 @@ class GLTextureBlender {
 		if(param.mode===undefined) param.mode=GLTextureBlender.NORMAL;
 		if(param.srcAlpha===undefined) param.srcAlpha=1;
 		if(param.antiAlias===undefined) param.antiAlias=true;
-		if(!param.targetArea)param.targetArea=src.validArea; // blend all src valid pixels
 
 		let advancedBlendFlag=false;
 		switch(param.mode) {
@@ -191,28 +231,28 @@ class GLTextureBlender {
 				advancedBlendFlag=true;
 		}
 
-		if(advancedBlendFlag) {
-			// @TODO: need advanced composition shader
-			return;
-		}
-
-		const program=this.blendProgram;
-		program.setTargetTexture(dst.data);
-		program.setSourceTexture(src.data);
-		program.setUniform("u_image_alpha",param.srcAlpha);
-
-		// set target area attribute, to 0~1 coord space(LB origin).
-		// gl will automatically trim within viewport
 		const tA=param.targetArea; // Do not change the contents!
-		program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,src,!param.antiAlias),2);
-		program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,dst,!param.antiAlias),2);
-
-		gl.viewport(0,0,dst.width,dst.height); // target area as dst
-		program.run();
+		if(advancedBlendFlag) { // need advanced composition shader
+			this.advancedBlendTexture(src,dst,param);
+		}
+		else{ // blend with blendFunc
+			const program=this.blendProgram;
+			program.setTargetTexture(dst.data);
+			program.setSourceTexture("u_image",src.data);
+			program.setUniform("u_image_alpha",param.srcAlpha);
+	
+			// set target area attribute, to 0~1 coord space(LB origin).
+			// gl will automatically trim within viewport
+			program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,src,!param.antiAlias),2);
+			program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,dst,!param.antiAlias),2);
+	
+			gl.viewport(0,0,dst.width,dst.height); // target area as dst
+			program.run();
+		}
 
 		if(!param.alphaLock&&param.mode!=GLTextureBlender.ERASE) { // extend dst valid area, but not larger than dst size
 			const extArea=GLProgram.borderIntersection(src.validArea,tA); // part blended
-			const tmpArea=GLProgram.extendBorderSize(extArea,dst.validArea); // extend valid
+			const tmpArea=GLProgram.extendBorderSize(extArea,dst.validArea); // new valid area extended
 			dst.validArea=GLProgram.borderIntersection(tmpArea,dst); // trim in dst borders
 		}
 	}
@@ -225,7 +265,70 @@ class GLTextureBlender {
 	 * @param {*} param 
 	 */
 	advancedBlendTexture(src,dst,param){
+		const gl=this.gl;
+		const programB=this.advancedBlendProgram;
+		const tmp=this.renderer.tmpImageData;
 
+		// ============= Step 1: Blending ================
+
+		// move tmp so that it contains the most part in the viewport
+		const tA=param.targetArea; // the area that changes
+		// round to int
+		tA.left=Math.floor(tA.left);
+		tA.top=Math.floor(tA.top);
+		tA.width=Math.ceil(tA.width);
+		tA.height=Math.ceil(tA.height);
+
+		const l1=tA.left;
+		const l2=tA.left+tA.width-tmp.width;
+		tmp.left=0;
+		if(l1>0) tmp.left=l1;
+		if(l2<0) tmp.left=l2;
+
+		const t1=tA.top;
+		const t2=tA.top+tA.height-tmp.height;
+		tmp.top=0;
+		if(t1>0) tmp.top=t1;
+		if(t2<0) tmp.top=t2;
+
+		// Set uniforms
+		programB.setTargetTexture(tmp.data);
+		programB.setSourceTexture("u_image_0",src.data);
+		programB.setSourceTexture("u_image_1",dst.data);
+		programB.setUniform("u_image_alpha",param.srcAlpha);
+		programB.setUniform("u_blend_mode",param.mode); // according to blend mode enums
+		// Set attributes
+		const srcRect=GLProgram.getAttributeRect(tA,src,!param.antiAlias);
+		const dstRect=GLProgram.getAttributeRect(tA,dst,!param.antiAlias);
+		const tmpRect=GLProgram.getAttributeRect(tA,tmp,!param.antiAlias);
+		programB.setAttribute("a_pos_0",srcRect,2);
+		programB.setAttribute("a_pos_1",dstRect,2);
+		programB.setAttribute("a_pos_tgt",tmpRect,2);
+
+		gl.blendFunc(gl.ONE,gl.ZERO); // src only
+		gl.viewport(0,0,tmp.width,tmp.height); // temp texture as dst
+		programB.run();
+
+		// ============= Step 2: Composition ================
+		// now tmp contains modified source
+		const programC=this.blendProgram;
+		programC.setTargetTexture(dst.data);
+		programC.setSourceTexture("u_image",tmp.data);
+		programC.setUniform("u_image_alpha",1);
+
+		// set target area attribute, to 0~1 coord space(LB origin).
+		// gl will automatically trim within viewport
+		programC.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,tmp,!param.antiAlias),2);
+		programC.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,dst,!param.antiAlias),2);
+
+		gl.viewport(0,0,dst.width,dst.height); // target area as dst
+		if(param.alphaLock){ // source-atop
+			gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+		}
+		else{ // source-over
+			gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+		}
+		programC.run();
 	}
 }
 
@@ -323,7 +426,7 @@ class GLImageDataFactory {
 		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,this.dataFormat,null);
 
 		// Run program to get a zoomed texture
-		program.setSourceTexture(src.data);
+		program.setSourceTexture("u_image",src.data);
 		program.setTargetTexture(tmpTexture); // draw to canvas
 		program.setUniform("u_is_premult",isResultPremultAlpha?1:0); // pre -> non-pre
 		const attrRect=GLProgram.getAttributeRect(srcRange,src);

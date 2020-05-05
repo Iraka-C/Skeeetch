@@ -251,50 +251,38 @@ class BasicRenderer{
 	}
 
 	static blendModeNameToEnum(name){
-		switch(name){
-			case "normal": return BasicRenderer.NORMAL;
-			case "source": return BasicRenderer.SOURCE;
-			case "multiply": return BasicRenderer.MULTIPLY;
-			case "screen": return BasicRenderer.SCREEN;
-			case "exclusion": return BasicRenderer.EXCLUSION;
-		}
+		return BasicRenderer.blendModeNameList[name]||BasicRenderer.NORMAL;
 	}
 	static blendModeEnumToName(mode){
-		switch(mode){
-			case BasicRenderer.NORMAL: return "normal";
-			case BasicRenderer.SOURCE: return "source";
-			case BasicRenderer.MULTIPLY: return "multiply";
-			case BasicRenderer.SCREEN: return "screen";
-			case BasicRenderer.EXCLUSION: return "exclusion";
-		}
+		return BasicRenderer.blendModeNameList[mode]||"normal";
 	}
 
-	static blendModeEnumToID(mode){
-		switch(mode) {
-			default:
-			case BasicRenderer.NORMAL: return 0;
-			case BasicRenderer.MULTIPLY: return 1;
-			case BasicRenderer.SCREEN: return 2;
-			case BasicRenderer.OVERLAY: return 3;
-			case BasicRenderer.HARD_LIGHT: return 4;
-			case BasicRenderer.SOFT_LIGHT: return 5;
-			case BasicRenderer.DARKEN: return 6;
-			case BasicRenderer.LIGHTEN: return 7;
-			case BasicRenderer.COLOR_DODGE: return 8;
-			case BasicRenderer.COLOR_BURN: return 9;
-			case BasicRenderer.DIFFERENCE: return 10;
-			case BasicRenderer.EXCLUSION: return 11;
-		}
-	}
+	// static blendModeEnumToID(mode){
+	// 	switch(mode) {
+	// 		default:
+	// 		case BasicRenderer.NORMAL: return 0;
+	// 		case BasicRenderer.MULTIPLY: return 1;
+	// 		case BasicRenderer.SCREEN: return 2;
+	// 		case BasicRenderer.OVERLAY: return 3;
+	// 		case BasicRenderer.HARD_LIGHT: return 4;
+	// 		case BasicRenderer.SOFT_LIGHT: return 5;
+	// 		case BasicRenderer.DARKEN: return 6;
+	// 		case BasicRenderer.LIGHTEN: return 7;
+	// 		case BasicRenderer.COLOR_DODGE: return 8;
+	// 		case BasicRenderer.COLOR_BURN: return 9;
+	// 		case BasicRenderer.DIFFERENCE: return 10;
+	// 		case BasicRenderer.EXCLUSION: return 11;
+	// 	}
+	// }
 
-	static blendModeIDToEnum(id){
-		const blendModeID2EnumList=[
-			BasicRenderer.NORMAL,BasicRenderer.MULTIPLY,BasicRenderer.SCREEN,BasicRenderer.OVERLAY,
-			BasicRenderer.HARD_LIGHT,BasicRenderer.SOFT_LIGHT,BasicRenderer.DARKEN,BasicRenderer.LIGHTEN,
-			BasicRenderer.COLOR_DODGE,BasicRenderer.COLOR_BURN,BasicRenderer.DIFFERENCE,BasicRenderer.EXCLUSION
-		];
-		return blendModeID2EnumList[id];
-	}
+	// static blendModeIDToEnum(id){
+	// 	const blendModeID2EnumList=[
+	// 		BasicRenderer.NORMAL,BasicRenderer.MULTIPLY,BasicRenderer.SCREEN,BasicRenderer.OVERLAY,
+	// 		BasicRenderer.HARD_LIGHT,BasicRenderer.SOFT_LIGHT,BasicRenderer.DARKEN,BasicRenderer.LIGHTEN,
+	// 		BasicRenderer.COLOR_DODGE,BasicRenderer.COLOR_BURN,BasicRenderer.DIFFERENCE,BasicRenderer.EXCLUSION
+	// 	];
+	// 	return blendModeID2EnumList[id];
+	// }
 
 	static blendModeEnumToDisplayedName(mode){
 		switch(mode) {
@@ -307,10 +295,24 @@ class BasicRenderer{
 			case BasicRenderer.SOFT_LIGHT: return Lang("blend-soft-light");
 			case BasicRenderer.DARKEN: return Lang("blend-darken");
 			case BasicRenderer.LIGHTEN: return Lang("blend-lighten");
-			case BasicRenderer.COLOR_DODGE: return Lang("blend-color-dodge");
-			case BasicRenderer.COLOR_BURN: return Lang("blend-color-burn");
 			case BasicRenderer.DIFFERENCE: return Lang("blend-difference");
 			case BasicRenderer.EXCLUSION: return Lang("blend-exclusion");
+			case BasicRenderer.COLOR_DODGE: return Lang("blend-color-dodge");
+			case BasicRenderer.COLOR_BURN: return Lang("blend-color-burn");
+			case BasicRenderer.LINEAR_DODGE: return Lang("blend-linear-dodge");
+			case BasicRenderer.LINEAR_BURN: return Lang("blend-linear-burn");
+			case BasicRenderer.LINEAR_LIGHT: return Lang("blend-linear-light");
+			case BasicRenderer.VIVID_LIGHT: return Lang("blend-vivid-light");
+			case BasicRenderer.PIN_LIGHT: return Lang("blend-pin-light");
+			case BasicRenderer.DARKER_COLOR: return Lang("blend-darker-color");
+			case BasicRenderer.LIGHTER_COLOR: return Lang("blend-lighter-color");
+			case BasicRenderer.HARD_MIX: return Lang("blend-hard-mix");
+			case BasicRenderer.SUBTRACT: return Lang("blend-subtract");
+			case BasicRenderer.DIVIDE: return Lang("blend-divide");
+			case BasicRenderer.HUE: return Lang("blend-hue");
+			case BasicRenderer.SATURATION: return Lang("blend-saturation");
+			case BasicRenderer.COLOR: return Lang("blend-color");
+			case BasicRenderer.LUMINOSITY: return Lang("blend-luminosity");
 		}
 	}
 }
@@ -329,4 +331,60 @@ BasicRenderer.EXCLUSION=10;
 BasicRenderer.COLOR_DODGE=11;
 BasicRenderer.COLOR_BURN=12;
 
+// Followings are blend modes not included in CSS3 standard
+BasicRenderer.LINEAR_DODGE=20;
+BasicRenderer.LINEAR_BURN=21;
+BasicRenderer.LINEAR_LIGHT=22;
+BasicRenderer.VIVID_LIGHT=23;
+BasicRenderer.PIN_LIGHT=24;
+BasicRenderer.DARKER_COLOR=25;
+BasicRenderer.LIGHTER_COLOR=26;
+BasicRenderer.HARD_MIX=27;
+
+BasicRenderer.SUBTRACT=30;
+BasicRenderer.DIVIDE=31;
+BasicRenderer.HUE=40;
+BasicRenderer.SATURATION=41;
+BasicRenderer.COLOR=42;
+BasicRenderer.LUMINOSITY=43;
+
+BasicRenderer.blendModeNameList={ // name: PSD standard
+	"normal": BasicRenderer.NORMAL,
+	"overlay": BasicRenderer.OVERLAY,
+	"multiply": BasicRenderer.MULTIPLY,
+	"screen": BasicRenderer.SCREEN,
+
+	"darken": BasicRenderer.DARKEN,
+	"lighten": BasicRenderer.LIGHTEN,
+	"darker color": BasicRenderer.DARKER_COLOR,
+	"lighter color": BasicRenderer.LIGHTER_COLOR,
+
+	"linear burn": BasicRenderer.LINEAR_BURN,
+	"linear dodge": BasicRenderer.LINEAR_DODGE,
+	"color burn": BasicRenderer.COLOR_BURN,
+	"color dodge": BasicRenderer.COLOR_DODGE,
+
+	"soft light": BasicRenderer.SOFT_LIGHT,
+	"hard light": BasicRenderer.HARD_LIGHT,
+	"vivid light": BasicRenderer.VIVID_LIGHT,
+	"linear light": BasicRenderer.LINEAR_LIGHT,
+	"pin light": BasicRenderer.PIN_LIGHT,
+
+	"hard mix": BasicRenderer.HARD_MIX,
+	"difference": BasicRenderer.DIFFERENCE,
+	"exclusion": BasicRenderer.EXCLUSION,
+	"subtract": BasicRenderer.SUBTRACT,
+	"divide": BasicRenderer.DIVIDE,
+
+	"hue": BasicRenderer.HUE,
+	"saturation": BasicRenderer.SATURATION,
+	"color": BasicRenderer.COLOR,
+	"luminosity": BasicRenderer.LUMINOSITY
+};
+// create reversed list
+for(const v of Object.keys(BasicRenderer.blendModeNameList)){
+	BasicRenderer.blendModeNameList[BasicRenderer.blendModeNameList[v]]=v;
+}
+
+// Pressure sensitivity constant
 BasicRenderer._sBase=5; // power base 5^(sensitivity-1)

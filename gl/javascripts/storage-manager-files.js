@@ -31,7 +31,7 @@ STORAGE.FILES.requestSaveContentChanges=function() {
 STORAGE.FILES.savingList=new Set();
 STORAGE.FILES.saveContentChanges=function(node) {
 	if(node) { // operating on a CanvasNode
-		console.log("Saving contents ...");
+		//console.log("Saving contents ...");
 		
 		STORAGE.FILES.savingList.add(node.id);
 		$("#icon").attr("href","./resources/favicon-working.png");
@@ -47,7 +47,7 @@ STORAGE.FILES.saveContentChanges=function(node) {
 
 			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea);
 			const data=Compressor.encode(rawData);
-			//console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
+			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
 
 			const chunkN=Math.ceil(data.length/CHUNK_SIZE);
 			
