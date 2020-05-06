@@ -14,60 +14,7 @@ LAYERS.$newCanvasLayerUI=function(id) {
 	let lockButton=$("<div class='layer-lock-button'>").append($("<img>")); // layer lock
 
 	// blend mode selector
-	let blendModeSelector=$("<div class='layer-blend-mode-selector'>");
-	blendModeSelector.append($("<table>").append( // lblend mode table
-		$("<tr>").append(
-			$("<td colspan='5'>").append(
-				$("<div class='layer-blend-mode-selector-title'>")
-					.text("Normal"),
-				$("<div>&nbsp;</div>")
-			)
-		),
-		$("<tr>").append(
-			$("<td>").append($("<img src='./resources/blend-mode/normal.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/overlay.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/multiply.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/screen.svg'>")),
-			$("<td>")
-		),
-		$("<tr>").append(
-			$("<td>").append($("<img src='./resources/blend-mode/darken.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/lighten.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/darker-color.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/lighter-color.svg'>")),
-			$("<td>")
-		),
-		$("<tr>").append(
-			$("<td>").append($("<img src='./resources/blend-mode/linear-burn.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/linear-dodge.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/color-burn.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/color-dodge.svg'>")),
-			$("<td>")
-		),
-		$("<tr>").append(
-			$("<td>").append($("<img src='./resources/blend-mode/soft-light.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/hard-light.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/vivid-light.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/linear-light.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/pin-light.svg'>"))
-		),
-		$("<tr>").append(
-			$("<td>").append($("<img src='./resources/blend-mode/hard-mix.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/difference.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/exclusion.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/subtract.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/divide.svg'>"))
-		),
-		$("<tr>").append(
-			$("<td>").append($("<img src='./resources/blend-mode/hue.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/saturation.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/color.svg'>")),
-			$("<td>").append($("<img src='./resources/blend-mode/luminosity.svg'>")),
-			$("<td>")
-		)
-	));
-	let blendModeButton=$("<div class='layer-blend-mode-button layer-button-to-hide'>")
-		.append($("<img>"),blendModeSelector); // layer blend mode
+	let blendModeButton=$("<div class='layer-blend-mode-button layer-button-to-hide'>").append($("<img>")); // layer blend mode
 
 	// mask buttons
 	let clipMaskButton=$("<div class='layer-clip-mask-button layer-button-to-hide'>").append($("<img>")); // layer clip mask
@@ -86,8 +33,8 @@ LAYERS.$newCanvasLayerUI=function(id) {
 	));
 
 	// Opacity label hint in CanvasNode constructor
+	// Blend label hint in initButtons
 	EventDistributer.footbarHint(lockButton,() => Lang("Lock pixel / opacity"));
-	EventDistributer.footbarHint(blendModeButton,() => Lang("Switch blend mode"));
 	EventDistributer.footbarHint(clipMaskButton,() => Lang("Set this layer as a clipping mask"));
 	EventDistributer.footbarHint(maskButton,() => Lang("Activate the mask layer"));
 
@@ -270,47 +217,7 @@ class CanvasNode extends ContentNode {
 		this.setMaskedImageDataInvalid();
 	}
 	// ================= button =================
-	static blendModeEnumToID(mode){ // the order of blend buttons in the ui
-		switch(mode) {
-			default:
-			case BasicRenderer.NORMAL: return 0;
-			case BasicRenderer.OVERLAY: return 1;
-			case BasicRenderer.MULTIPLY: return 2;
-			case BasicRenderer.SCREEN: return 3;
-			case BasicRenderer.DARKEN: return 4;
-			case BasicRenderer.LIGHTEN: return 5;
-			case BasicRenderer.DARKER_COLOR: return 6;
-			case BasicRenderer.LIGHTER_COLOR: return 7;
-			case BasicRenderer.LINEAR_BURN: return 8;
-			case BasicRenderer.LINEAR_DODGE: return 9;
-			case BasicRenderer.COLOR_BURN: return 10;
-			case BasicRenderer.COLOR_DODGE: return 11;
-			case BasicRenderer.SOFT_LIGHT: return 12;
-			case BasicRenderer.HARD_LIGHT: return 13;
-			case BasicRenderer.VIVID_LIGHT: return 14;
-			case BasicRenderer.LINEAR_LIGHT: return 15;
-			case BasicRenderer.PIN_LIGHT: return 16;
-			case BasicRenderer.HARD_MIX: return 17;
-			case BasicRenderer.DIFFERENCE: return 18;
-			case BasicRenderer.EXCLUSION: return 19;
-			case BasicRenderer.SUBTRACT: return 20;
-			case BasicRenderer.DIVIDE: return 21;
-			case BasicRenderer.HUE: return 22;
-			case BasicRenderer.SATURATION: return 23;
-			case BasicRenderer.COLOR: return 24;
-			case BasicRenderer.LUMINOSITY: return 25;
-		}
-	};
-	static blendModeIDToEnum(mode){ // the order of blend buttons in the ui
-		return [
-			BasicRenderer.NORMAL,BasicRenderer.OVERLAY,BasicRenderer.MULTIPLY,BasicRenderer.SCREEN,
-			BasicRenderer.DARKEN,BasicRenderer.LIGHTEN,BasicRenderer.DARKER_COLOR,BasicRenderer.LIGHTER_COLOR,
-			BasicRenderer.LINEAR_BURN,BasicRenderer.LINEAR_DODGE,BasicRenderer.COLOR_BURN,BasicRenderer.COLOR_DODGE,
-			BasicRenderer.SOFT_LIGHT,BasicRenderer.HARD_LIGHT,BasicRenderer.VIVID_LIGHT,BasicRenderer.LINEAR_LIGHT,BasicRenderer.PIN_LIGHT,
-			BasicRenderer.HARD_MIX,BasicRenderer.DIFFERENCE,BasicRenderer.EXCLUSION,BasicRenderer.SUBTRACT,BasicRenderer.DIVIDE,
-			BasicRenderer.HUE,BasicRenderer.SATURATION,BasicRenderer.COLOR,BasicRenderer.LUMINOSITY,
-		][mode]||BasicRenderer.NORMAL;
-	};
+	
 	initButtons() {
 		const $buttons=this.$ui.children(".layer-buttons");
 		this.buttonUpdateFuncs={};
@@ -418,75 +325,29 @@ class CanvasNode extends ContentNode {
 
 		// blend mode button
 		const $blendButton=$buttons.find(".layer-blend-mode-button");
-		const $blendButtons=$buttons.find(".layer-blend-mode-selector").find("img").parent();
-		const $blendNameTitle=$buttons.find(".layer-blend-mode-selector").find(".layer-blend-mode-selector-title");
-		const setBlendButtonStatus=v => {
+		EventDistributer.footbarHint($blendButton,() => Lang("Switch blend mode")
+			+": "+BasicRenderer.blendModeEnumToDisplayedName(this.properties.blendMode));
+		$blendButton.on("click",e=>{
+			LAYERS.blendModeSelector.setCaller(this);
+			const bOffset=$blendButton.offset();
+			const bW=$blendButton.width();
+			const bH=$blendButton.height();
+			LAYERS.blendModeSelector.show({
+				width: bW,
+				height: bH,
+				left: bOffset.left,
+				top: bOffset.top
+			});
+		});
+		const setBlendButtonStatus=mode => {
+			this.properties.blendMode=mode;
 			const $blendButtonImg=$blendButton.children("img");
-			const $targetButton=$blendButtons.eq(v);
-			$blendButtonImg.attr("src",$targetButton.children("img").attr("src")); // copy url
-			this.properties.blendMode=CanvasNode.blendModeIDToEnum(v);
-			$blendNameTitle.text(
-				BasicRenderer.blendModeEnumToDisplayedName(this.properties.blendMode));
-
-			// Switch selector button icon opacity
-			$blendButtons.removeClass("active-blend-mode");
-			$targetButton.addClass("active-blend-mode");
-		}
-		// const blendButtonHistoryCallback={
-		// 	prevStatus: null,
-		// 	before: () => {
-		// 		blendButtonHistoryCallback.prevStatus={
-		// 			blendMode: this.properties.blendMode
-		// 		}
-		// 	},
-		// 	after: () => {
-		// 		if(this.properties.locked) return;
-		// 		HISTORY.addHistory({ // add a history
-		// 			type: "node-property",
-		// 			id: this.id,
-		// 			prevStatus: blendButtonHistoryCallback.prevStatus,
-		// 			nowStatus: {blendMode: this.properties.blendMode}
-		// 		});
-		// 	}
-		// };
-		// const fBlend=SettingManager.setSwitchInteraction($blendButton,null,3,($el,v) => {
-		// 	setBlendButtonStatus(v);
-		// 	this.setImageDataInvalid();
-		// 	COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
-		// },blendButtonHistoryCallback);
-		for(let i=0;i<$blendButtons.length;i++) {
-			const $targetButton=$blendButtons.eq(i);
-			$targetButton.on("click",e => {
-				if(this.properties.locked) return;
-				const prevStatus={blendMode: this.properties.blendMode};
-				setBlendButtonStatus(i);
-				this.setImageDataInvalid();
-				COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
-				const nowStatus={blendMode: this.properties.blendMode};
-				HISTORY.addHistory({ // add a history
-					type: "node-property",
-					id: this.id,
-					prevStatus: prevStatus,
-					nowStatus: nowStatus
-				});
-			});
-			$targetButton.on("pointerover",e=>{ // show name
-				$blendNameTitle.text(
-					BasicRenderer.blendModeEnumToDisplayedName(
-						CanvasNode.blendModeIDToEnum(i)
-					)
-				);
-			});
-			$targetButton.on("pointerout",e=>{ // hide name, show now mode name
-				$blendNameTitle.text(
-					BasicRenderer.blendModeEnumToDisplayedName(
-						this.properties.blendMode
-					)
-				);
-			});
-		}
+			$blendButtonImg.attr("src","./resources/blend-mode/"
+				+LayerBlendModeSelector.blendModeEnumToFilename(mode)+".svg");
+		};
+		
 		this.buttonUpdateFuncs.blendButton=() => {
-			setBlendButtonStatus(CanvasNode.blendModeEnumToID(this.properties.blendMode));
+			setBlendButtonStatus(this.properties.blendMode);
 			this.setImageDataInvalid();
 			COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
 		};

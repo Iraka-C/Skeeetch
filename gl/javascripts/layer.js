@@ -175,6 +175,9 @@ LAYERS.init=function(layerTreeJSON) {
 	LAYERS.layerTree=new RootNode(); // The root of the layer tree
 	LAYERS.initLayerPanelButtons();
 	LAYERS.initScrollbar();
+	if(!LAYERS.blendModeSelector){ // create a selector
+		LAYERS.blendModeSelector=new LayerBlendModeSelector();
+	}
 
 	// prevent dragging from starting a stroke on <html>
 	$("#layer-panel").on("pointerdown",event => {

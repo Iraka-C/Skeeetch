@@ -49,7 +49,7 @@ STORAGE.FILES.saveContentChanges=function(node) {
 			const data=Compressor.encode(rawData);
 			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
 
-			const chunkN=Math.ceil(data.length/CHUNK_SIZE);
+			const chunkN=Math.max(Math.ceil(data.length/CHUNK_SIZE),1); // at lease 1 chunk
 			
 			ENV.taskCounter.startTask(); // start node imagedata structure task
 			const bufPromise=STORAGE.FILES.layerStore.setItem(node.id,chunkN).finally(()=>{
