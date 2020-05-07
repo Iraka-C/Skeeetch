@@ -202,7 +202,7 @@ class GLTextureBlender {
 				vec4 cr=vec4(Cr,1.)*pix0.w; // non-premult => premult
 
 				vec4 c_blend=cr+pix1*(1.-cr.w); // blended color
-				gl_FragColor=c_blend-u_neutral_color*(1.-Xa); // extract neutral color
+				gl_FragColor=c_blend-u_neutral_color*(1.-Xa); // exclude neutral color
 			}
 		`;
 
