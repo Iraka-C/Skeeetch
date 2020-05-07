@@ -127,15 +127,11 @@ class GLTextureBlender {
 			void main(){
 				vec4 pix0=vec4(0.,0.,0.,0.); // src pixel
 				vec4 pix1=vec4(0.,0.,0.,0.); // dst pixel
-				vec3 Cs,Cb;
 				if(v_pos_0.x>=0.&&v_pos_0.x<=1.&&v_pos_0.y>=0.&&v_pos_0.y<=1.){
 					pix0=texture2D(u_image_0,v_pos_0)*u_image_alpha;
-					pix0+=u_neutral_color*(1.-pix0.w); // fill in neutral color
-					Cs=pix0.xyz/pix0.w; // premult => non premult
 				}
 				if(v_pos_1.x>=0.&&v_pos_1.x<=1.&&v_pos_1.y>=0.&&v_pos_1.y<=1.){
 					pix1=texture2D(u_image_1,v_pos_1);
-					Cb=pix1.xyz/pix1.w; // premult => non premult
 				}
 				if(pix1.w==0.){ // dst alpha is 0, maintain src pixel
 					gl_FragColor=pix0;
@@ -145,6 +141,17 @@ class GLTextureBlender {
 					gl_FragColor=vec4(0.,0.,0.,0.);
 					return;
 				}
+
+				
+				vec3 Cs=pix0.xyz/pix0.w; // premult => non premult
+				vec3 Cb=pix1.xyz/pix1.w; // premult => non premultiplied
+
+				Cs=Cs*pix0.w+u_neutral_color.xyz*(1.-pix0.w); // fill in neutral color
+				Cb=Cb*pix1.w+u_neutral_color.xyz*(1.-pix1.w); // fill in neutral color
+				float w0=pix0.w;
+				float w1=pix1.w;
+				pix0.w+=u_neutral_color.w*(1.-pix0.w);
+				pix1.w+=u_neutral_color.w*(1.-pix1.w);
 
 				vec3 Cm=vec3(0.,0.,0.); // blended result
 				if(u_blend_mode<12.5){ // 0~12

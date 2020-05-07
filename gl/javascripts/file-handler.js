@@ -110,6 +110,11 @@ FILES.loadPSDNodes=function(node) {
 				// store contents
 				STORAGE.FILES.saveContentChanges(newElement); // save loaded contents
 				this.elem=newElement;
+
+				if(sNode.version>=70){ // Photoshop 7.0 and afterwards
+					// may be unsupported features
+					FILES.loadPSDNodes.isUnsupportedLayerFound=true;
+				}
 			}
 			else { // unsupported node (yet)
 				FILES.loadPSDNodes.isUnsupportedLayerFound=true;
@@ -196,7 +201,7 @@ FILES.loadPSDNodes=function(node) {
 FILES.onPSDLoaded=function() {
 	COMPOSITOR.updateLayerTreeStructure(); // async!
 	if(FILES.loadPSDNodes.isUnsupportedLayerFound) {
-		EventDistributer.footbarHint.showInfo("Unsupported layers in this file are discarded",2000);
+		EventDistributer.footbarHint.showInfo("Unsupported layer or feature in this file is discarded",2000);
 	}
 	else {
 		EventDistributer.footbarHint.showInfo("Loaded");

@@ -125,10 +125,10 @@ LANG_ZH={
 	"New Paper":"新建画纸",
 	"Open File":"打开文件",
 	"Save Content":"保存内容",
-	"Save as PNG":"保存为PNG图片",
-	"Save as PSD":"保存为PSD文档",
+	"Save as PNG":"导出为PNG图片",
+	"Save as PSD":"导出为PSD文档",
 	"Auto Save":"自动保存",
-	"Save in browser":"保存在浏览器",
+	"Save in browser":"在浏览器中保存",
 	"":""
 };
 LANG_ZH._id={

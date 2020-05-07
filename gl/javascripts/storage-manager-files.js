@@ -20,7 +20,9 @@ STORAGE.FILES.reportUnsavedContentChanges=function() {
 // save file when there is a change
 STORAGE.FILES.requestSaveContentChanges=function() {
 	// If save not requested
-	if(!STORAGE.FILES.isNowActiveLayerSaved&&!STORAGE.FILES.savingList.has(CANVAS.nowLayer.id)) {
+	if(!STORAGE.FILES.isNowActiveLayerSaved
+		&&CANVAS.nowLayer
+		&&!STORAGE.FILES.savingList.has(CANVAS.nowLayer.id)) {
 		STORAGE.FILES.saveContentChanges(CANVAS.nowLayer);
 	}
 }
