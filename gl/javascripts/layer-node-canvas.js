@@ -81,6 +81,7 @@ class CanvasNode extends ContentNode {
 
 		// store the last imageData, managed by LAYER & HISTORY
 		this.lastRawImageData=null;
+		this.isContentChanged=false;
 
 		// Layer panel UI
 		this.$ui=LAYERS.$newCanvasLayerUI(this.id); // set ui in layer list
@@ -124,7 +125,9 @@ class CanvasNode extends ContentNode {
 	delete() { // delete buffer image data
 		// lastRawImageData handled by CANVAS
 		//if(this.lastRawImageData) CANVAS.renderer.deleteImageData(this.lastRawImageData);
-		STORAGE.FILES.removeContent(this.id); // remove storage resources
+		if(ENV.displaySettings.isAutoSave){ // auto update
+			STORAGE.FILES.removeContent(this.id); // remove storage resources
+		}
 		super.delete();
 	}
 	getName() {
@@ -215,6 +218,10 @@ class CanvasNode extends ContentNode {
 		//console.log("set raw invalid "+this.id);
 		// this.isRawImageDataValid shall always be true
 		this.setMaskedImageDataInvalid();
+	}
+	setMaskedImageDataInvalid() {
+		this.isContentChanged=true; // mark here
+		super.setMaskedImageDataInvalid();
 	}
 	// ================= button =================
 	
@@ -323,11 +330,12 @@ class CanvasNode extends ContentNode {
 		},clipButtonHistoryCallback);
 		this.buttonUpdateFuncs.clipButton=() => fClip(this.properties.clipMask? 1:0);
 
-		// blend mode button
+		// blend mode button, history in LayerBlendModeSelector._initOnClickOperation()
 		const $blendButton=$buttons.find(".layer-blend-mode-button");
 		EventDistributer.footbarHint($blendButton,() => Lang("Switch blend mode")
 			+": "+BasicRenderer.blendModeEnumToDisplayedName(this.properties.blendMode));
 		$blendButton.on("click",e=>{
+			if(this.properties.locked)return; // cannot change
 			LAYERS.blendModeSelector.setCaller(this);
 			const bOffset=$blendButton.offset();
 			const bW=$blendButton.width();

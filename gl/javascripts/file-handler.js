@@ -9,76 +9,6 @@ FILES.init=function() {
 	FILES.initImportDropHandler();
 }
 
-FILES.initFileMenu=function() {
-	let fileManager=new SettingManager($("#file-menu-panel"),Lang("Files"));
-	fileManager.setOpenButton($("#file-button"));
-	fileManager.addSectionTitle(Lang("Add Content"));
-	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
-		STORAGE.FILES.removeContent();
-		ENV.setFileTitle("Skeeetch");
-		ENV.setPaperSize(ENV.paperSize.width,ENV.paperSize.height);
-		LAYERS.initFirstLayer();
-		fileManager.toggleExpand();
-	});
-	const $fileInput=$("<input type='file' style='display:none;position:fixed;top:-1000px'/>");
-	$fileInput.on("change",e=>{ // file selected
-		FILES.onFilesLoaded($fileInput[0].files);
-	});
-	fileManager.addButton(Lang("Open File"),() => {
-		$fileInput[0].click();
-		fileManager.toggleExpand();
-	});
-
-	fileManager.addSectionTitle(Lang("Export Content"));
-	fileManager.addButton(Lang("Save as PNG"),e => {
-		EventDistributer.footbarHint.showInfo("Saving ...");
-		fileManager.toggleExpand();
-		ENV.taskCounter.startTask(1); // save PNG task
-		setTimeout(FILES.saveAsPNG,1000); // @TODO: mark IdleTask as Busy?
-	});
-	fileManager.addButton(Lang("Save as PSD"),e => {
-		EventDistributer.footbarHint.showInfo("Rendering ...");
-		fileManager.toggleExpand();
-		ENV.taskCounter.startTask(1); // start PSD task
-		setTimeout(FILES.saveAsPSD,1000); // @TODO: mark IdleTask as Busy?
-	});
-}
-
-// =================== Import operations =====================
-
-FILES.initImportDropHandler=function() {
-	$("body").on("dragenter dragleave dragover drop",e => {
-		e.preventDefault();
-		if(e.type=="drop") {
-			let file=e.originalEvent.dataTransfer.files[0]; // @TODO: open multiple files
-			//console.log(file);
-
-			if(!file) return; // dragging layer
-
-			// Check file type
-			if(file.name.endsWith(".psd")) { // a Photoshop file
-				EventDistributer.footbarHint.showInfo("Reading file contents ...");
-				ENV.taskCounter.startTask(1); // register load file task
-				let reader=new FileReader();
-				reader.readAsArrayBuffer(file);
-				reader.onload=function() {
-					FILES.loadAsPSD(this.result,file.name.slice(0,-4));
-				}
-			}
-
-			if(file.type&&file.type.match(/image*/)) { // an image file
-				window.URL=window.URL||window.webkitURL;
-				const img=new Image();
-				img.src=window.URL.createObjectURL(file);
-				img.filename=file.name;
-				img.onload=function(e) {
-					FILES.loadAsImage(this);
-				}
-			}
-		}
-	});
-}
-
 // PSD handlers
 
 /**
@@ -124,7 +54,7 @@ FILES.loadPSDNodes=function(node) {
 			// **NOTE** setProperties() actually requested screen refresh
 			const sNode=this.json;
 			if(sNode.hasOwnProperty("children")) { // group node
-				console.log(sNode.name+": "+sNode.blendMode+", '"+sNode.sectionDivider.key+"'");
+				//console.log(sNode.name+": "+sNode.blendMode+", '"+sNode.sectionDivider.key+"'");
 				this.N=sNode.children.length; // children count
 				const newElement=new LayerGroupNode();
 
@@ -134,7 +64,8 @@ FILES.loadPSDNodes=function(node) {
 				 * (1,1) - (0,1)
 				 * (0,1) - (1,1)
 				 */
-				const lockStatus=sNode.protected.transparency?1:sNode.transparencyProtected?2:0; // a bit weird
+				const lockStatus=(sNode.protected&&sNode.protected.transparency)?
+					1:sNode.transparencyProtected? 2:0; // a bit weird
 				newElement.setProperties({ // @TODO: add initial value
 					name: sNode.name,
 					isExpanded: sNode.opened,
@@ -164,7 +95,7 @@ FILES.loadPSDNodes=function(node) {
 				}
 
 				// UI/status settings
-				const lockStatus=sNode.protected.transparency?1:sNode.transparencyProtected?2:0; // a bit weird
+				const lockStatus=(sNode.protected&&sNode.protected.transparency)? 1:sNode.transparencyProtected? 2:0; // a bit weird
 				newElement.setProperties({ // also requested recomposition @TODO: add initial value
 					locked: lockStatus==2,
 					pixelOpacityLocked: lockStatus>=1,
@@ -174,7 +105,7 @@ FILES.loadPSDNodes=function(node) {
 					name: sNode.name,
 					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode)
 				});
-				
+
 
 				// store contents
 				STORAGE.FILES.saveContentChanges(newElement); // save loaded contents
@@ -184,39 +115,39 @@ FILES.loadPSDNodes=function(node) {
 				FILES.loadPSDNodes.isUnsupportedLayerFound=true;
 			}
 
-			if(this.nextNodeToLoad){ // prepare to load the next node
-				setTimeout(e=>{
+			if(this.nextNodeToLoad) { // prepare to load the next node
+				setTimeout(e => {
 					const percentage=(this.index/loadQueue.length*100).toFixed(1);
 					EventDistributer.footbarHint.showInfo("Loading "+percentage+"% ...",5000);
 					this.nextNodeToLoad.load();
 				},0);
 			}
 
-			if(this.N==0){ // no children
+			if(this.N==0) { // no children
 				this.loaded();
 			}
 		}
 		append(child) {
-			if(child.elem){ // valid node
+			if(child.elem) { // valid node
 				this.elem.insertNode(child.elem,0);
 				this.elem.insertNode$UI(child.elem.$ui,0);
 				child.elem.setRawImageDataInvalid();
 			}
 			this.loadedChildrenCnt++;
-			if(this.loadedChildrenCnt==this.N){ // all children loaded
+			if(this.loadedChildrenCnt==this.N) { // all children loaded
 				this.loaded();
 			}
 		}
 		loaded() {
 			// report sth
 			ENV.taskCounter.finishTask(1); // register load node
-			if(this.parent){
+			if(this.parent) {
 				this.parent.append(this);
-				if(this.parent.elem.id=="root"&&this.elem){ // parent is root
+				if(this.parent.elem.id=="root"&&this.elem) { // parent is root
 					FILES.loadPSDNodes.lastLoadingElement=this.elem;
 				}
 			}
-			else{ // root loaded
+			else { // root loaded
 				FILES.onPSDLoaded();
 			}
 		}
@@ -227,12 +158,12 @@ FILES.loadPSDNodes=function(node) {
 	const rootStackNode=new StackNode(node,null);
 	rootStackNode.elem=LAYERS.layerTree; // set (regarded as already loaded) root element
 	rootStackNode.N=node.children.length;
-	
+
 	const traverse=function(jsonNode,parentStackNode) {
 		const stackNode=new StackNode(jsonNode,parentStackNode);
 		const M=loadQueue.length;
 		stackNode.index=M;
-		if(M){ // create linked list of loading items
+		if(M) { // create linked list of loading items
 			loadQueue[M-1].nextNodeToLoad=stackNode;
 		}
 		loadQueue.push(stackNode);

@@ -267,10 +267,17 @@ class SettingManager{
 	addInfo(name,unit,valFunc){
 		let item=$("<tr>").append(
 			$("<td>"+name+"</td>"),
-			$("<td>&gt;</td>"),
-			$("<td class='value'></td>"),
-			$("<td class='unit'>"+unit+"</td>")
+			$("<td>&gt;</td>")
 		);
+		if(typeof(unit)=="string"){
+			item.append(
+				$("<td class='value'></td>"),
+				$("<td class='unit'>"+unit+"</td>")
+			);
+		}
+		else{
+			item.append($("<td class='value' colspan='2'>"+unit+"</td>"));
+		}
 		let _updateFunc=function(){
 			if(valFunc){
 				const val=valFunc(v=>{ // async ver
@@ -290,7 +297,19 @@ class SettingManager{
 		const $buttonField=$("<td colspan='4' class='setting-button-container'></td>");
 		$buttonField.append($button);
 		$button.on("click",event=>callback?callback():null);
-		this.$frame.find("tbody").append($("<tr>").append($buttonField));
+		const $row=$("<tr>").append($buttonField);
+		this.$frame.find("tbody").append($row);
+		return isShown=>{ // update function
+			if(isShown==undefined){ // provide button div
+				return $button;
+			}
+			if(isShown){
+				$row.css("display","table-row");
+			}
+			else{
+				$row.css("display","none");
+			}
+		};
 	}
 
 	// @TODO: API detail design

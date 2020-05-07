@@ -40,6 +40,13 @@ LANG_ZH={
 	"Named Color":"颜色名",
 	"Developers":"开发者",
 	"Draw Layer Border":"绘制图层边缘",
+	"Opacity Blend":"透明度混合",
+	"Intensity":"混合强度",
+	"Neutral Color":"中性色值",
+	"UI Orientation":"主界面方向",
+	"ui-left":"从左至右",
+	"ui-right":"从右至左",
+	"Version":"版本",
 
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",
@@ -106,11 +113,10 @@ LANG_ZH={
 	"blend-luminosity":"明度",
 
 	// Workspace
-	"workspace-title":"纸张",
 	"Paper Width":"宽度",
 	"Paper Height":"高度",
 	"Change Paper Size":"改变尺寸",
-	"workspace-hint-1":"改变纸张尺寸时会丢弃超出范围的像素并清除所有历史记录！",
+	"workspace-hint-1":"改变纸张尺寸时会丢弃超出范围的像素",
 	"render-bitdepth-hint":"位深度设置将在网页刷新后生效",
 
 	// Files
@@ -118,9 +124,12 @@ LANG_ZH={
 	"Add Content":"新建内容",
 	"New Paper":"新建画纸",
 	"Open File":"打开文件",
-	"Export Content":"导出内容",
+	"Save Content":"保存内容",
 	"Save as PNG":"保存为PNG图片",
 	"Save as PSD":"保存为PSD文档",
+	"Auto Save":"自动保存",
+	"Save in browser":"保存在浏览器",
+	"":""
 };
 LANG_ZH._id={
 	"filename-input":"Skeeetch",

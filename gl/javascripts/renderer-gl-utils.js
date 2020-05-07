@@ -51,13 +51,14 @@ class GLTextureBlender {
 			uniform sampler2D u_image_1; // dst (backdrop) : provides Cb
 			uniform float u_image_alpha; // src alpha
 			uniform float u_blend_mode; // according to enums
+			uniform vec4 u_neutral_color; // if provided, use neutral color to control filling
 			varying vec2 v_pos_0; // vertex from src
 			varying vec2 v_pos_1; // vertex from dst
 
 			vec3 multiply(vec3 Cb,vec3 Cs){return Cb*Cs;} // #2
 			vec3 screen(vec3 Cb,vec3 Cs){return Cb+Cs-Cb*Cs;} // #3
 			vec3 darken(vec3 Cb,vec3 Cs){return min(Cb,Cs);} // #7
-			vec3 lighten(vec3 Cb,vec3 Cs){return max(Cb,Cs);} // #8 May overflow than alpha!
+			vec3 lighten(vec3 Cb,vec3 Cs){return max(Cb,Cs);} // #8
 			vec3 color_dodge(vec3 Cb,vec3 Cs){return clamp(Cb/(vec3(1.,1.,1.)-Cs),0.,1.);} // #11 clamped
 			vec3 color_burn(vec3 Cb,vec3 Cs){return vec3(1.,1.,1.)-clamp((vec3(1.,1.,1.)-Cb)/Cs,0.,1.);} // #12 clamped
 			vec3 hard_light(vec3 Cb,vec3 Cs){
@@ -80,46 +81,118 @@ class GLTextureBlender {
 					soft_light_channel(Cb.z,Cs.z)
 				);
 			} // #6
+			// vec3 soft_light(vec3 Cb,vec3 Cs){
+			// 	vec3 expB=pow(vec3(2.,2.,2.),vec3(1.,1.,1.)-2.*Cs);
+			// 	return pow(Cb,Cs);
+			// } // #6 Pegtop softlight
 			vec3 difference(vec3 Cb,vec3 Cs){return abs(Cb-Cs);} // #9
 			vec3 exclusion(vec3 Cb,vec3 Cs){return Cb+Cs-2.*Cb*Cs;} // #10
+
+			vec3 linear_dodge(vec3 Cb,vec3 Cs){return min(Cb+Cs,1.);} // # 20
+			vec3 linear_burn(vec3 Cb,vec3 Cs){return max(Cb+Cs-vec3(1.,1.,1.),0.);} // #21
+			vec3 linear_light(vec3 Cb,vec3 Cs){return clamp(Cb+2.*Cs-vec3(1.,1.,1.),0.,1.);} // #22
+			vec3 vivid_light(vec3 Cb,vec3 Cs){
+				vec3 isDodge=step(0.5,Cs); // 1: Dodge, 0: burn
+				vec3 cDodge=color_dodge(0.5*Cb,Cs);
+				vec3 cBurn=color_burn(Cb,2.*Cs);
+				return cDodge*isDodge+cBurn*(vec3(1.,1.,1.)-isDodge); // mix dodge & burn
+			} // #23
+			vec3 pin_light(vec3 Cb,vec3 Cs){
+				vec3 isMax=step(0.5,Cs);
+				vec3 cMax=max(2.*Cs-vec3(1.,1.,1.),Cb);
+				vec3 cMin=min(2.*Cs,Cb);
+				return isMax*cMax+(vec3(1.,1.,1.)-isMax)*cMin;
+			} // #24
+			vec3 darker_color(vec3 Cb,vec3 Cs){
+				if(Cb.x+Cb.y+Cb.z<Cs.x+Cs.y+Cs.z){
+					return Cb;
+				}
+				else{
+					return Cs;
+				}
+			} // #25
+			vec3 lighter_color(vec3 Cb,vec3 Cs){
+				if(Cb.x+Cb.y+Cb.z>Cs.x+Cs.y+Cs.z){
+					return Cb;
+				}
+				else{
+					return Cs;
+				}
+			} // #26
+			vec3 hard_mix(vec3 Cb,vec3 Cs){return step(1.,Cb+Cs);} // #27
+
+			vec3 subtract(vec3 Cb,vec3 Cs){return max(Cb-Cs,0.);} // #30
+			vec3 divide(vec3 Cb,vec3 Cs){return clamp(Cb/Cs,0.,1.);} // #31
 
 			void main(){
 				vec4 pix0=vec4(0.,0.,0.,0.); // src pixel
 				vec4 pix1=vec4(0.,0.,0.,0.); // dst pixel
+				vec3 Cs,Cb;
 				if(v_pos_0.x>=0.&&v_pos_0.x<=1.&&v_pos_0.y>=0.&&v_pos_0.y<=1.){
 					pix0=texture2D(u_image_0,v_pos_0)*u_image_alpha;
+					pix0+=u_neutral_color*(1.-pix0.w); // fill in neutral color
+					Cs=pix0.xyz/pix0.w; // premult => non premult
 				}
 				if(v_pos_1.x>=0.&&v_pos_1.x<=1.&&v_pos_1.y>=0.&&v_pos_1.y<=1.){
 					pix1=texture2D(u_image_1,v_pos_1);
+					Cb=pix1.xyz/pix1.w; // premult => non premult
 				}
 				if(pix1.w==0.){ // dst alpha is 0, maintain src pixel
 					gl_FragColor=pix0;
 					return;
 				}
-				if(pix0.w==0.){ // src alpha is 0, no effect
+				if(pix0.w==0.){ // src alpha is 0, return 0 pixel
 					gl_FragColor=vec4(0.,0.,0.,0.);
 					return;
 				}
 
-				// premult => non premult
-				vec3 Cs=pix0.xyz/pix0.w;
-				vec3 Cb=pix1.xyz/pix1.w;
-
 				vec3 Cm=vec3(0.,0.,0.); // blended result
-				if(u_blend_mode<2.5){Cm=multiply(Cb,Cs);}
-				else if(u_blend_mode<3.5){Cm=screen(Cb,Cs);}
-				else if(u_blend_mode<4.5){Cm=hard_light(Cs,Cb);} // overlay is inversed hard light
-				else if(u_blend_mode<5.5){Cm=hard_light(Cb,Cs);}
-				else if(u_blend_mode<6.5){Cm=soft_light(Cb,Cs);}
-				else if(u_blend_mode<7.5){Cm=darken(Cb,Cs);}
-				else if(u_blend_mode<8.5){Cm=lighten(Cb,Cs);}
-				else if(u_blend_mode<9.5){Cm=difference(Cb,Cs);}
-				else if(u_blend_mode<10.5){Cm=exclusion(Cb,Cs);}
-				else if(u_blend_mode<11.5){Cm=color_dodge(Cb,Cs);}
-				else if(u_blend_mode<12.5){Cm=color_burn(Cb,Cs);}
+				if(u_blend_mode<12.5){ // 0~12
+					if(u_blend_mode<5.5){ // 2~5
+						if(u_blend_mode<2.5) Cm=multiply(Cb,Cs);
+						else if(u_blend_mode<3.5) Cm=screen(Cb,Cs);
+						else if(u_blend_mode<4.5) Cm=hard_light(Cs,Cb); // overlay is inversed hard light
+						else Cm=hard_light(Cb,Cs);
+					}
+					else if(u_blend_mode<8.5){ // 6~8
+						if(u_blend_mode<6.5) Cm=soft_light(Cb,Cs);
+						else if(u_blend_mode<7.5) Cm=darken(Cb,Cs);
+						else Cm=lighten(Cb,Cs);
+					}
+					else{ // 9~12
+						if(u_blend_mode<9.5) Cm=difference(Cb,Cs);
+						else if(u_blend_mode<10.5) Cm=exclusion(Cb,Cs);
+						else if(u_blend_mode<11.5) Cm=color_dodge(Cb,Cs);
+						else Cm=color_burn(Cb,Cs);
+					}
+				}
+				else if(u_blend_mode<27.5){ // 20~27
+					if(u_blend_mode<23.5){ // 20~23
+						if(u_blend_mode<20.5) Cm=linear_dodge(Cb,Cs);
+						else if(u_blend_mode<21.5) Cm=linear_burn(Cb,Cs);
+						else if(u_blend_mode<22.5) Cm=linear_light(Cb,Cs);
+						else Cm=vivid_light(Cb,Cs);
+					}
+					else{ // 24~27
+						if(u_blend_mode<24.5) Cm=pin_light(Cb,Cs);
+						else if(u_blend_mode<25.5) Cm=darker_color(Cb,Cs);
+						else if(u_blend_mode<26.5) Cm=lighter_color(Cb,Cs);
+						else Cm=hard_mix(Cb,Cs);
+						// Darker color, Lighter color, Hard mix
+					}
+				}
+				else{ // 30~43
+					if(u_blend_mode<31.5){ // 30~31
+						if(u_blend_mode<30.5) Cm=subtract(Cb,Cs);
+						else Cm=divide(Cb,Cs);
+					}
+					else{ // 40~43
+
+					}
+				}
 
 				vec3 Cr=Cs+pix1.w*(Cm-Cs); // interpolation by backdrop alpha
-				gl_FragColor=vec4(Cr*pix0.w,pix0.w); // return modified Cs
+				gl_FragColor=vec4(Cr*pix0.w,pix0.w); // pre-mult alpha
 			}
 		`;
 
@@ -150,7 +223,7 @@ class GLTextureBlender {
 	 * **NOTE** if not param.alphaLock, then the dst.validArea may change!
 	 */
 	blendTexture(src,dst,param) {
-		if(!param.targetArea)param.targetArea=src.validArea; // blend all src valid pixels
+		if(!param.targetArea) param.targetArea=src.validArea; // blend all src valid pixels
 		param.targetArea=GLProgram.borderIntersection(param.targetArea,dst);
 		if(!param.targetArea.width||!param.targetArea.height) { // target contains zero pixel
 			return; // needless to blend
@@ -235,17 +308,17 @@ class GLTextureBlender {
 		if(advancedBlendFlag) { // need advanced composition shader
 			this.advancedBlendTexture(src,dst,param);
 		}
-		else{ // blend with blendFunc
+		else { // blend with blendFunc
 			const program=this.blendProgram;
 			program.setTargetTexture(dst.data);
 			program.setSourceTexture("u_image",src.data);
 			program.setUniform("u_image_alpha",param.srcAlpha);
-	
+
 			// set target area attribute, to 0~1 coord space(LB origin).
 			// gl will automatically trim within viewport
 			program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,src,!param.antiAlias),2);
 			program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,dst,!param.antiAlias),2);
-	
+
 			gl.viewport(0,0,dst.width,dst.height); // target area as dst
 			program.run();
 		}
@@ -264,7 +337,7 @@ class GLTextureBlender {
 	 * @param {*} dst 
 	 * @param {*} param 
 	 */
-	advancedBlendTexture(src,dst,param){
+	advancedBlendTexture(src,dst,param) {
 		const gl=this.gl;
 		const programB=this.advancedBlendProgram;
 		const tmp=this.renderer.tmpImageData;
@@ -297,6 +370,12 @@ class GLTextureBlender {
 		programB.setSourceTexture("u_image_1",dst.data);
 		programB.setUniform("u_image_alpha",param.srcAlpha);
 		programB.setUniform("u_blend_mode",param.mode); // according to blend mode enums
+		if(param.blendWithNeutralColor) {
+			programB.setUniform("u_neutral_color",BasicRenderer.blendModeNeutralColor(param.mode));
+		}
+		else { // do not use neutral color
+			programB.setUniform("u_neutral_color",[0,0,0,0]);
+		}
 		// Set attributes
 		const srcRect=GLProgram.getAttributeRect(tA,src,!param.antiAlias);
 		const dstRect=GLProgram.getAttributeRect(tA,dst,!param.antiAlias);
@@ -322,10 +401,10 @@ class GLTextureBlender {
 		programC.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,dst,!param.antiAlias),2);
 
 		gl.viewport(0,0,dst.width,dst.height); // target area as dst
-		if(param.alphaLock){ // source-atop
+		if(param.alphaLock) { // source-atop
 			gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 		}
-		else{ // source-over
+		else { // source-over
 			gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
 		}
 		programC.run();
@@ -417,10 +496,10 @@ class GLImageDataFactory {
 		targetSize=targetSize||[srcRange.width,srcRange.height]; // init: same as srcRange
 		isResultPremultAlpha=isResultPremultAlpha||false;
 		const [W,H]=targetSize;
-		if(!(W&&H)){
+		if(!(W&&H)) {
 			return new Uint8ClampedArray();
 		}
-		
+
 		// Setup temp texture for extracting data
 		const tmpTexture=GLProgram.createAndSetupTexture(gl);
 		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,this.dataFormat,null);
@@ -428,15 +507,19 @@ class GLImageDataFactory {
 		// Run program to get a zoomed texture
 		program.setSourceTexture("u_image",src.data);
 		program.setTargetTexture(tmpTexture); // draw to canvas
-		program.setUniform("u_is_premult",isResultPremultAlpha?1:0); // pre -> non-pre
+		program.setUniform("u_is_premult",isResultPremultAlpha? 1:0); // pre -> non-pre
 		const attrRect=GLProgram.getAttributeRect(srcRange,src);
 		program.setAttribute("a_src_position",attrRect,2);
 		switch(this.dataFormat) {
-			case gl.FLOAT: program.setUniform("u_range",255.999); break; // map 0.0~1.0 to 0~255.
 			// Not 256 because some browser don't accept Uint8ClampedArray, and 256 cause overflow
+			case gl.HALF_FLOAT:
+			case gl.FLOAT: // map 0.0~1.0 to 0~255., avoid rounding (slow)
+				program.setUniform("u_range",255.999);
+				break;
 			case gl.UNSIGNED_SHORT_4_4_4_4: // @TODO: support these formats
-			case gl.HALF_FLOAT: break;
-			case gl.UNSIGNED_BYTE: program.setUniform("u_range",1); break;
+			case gl.UNSIGNED_BYTE:
+				program.setUniform("u_range",1);
+				break;
 		}
 		gl.viewport(0,0,W,H); // set size to target
 		gl.blendFunc(this.gl.ONE,this.gl.ZERO); // copy
@@ -456,14 +539,29 @@ class GLImageDataFactory {
 		gl.readPixels(0,0,W,H,gl.RGBA,this.dataFormat,pixelsF); // read from buffer
 		gl.deleteTexture(tmpTexture);
 
+		// Decode Uint16 bin, suppose no negative / NaN / Inf
+		// also, the value is to be changed into Uint8
+		// if bin represents a subnormal value (<0.000060976), returns 0
+		// if exp<15, the represented float must be <1: returns 0
+		// If you REALLY want it to be even faster, try lookup tables ...
+		function decodeFloat16(bin) {
+			const exp=((bin>>>10)&0x1F)-15; // exp>0
+			return exp>=0?(1<<exp)*(1+(bin&0x03FF)/0x400):0;
+		};
+
 		// format transform
 		switch(this.dataFormat) {
 			case gl.FLOAT:
 				return new Uint8ClampedArray(pixelsF);
 			case gl.UNSIGNED_BYTE: // same
 				return pixelsF;
+			case gl.HALF_FLOAT: // decode half float
+				const res=new Uint8ClampedArray(SIZE);
+				for(let i=0;i<SIZE;i++) {
+					res[i]=decodeFloat16(pixelsF[i]);
+				}
+				return res;
 			case gl.UNSIGNED_SHORT_4_4_4_4: // @TODO: unsupported yet
-			case gl.HALF_FLOAT:
 			default:
 				return null;
 		}
@@ -500,7 +598,7 @@ class GLImageDataFactory {
 			case gl.UNSIGNED_BYTE: pixels=new Uint8Array(SIZE); break;
 		}
 		gl.readPixels(0,0,src.width,src.height,gl.RGBA,this.dataFormat,pixels); // read from buffer
-		
+
 		return pixels;
 	}
 
@@ -523,7 +621,7 @@ class GLImageDataFactory {
 	// 		top: src.top,
 	// 		validArea: src // borrow values
 	// 	}
-		
+
 	// 	gl.deleteTexture(tmpTexture);
 	// }
 
@@ -544,8 +642,8 @@ class GLImageDataFactory {
 			top: src.top
 		};
 		const area=GLProgram.borderIntersection(src,targetArea); // clip out the intersection part
-		if(area.width<0)area.width=0;
-		if(area.height<0)area.height=0;
+		if(area.width<0) area.width=0;
+		if(area.height<0) area.height=0;
 
 		let data;
 		const SIZE=area.width*area.height*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4? 1:4);

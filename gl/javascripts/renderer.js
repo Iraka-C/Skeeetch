@@ -6,24 +6,24 @@
  * 3. init before a stroke (a series of rendering) begins: initBeforeRender
  */
 
- /**
-  * All methods shall be synchronized.
-  */
-class BasicRenderer{
+/**
+ * All methods shall be synchronized.
+ */
+class BasicRenderer {
 	// Enums at the end of class definition
 
-	constructor(param){
+	constructor(param) {
 		this.canvas=param.canvas; // the target canvas to be rendered !MUST be uninitialized context!
 		this.isRefreshRequested=false; // refresing requested?
 		this.bitDepth=param.bitDepth||8; // init 8-bit, may be modified
 	}
 
-	init(param){
+	init(param) {
 		// abstract
 	}
 
 	// Setting up rendering context before each stroke
-	initBeforeStroke(param){
+	initBeforeStroke(param) {
 		// BrushManager.general.sensitivity, general seeting
 		this.isOpacityLocked=param.isOpacityLocked||false;
 		this.rgb=param.rgb;
@@ -31,7 +31,7 @@ class BasicRenderer{
 		this._sPower=Math.pow(BasicRenderer._sBase,this.sensitivity-1);
 		this.brush=param.brush;
 		this.antiAlias=param.antiAlias||false; // false in default
-		this.hardness=this.brush?this.brush.edgeHardness:1;
+		this.hardness=this.brush? this.brush.edgeHardness:1;
 		this.softness=1-this.hardness;
 
 		// ====== params for bezier curve =======
@@ -41,17 +41,17 @@ class BasicRenderer{
 		// this.brush.size guarantees that the neighboring circles with 2px interval at least
 		// @TODO: quality based on alpha?
 		// @TODO: ripples reduction?
-		if(this.brush.blendMode==2){
+		if(this.brush.blendMode==2) {
 			this.quality=this.brush.size;
 		}
-		else{
+		else {
 			// The MAX param is only for controling alpha composition quality
 			// does not do with speed
-			const MAX_NORMAL=this.bitDepth==32?100:this.bitDepth==16?20:10;
+			const MAX_NORMAL=this.bitDepth==32? 100:this.bitDepth==16? 20:10;
 			this.quality=Math.min(2/(this.softness+0.01)+16,MAX_NORMAL,Math.max(this.brush.size,5));
 		}
 		//console.log(this.quality);
-		
+
 		this._invQuality=1/this.quality;
 		this.bezierRemDis=0; // distance remain = 0 at first
 	}
@@ -68,8 +68,8 @@ class BasicRenderer{
 	 *    a: opacity
 	 *    [vx,vy]: speed **NOTE**: diff from Bezier curve, NOT related with time!
 	 */
-	strokeBezier(p0,p1,p2){
-		
+	strokeBezier(p0,p1,p2) {
+
 		// edge pixel & hardness compensation
 		const tHardness=3-2*this.hardness; // opacity compensation under low hardness
 		const softRadiusCompensation=1+this.softness/2; // radius compensation on soft edge, experimental value
@@ -89,9 +89,9 @@ class BasicRenderer{
 		const wH=Math.ceil(Math.max(p0[0],p1[0],p2[0])+maxR)+3;
 		const hL=Math.floor(Math.min(p0[1],p1[1],p2[1])-maxR)-2;
 		const hH=Math.ceil(Math.max(p0[1],p1[1],p2[1])+maxR)+3;
-	
-		
-	
+
+
+
 		// these values can be derived also from bc(QBezier), putting here just to interpolate other params (r, a)
 		// 2-order param
 		const ax=p0[0]-2*p1[0]+p2[0];
@@ -107,16 +107,16 @@ class BasicRenderer{
 		let nx,ny,nr,nd;
 		let remL=this.bezierRemDis;
 		let kPoints=[];
-	
+
 		// calculate length at start
 		let bLen=bc.arcLength;
-		if(bLen<=remL){ // not draw in this section
+		if(bLen<=remL) { // not draw in this section
 			this.bezierRemDis=remL-bLen;
 			return;
 		}
 		bLen-=remL;
 
-		for(let t=bc.getTWithLength(remL,0);!isNaN(t);){
+		for(let t=bc.getTWithLength(remL,0);!isNaN(t);) {
 			// draw one plate at tstart
 			const t2=t*t;
 			nx=ax*t2+bx*t+p0[0];
@@ -135,8 +135,8 @@ class BasicRenderer{
 
 			// interval is the pixel length between two circle centers
 			const interval=Math.max(2*nr/this.quality,1);
-			
-			if(bLen<=interval){ // distance for the next
+
+			if(bLen<=interval) { // distance for the next
 				this.bezierRemDis=interval-bLen;
 				break;
 			}
@@ -145,10 +145,10 @@ class BasicRenderer{
 		}
 
 		//this.renderPoints(wL,wH,hL,hH,kPoints);
-		if(kPoints.length){
+		if(kPoints.length) {
 			return [wL,wH,hL,hH,kPoints];
 		}
-		else{ // not renewed
+		else { // not renewed
 			return [wL,wL,hL,hL,kPoints];
 		}
 	}
@@ -156,26 +156,26 @@ class BasicRenderer{
 	/**
 	 * Render into the image data
 	 */
-	renderPoints(wL,wH,hL,hH,kPoints){
+	renderPoints(wL,wH,hL,hH,kPoints) {
 		// abstract
 	}
-	
+
 	/**
 	 * Render into the image data
 	 */
-	renderPaintBrush(wL,wH,hL,hH,kPoints){
+	renderPaintBrush(wL,wH,hL,hH,kPoints) {
 		// abstract
 	}
 	// ======================= Display operations ===========================
 
-	drawCanvas(imgData){
+	drawCanvas(imgData) {
 		// abstract
 	}
 	// ========================= Basic image data operations ===============================
-	createEmptyImageData(){
+	createEmptyImageData() {
 		// abstract
 	}
-	deleteImageData(imgData){
+	deleteImageData(imgData) {
 		// abstract
 		// Normally, under the work of JS garbage collector, this function is useless
 		// Under GL environment, GPU buffers have to be released manually
@@ -186,52 +186,52 @@ class BasicRenderer{
 	 * target is an imageData
 	 */
 	// The following method must renew canvas in a synchronized way
-	clearImageData(target,range,isOpacityLocked){
+	clearImageData(target,range,isOpacityLocked) {
 		// abstract
 	}
 
 	// Shall return {type:"XXrenderer",data:data}
-	getImageData(x,y,w,h){
+	getImageData(x,y,w,h) {
 		// abstract
 	}
 
-	getImageData8bit(x,y,w,h){
+	getImageData8bit(x,y,w,h) {
 		// abstract
 	}
 
-	putImageData(imgData,x,y){
+	putImageData(imgData,x,y) {
 		// abstract, check if same type
 	}
 
-	putImageData8bit(imgData,x,y){
+	putImageData8bit(imgData,x,y) {
 		// abstract, check if same type
 	}
 
-	pressureToStrokeRadius(pressure){
+	pressureToStrokeRadius(pressure) {
 		const brush=this.brush;
-		
-		if(brush.isSizePressure){
+
+		if(brush.isSizePressure) {
 			return (pressure*(1-brush.minSize)+brush.minSize)*brush.size/2; // radius
 		}
-		else{
+		else {
 			return brush.size/2;
 		}
 	}
 
-	pressureToStrokeOpacity(pressure){
+	pressureToStrokeOpacity(pressure) {
 		const brush=this.brush;
-		if(brush.isAlphaPressure){
+		if(brush.isAlphaPressure) {
 			return (pressure*(1-brush.minAlpha)+brush.minAlpha)*brush.alpha;
 		}
-		else{
+		else {
 			return brush.alpha;
 		}
 	}
-	
+
 	/**
 	 * Consider pressure sensitivity, return new pressure
 	 */
-	pressureSensitivity(p){
+	pressureSensitivity(p) {
 		return Math.pow(p,this._sPower);
 	}
 
@@ -239,8 +239,8 @@ class BasicRenderer{
 	 * soft edge distance calc
 	 * d is the distance to center (0~1)
 	 */
-	softEdgeNormal(r){ // softness is not 0
-		if(r>0.5){
+	softEdgeNormal(r) { // softness is not 0
+		if(r>0.5) {
 			let r1=1-r;
 			return 1-2*r1*r1;
 		}
@@ -250,41 +250,14 @@ class BasicRenderer{
 		//return (1-Math.cos(Math.PI*r))/2; // easier but slower
 	}
 
-	static blendModeNameToEnum(name){
+	static blendModeNameToEnum(name) {
 		return BasicRenderer.blendModeNameList[name]||BasicRenderer.NORMAL;
 	}
-	static blendModeEnumToName(mode){
+	static blendModeEnumToName(mode) {
 		return BasicRenderer.blendModeNameList[mode]||"normal";
 	}
 
-	// static blendModeEnumToID(mode){
-	// 	switch(mode) {
-	// 		default:
-	// 		case BasicRenderer.NORMAL: return 0;
-	// 		case BasicRenderer.MULTIPLY: return 1;
-	// 		case BasicRenderer.SCREEN: return 2;
-	// 		case BasicRenderer.OVERLAY: return 3;
-	// 		case BasicRenderer.HARD_LIGHT: return 4;
-	// 		case BasicRenderer.SOFT_LIGHT: return 5;
-	// 		case BasicRenderer.DARKEN: return 6;
-	// 		case BasicRenderer.LIGHTEN: return 7;
-	// 		case BasicRenderer.COLOR_DODGE: return 8;
-	// 		case BasicRenderer.COLOR_BURN: return 9;
-	// 		case BasicRenderer.DIFFERENCE: return 10;
-	// 		case BasicRenderer.EXCLUSION: return 11;
-	// 	}
-	// }
-
-	// static blendModeIDToEnum(id){
-	// 	const blendModeID2EnumList=[
-	// 		BasicRenderer.NORMAL,BasicRenderer.MULTIPLY,BasicRenderer.SCREEN,BasicRenderer.OVERLAY,
-	// 		BasicRenderer.HARD_LIGHT,BasicRenderer.SOFT_LIGHT,BasicRenderer.DARKEN,BasicRenderer.LIGHTEN,
-	// 		BasicRenderer.COLOR_DODGE,BasicRenderer.COLOR_BURN,BasicRenderer.DIFFERENCE,BasicRenderer.EXCLUSION
-	// 	];
-	// 	return blendModeID2EnumList[id];
-	// }
-
-	static blendModeEnumToDisplayedName(mode){
+	static blendModeEnumToDisplayedName(mode) {
 		switch(mode) {
 			default:
 			case BasicRenderer.NORMAL: return Lang("blend-normal");
@@ -313,6 +286,47 @@ class BasicRenderer{
 			case BasicRenderer.SATURATION: return Lang("blend-saturation");
 			case BasicRenderer.COLOR: return Lang("blend-color");
 			case BasicRenderer.LUMINOSITY: return Lang("blend-luminosity");
+		}
+	}
+
+	/**
+	 * Returns [r,g,b,a] as the neutral color of mode
+	 * Works under both pre-/non-pre-multiplied alpha
+	 * @param {*} mode 
+	 */
+	static blendModeNeutralColor(mode) {
+		switch(mode) {
+			// White color
+			//case BasicRenderer.DARKEN:
+			case BasicRenderer.COLOR_BURN:
+			case BasicRenderer.LINEAR_BURN:
+			//case BasicRenderer.DARKER_COLOR:
+			//case BasicRenderer.DIVIDE:
+			//case BasicRenderer.MULTIPLY:
+				return [1,1,1,1];
+
+			// Black color
+			//case BasicRenderer.LIGHTEN:
+			case BasicRenderer.COLOR_DODGE:
+			case BasicRenderer.LINEAR_DODGE:
+			//case BasicRenderer.LIGHTER_COLOR:
+			case BasicRenderer.DIFFERENCE:
+			//case BasicRenderer.EXCLUSION:
+			//case BasicRenderer.SUBTRACT:
+			//case BasicRenderer.SCREEN:
+				return [0,0,0,1];
+
+			// 50% gray
+			//case BasicRenderer.SOFT_LIGHT:
+			//case BasicRenderer.HARD_LIGHT:
+			case BasicRenderer.VIVID_LIGHT:
+			case BasicRenderer.LINEAR_LIGHT:
+			//case BasicRenderer.PIN_LIGHT:
+			//case BasicRenderer.OVERLAY:
+				return [.5,.5,.5,1];
+
+			// No neutral color
+			default: return [0,0,0,0];
 		}
 	}
 }
@@ -382,7 +396,7 @@ BasicRenderer.blendModeNameList={ // name: PSD standard
 	"luminosity": BasicRenderer.LUMINOSITY
 };
 // create reversed list
-for(const v of Object.keys(BasicRenderer.blendModeNameList)){
+for(const v of Object.keys(BasicRenderer.blendModeNameList)) {
 	BasicRenderer.blendModeNameList[BasicRenderer.blendModeNameList[v]]=v;
 }
 

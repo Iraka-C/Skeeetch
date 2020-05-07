@@ -248,55 +248,35 @@ class LayerGroupNode extends ContentNode {
 
 		// blend mode button
 		const $blendButton=$buttons.find(".group-blend-mode-button");
-		const setBlendButtonStatus=v => {
-			if(this.properties.locked)return;
+		EventDistributer.footbarHint($blendButton,() => Lang("Switch blend mode")
+			+": "+BasicRenderer.blendModeEnumToDisplayedName(this.properties.blendMode));
+		$blendButton.on("click",e=>{
+			if(this.properties.locked)return; // cannot change
+			LAYERS.blendModeSelector.setCaller(this);
+			const bOffset=$blendButton.offset();
+			const bW=$blendButton.width();
+			const bH=$blendButton.height();
+			LAYERS.blendModeSelector.show({
+				width: bW,
+				height: bH,
+				left: bOffset.left,
+				top: bOffset.top
+			});
+		});
+		const setBlendButtonStatus=mode => {
+			this.properties.blendMode=mode;
 			const $blendButtonImg=$blendButton.children("img");
-			switch(v) {
-				case 0: // normal
-					this.properties.blendMode=BasicRenderer.NORMAL;
-					$blendButtonImg.attr("src","./resources/blend-mode/normal.svg");
-					break;
-				case 1: // multiply
-					this.properties.blendMode=BasicRenderer.MULTIPLY;
-					$blendButtonImg.attr("src","./resources/blend-mode/multiply.svg");
-					break;
-				case 2: // screen
-					this.properties.blendMode=BasicRenderer.SCREEN;
-					$blendButtonImg.attr("src","./resources/blend-mode/screen.svg");
-					break;
-			}
-		}
-		const blendButtonHistoryCallback={
-			prevStatus: null,
-			before: () => {
-				blendButtonHistoryCallback.prevStatus={
-					blendMode: this.properties.blendMode
-				}
-			},
-			after: () => {
-				if(this.properties.locked)return;
-				HISTORY.addHistory({ // add a history
-					type: "node-property",
-					id: this.id,
-					prevStatus: blendButtonHistoryCallback.prevStatus,
-					nowStatus: {blendMode: this.properties.blendMode}
-				});
-			}
+			$blendButtonImg.attr("src","./resources/blend-mode/"
+				+LayerBlendModeSelector.blendModeEnumToFilename(mode)+".svg");
 		};
-		const fBlend=SettingManager.setSwitchInteraction($blendButton,null,3,($el,v) => {
-			setBlendButtonStatus(v);
+		
+		this.buttonUpdateFuncs.blendButton=() => {
+			setBlendButtonStatus(this.properties.blendMode);
 			this.setImageDataInvalid();
 			COMPOSITOR.updateLayerTreeStructure(); // recomposite immediately
-		},blendButtonHistoryCallback);
-		const blendModeToIdList=mode=>{
-			switch(mode){
-				default:
-				case BasicRenderer.NORMAL: return 0;
-				case BasicRenderer.MULTIPLY: return 1;
-				case BasicRenderer.SCREEN: return 2;
-			}
 		};
-		this.buttonUpdateFuncs.blendButton=()=>fBlend(blendModeToIdList(this.properties.blendMode));
+		this.buttonUpdateFuncs.blendButton(); // init
+
 	}
 	// Name and opacity inputs
 	initInputs() {

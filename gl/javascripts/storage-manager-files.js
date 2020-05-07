@@ -28,8 +28,10 @@ STORAGE.FILES.requestSaveContentChanges=function() {
 // save directly, without interfering with the UI
 // @TODO: change flag into all + hint when exit
 // Max length of 1 key-value is 127MB!
+// isForceSaving is only used when saving manually
 STORAGE.FILES.savingList=new Set();
-STORAGE.FILES.saveContentChanges=function(node) {
+STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
+	if(!ENV.displaySettings.isAutoSave&&!isForceSaving)return; // do not require contents saving
 	if(node) { // operating on a CanvasNode
 		//console.log("Saving contents ...");
 		
@@ -37,7 +39,7 @@ STORAGE.FILES.saveContentChanges=function(node) {
 		$("#icon").attr("href","./resources/favicon-working.png");
 
 		// There shouldn't be several save requests in 1 frame...
-		requestAnimationFrame(()=>{ // give icon a chance to change
+		setTimeout(()=>{ // give icon a chance to change
 			// Get buffer out of valid area
 			const imgData=node.rawImageData;
 			const vArea=imgData.validArea;
@@ -71,6 +73,8 @@ STORAGE.FILES.saveContentChanges=function(node) {
 			Promise.all(chunkPromises).then(v => {
 				//console.log(node.id+" Saved");
 				STORAGE.FILES.savingList.delete(node.id); // delete first
+				node.isContentChanged=false;
+				console.log(node.id+" Saved");
 				if(!STORAGE.FILES.savingList.size){ // all saved
 					STORAGE.FILES.isNowActiveLayerSaved=true;
 					$("#icon").attr("href","./resources/favicon.png");
@@ -84,7 +88,18 @@ STORAGE.FILES.saveContentChanges=function(node) {
 			});
 
 			STORAGE.FILES.removeContent(node.id,chunkN); // do separately
-		});
+		},0);
+	}
+}
+
+STORAGE.FILES.saveAllContents=function(){ // force save all contents
+	for(const k in LAYERS.layerHash){ // Save all layers
+		const layer=LAYERS.layerHash[k];
+		if(layer instanceof CanvasNode){
+			if(layer.isContentChanged){ // content modified
+				STORAGE.FILES.saveContentChanges(layer,true);
+			}
+		}
 	}
 }
 
@@ -93,8 +108,16 @@ STORAGE.FILES.isUnsaved=function(){
 	if(!STORAGE.FILES.isNowActiveLayerSaved){
 		return true;
 	}
-	if(STORAGE.FILES.savingList.size){
+	if(STORAGE.FILES.savingList.size){ // still saving
 		return true;
+	}
+	for(const k in LAYERS.layerHash){
+		const layer=LAYERS.layerHash[k];
+		if(layer instanceof CanvasNode){
+			if(layer.isContentChanged){ // content modified
+				return true;
+			}
+		}
 	}
 	return false;
 }
@@ -132,6 +155,8 @@ STORAGE.FILES.getContent=function(id){
 }
 
 STORAGE.FILES.removeContent=function(id,startChunk) {
+	//console.warn("Trying to remove ",id,startChunk);
+	
 	if(id) {
 		if(isNaN(startChunk)){ // remove whole id
 			ENV.taskCounter.startTask(); // start remove task
@@ -144,7 +169,7 @@ STORAGE.FILES.removeContent=function(id,startChunk) {
 		// remove chunk larger/equal startChunk
 		startChunk=startChunk||0;
 		STORAGE.FILES.layerStore.keys().then(keys => {
-			for(const v of keys) { // remove unused keys
+			for(const v of keys) { // for all keys keys
 				if(v.startsWith(id)) {
 					const sPos=v.lastIndexOf("#");
 					if(sPos<0)continue; // not a chunk
@@ -237,6 +262,7 @@ STORAGE.FILES.loadLayerTree=function(node) {
 						CANVAS.renderer.resizeImageData(newElement.rawImageData,sNode.rawImageData);
 						CANVAS.renderer.loadToImageData(newElement.rawImageData,sNode.rawImageData);
 						sNode.rawImageData.data=1; // release object
+						newElement.isContentChanged=false; // saved contents
 					}
 					else{ // failed to get content, delete broken chunk
 						STORAGE.FILES.removeContent(sNode.id);

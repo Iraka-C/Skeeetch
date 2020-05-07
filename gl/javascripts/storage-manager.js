@@ -21,5 +21,7 @@ STORAGE.init=function(callback){
 
 STORAGE.saveOnExit=function(){ // This must be synced function
 	STORAGE.SETTING.saveAllSettings();
-	STORAGE.FILES.saveLayerTree();
+	if(ENV.displaySettings.isAutoSave){ // requires auto save on exit
+		STORAGE.FILES.saveLayerTree();
+	}
 };

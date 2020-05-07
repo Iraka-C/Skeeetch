@@ -1,4 +1,5 @@
 ENV.setUIOrientation=function(isLeft){
+	ENV.displaySettings.uiOrientationLeft=isLeft;
 	if(isLeft){ // Normal
 		$("#top-menu-panel").css("flex-direction","row");
 		$("#top-menu-right-panel").css("flex-direction","row");
@@ -23,6 +24,7 @@ ENV.setUIOrientation=function(isLeft){
 		});
 		$("#right-menu-panels .setting-panel").children().addClass("menu-scroll-wrapper").removeClass("left-menu-scroll-wrapper");
 		$("#left-menu-panels .setting-panel").children().addClass("left-menu-scroll-wrapper").removeClass("menu-scroll-wrapper");
+		$("#brush-button").css("justify-content","flex-start");
 	}
 	else{ // Reversed
 		$("#top-menu-panel").css("flex-direction","row-reverse");
@@ -48,5 +50,6 @@ ENV.setUIOrientation=function(isLeft){
 		});
 		$("#right-menu-panels .setting-panel").children().addClass("left-menu-scroll-wrapper").removeClass("menu-scroll-wrapper");
 		$("#left-menu-panels .setting-panel").children().addClass("menu-scroll-wrapper").removeClass("left-menu-scroll-wrapper");
+		$("#brush-button").css("justify-content","flex-end");
 	}
 }

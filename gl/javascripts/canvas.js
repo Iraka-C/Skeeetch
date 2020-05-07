@@ -19,7 +19,7 @@ CANVAS.drawSuccessful=false; // if you try to stroke on canvas, will it be succe
 
 // ========================= Functions ===========================
 CANVAS.init=function() {
-	console.log("Canvas init "+CANVAS.rendererBitDepth+" bit");
+	//console.log("Canvas init "+CANVAS.rendererBitDepth+" bit");
 	CANVAS.drawSuccessful=true;
 	
 	if(CANVAS.renderer){
@@ -30,7 +30,8 @@ CANVAS.init=function() {
 	CANVAS.renderer=new GLRenderer({
 		canvas: CANVAS.targetCanvas,
 		onRefresh: CANVAS.onRefresh,
-		bitDepth: CANVAS.rendererBitDepth
+		bitDepth: CANVAS.rendererBitDepth,
+		maxVRAMSize: PERFORMANCE.maxMem.gpu/2 // Experimental value
 	});
 }
 /**
@@ -313,7 +314,7 @@ CANVAS.refreshScreen=function() {
 	COMPOSITOR.recompositeLayers(); // recomposite from root.
 	// **NOTE** No difference found with/without using dirty area only renewal
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
-	//console.log("Refresh Time = "+Math.round((window.performance.now()-startT)*1000)+" us");
+	//console.log("Refresh Time = "+Math.round(window.performance.now()-startT)+" ms");
 }
 
 /**

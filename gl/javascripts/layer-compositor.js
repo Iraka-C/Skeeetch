@@ -69,6 +69,7 @@ COMPOSITOR.compileLayerTree=function(){
  */
 COMPOSITOR.recompositeLayers=function(node) {
 	node=node||LAYERS.layerTree; // init: root
+	const isNeutralColor=ENV.displaySettings.blendWithNeutralColor;
 
 	// If no dirty area provided, assume that node shall contain all contents of leaves
 
@@ -113,7 +114,8 @@ COMPOSITOR.recompositeLayers=function(node) {
 			const child=list[v];
 			CANVAS.renderer.blendImageData(child.imageData,bg,{
 				mode: child.properties.blendMode,
-				srcAlpha: child.properties.opacity
+				srcAlpha: child.properties.opacity,
+				blendWithNeutralColor: isNeutralColor
 			}); // blend layer with backdrop
 			if(PERFORMANCE.debugger.isDrawingLayerBorder){ // For DEBUG: draw the edge of each layer
 				CANVAS.renderer.drawEdge(child.imageData,bg);
@@ -159,7 +161,8 @@ COMPOSITOR.recompositeLayers=function(node) {
 				CANVAS.renderer.blendImageData(clipMaskNode.imageData,clipped,{
 					mode: clipMaskNode.properties.blendMode,
 					alphaLock: true, // lock alpha
-					srcAlpha: clipMaskNode.properties.opacity
+					srcAlpha: clipMaskNode.properties.opacity,
+					blendWithNeutralColor: isNeutralColor
 				});
 				if(PERFORMANCE.debugger.isDrawingLayerBorder){
 					CANVAS.renderer.drawEdge(clipMaskNode.imageData,clipped);

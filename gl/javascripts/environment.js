@@ -4,7 +4,7 @@
 */
 
 ENV={}; // Environment
-ENV.version="20200501";
+ENV.version="20200507";
 
 //===================== Settings =====================
 
@@ -33,7 +33,10 @@ ENV.window={
 
 ENV.displaySettings={
 	antiAlias: true,
-	enableTransformAnimation: true,
+	enableTransformAnimation: true, // smooth animation when moving paper
+	blendWithNeutralColor: true, // blend layers with neutral color filling under certain blend modes
+	uiOrientationLeft: true, // UI flows from left->right: true
+	isAutoSave: true // Auto save files when modified in browser
 };
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
 
@@ -43,7 +46,7 @@ ENV.init=function() { // When the page is loaded
 	STORAGE.init(sysSettingParams => { // after loading all settings
 		LANG.init(sysSettingParams); // set all doms after load?
 		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
-
+		
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
 		ENV.setAntiAliasing(ENV.displaySettings.antiAlias); // set canvas css param
 		ENV.taskCounter.init();
@@ -72,6 +75,7 @@ ENV.init=function() { // When the page is loaded
 		HISTORY.init();
 		FILES.init();
 
+		ENV.setUIOrientation(ENV.displaySettings.uiOrientationLeft); // set UI orientation at init, after settings
 		ENV.debug();
 
 		// prevent pen-dragging in Firefox causing window freezing
@@ -295,6 +299,17 @@ ENV.setFileTitle=function(title) {
 
 ENV.getFileTitle=function() {
 	return $("#filename-input").val();
+}
+
+ENV.setAutoSave=function(isAutoSave){
+	ENV.displaySettings.isAutoSave=isAutoSave;
+	if(isAutoSave){ // save contents
+		STORAGE.FILES.saveLayerTree();
+		STORAGE.FILES.saveAllContents();
+	}
+	else{
+		// Do nothing, preserve and give warnings on not-saved
+	}
 }
 // ====================== For Debugging ==========================
 /**

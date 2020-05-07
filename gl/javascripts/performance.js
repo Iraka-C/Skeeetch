@@ -13,8 +13,8 @@ PERFORMANCE.debugger={
 	isDrawingLayerBorder: false
 }
 PERFORMANCE.maxMem={ // maximum memory available in Bytes
-	ram: 2*1024*1024*1024, // init 2G
-	gpu: 2*1024*1024*1024 // init 2G
+	ram: 4*1024*1024*1024, // init 4G for history (vram manager doesn't consider this limit)
+	gpu: 8*1024*1024*1024 // init 8G (my card)
 }
 
 /**
@@ -32,7 +32,7 @@ PERFORMANCE.init=function(){
 	PERFORMANCE.idleTaskManager=new IdleTaskManager();
 	if(navigator.deviceMemory){
 		// the value could only be 0.25, 0.5, 1, 2, 4, 8
-		PERFORMANCE.maxMem=navigator.deviceMemory/2*1024*1024*1024; // able to conserve half for history
+		PERFORMANCE.maxMem.ram=navigator.deviceMemory/2*1024*1024*1024; // able to conserve half for history
 	}
 }
 

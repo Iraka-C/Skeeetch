@@ -76,7 +76,7 @@ class GLRenderer extends BasicRenderer {
 		this.textureBlender=new GLTextureBlender(this);
 		this.imageDataFactory=new GLImageDataFactory(gl,this.dataFormat);
 		this.brushRenderer=new GLBrushRenderer(this);
-		this.vramManager=new GLVRAMManager(this);
+		this.vramManager=new GLVRAMManager(this,param.maxVRAMSize);
 
 		this.vramManager.addWhiteList(this.tmpImageData);
 		this.vramManager.addWhiteList(this.brushRenderer.brushtipImageData);
@@ -352,6 +352,14 @@ class GLRenderer extends BasicRenderer {
 		if(!(target.width&&target.height)) { // No pixel, needless to clear
 			return;
 		}
+		if(target.type=="GLRAMBuf"){ // No need to de-compression
+			if(!isOpacityLocked){ // clear to single color
+				const tmpData=this.createImageData(target.width,target.height);
+				target.data=tmpData.data; // transfer data
+				tmpData.data=null; // release reference
+				target.type="GLTexture";
+			}
+		}
 		this.vramManager.verify(target);
 		const gl=this.gl;
 		const tmpColor=color? [...color]:isOpacityLocked? [1,1,1,1]:[0,0,0,0];
@@ -470,7 +478,6 @@ class GLRenderer extends BasicRenderer {
 	 * **NOTE** This function does not certainly clear the src contents even if isPreservingContents==false
 	 */
 	adjustImageDataBorders(src,targetRange,isPreservingContents) {
-		this.vramManager.verify(src);
 		const BLOCK_SIZE=512; // pixels to extend when drawing out of an imageData, better to be 2^N to fit GPU memory
 		// 512^2 takes each single block 4MB
 		const tmp=this.tmpImageData;
@@ -485,6 +492,23 @@ class GLRenderer extends BasicRenderer {
 		}
 		initSize=GLProgram.borderIntersection(initSize,this.viewport); // initial cut
 
+		if(src.type=="GLRAMBuf"){ // No need to de-compression, creating new one is faster
+			if(!isPreservingContents){ // clear image
+				const tmpData=this.createImageData(initSize.width,initSize.height);
+				src.data=tmpData.data; // transfer data
+				tmpData.data=null; // release reference
+				src.type="GLTexture";
+				src.width=initSize.width;
+				src.height=initSize.height;
+				src.left=initSize.left;
+				src.top=initSize.top;
+				src.validArea={width: 0,height: 0,left: 0,top: 0}; // empty valid area
+				this.vramManager.verify(src); // submit this to manager
+				return;
+			}
+		}
+
+		this.vramManager.verify(src);
 		if(isPreservingContents) { // extend the contents in blocks, valid area doesn't change
 			let [sL,sR,sT,sB]=[src.left,src.left+src.width,src.top,src.top+src.height];
 			let [tL,tR,tT,tB]=[initSize.left,initSize.left+initSize.width,initSize.top,initSize.top+initSize.height];

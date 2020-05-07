@@ -19,14 +19,27 @@ EVENTS.init=function(){
 	//$(window).on("contextmenu",e=>false);
 
 	// ============ Auto File saving related ==============
+	let isUnloadTriggered=false;
 	$(window).on("blur",e=>{
-		EventDistributer.footbarHint.showInfo("Saving contents ...");
-		STORAGE.FILES.requestSaveContentChanges();
+		console.log(isUnloadTriggered);
+		
+		if(ENV.displaySettings.isAutoSave){
+			EventDistributer.footbarHint.showInfo("Saving contents ...");
+			STORAGE.FILES.requestSaveContentChanges();
+		}
+		// This is also triggered when clicking "yes, unload" !
+		// else if(isUnloadTriggered){ // return after an unload attempt
+		// 	EventDistributer.footbarHint.showInfo("Saving all contents ...");
+		// 	STORAGE.FILES.saveLayerTree();
+		// 	STORAGE.FILES.saveAllContents();
+		// 	isUnloadTriggered=false;
+		// }
 	});
 	$(window).on("beforeunload",e=>{
+		isUnloadTriggered=true;
 		// see STORAGE.SETTING.saveAllSettings
 		STORAGE.saveOnExit();
-		if(STORAGE.FILES.isUnsaved()){ // there are unsaved items
+		if(STORAGE.FILES.isUnsaved()){ // there are unsaved contents
 			// show promp window
 			e.preventDefault();
 			return "";

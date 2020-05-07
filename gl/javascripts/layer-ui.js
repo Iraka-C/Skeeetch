@@ -328,8 +328,8 @@ class LayerBlendModeSelector{
 		const h=this.$selector.height();
 		const sW=window.innerWidth;
 		const sH=window.innerHeight;
-		let L=targetArea.left;
-		let H=targetArea.top;
+		let L=targetArea.left-3;
+		let H=targetArea.top-3;
 		if(L+w+3>=sW)L=sW-w-3;
 		if(H+h+3>=sH)H=sH-h-3;
 

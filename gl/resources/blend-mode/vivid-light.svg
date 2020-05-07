@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 22.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+<svg version="1.1" id="图层_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 28.3 28.3" style="enable-background:new 0 0 28.3 28.3;" xml:space="preserve">
 <style type="text/css">
 	.st0{fill:none;stroke:#000000;stroke-miterlimit:10;}
-	.st1{fill:#FFFFFF;stroke:#000000;stroke-miterlimit:10;}
-	.st2{opacity:0.5;}
+	.st1{opacity:0.5;enable-background:new    ;}
 </style>
-<g id="图层_1">
+<g id="图层_1_1_">
 	<circle class="st0" cx="14.2" cy="14.2" r="12.8"/>
-	<circle class="st1" cx="18.992" cy="9.354" r="3.543"/>
-	<circle class="st1" cx="10.772" cy="17.575" r="5.669"/>
+	<circle class="st0" cx="19" cy="9.4" r="3.5"/>
+	<circle class="st0" cx="10.8" cy="17.6" r="5.7"/>
 </g>
-<g id="图层_2">
-	<path class="st2" d="M14.2,1.4C7.131,1.4,1.4,7.131,1.4,14.2C1.4,21.269,7.131,27,14.2,27C21.269,27,27,21.269,27,14.2
-		C27,7.131,21.269,1.4,14.2,1.4z M10.772,23.244c-3.131,0-5.669-2.538-5.669-5.669c0-3.131,2.538-5.669,5.669-5.669
-		c3.131,0,5.669,2.538,5.669,5.669C16.441,20.706,13.903,23.244,10.772,23.244z M18.992,12.898c-1.957,0-3.543-1.586-3.543-3.543
-		s1.586-3.543,3.543-3.543s3.543,1.586,3.543,3.543S20.949,12.898,18.992,12.898z"/>
+<g id="图层_2_1_">
+	<path class="st1" d="M14.2,1.4C7.1,1.4,1.4,7.1,1.4,14.2S7.1,27,14.2,27S27,21.3,27,14.2S21.3,1.4,14.2,1.4z M10.8,23.2
+		c-3.1,0-5.7-2.5-5.7-5.7s2.5-5.7,5.7-5.7s5.7,2.5,5.7,5.7S13.9,23.2,10.8,23.2z M19,12.9c-2,0-3.5-1.6-3.5-3.5S17,5.8,19,5.8
+		s3.5,1.6,3.5,3.5S20.9,12.9,19,12.9z"/>
 </g>
 </svg>
