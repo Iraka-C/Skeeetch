@@ -183,7 +183,7 @@ class GLTextureBlender {
 					pix1=texture2D(u_image_1,v_pos_1);
 				}
 				if(pix0.w==0.){
-					gl_FragColor=vec4(0.,0.,0.,0.);
+					gl_FragColor=pix1;
 					return;
 				}
 				if(pix1.w==0.){
@@ -191,15 +191,18 @@ class GLTextureBlender {
 					return;
 				}
 
-				//vec4 cs=vec4(pix0.xyz,1.);//=pix0;
+				float Xa=pix0.w+(1.-pix0.w)*pix1.w; // final opacity
 				pix0+=u_neutral_color*(1.-pix0.w); // fill neutral color
 
 				vec3 Cs=pix0.xyz/pix0.w; // premult => non premult
 				vec3 Cb=pix1.xyz/pix1.w; // premult => non premultiplied
 
-				vec3 Cm=blend(Cb,Cs);
-				vec3 Cr=Cs+pix1.w*(Cm-Cs);
-				gl_FragColor=vec4(Cr,1.)*pix0.w;
+				vec3 Cm=blend(Cb,Cs); // step1: blend
+				vec3 Cr=Cs+pix1.w*(Cm-Cs); // step2: interpolate
+				vec4 cr=vec4(Cr,1.)*pix0.w; // non-premult => premult
+
+				vec4 c_blend=cr+pix1*(1.-cr.w); // blended color
+				gl_FragColor=c_blend-u_neutral_color*(1.-Xa); // extract neutral color
 			}
 		`;
 
@@ -411,8 +414,8 @@ class GLTextureBlender {
 		if(param.alphaLock) { // source-atop
 			gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 		}
-		else { // source-over
-			gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+		else { // copy
+			gl.blendFunc(gl.ONE,gl.ZERO);
 		}
 		programC.run();
 	}

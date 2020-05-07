@@ -42,7 +42,7 @@ LANG_ZH={
 	"Draw Layer Border":"绘制图层边缘",
 	"Opacity Blend":"透明度混合",
 	"Intensity":"混合强度",
-	"Neutral Color":"中性色值",
+	"Neutral Color":"中性色填充",
 	"UI Orientation":"主界面方向",
 	"ui-left":"从左至右",
 	"ui-right":"从右至左",
