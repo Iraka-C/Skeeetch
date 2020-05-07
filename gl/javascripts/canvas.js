@@ -415,6 +415,9 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 	pSum[2]/=SIZE;
 	pSum[3]/=SIZE*255;
 
+	console.log(pSum);
+	
+
 	return SMath.blendNormal([...PALETTE.colorSelector.getRGB(),1],pSum); //pSum
 }
 

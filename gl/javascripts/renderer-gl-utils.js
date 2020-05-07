@@ -124,35 +124,8 @@ class GLTextureBlender {
 			vec3 subtract(vec3 Cb,vec3 Cs){return max(Cb-Cs,0.);} // #30
 			vec3 divide(vec3 Cb,vec3 Cs){return clamp(Cb/Cs,0.,1.);} // #31
 
-			void main(){
-				vec4 pix0=vec4(0.,0.,0.,0.); // src pixel
-				vec4 pix1=vec4(0.,0.,0.,0.); // dst pixel
-				if(v_pos_0.x>=0.&&v_pos_0.x<=1.&&v_pos_0.y>=0.&&v_pos_0.y<=1.){
-					pix0=texture2D(u_image_0,v_pos_0)*u_image_alpha;
-				}
-				if(v_pos_1.x>=0.&&v_pos_1.x<=1.&&v_pos_1.y>=0.&&v_pos_1.y<=1.){
-					pix1=texture2D(u_image_1,v_pos_1);
-				}
-				if(pix1.w==0.){ // dst alpha is 0, maintain src pixel
-					gl_FragColor=pix0;
-					return;
-				}
-				if(pix0.w==0.){ // src alpha is 0, return 0 pixel
-					gl_FragColor=vec4(0.,0.,0.,0.);
-					return;
-				}
-
-				
-				vec3 Cs=pix0.xyz/pix0.w; // premult => non premult
-				vec3 Cb=pix1.xyz/pix1.w; // premult => non premultiplied
-
-				Cs=Cs*pix0.w+u_neutral_color.xyz*(1.-pix0.w); // fill in neutral color
-				Cb=Cb*pix1.w+u_neutral_color.xyz*(1.-pix1.w); // fill in neutral color
-				float w0=pix0.w;
-				float w1=pix1.w;
-				pix0.w+=u_neutral_color.w*(1.-pix0.w);
-				pix1.w+=u_neutral_color.w*(1.-pix1.w);
-
+			// Blend with u_blend_mode
+			vec3 blend(vec3 Cb,vec3 Cs){
 				vec3 Cm=vec3(0.,0.,0.); // blended result
 				if(u_blend_mode<12.5){ // 0~12
 					if(u_blend_mode<5.5){ // 2~5
@@ -197,9 +170,36 @@ class GLTextureBlender {
 
 					}
 				}
+				return Cm;
+			}
 
-				vec3 Cr=Cs+pix1.w*(Cm-Cs); // interpolation by backdrop alpha
-				gl_FragColor=vec4(Cr*pix0.w,pix0.w); // pre-mult alpha
+			void main(){
+				vec4 pix0=vec4(0.,0.,0.,0.); // src pixel
+				vec4 pix1=vec4(0.,0.,0.,0.); // dst pixel
+				if(v_pos_0.x>=0.&&v_pos_0.x<=1.&&v_pos_0.y>=0.&&v_pos_0.y<=1.){
+					pix0=texture2D(u_image_0,v_pos_0)*u_image_alpha;
+				}
+				if(v_pos_1.x>=0.&&v_pos_1.x<=1.&&v_pos_1.y>=0.&&v_pos_1.y<=1.){
+					pix1=texture2D(u_image_1,v_pos_1);
+				}
+				if(pix0.w==0.){
+					gl_FragColor=vec4(0.,0.,0.,0.);
+					return;
+				}
+				if(pix1.w==0.){
+					gl_FragColor=pix0;
+					return;
+				}
+
+				//vec4 cs=vec4(pix0.xyz,1.);//=pix0;
+				pix0+=u_neutral_color*(1.-pix0.w); // fill neutral color
+
+				vec3 Cs=pix0.xyz/pix0.w; // premult => non premult
+				vec3 Cb=pix1.xyz/pix1.w; // premult => non premultiplied
+
+				vec3 Cm=blend(Cb,Cs);
+				vec3 Cr=Cs+pix1.w*(Cm-Cs);
+				gl_FragColor=vec4(Cr,1.)*pix0.w;
 			}
 		`;
 
@@ -404,8 +404,8 @@ class GLTextureBlender {
 
 		// set target area attribute, to 0~1 coord space(LB origin).
 		// gl will automatically trim within viewport
-		programC.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,tmp,!param.antiAlias),2);
-		programC.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,dst,!param.antiAlias),2);
+		programC.setAttribute("a_src_pos",tmpRect,2);
+		programC.setAttribute("a_dst_pos",dstRect,2);
 
 		gl.viewport(0,0,dst.width,dst.height); // target area as dst
 		if(param.alphaLock) { // source-atop
