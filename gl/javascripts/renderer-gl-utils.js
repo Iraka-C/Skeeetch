@@ -59,8 +59,13 @@ class GLTextureBlender {
 			vec3 screen(vec3 Cb,vec3 Cs){return Cb+Cs-Cb*Cs;} // #3
 			vec3 darken(vec3 Cb,vec3 Cs){return min(Cb,Cs);} // #7
 			vec3 lighten(vec3 Cb,vec3 Cs){return max(Cb,Cs);} // #8
-			vec3 color_dodge(vec3 Cb,vec3 Cs){return clamp(Cb/(vec3(1.,1.,1.)-Cs),0.,1.);} // #11 clamped
-			vec3 color_burn(vec3 Cb,vec3 Cs){return vec3(1.,1.,1.)-clamp((vec3(1.,1.,1.)-Cb)/Cs,0.,1.);} // #12 clamped
+
+			vec3 color_dodge(vec3 Cb,vec3 Cs){
+				return clamp(Cb/(vec3(1.,1.,1.)-0.99999*Cs),0.,1.);
+			} // #11 clamped, error<0.007
+			vec3 color_burn(vec3 Cb,vec3 Cs){
+				return vec3(1.,1.,1.)-clamp((vec3(1.,1.,1.)-Cb)/(Cs+vec3(1E-5,1E-5,1E-5)),0.,1.);
+			} // #12 clamped, error<0.003
 			vec3 hard_light(vec3 Cb,vec3 Cs){
 				vec3 stepCs=step(0.5,Cs); // Cs>0.5: 1, Cs<0.5: 0
 				vec3 signCs=2.*stepCs-1.; // Cs>0.5: 1, Cs<0.5: -1

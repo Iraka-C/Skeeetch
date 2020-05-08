@@ -35,7 +35,7 @@ STORAGE.FILES.savingList=new Set();
 STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 	if(!ENV.displaySettings.isAutoSave&&!isForceSaving)return; // do not require contents saving
 	if(node) { // operating on a CanvasNode
-		//console.log("Saving contents ...");
+		console.log("Saving contents ...");
 		
 		STORAGE.FILES.savingList.add(node.id);
 		$("#icon").attr("href","./resources/favicon-working.png");
@@ -113,11 +113,13 @@ STORAGE.FILES.isUnsaved=function(){
 	if(STORAGE.FILES.savingList.size){ // still saving
 		return true;
 	}
-	for(const k in LAYERS.layerHash){
-		const layer=LAYERS.layerHash[k];
-		if(layer instanceof CanvasNode){
-			if(layer.isContentChanged){ // content modified
-				return true;
+	if(!ENV.displaySettings.isAutoSave){ // not auto-saving, check modified layer
+		for(const k in LAYERS.layerHash){
+			const layer=LAYERS.layerHash[k];
+			if(layer instanceof CanvasNode){
+				if(layer.isContentChanged){ // content modified
+					return true;
+				}
 			}
 		}
 	}

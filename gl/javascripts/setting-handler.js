@@ -132,7 +132,7 @@ SettingHandler.initSystemSetting=function(sysParams) {
 	let sys=new SettingManager($("#settings-menu-panel"),Lang("System"));
 	sys.addSectionTitle(Lang("Renderer"));
 
-	CANVAS.rendererBitDepth=sysParams.preference.channelBitDepth||8;
+	CANVAS.rendererBitDepth=sysParams.preference.channelBitDepth||CANVAS.rendererBitDepth;
 	sys.addSwitch(Lang("Bit Depth"),["32","16","8"],Lang("bit"),val => { // require restart
 		CANVAS.rendererBitDepth=[32,16,8][val];
 		minSizeHintUpdateFunc(true);

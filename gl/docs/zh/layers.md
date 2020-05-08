@@ -6,6 +6,10 @@ Skeeetch支持图层和图层组的管理。图层的操作界面位于主界面
 
 每个图层的背景是这个图层内容的**缩略图**。当缩略图尺寸大于图层图标时，在图层图标上移动光标可以浏览缩略图的不同部分。
 
+<img src="./images/layer-ui.png" width="200"/>
+
+> 图层面板按钮、两个图层、和一个图层组
+
 ## 增删图层
 
 默认打开Skeeetch时的第一个图层是一个白色的背景图层。
@@ -56,13 +60,13 @@ Skeeetch支持图层和图层组的管理。图层的操作界面位于主界面
 
 ## 复制图层/图层组
 
-（功能尚未实现）
+（功能完善中）
 
 ## 混合模式
 
 Skeeetch支持常见的26种混合模式（已实现22种）。默认情况下图层或图层组都是正常<img src="../../resources/blend-mode/normal.svg" height="16"/>混合模式，并在图标上显示这个按钮。点击图层或图层组的混合模式按钮可以打开混合模式选择菜单：
 
-（插入图片）
+<img src="./images/layer-blend-modes.png" width="300"/>
 
 菜单中每个图标对应一种混合模式，可以将光标移动到相应的图标上查看文字信息，点击以切换到该混合模式。
 
@@ -70,6 +74,11 @@ Skeeetch支持常见的26种混合模式（已实现22种）。默认情况下�
 
 对于带有透明度的图层，一般有两种透明度混合模式：强度和填充。强度模式下像素透明度会影响混合的强弱，而填充模式下透明度只影响混合结果的透明度而不影响混合效果强度，因此对比一般会强烈一些。Photoshop默认使用强度模式，需要为图层取消“透明形状图层”来使用填充模式。SAI默认使用填充模式。
 
+<img src="./images/layer-opacity-blend.png" width="400"/>
+
+> 线性减淡模式的效果，使用强度混合（左）和填充混合（右）
+
 在Skeeetch中可以设置全局的透明度混合模式：在 *设置* > *渲染器* > *透明度混合* 开关中可以选择**混合强度**（强度模式）或**中性色填充**（填充模式）。注意：对大文件，切换这个选项可能会比较耗时。
 
-Skeeetch中支持填充模式的混合模式有。。。。。。。7个。
+Skeeetch中支持填充模式的混合模式有线性减淡<img src="../../resources/blend-mode/linear-dodge.svg" height="16"/>、线性加深<img src="../../resources/blend-mode/linear-burn.svg" height="16"/>、线性光<img src="../../resources/blend-mode/linear-light.svg" height="16"/>、颜色减淡<img src="../../resources/blend-mode/color-dodge.svg" height="16"/>、颜色加深<img src="../../resources/blend-mode/color-burn.svg" height="16"/>、亮光<img src="../../resources/blend-mode/vivid-light.svg" height="16"/>、差值<img src="../../resources/blend-mode/difference.svg" height="16"/>共七种。
+
