@@ -6,21 +6,23 @@ Skeeetch支持许多常见的绘画软件操作，包括：
 
 * 带透明度的画板，画笔，和取色器控制
 * 带压感的多种常用画笔
-* 图层和图层组管理
+* 图层和图层组混合管理
 * 历史记录与自动保存
 * 常见图片格式和Photoshop的`.psd`格式文件导入导出
 
-**无需下载**：在浏览器中即开即用。
+无需下载，在浏览器中即开即用。
 
-### [**使用最新版的Skeeetch!**](https://iraka-c.github.io/Skeeetch/index.html?lang=zh)
+### [**打开最新版Skeeetch**](https://iraka-c.github.io/Skeeetch/index.html?lang=zh)
 
-[查看完整的帮助文档](./index.md)
+你可以在浏览器中收藏Skeeetch以便日后使用~
 
-[常见问题与故障排除]()
+## 简介目录
 
-你可以在浏览器中收藏Skeeetch以便日后访问。
-
-（TODO：将readme改为教程式的）
+* [首次使用](#首次打开界面)
+* [基本操作](#基本操作)
+* [完整的帮助文档](./index.md)
+* [常见问题](#常见问题)
+* [TODOs](#TODOs)
 
 ## 首次打开界面
 
