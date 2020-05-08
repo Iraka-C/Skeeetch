@@ -19,11 +19,11 @@ EVENTS.init=function(){
 	//$(window).on("contextmenu",e=>false);
 
 	// ============ Auto File saving related ==============
-	let isUnloadTriggered=false;
+	let isNotSavedOnExit=false;
 	$(window).on("blur",e=>{
 		console.log(isUnloadTriggered);
 		
-		if(ENV.displaySettings.isAutoSave){
+		if(isNotSavedOnExit&&ENV.displaySettings.isAutoSave){
 			EventDistributer.footbarHint.showInfo("Saving contents ...");
 			STORAGE.FILES.requestSaveContentChanges();
 		}
@@ -41,6 +41,7 @@ EVENTS.init=function(){
 		STORAGE.saveOnExit();
 		if(STORAGE.FILES.isUnsaved()){ // there are unsaved contents
 			// show promp window
+			isNotSavedOnExit=true;
 			e.preventDefault();
 			return "";
 		}
