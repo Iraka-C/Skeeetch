@@ -114,3 +114,23 @@ svg{
 img{
 	pointer-events: none;
 }
+
+/* unvisited link */
+a:link{
+	color: #86c2e0;
+}
+
+/* visited link */
+a:visited{
+	color: #86c2e0;
+}
+
+/* mouse over link */
+a:hover{
+	color: #86c2e0;
+}
+
+/* selected link */
+a:active{
+	color: #86c2e0;
+}

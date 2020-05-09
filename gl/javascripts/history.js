@@ -262,10 +262,11 @@ HISTORY.undo=function(){ // undo 1 step
 		return; // no older history
 	}
 	HISTORY.submitPropertyHistory(); // submit all property change first
-	const id=HISTORY.nowId--; // subtract id first to prevent next coming undo
 	PERFORMANCE.idleTaskManager.addTask(e=>{
 		// this task is certainly added after all pending tasks
 		// including other undo/redos
+		if(HISTORY.nowId<0)return; // maybe an undo before last undo executed
+		const id=HISTORY.nowId--; // subtract id first to prevent next coming undo
 		undoInstant(HISTORY.list[id]);
 	});
 }
@@ -299,8 +300,9 @@ HISTORY.redo=function(){ // redo 1 step
 		}
 	}
 	// pend redo after last task (may be an undo)
-	const id=++HISTORY.nowId; // block next coming redo (may over history length)
 	PERFORMANCE.idleTaskManager.addTask(e=>{
+		if(HISTORY.nowId>=HISTORY.list.length-1)return; // maybe a new redo before last redo executed
+		const id=++HISTORY.nowId;
 		redoInstant(HISTORY.list[id]);
 	});
 	

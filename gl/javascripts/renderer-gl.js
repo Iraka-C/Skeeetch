@@ -207,6 +207,7 @@ class GLRenderer extends BasicRenderer {
 
 		// a soft edge with fixed pixel width (at most 2) for anti-aliasing
 		const fixedSoftEdge=this.antiAlias? Math.min((this.brush.size+1)/4,2):0;
+		this.vramManager.verify(imgData);
 		for(let k=0;k<kPoints.length;k++) { // each circle in sequence
 			const p=kPoints[k];
 			const lastP=this.lastCircleFromPrevStroke;
@@ -222,7 +223,6 @@ class GLRenderer extends BasicRenderer {
 			const pressure=p[3]; // pressure considered sensitivity
 
 			// set circle size and radius, adjust position according to the imgData, radius+0.1 for gl clipping
-			this.vramManager.verify(imgData);
 			this.brushRenderer.render(
 				imgData,this.brush,
 				[p[0],p[1]],[prevP[0],prevP[1]],rad,

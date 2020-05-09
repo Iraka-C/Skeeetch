@@ -228,11 +228,8 @@ class GLBrushRenderer {
 
 			uniform vec2 u_res_tgt; // target texture resolution
 			uniform vec3 u_pos_tgt; // circle position (x,y,r) in pixels
-			uniform vec2 u_res_tex; // sampler texture resolution
-			uniform vec2 u_pos_tex; // sample position (x,y) in pixels
 
 			varying float v_rel; // linear opacity interpolation
-			varying vec2 v_samp_tex; // samping coordinate (0~1)
 			void main(){
 				vec2 d_pos;
 				if(mod(a_id,3.)<0.5){ // 0' vertex
@@ -247,12 +244,9 @@ class GLBrushRenderer {
 					v_rel=0.;
 				}
 				vec2 pos_tgt=u_pos_tgt.xy+d_pos; // in pixels, LU
-				vec2 pos_tex=u_pos_tex;
 
 				vec2 v_clip=(pos_tgt/u_res_tgt*2.-1.)*vec2(1.,-1.); // vertex pos in clip space
-				vec2 coord_samp=pos_tex/u_res_tex; // sampling pos in sampler coordinate
 
-				v_samp_tex=vec2(coord_samp.x,1.-coord_samp.y);
 				gl_Position=vec4(v_clip,0.,1.);
 			}
 		`;
@@ -265,9 +259,11 @@ class GLBrushRenderer {
 			uniform vec4 u_color; // rgba
 			uniform float u_opa_tex; // sampling texture opacity
 
+			
+			uniform vec2 u_pos_tex; // sample position (x,y) in pixels
+			uniform vec2 u_res_tex; // sampler texture resolution
+
 			varying float v_rel;
-			varying vec2 v_samp_tex;
-			varying vec2 v_samp_dst;
 			void main(){
 				float opa;
 				if(v_rel>=u_softness){ // get current color
@@ -278,10 +274,20 @@ class GLBrushRenderer {
 					opa=clamp(r*r,0.,1.); // prevent NaN operation
 				}
 
+				vec2 pos_tex=u_pos_tex;
+				vec2 coord_samp=pos_tex/u_res_tex; // sampling pos in sampler coordinate
+				vec2 v_samp_tex=vec2(coord_samp.x,1.-coord_samp.y);
+
 				vec4 samp_color=texture2D(u_image,v_samp_tex)*u_opa_tex; // sample from texture
-				vec4 ov_color=u_color*(1.-u_opa_tex);
-				vec4 dst_color=ov_color+samp_color; // add tint, opa locked samp over u_color
-				gl_FragColor=dst_color*opa;
+				if(u_color.w==0.){ // no stroke opacity
+					gl_FragColor=vec4(0.,0.,0.,0.);
+					return;
+				}
+
+				vec3 Cc=u_color.xyz/u_color.w; // solid, non-premult color
+				vec4 u_color_solid=vec4(Cc,1.)*(1.-u_opa_tex);
+				vec4 Cr=samp_color+u_color_solid; // mix solid color, prevent dirty color
+				gl_FragColor=Cr*u_color.w*opa;
 			}
 		`;
 		// ================= Create program ====================
@@ -429,7 +435,8 @@ class GLBrushRenderer {
 		const extension=isNaN(brush.extension)?1:brush.extension;
 		this.renderSamplingCircleBrushtip(
 			bImg,radius,color,softRange,
-			target,pos,prevPos,extension*pressure
+			target,pos,prevPos,
+			extension*(brush.isAlphaPressure?pressure+(1-pressure)*brush.minAlpha:1)
 		);
 		this.mainRenderer.blendImageData(bImg,target,{
 			mode: isOpacityLocked?GLTextureBlender.NORMAL:GLTextureBlender.SOURCE, // NORMAL avoid alpha loss
@@ -467,7 +474,7 @@ class GLBrushRenderer {
 	renderColorSamplingCircle(target,brush,pos,prevPos,radius,colorRGB,opacity,pressure,isOpacityLocked,softRange){
 		// Step 1: render colored brushtip to this.brushtipImageData
 		const bImg=this.brushtipImageData;
-		const color=[colorRGB[0],colorRGB[1],colorRGB[2],1];
+		const color=[colorRGB[0]*opacity,colorRGB[1]*opacity,colorRGB[2]*opacity,opacity];
 		// set position
 		bImg.left=pos[0]-radius-1;
 		bImg.top=pos[1]-radius-1;
@@ -479,14 +486,15 @@ class GLBrushRenderer {
 		};
 		
 		const extension=isNaN(brush.extension)?1:brush.extension;
-		// The Math Here!
-		const estDis=this.mainRenderer.bitDepth==32?1.07-brush.edgeHardness:2-brush.edgeHardness;
-		const targetDis=(radius/(1-extension)-radius)*opacity;
-		const targetAlpha=Math.pow(0.01,estDis/targetDis);
-		
+
+		const targetDis=2*radius*extension/(1-extension); // 50% extension: 1 brush size
+		const plateN=targetDis*this.mainRenderer.quality/20; // plates to draw before reaching targetDis
+		const targetAlpha=Math.pow(0.5,1/plateN);
+		const sampleAlpha=1-(1-targetAlpha)/opacity;
+
 		this.renderColorSamplingCircleBrushtip(
 			bImg,radius,color,softRange,
-			target,pos,prevPos,targetAlpha
+			target,pos,pos,sampleAlpha
 		);
 
 		// Step 2: transfer brushtip to target
@@ -494,7 +502,7 @@ class GLBrushRenderer {
 			mode: GLTextureBlender.NORMAL,
 			alphaLock: isOpacityLocked,
 			antiAlias: this.mainRenderer.antiAlias,
-			srcAlpha: opacity
+			srcAlpha: 1
 		});
 	}
 	renderColorSamplingCircleBrushtip(imgData,r,color,softRange,sampImgData,tgtPos,sampPos,sampOpacity) {

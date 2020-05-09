@@ -106,7 +106,7 @@ EventDistributer.setClick=function($element,callback){
 		const e=event.originalEvent;
 		const dx=e.clientX-origin.x;
 		const dy=e.clientY-origin.y;
-		if(dx*dx+dy*dy>5){ // moved too far
+		if(dx*dx+dy*dy>20){ // moved too far
 			isToClick=false;
 		}
 	});

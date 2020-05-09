@@ -34,16 +34,16 @@ BrushManager.brushes=[
 	{
 		name:"paint brush",
 		size:80,
-		minSize:0.4,
+		minSize:0.25,
 		isSizePressure:1,
 		alpha:1,
-		minAlpha:0,
-		isAlphaPressure:0,
-		edgeHardness:0.5,
+		minAlpha:0.5,
+		isAlphaPressure:1,
+		edgeHardness:1.0,
 		blendMode:1, // 1: with color adding
 		// paint brush specialized
 		moisture: 1,
-		extension: 0.9 // how much color to pick from sampler
+		extension: 0.8 // how much color to pick from sampler
 
 	},
 	{

@@ -134,7 +134,7 @@ class BasicRenderer {
 			kPoints.push(data); // add one key point
 
 			// interval is the pixel length between two circle centers
-			const interval=Math.max(2*nr/this.quality,1);
+			const interval=Math.max(2*nr/this.quality,0.5); // no less than 0.5 pixels
 
 			if(bLen<=interval) { // distance for the next
 				this.bezierRemDis=interval-bLen;

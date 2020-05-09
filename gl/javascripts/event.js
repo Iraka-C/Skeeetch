@@ -21,11 +21,12 @@ EVENTS.init=function(){
 	// ============ Auto File saving related ==============
 	let isNotSavedOnExit=false;
 	$(window).on("blur",e=>{
-		console.log(isUnloadTriggered);
+		//console.log(isUnloadTriggered);
 		
-		if(isNotSavedOnExit&&ENV.displaySettings.isAutoSave){
+		if(ENV.displaySettings.isAutoSave){
 			EventDistributer.footbarHint.showInfo("Saving contents ...");
 			STORAGE.FILES.requestSaveContentChanges();
+			isNotSavedOnExit=false;
 		}
 		// This is also triggered when clicking "yes, unload" !
 		// else if(isUnloadTriggered){ // return after an unload attempt
@@ -36,7 +37,7 @@ EVENTS.init=function(){
 		// }
 	});
 	$(window).on("beforeunload",e=>{
-		isUnloadTriggered=true;
+		//isUnloadTriggered=true;
 		// see STORAGE.SETTING.saveAllSettings
 		STORAGE.saveOnExit();
 		if(STORAGE.FILES.isUnsaved()){ // there are unsaved contents

@@ -6,7 +6,7 @@
 CANVAS={};
 CANVAS.settings={
 	enabled: true, // is canvas drawable?
-	method: 2, // webgl:1, cpu16bit:2, ctx2d:3
+	method: 1, // webgl:1, cpu16bit:2, ctx2d:3
 	smoothness: 3,
 	_speed: 0 // a function of smoothness
 };

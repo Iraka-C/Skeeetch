@@ -319,4 +319,13 @@ class SettingManager{
 	 */
 	addCheckNumberItemGroup(){
 	}
+
+	addDiv(){
+		const $div=$("<div class='setting-div'>");
+		const $divField=$("<td colspan='4'></td>");
+		$divField.append($div);
+		const $divRow=$("<tr>").append($divField);
+		this.$frame.find("tbody").append($divRow);
+		return $div;
+	}
 }

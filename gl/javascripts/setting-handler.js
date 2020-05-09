@@ -232,7 +232,18 @@ SettingHandler.initSystemSetting=function(sysParams) {
 			});
 		}
 	});
+
+	// ================= Skeeetch info =================
+	sys.addSectionTitle(Lang("About Skeeetch"));
 	sys.addInfo(Lang("Version"),null,()=>ENV.version);
+	const $infoDiv=sys.addDiv();
+	const aTag="a target='_blank' rel='noopener noreferrer'";
+	$infoDiv.css("font-size","80%");
+	$infoDiv.html(`
+		This web app is designed and programmed by
+		<${aTag} href='https://github.com/Iraka-C/Skeeetch'>Iraka-C</a>.<br>
+		Distributed under <${aTag} href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>.
+	`);
 
 	return sys;
 }
