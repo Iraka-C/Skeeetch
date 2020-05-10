@@ -52,6 +52,7 @@ class GLTextureBlender {
 			uniform float u_image_alpha; // src alpha
 			uniform float u_blend_mode; // according to enums
 			uniform vec4 u_neutral_color; // if provided, use neutral color to control filling
+			uniform float u_alpha_lock; // 0: src over; 1: src atop
 			varying vec2 v_pos_0; // vertex from src
 			varying vec2 v_pos_1; // vertex from dst
 
@@ -192,11 +193,17 @@ class GLTextureBlender {
 					return;
 				}
 				if(pix1.w==0.){
-					gl_FragColor=pix0;
+					if(u_alpha_lock>0.5){ // opa locked
+						gl_FragColor=vec4(0.,0.,0.,0.);
+					}
+					else{ // normal blend
+						gl_FragColor=pix0;
+					}
 					return;
 				}
 
-				float Xa=pix0.w+(1.-pix0.w)*pix1.w; // final opacity
+				float Xa=pix0.w+(1.-pix0.w)*pix1.w; // normal blend opacity
+				float As=pix0.w; // record original opacity
 				pix0+=u_neutral_color*(1.-pix0.w); // fill neutral color
 
 				vec3 Cs=pix0.xyz/pix0.w; // premult => non premult
@@ -204,10 +211,19 @@ class GLTextureBlender {
 
 				vec3 Cm=blend(Cb,Cs); // step1: blend
 				vec3 Cr=Cs+pix1.w*(Cm-Cs); // step2: interpolate
-				vec4 cr=vec4(Cr,1.)*pix0.w; // non-premult => premult
+				vec4 cr=vec4(Cr,1.)*pix0.w; // non-premult => premult, pix0.w is already filled!
 
-				vec4 c_blend=cr+pix1*(1.-cr.w); // blended color
-				gl_FragColor=c_blend-u_neutral_color*(1.-Xa); // exclude neutral color
+				vec4 c_blend=cr+pix1*(1.-cr.w); // normal blend color
+				vec4 c_res=c_blend-u_neutral_color*(1.-Xa); // alpha = Xa, extract neutral color
+				if(u_alpha_lock>0.5){ // extract normal blend color, re-blend in src-atop
+					vec4 c1=pix1*(1.-As); // contribution from pix1
+					vec4 c0=c_res-c1; // original color
+					gl_FragColor=c0*pix1.w+c1; // blend opa locked
+				}
+				else{ // normal blend
+					gl_FragColor=c_res;
+				}
+
 			}
 		`;
 
@@ -391,6 +407,8 @@ class GLTextureBlender {
 		else { // do not use neutral color
 			programB.setUniform("u_neutral_color",[0,0,0,0]);
 		}
+		programB.setUniform("u_alpha_lock",param.alphaLock?1:0);
+
 		// Set attributes
 		const srcRect=GLProgram.getAttributeRect(tA,src,!param.antiAlias);
 		const dstRect=GLProgram.getAttributeRect(tA,dst,!param.antiAlias);
@@ -416,12 +434,7 @@ class GLTextureBlender {
 		programC.setAttribute("a_dst_pos",dstRect,2);
 
 		gl.viewport(0,0,dst.width,dst.height); // target area as dst
-		if(param.alphaLock) { // source-atop
-			gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-		}
-		else { // copy
-			gl.blendFunc(gl.ONE,gl.ZERO);
-		}
+		gl.blendFunc(gl.ONE,gl.ZERO); // copy
 		programC.run();
 	}
 }
