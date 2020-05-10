@@ -6,7 +6,6 @@ STORAGE.FILES.init=function() {
 	// get the store of layer imageData & brushtips
 	STORAGE.FILES.layerStore=localforage.createInstance({name: "img"});
 	STORAGE.FILES.brushtipStore=localforage.createInstance({name: "brush"});
-	//STORAGE.FILES.layerStore.clear(); // should there be error?
 }
 
 STORAGE.FILES.reportUnsavedContentChanges=function() {
@@ -47,10 +46,10 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 			const vArea=imgData.validArea;
 
 			// Start Saving
-			const CHUNK_SIZE=1024*1024*64; // largest chunk Chrome may store
+			const CHUNK_SIZE=1024*1024*64; // 64MB, largest chunk browser may store in IDB
 
 			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea);
-			const data=Compressor.encode(rawData);
+			const data=Compressor.encode(rawData); // encode first!
 			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
 
 			const chunkN=Math.max(Math.ceil(data.length/CHUNK_SIZE),1); // at lease 1 chunk
@@ -340,13 +339,6 @@ STORAGE.FILES.loadLayerTree=function(node) {
 
 	// Load all children async
 	EventDistributer.footbarHint.showInfo("Loading 0.0% ...",5000);
-	// for(let i=0;i<loadQueue.length;i++) {
-	// 	setTimeout(e => {
-	// 		EventDistributer.footbarHint.showInfo(
-	// 			"Loading "+(i/loadQueue.length*100).toFixed(1)+"% ...",5000);
-	// 		loadQueue[i].load();
-	// 	},0);
-	// }
 	if(loadQueue.length){
 		loadQueue[0].load(); // kick
 	}

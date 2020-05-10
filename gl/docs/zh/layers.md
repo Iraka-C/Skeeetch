@@ -72,13 +72,13 @@ Skeeetch支持常见的26种混合模式（已实现22种）。默认情况下�
 
 **透明度混合**
 
-对于带有透明度的图层，一般有两种透明度混合模式：强度和填充。强度模式下像素透明度会影响混合的强弱，而填充模式下透明度只影响混合结果的透明度而不影响混合效果强度，因此对比一般会强烈一些。Photoshop默认使用强度模式，需要为图层取消“透明形状图层”来使用填充模式。SAI默认使用填充模式。
+对于带有透明度的图层，一般有两种透明度混合模式：强度和填充。强度模式下像素透明度会影响混合的强弱，而填充模式下透明度只影响混合结果的透明度而不影响混合效果强度，对比会强烈一些。Photoshop默认使用强度模式，需要为图层取消“透明形状图层”来使用填充模式。SAI默认使用填充模式。
 
 <img src="./images/layer-opacity-blend.png" width="400"/>
 
-> 线性减淡模式的效果，使用强度混合（左）和填充混合（右）
+> 线性减淡（发光）模式的效果，使用强度混合（左）和填充混合（右）
 
 在Skeeetch中可以设置全局的透明度混合模式：在 *设置* > *渲染器* > *透明度混合* 开关中可以选择**混合强度**（强度模式）或**中性色填充**（填充模式）。注意：对大文件，切换这个选项可能会比较耗时。
 
-Skeeetch中支持填充模式的混合模式有线性减淡<img src="../../resources/blend-mode/linear-dodge.svg" height="16"/>、线性加深<img src="../../resources/blend-mode/linear-burn.svg" height="16"/>、线性光<img src="../../resources/blend-mode/linear-light.svg" height="16"/>、颜色减淡<img src="../../resources/blend-mode/color-dodge.svg" height="16"/>、颜色加深<img src="../../resources/blend-mode/color-burn.svg" height="16"/>、亮光<img src="../../resources/blend-mode/vivid-light.svg" height="16"/>、差值<img src="../../resources/blend-mode/difference.svg" height="16"/>共七种。
+Skeeetch中支持填充模式的混合模式有线性减淡<img src="../../resources/blend-mode/linear-dodge.svg" height="16"/>、线性加深<img src="../../resources/blend-mode/linear-burn.svg" height="16"/>、线性光<img src="../../resources/blend-mode/linear-light.svg" height="16"/>、颜色减淡<img src="../../resources/blend-mode/color-dodge.svg" height="16"/>、颜色加深<img src="../../resources/blend-mode/color-burn.svg" height="16"/>、亮光<img src="../../resources/blend-mode/vivid-light.svg" height="16"/>、差值<img src="../../resources/blend-mode/difference.svg" height="16"/>共七种。（Photoshop的“实色混合”模式<img src="../../resources/blend-mode/hard-mix.svg" height="16"/>由于没有中性色，并不属于Skeeetch中性色填充的作用范围）
 

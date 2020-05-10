@@ -161,7 +161,7 @@ table{
 }
 .setting-table .setting-button{
 	display: inline-block;
-	border: 1.2px solid #ccc;
+	border: 1.5px solid #ccc;
 	border-radius: 1.4em;
 	padding: 0.15em 0.6em;
 	text-align: center;

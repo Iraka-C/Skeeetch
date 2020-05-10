@@ -256,7 +256,7 @@ class GLBrushRenderer {
 			precision mediump sampler2D;
 			uniform sampler2D u_image; // sampling source texture
 			uniform float u_softness; // circle edge softness
-			uniform vec4 u_color; // rgba
+			uniform vec4 u_color; // rgba, UNMULTIPLIED!
 			uniform float u_opa_tex; // sampling texture opacity
 
 			
@@ -274,20 +274,15 @@ class GLBrushRenderer {
 					opa=clamp(r*r,0.,1.); // prevent NaN operation
 				}
 
+				// @TODO: add more sample points, sample in vertex shader?
 				vec2 pos_tex=u_pos_tex;
 				vec2 coord_samp=pos_tex/u_res_tex; // sampling pos in sampler coordinate
 				vec2 v_samp_tex=vec2(coord_samp.x,1.-coord_samp.y);
 
-				vec4 samp_color=texture2D(u_image,v_samp_tex)*u_opa_tex; // sample from texture
-				if(u_color.w==0.){ // no stroke opacity
-					gl_FragColor=vec4(0.,0.,0.,0.);
-					return;
-				}
-
-				vec3 Cc=u_color.xyz/u_color.w; // solid, non-premult color
-				vec4 u_color_solid=vec4(Cc,1.)*(1.-u_opa_tex);
-				vec4 Cr=samp_color+u_color_solid; // mix solid color, prevent dirty color
-				gl_FragColor=Cr*u_color.w*opa;
+				vec4 cs=texture2D(u_image,v_samp_tex); // sample from texture
+				vec4 cc=vec4(u_color.xyz,1.); // solid color
+				vec4 cr=cc+(cs-cc)*u_opa_tex; // mix solid color, prevent dirty color
+				gl_FragColor=cr*u_color.w*opa; // add opacity at last
 			}
 		`;
 		// ================= Create program ====================
@@ -346,7 +341,7 @@ class GLBrushRenderer {
 	 * @param {Boolean} isOpacityLocked 
 	 * @param {Number} softRange 
 	 */
-	render(target,brush,pos,prevPos,radius,colorRGB,strokeOpa,plateOpa,pressure,isOpacityLocked,softRange) {
+	render(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange) {
 		if(brush.blendMode==2){ // smudge
 			this.renderSamplingCircle(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange);
 		}
@@ -474,7 +469,6 @@ class GLBrushRenderer {
 	renderColorSamplingCircle(target,brush,pos,prevPos,radius,colorRGB,opacity,pressure,isOpacityLocked,softRange){
 		// Step 1: render colored brushtip to this.brushtipImageData
 		const bImg=this.brushtipImageData;
-		const color=[colorRGB[0]*opacity,colorRGB[1]*opacity,colorRGB[2]*opacity,opacity];
 		// set position
 		bImg.left=pos[0]-radius-1;
 		bImg.top=pos[1]-radius-1;
@@ -486,15 +480,16 @@ class GLBrushRenderer {
 		};
 		
 		const extension=isNaN(brush.extension)?1:brush.extension;
-
-		const targetDis=2*radius*extension/(1-extension); // 50% extension: 1 brush size
-		const plateN=targetDis*this.mainRenderer.quality/20; // plates to draw before reaching targetDis
-		const targetAlpha=Math.pow(0.5,1/plateN);
-		const sampleAlpha=1-(1-targetAlpha)/opacity;
-
+		const v=this.mainRenderer.quality/6;
+		const eps=Math.min(-Math.log(1-extension)/v,1); // 0~inf, trunc at near 1
+		const k=1-opacity;
+		const b=1-(1-eps)*k;
+		const a=b?k*eps/b:1; // in case b=0
+		
+		const color=[colorRGB[0],colorRGB[1],colorRGB[2],b.clamp(0,1)]; // pass in unmultiplied directly
 		this.renderColorSamplingCircleBrushtip(
 			bImg,radius,color,softRange,
-			target,pos,pos,sampleAlpha
+			target,pos,pos,a.clamp(0,1)
 		);
 
 		// Step 2: transfer brushtip to target

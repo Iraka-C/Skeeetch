@@ -19,7 +19,7 @@ Skeeetch中有一个画布区窗口和画布的实际区域。
 
 画布实际显示区域`#canvas-container`会随用户的平移/旋转/缩放/翻转操作而改变。它们的关系如下图所示：
 
-![](./canvas/container-transform.png)
+![](./images/container-transform.png)
 
 其中
 
@@ -74,7 +74,7 @@ ENV.transformTo(x,y,r,s); // 同时设置t,a,s三个变量
 ```
 |a c e| |xc|   |xp|
 |b d f|·|yc| = |yp|
-|0 0 1| |1 |   |1 |
+|0 0 1| | 1|   | 1|
 ```
 
 Skeeetch中有如下函数方便地进行坐标变换：
@@ -132,7 +132,7 @@ CANVAS={
 		_speed: 0 // 计算光标抖动消除的临时变量
 	},
 	rendererBitDepth: 32, // 渲染器位深度
-	points: [[NaN,NaN,NaN],[NaN,NaN,NaN]], // 已记录的光标[x,y,pressure]的列表
+	points: [[x,y,pressure]], // 已记录的光标[x,y,pressure]的列表
 	targetCanvas: null, // 绘制的目标canvas， 目前固定为<canvas#main-canvas>
 	nowLayer: null, // 绘制的目标图层对象，为一个CanvasNode对象
 	changedArea: {width:0,height:0,left:0,top:0}, // 绘制中改变的区域（画纸坐标）

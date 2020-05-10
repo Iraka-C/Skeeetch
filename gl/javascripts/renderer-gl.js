@@ -226,7 +226,7 @@ class GLRenderer extends BasicRenderer {
 			this.brushRenderer.render(
 				imgData,this.brush,
 				[p[0],p[1]],[prevP[0],prevP[1]],rad,
-				rgb,strokeOpa,plateOpa,pressure,
+				rgb,plateOpa,pressure,
 				this.isOpacityLocked,softRange
 			);
 		}
