@@ -15,8 +15,8 @@ FILES.initFileMenu=function() {
 	fileManager.addInstantNumberItem(
 		Lang("Paper Width"),() => FILES.tempPaperSize.width,Lang("px"),
 		newVal => { // set on input
-			newVal-=0;
 			if(newVal) {
+				newVal-=0;
 				newVal=newVal.clamp(16,ENV.maxPaperSize);
 				FILES.tempPaperSize.width=newVal;
 				sizeChangeHint(true);
@@ -36,8 +36,8 @@ FILES.initFileMenu=function() {
 	fileManager.addInstantNumberItem(
 		Lang("Paper Height"),() => FILES.tempPaperSize.height,Lang("px"),
 		newVal => { // set on input
-			newVal-=0;
 			if(newVal) {
+				newVal-=0;
 				newVal=newVal.clamp(16,ENV.maxPaperSize);
 				FILES.tempPaperSize.height=newVal;
 				sizeChangeHint(true);

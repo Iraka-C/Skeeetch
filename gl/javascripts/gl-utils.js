@@ -46,6 +46,8 @@ class GLProgram {
 		// frame buffer for texture rendering
 		// create a new framebuffer from gl
 		this.framebuffer=gl.createFramebuffer();
+
+		GLProgram.lastProgram=this; // record last program
 	}
 
 	free(){
@@ -136,8 +138,10 @@ class GLProgram {
 		const gl=this.gl;
 		const program=this.program;
 
-		// rendering target setting
-		gl.useProgram(program);
+		if(GLProgram.lastProgram!=this){ // group consecutive calls of a single program
+			gl.useProgram(program);
+			GLProgram.lastProgram=this;
+		}
 
 		// attribute setting
 		let totalTurn=Infinity;

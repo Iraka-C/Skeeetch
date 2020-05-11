@@ -139,15 +139,15 @@ SettingHandler.initSystemSetting=function(sysParams) {
 	},() => CANVAS.rendererBitDepth==32? 0:CANVAS.rendererBitDepth==16? 1:2);
 	let minSizeHintUpdateFunc=sys.addHint(Lang("render-bitdepth-hint"));
 	minSizeHintUpdateFunc(false); // invisible at start
-	
+
 	sys.addSwitch(Lang("Opacity Blend"),[Lang("Intensity"),Lang("Neutral Color")],null,val => {
 		switch(val) {
 			case 1: ENV.displaySettings.blendWithNeutralColor=true; break;
 			default: ENV.displaySettings.blendWithNeutralColor=false; break;
 		}
-		for(const k in LAYERS.layerHash){ // Redraw all layers
+		for(const k in LAYERS.layerHash) { // Redraw all layers
 			const layer=LAYERS.layerHash[k];
-			if(layer instanceof CanvasNode){
+			if(layer instanceof CanvasNode) {
 				layer.setImageDataInvalid();
 			}
 		}
@@ -195,24 +195,7 @@ SettingHandler.initSystemSetting=function(sysParams) {
 		PALETTE.changeColorInfoManager(val);
 	},() => PALETTE.colorSelector? PALETTE.colorSelector.getColorInfoManager().typeID:null);
 
-	// ======================== Debugging Settings ===========================
-	sys.addSectionTitle(Lang("Developers"));
-	sys.addSwitch(Lang("Draw Layer Border"),[Lang("Off"),Lang("On")],null,val => {
-		switch(val) {
-			case 1: PERFORMANCE.debugger.isDrawingLayerBorder=true; break;
-			default: PERFORMANCE.debugger.isDrawingLayerBorder=false; break;
-		}
-		for(const k in LAYERS.layerHash) { // Redraw all layers
-			const layer=LAYERS.layerHash[k];
-			if(layer instanceof CanvasNode) {
-				layer.setImageDataInvalid();
-			}
-		}
-		CANVAS.requestRefresh(); // draw/erase the layer borders
-	}); // Off at first
-
-	sys.setOpenButton($("#system-button"));
-
+	// ===================== System Information =======================
 	sys.addSectionTitle(Lang("sys-info"));
 	sys.addInfo(Lang("sys-mem"),"MB",() => {
 		const mem=PERFORMANCE.getRAMEstimation();
@@ -232,10 +215,53 @@ SettingHandler.initSystemSetting=function(sysParams) {
 			});
 		}
 	});
+	// ===================== System Limits =======================
+	sys.addSectionTitle(Lang("sys-lim"));
+	let tmpMaxVRAM=PERFORMANCE.maxMem.gpu;
+	sys.addInstantNumberItem(Lang("sys-max-vram"),() => {
+		const mVRAM=tmpMaxVRAM/1024/1024;
+		return mVRAM.toFixed(mVRAM>2000? 0:1);
+	},"MB",
+		newVal => { // set on input
+			if(newVal) {
+			}
+		},
+		(dW,oldVal) => { // set on scroll
+		},
+		(dx,oldVal) => { // set on drag-x
+		}
+	);
+	// fps limiter. It it impossible to measure rendering time in WebGL1.0 due to safety reasons
+	// see https://www.vusec.net/projects/glitch/
+	sys.addSwitch(Lang("sys-max-fps"),[Lang("sys-unlimited"),"60","30","12"],Lang("fps"),val => {
+		ENV.displaySettings.maxFps=[Infinity,60,30,12][val];
+	},() => {
+		const fps=ENV.displaySettings.maxFps;
+		if(fps==12)return 3;
+		if(fps==30)return 2;
+		if(fps==60)return 1;
+		return 0;
+	});
+
+	// ======================== Debugging Settings ===========================
+	sys.addSectionTitle(Lang("Developers"));
+	sys.addSwitch(Lang("Draw Layer Border"),[Lang("Off"),Lang("On")],null,val => {
+		switch(val) {
+			case 1: PERFORMANCE.debugger.isDrawingLayerBorder=true; break;
+			default: PERFORMANCE.debugger.isDrawingLayerBorder=false; break;
+		}
+		for(const k in LAYERS.layerHash) { // Redraw all layers
+			const layer=LAYERS.layerHash[k];
+			if(layer instanceof CanvasNode) {
+				layer.setImageDataInvalid();
+			}
+		}
+		CANVAS.requestRefresh(); // draw/erase the layer borders
+	}); // Off at first
 
 	// ================= Skeeetch info =================
 	sys.addSectionTitle(Lang("About Skeeetch"));
-	sys.addInfo(Lang("Version"),null,()=>ENV.version);
+	sys.addInfo(Lang("Version"),null,() => ENV.version);
 	const $infoDiv=sys.addDiv();
 	const aTag="a target='_blank' rel='noopener noreferrer'";
 	$infoDiv.css("font-size","80%");
@@ -245,5 +271,6 @@ SettingHandler.initSystemSetting=function(sysParams) {
 		Distributed under <${aTag} href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>.
 	`);
 
+	sys.setOpenButton($("#system-button"));
 	return sys;
 }

@@ -39,7 +39,6 @@ class BasicRenderer {
 		// how many circles are overlayed to one pixel. 50 for good quality
 		// 2/(this.softness+0.01)+16 adjusts the quality according to softness
 		// this.brush.size guarantees that the neighboring circles with 2px interval at least
-		// @TODO: quality based on alpha?
 		// @TODO: ripples reduction?
 		if(this.brush.blendMode==2) {
 			this.quality=this.brush.size;
@@ -81,16 +80,14 @@ class BasicRenderer {
 
 		// All rendering happens within [wL,wH)*[hL,hH)
 		// calculate max radius
-		const r0=this.pressureToStrokeRadius(d0);
-		const r1=this.pressureToStrokeRadius(d1);
-		const r2=this.pressureToStrokeRadius(d2);
-		const maxR=Math.ceil(Math.max(r0,r1,r2))*softRadiusCompensation;
-		const wL=Math.floor(Math.min(p0[0],p1[0],p2[0])-maxR)-2;
-		const wH=Math.ceil(Math.max(p0[0],p1[0],p2[0])+maxR)+3;
-		const hL=Math.floor(Math.min(p0[1],p1[1],p2[1])-maxR)-2;
-		const hH=Math.ceil(Math.max(p0[1],p1[1],p2[1])+maxR)+3;
-
-
+		// const r0=this.pressureToStrokeRadius(d0);
+		// const r1=this.pressureToStrokeRadius(d1);
+		// const r2=this.pressureToStrokeRadius(d2);
+		//const maxR=Math.ceil(Math.max(r0,r1,r2))*softRadiusCompensation;
+		let wL=p0[0];//Math.floor(Math.min(p0[0],p1[0],p2[0])-maxR)-2;
+		let wH=p0[0];//Math.ceil(Math.max(p0[0],p1[0],p2[0])+maxR)+3;
+		let hL=p0[1];//Math.floor(Math.min(p0[1],p1[1],p2[1])-maxR)-2;
+		let hH=p0[1];//Math.ceil(Math.max(p0[1],p1[1],p2[1])+maxR)+3;
 
 		// these values can be derived also from bc(QBezier), putting here just to interpolate other params (r, a)
 		// 2-order param
@@ -133,6 +130,12 @@ class BasicRenderer {
 			const data=[nx,ny,nr,nd,targetOpa,na.clamp(0,1),nsBezier.x,nsBezier.y];
 			kPoints.push(data); // add one key point
 
+			// update borders
+			if(nx-nr<wL)wL=nx-nr;
+			if(nx+nr>wH)wH=nx+nr;
+			if(ny-nr<hL)hL=ny-nr;
+			if(ny+nr>hH)hH=ny+nr;
+
 			// interval is the pixel length between two circle centers
 			const interval=Math.max(2*nr/this.quality,0.5); // no less than 0.5 pixels
 
@@ -144,7 +147,12 @@ class BasicRenderer {
 			bLen-=interval; // new length
 		}
 
-		//this.renderPoints(wL,wH,hL,hH,kPoints);
+		// round values
+		wL=Math.floor(wL-1);
+		wH=Math.ceil(wH+2);
+		hL=Math.floor(hL-1);
+		hH=Math.ceil(hH+2);
+
 		if(kPoints.length) {
 			return [wL,wH,hL,hH,kPoints];
 		}

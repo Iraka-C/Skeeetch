@@ -214,7 +214,7 @@ class GLTextureBlender {
 				vec4 cr=vec4(Cr,1.)*pix0.w; // non-premult => premult, pix0.w is already filled!
 
 				vec4 c_blend=cr+pix1*(1.-cr.w); // normal blend color
-				vec4 c_res=c_blend-u_neutral_color*(1.-Xa); // alpha = Xa, extract neutral color
+				vec4 c_res=c_blend-u_neutral_color*(1.-Xa); // alpha = Xa, subtract neutral color
 				if(u_alpha_lock>0.5){ // extract normal blend color, re-blend in src-atop
 					vec4 c1=pix1*(1.-As); // contribution from pix1
 					vec4 c0=c_res-c1; // original color

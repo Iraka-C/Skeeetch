@@ -47,6 +47,10 @@ LANG_ZH={
 	"ui-left":"从左至右",
 	"ui-right":"从右至左",
 	"Version":"版本",
+	"sys-lim":"性能",
+	"sys-max-vram":"显存限制",
+	"sys-unlimited":"无限制",
+	"sys-max-fps":"刷新率限制",
 
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",

@@ -275,8 +275,7 @@ class GLBrushRenderer {
 				}
 
 				// @TODO: add more sample points, sample in vertex shader?
-				vec2 pos_tex=u_pos_tex;
-				vec2 coord_samp=pos_tex/u_res_tex; // sampling pos in sampler coordinate
+				vec2 coord_samp=u_pos_tex/u_res_tex; // sampling pos in sampler coordinate
 				vec2 v_samp_tex=vec2(coord_samp.x,1.-coord_samp.y);
 
 				vec4 cs=texture2D(u_image,v_samp_tex); // sample from texture
@@ -352,7 +351,7 @@ class GLBrushRenderer {
 			this.renderSolidCircle(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange);
 		}
 
-		target.validArea={
+		target.validArea={ // round values
 			left: Math.floor(target.validArea.left),
 			top: Math.floor(target.validArea.top),
 			width: Math.ceil(target.validArea.width),
@@ -361,7 +360,10 @@ class GLBrushRenderer {
 	}
 	renderSolidCircle(target,brush,pos,prevPos,radius,colorRGB,opacity,pressure,isOpacityLocked,softRange){
 		// Step 1: render colored brushtip to this.brushtipImageData
-		const bImg=this.brushtipImageData;
+		// Step 2: transfer brushtip to target
+		// ... Well, should be like this
+		// Using only one shader program allows re-using set program: efficient
+		
 		let color; // only RGB
 		if(brush.blendMode>=0) { // pre-multiply colors
 			color=[colorRGB[0]*opacity,colorRGB[1]*opacity,colorRGB[2]*opacity,opacity];
@@ -369,40 +371,50 @@ class GLBrushRenderer {
 		else { // white
 			color=[opacity,opacity,opacity,opacity];
 		}
-		this.renderSolidCircleBrushtip(bImg,radius,color,softRange);
+		this.renderSolidCircleBrushtip(target,[ // relative to target.data
+			pos[0]-target.left,
+			pos[1]-target.top
+		],radius,color,softRange,brush.blendMode,isOpacityLocked);
 
-		// Step 2: transfer brushtip to target
-		// set position
-		bImg.left=pos[0]-radius-1;
-		bImg.top=pos[1]-radius-1;
-		bImg.validArea={
-			width: radius*2+2,
-			height: radius*2+2,
-			left: bImg.left,
-			top: bImg.top
-		};
-
-		this.mainRenderer.blendImageData(bImg,target,{
-			mode: brush.blendMode>=0? GLTextureBlender.NORMAL:GLTextureBlender.ERASE,
-			alphaLock: isOpacityLocked,
-			antiAlias: this.mainRenderer.antiAlias
-		});
+		const R=radius+1; // extend 1 pixel for border
+		const circleArea={
+			width: R*2,
+			height: R*2,
+			left: pos[0]-R,
+			top: pos[1]-R
+		}
+		target.validArea=GLProgram.borderIntersection(
+			GLProgram.extendBorderSize(circleArea,target.validArea),
+			target // clamp by border
+		);
 	}
 
-	renderSolidCircleBrushtip(imgData,r,color,softRange) {
+	renderSolidCircleBrushtip(imgData,pos,r,color,softRange,mode,isOpacityLocked) {
 		const gl=this.gl;
 		const program=this.solidCircleProgram;
 
 		program.setTargetTexture(imgData.data); // render to brushtip
 		program.setUniform("u_res_tgt",[imgData.width,imgData.height]);
 		gl.viewport(0,0,imgData.width,imgData.height);
-		gl.clearColor(0,0,0,0); // clear brushtip
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.blendFunc(gl.ONE,gl.ZERO); // pure source draw
+		// 1 step: do not clear texture
+		if(mode>=0){ // add
+			if(isOpacityLocked){ // source atop
+				gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+			}
+			else{ // source over
+				gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+			}
+		}
+		else{ // subtract
+			if(isOpacityLocked){ // pure draw
+				gl.blendFunc(gl.DST_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+			}
+			else{ // dest out
+				gl.blendFunc(gl.ZERO,gl.ONE_MINUS_SRC_ALPHA);
+			}
+		}
 
-		// Add 1 pix to brush imagedata edge to enable gl.LINEAR filtering at edges
-		// afterall the target is 2px wider in canvas
-		program.setUniform("u_pos_tgt",[r+1,r+1,r]); // draw on left-top
+		program.setUniform("u_pos_tgt",[pos[0],pos[1],r]);
 		program.setUniform("u_color",color); // set circle color, alpha pre-multiply
 		program.setUniform("u_softness",softRange);
 		program.run();

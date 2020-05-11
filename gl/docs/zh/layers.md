@@ -44,7 +44,7 @@ Skeeetch支持图层和图层组的管理。图层的操作界面位于主界面
 
 图层按钮中靠左上的是**混合模式**按钮。点击以打开混合模式选择菜单。详见[混合模式](#混合模式)章节。
 
-左下角的<img src="../../resources/clip-mask.svg" height="16"/>按钮是**剪贴蒙版**按钮，点击以切换剪贴蒙版状态。剪贴蒙板图层或图层组的右下角将显示一个灰色的三角标志。剪贴蒙版图层只显示其下方普通图层的不透明部分对应的内容。
+左下角的<img src="../../resources/clip-mask.svg" height="16"/>按钮是**剪贴蒙版**按钮，点击以切换剪贴蒙版状态。剪贴蒙板图层或图层组的右下角将显示一个灰色的三角标志。剪贴蒙版图层只显示其下方普通图层的不透明部分对应的内容。图层列表/图层组最下方的内容如果是剪贴蒙版，则视为普通内容（因为没有蒙版在任何内容上）。
 
 （蒙版未完善）
 
@@ -68,7 +68,16 @@ Skeeetch支持常见的26种混合模式（已实现22种）。默认情况下�
 
 <img src="./images/layer-blend-modes.png" width="300"/>
 
-菜单中每个图标对应一种混合模式，可以将光标移动到相应的图标上查看文字信息，点击以切换到该混合模式。
+菜单中每个图标对应一种混合模式，可以将光标移动到相应的图标上查看文字信息，点击以切换到该混合模式。图标与Photoshop标准的混合模式的对应列表如下：
+
+| <img src="../../resources/blend-mode/normal.svg" height="16"/>正常 | <img src="../../resources/blend-mode/screen.svg" height="16"/>滤色 | <img src="../../resources/blend-mode/multiply.svg" height="16"/>正片叠底 | <img src="../../resources/blend-mode/overlay.svg" height="16"/>叠加 | <img src="../../resources/blend-mode/soft-light.svg" height="16"/>柔光 | <img src="../../resources/blend-mode/hard-light.svg" height="16"/>强光 |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| <img src="../../resources/blend-mode/linear-dodge.svg" height="16"/>线性减淡 | <img src="../../resources/blend-mode/linear-burn.svg" height="16"/>线性加深 | <img src="../../resources/blend-mode/linear-light.svg" height="16"/>线性光 | <img src="../../resources/blend-mode/color-dodge.svg" height="16"/>颜色减淡 | <img src="../../resources/blend-mode/color-burn.svg" height="16"/>颜色加深 | <img src="../../resources/blend-mode/vivid-light.svg" height="16"/>亮光 |
+| <img src="../../resources/blend-mode/lighten.svg" height="16"/>变亮 | <img src="../../resources/blend-mode/darken.svg" height="16"/>变暗 | <img src="../../resources/blend-mode/lighter-color.svg" height="16"/>浅色 | <img src="../../resources/blend-mode/darker-color.svg" height="16"/>深色 | <img src="../../resources/blend-mode/pin-light.svg" height="16"/>点光 | <img src="../../resources/blend-mode/hard-mix.svg" height="16"/>实色混合 |
+| <img src="../../resources/blend-mode/difference.svg" height="16"/>差值 | <img src="../../resources/blend-mode/exclusion.svg" height="16"/>排除 | <img src="../../resources/blend-mode/subtract.svg" height="16"/>减去 | <img src="../../resources/blend-mode/divide.svg" height="16"/>划分 |                                                              |                                                              |
+| <img src="../../resources/blend-mode/hue.svg" height="16"/>色相° | <img src="../../resources/blend-mode/saturation.svg" height="16"/>饱和度° | <img src="../../resources/blend-mode/color.svg" height="16"/>颜色° | <img src="../../resources/blend-mode/luminosity.svg" height="16"/>明度° |                                                              |                                                              |
+
+> °：功能未完善
 
 **透明度混合**
 
@@ -81,4 +90,18 @@ Skeeetch支持常见的26种混合模式（已实现22种）。默认情况下�
 在Skeeetch中可以设置全局的透明度混合模式：在 *设置* > *渲染器* > *透明度混合* 开关中可以选择**混合强度**（强度模式）或**中性色填充**（填充模式）。注意：对大文件，切换这个选项可能会比较耗时。
 
 Skeeetch中支持填充模式的混合模式有线性减淡<img src="../../resources/blend-mode/linear-dodge.svg" height="16"/>、线性加深<img src="../../resources/blend-mode/linear-burn.svg" height="16"/>、线性光<img src="../../resources/blend-mode/linear-light.svg" height="16"/>、颜色减淡<img src="../../resources/blend-mode/color-dodge.svg" height="16"/>、颜色加深<img src="../../resources/blend-mode/color-burn.svg" height="16"/>、亮光<img src="../../resources/blend-mode/vivid-light.svg" height="16"/>、差值<img src="../../resources/blend-mode/difference.svg" height="16"/>共七种。（Photoshop的“实色混合”模式<img src="../../resources/blend-mode/hard-mix.svg" height="16"/>由于没有中性色，并不属于Skeeetch中性色填充的作用范围）
+
+**关于图层组特殊模式：穿透**
+
+很多像素绘图软件中为图层组实现了“穿透”混合模式。严格来说穿透不是一种混合模式，而是指示以一种新的先后顺序来组合已有的图层。
+
+一个正常混合模式的图层组会将组内预先混合，然后作为整体参与其相邻图层的混合，组内图层的混合模式**不会影响到组外的混合**；而具有穿透属性的图层组就像其内容没有装在这个图层组里面一样，和其相邻图层也自下而上地混合。对于正常混合模式的图层内容来说这是无关紧要的：正常模式图层的混合结果与混合的结合顺序无关（即A+(B+C)=(A+B)+C）。这种区别会显示在组内图层具有其他混合模式的时候，它们一般是对结合顺序的变化敏感的：
+
+<img src="./images/blend-group1.png" width="320"/> <img src="./images/blend-group2.png" width="320"/>
+
+> 假设存在“穿透模式”，相比正常模式（左），穿透组中的正片叠底图层C的**效果穿透出了组**，也作用到了背景图层A上，相当于直接将B和C移出图层组放到A的上方。此时A+穿透(B+C)=(A+B)+C≠A+(B+C)。这种现象在Photoshop中也可以看到：合并一个穿透模式的组可能导致显示效果发生改变。
+
+在Skeeetch中，出于对图层组功能的定义以及运行性能的考量（具有穿透模式的组在渲染时性能极难优化），**并没有实现穿透模式**。一个Skeeetch图层组的内容就等于其所有内容之和，图层组相对其他组外内容也是独立不变的。这也导致打开`.psd`文件时，如果图层组具有穿透模式（Photoshop默认），则打开后的显示效果和在其他软件中打开**可能会出现区别**。
+
+好在这**不是一个大问题**，因为这种区别仅出现在：图层组内有特殊混合模式的内容，且这个内容作用在了图层组外的区域上。因此，具有普通混合模式内容的组，或者组内特殊混合模式内容使用了剪贴蒙版（限制了作用区域），或者组内的底色为不透明色，或者具有特殊混合模式的内容都直接位于图层列表里（没有套在组内），或者…… 都不会出现差异。总之，如果出现了因穿透模式导致的显示差别，可以将具有特殊效果的图层**从组内拖移出来**，即可恢复正常。
 

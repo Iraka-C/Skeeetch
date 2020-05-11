@@ -1,34 +1,56 @@
 /**
  * performance monitor
  */
-PERFORMANCE={};
-
-PERFORMANCE.fpsCounter={
-	fps:0,
-	intvList:new Array(10), // average of 10 frames, less than 0.2s
-	intvPt:0,
-	intvSum:0
+PERFORMANCE={
+	debugger:{ // debugger settings
+		isDrawingLayerBorder: false
+	},
+	maxMem:{ // maximum memory available in Bytes
+		ram: 4*1024*1024*1024, // init 4G for history (vram manager doesn't care about this limit)
+		gpu: 8*1024*1024*1024 // init 8G (my card)
+	},
+	idleTaskManager: null,
+	strokeFpsCounter: {fps:30}, // starts slow
+	animationFpsCounter: {fps:30}
 };
-PERFORMANCE.debugger={
-	isDrawingLayerBorder: false
-}
-PERFORMANCE.maxMem={ // maximum memory available in Bytes
-	ram: 4*1024*1024*1024, // init 4G for history (vram manager doesn't consider this limit)
-	gpu: 8*1024*1024*1024 // init 8G (my card)
+
+class FPSCounter{
+	constructor(){
+		const N=10;
+		Object.assign(this,{
+			fps: 60, // init
+			intvList: new Array(N).fill(16), // init 16ms
+			intvSum: 16*N, // sum of intervals
+			intvPt: 0 // now head item in intvList
+		});
+	}
+	submit(intv){ // interval in ms
+		intv=intv.clamp(1,1000); // 1~1000fps
+		
+		const list=this.intvList;
+		const len=list.length;
+		const nowIntv=list[this.intvPt];
+		this.intvSum+=intv-nowIntv;
+		this.fps=1000*len/this.intvSum;
+	
+		// update list
+		list[this.intvPt++]=intv;
+		if(this.intvPt>=len){ // reset to head
+			this.intvPt=0;
+		}
+	}
 }
 
 /**
  * init
  */
-PERFORMANCE.idleTaskManager=null;
 PERFORMANCE.init=function(){
-	let counter=PERFORMANCE.fpsCounter;
-	counter.fps=60;
-	for(let i=0;i<counter.intvList.length;i++){
-		counter.intvList[i]=16; // initial 60fps
-		counter.intvSum+=16;
-	}
-
+	/**
+	 * PERFORMANCE.strokeFpsCounter is just a debugging object
+	 * At present, no method is provided to get WebGL1.0 render time
+	 */
+	PERFORMANCE.strokeFpsCounter=new FPSCounter(); // not useful at this moment
+	PERFORMANCE.animationFpsCounter=new FPSCounter();
 	PERFORMANCE.idleTaskManager=new IdleTaskManager();
 	if(navigator.deviceMemory){
 		// the value could only be 0.25, 0.5, 1, 2, 4, 8
@@ -107,21 +129,9 @@ PERFORMANCE.getGPUMemEstimation=function(){
 	return gpuBytes/1024/1024; // in MB
 }
 
-PERFORMANCE.submitFpsStat=function(intv){ // intv in ms
-	// @TODO: consider only consecutive frames
-	const counter=PERFORMANCE.fpsCounter;
-	const len=counter.intvList.length;
-	const nowIntv=counter.intvList[counter.intvPt]||0;
-	counter.intvSum+=intv-nowIntv;
-	counter.fps=1000*len/counter.intvSum;
-	// if fps drops lower than a threshold i.e. 30fps, then start warning
-	
-	// renew list
-	counter.intvList[counter.intvPt]=intv;
-	if(++counter.intvPt>=len){
-		counter.intvPt=0;
-	}
-}
+// PERFORMANCE.submitFpsStat=function(intv){ // intv in ms
+// 	PERFORMANCE.fpsCounter.submit(intv);
+// }
 
 // ================= Idle Task Manager ===================
 class IdleTaskManager{

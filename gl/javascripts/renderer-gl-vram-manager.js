@@ -62,7 +62,7 @@ class GLVRAMManager {
 			for(const [oldData,oldSize] of this.activeTextures) {
 				this.renderer.freezeImageData(oldData); // move VRAM to RAM
 				this.ramUsage+=size;
-				//console.log("Compressed "+(oldSize/1048576).toFixed(2)+"MB");
+				console.log("Compressed "+(oldSize/1048576).toFixed(2)+"MB");
 				this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
 				this.vRAMUsage-=oldSize;
 				sizeToRelease-=oldSize;

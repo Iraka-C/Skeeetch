@@ -217,7 +217,7 @@ class GLRenderer extends BasicRenderer {
 			const softRange=this.softness+fixedSoftEdge/p[2];
 			let rad=p[2];
 			if(this.antiAlias&&rad<2) {
-				rad=0.2+rad*0.9; // thickness compensation for thin stroke
+				rad=0.6+rad*0.7; // thickness compensation for thin stroke
 			}
 
 			const pressure=p[3]; // pressure considered sensitivity
@@ -231,7 +231,7 @@ class GLRenderer extends BasicRenderer {
 			);
 		}
 
-		// Adjusting valid area is done by CANVAS.stroke
+		// Adjusting valid area is done by this.brushRenderer.render
 
 		// update last circle
 		if(kPoints.length) {

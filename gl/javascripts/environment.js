@@ -36,7 +36,8 @@ ENV.displaySettings={
 	enableTransformAnimation: true, // smooth animation when moving paper
 	blendWithNeutralColor: true, // blend layers with neutral color filling under certain blend modes
 	uiOrientationLeft: true, // UI flows from left->right: true
-	isAutoSave: true // Auto save files when modified in browser
+	isAutoSave: true, // Auto save files when modified in browser
+	maxFps: Infinity // 30, 60, Infinity
 };
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
 
@@ -48,6 +49,7 @@ ENV.init=function() { // When the page is loaded
 		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
 		
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
+		ENV.displaySettings.maxFps=ENV.displaySettings.maxFps||Infinity; // default value that cannot be saved
 		ENV.setAntiAliasing(ENV.displaySettings.antiAlias); // set canvas css param
 		ENV.taskCounter.init();
 

@@ -21,6 +21,7 @@ CANVAS.drawSuccessful=false; // if you try to stroke on canvas, will it be succe
 CANVAS.init=function() {
 	//console.log("Canvas init "+CANVAS.rendererBitDepth+" bit");
 	CANVAS.drawSuccessful=true;
+	CANVAS.actualFps=300; // actual rendering fps
 	
 	if(CANVAS.renderer){
 		// release some resources
@@ -110,7 +111,9 @@ CANVAS.setCanvasEnvironment=function() {
 		isOpacityLocked: CANVAS.targetLayerOpacityLocked,
 		antiAlias: ENV.displaySettings.antiAlias
 	});
-	CANVAS.changedArea={width:0,height:0,left:0,top:0}; // init changed area, put this first as isChanged sign init
+	// init changed area, put this first as isChanged sign init
+	// changed area for history
+	CANVAS.changedArea={width:0,height:0,left:0,top:0};
 };
 
 CANVAS.updateSpeed=function() {
@@ -242,7 +245,7 @@ CANVAS.stroke=function() {
 	// render end
 	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize);
 	nowLayer.setRawImageDataInvalid(); // the layers needs to be recomposited
-	CANVAS.requestRefresh(clippedTargetSize); // request a refresh on the screen. Saved Time?
+	CANVAS.requestRefresh(); // request a refresh on the screen. Saved Time?
 };
 
 /**
@@ -267,38 +270,33 @@ CANVAS.strokeEnd=function() {
  * request recomposing and rendering all contents in the layer tree
  * multiple requests within 1 animation frame will be combined
  */
-CANVAS.lastRefreshTime=NaN;
-CANVAS.accumDirtyArea={width:0,height:0,left:0,top:0}; // Accumulated Dirty Area, null for whole area
-CANVAS.requestRefresh=function(dirtyArea) {
-	if(dirtyArea&&CANVAS.accumDirtyArea){
-		CANVAS.accumDirtyArea=GLProgram.extendBorderSize(CANVAS.accumDirtyArea,dirtyArea);
-	}
-	else{ // Full range
-		CANVAS.accumDirtyArea=null;
-	}
+CANVAS.requestRefresh=function() {
 	if(CANVAS.isRefreshRequested) {
 		return; // already requested
 	}
 	CANVAS.isRefreshRequested=true;
-	requestAnimationFrame(() => {
+
+	const expectedFps=ENV.displaySettings.maxFps;
+	const reqFunc=()=>{
 		CANVAS.onRefresh(); // call refresh callback
 		CANVAS.isRefreshRequested=false;
-		const nowTime=Date.now();
-		if(!isNaN(CANVAS.lastRefreshTime)){
-			PERFORMANCE.submitFpsStat(nowTime-CANVAS.lastRefreshTime);
-		}
-		CANVAS.lastRefreshTime=nowTime;
-	}); // refresh canvas at next frame
+	};
+
+	if(isFinite(expectedFps)){ // refresh canvas at fixed interval
+		setTimeout(reqFunc,Math.max(1000/expectedFps-4,0)); // subtract setTimeout initial delay
+	}
+	else{ // refresh canvas at screen refresh rate
+		requestAnimationFrame(reqFunc);
+	}
+
 }
 
 /**
  * On refreshing canvas, after animation frame
  * Only called (including async CANVAS.requestRefresh) when no layer structure's changed
- * Because this function offers CANVAS.accumDirtyArea value
  */
 CANVAS.onRefresh=function() {
-	CANVAS.refreshScreen(CANVAS.accumDirtyArea); // sync function
-	CANVAS.accumDirtyArea={width:0,height:0,left:0,top:0}; // reset
+	CANVAS.refreshScreen(); // sync function
 }
 
 /**
@@ -354,7 +352,7 @@ CANVAS.onEndRefresh=function() {
 		});
 	}
 	STORAGE.FILES.reportUnsavedContentChanges(); // report that there are changes unsaved
-	CANVAS.lastRefreshTime=NaN;
+	//CANVAS.lastRefreshTime=NaN;
 	CANVAS.changedArea={width:0,height:0,left:0,top:0}; // reset changed area
 }
 

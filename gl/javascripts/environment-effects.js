@@ -62,20 +62,20 @@ ENV.fireTransformAnimation=function(pArr) {
 		requestAnimationFrame(ENV._transformAnimation);
 	}
 }
-ENV._transformAnimation=function() {
+ENV._transformAnimation=function(timestamp) { // timestamp in ms
 	let anim=ENV.window._transAnimation;
 	let p=anim.process; // deal with animation effect
 	if(p<1-1E-6) { // continue animation, double check for unintentional fire
-		let nowTime=Date.now();
+		let nowTime=timestamp;
 		if(anim.lastTime>0) { // there's last animation
-			PERFORMANCE.submitFpsStat(nowTime-anim.lastTime);
+			PERFORMANCE.animationFpsCounter.submit(nowTime-anim.lastTime);
 		}
 		anim.lastTime=nowTime;
 
 		let tP=anim.target;
 		let sP=anim.start;
 		// if shift pressed, run animation 10x faster to reduce latency on dragging
-		let targetFPS=PERFORMANCE.fpsCounter.fps.clamp(60,240);
+		let targetFPS=PERFORMANCE.animationFpsCounter.fps.clamp(30,240);
 		let nextFps=targetFPS/(CURSOR.nowActivity=="pan-paper"&&CURSOR.isDown? 10:1);
 		let step=1/(anim.time*nextFps);
 		p+=step;
@@ -94,11 +94,11 @@ ENV._transformAnimation=function() {
 			"transform": matrixStr, // transform
 			"box-shadow": "0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
 		});
-		CANVAS.requestRefresh(); // update canvas anti-aliasing
+		CANVAS.requestRefresh(); // update canvas anti-aliasing, another frame rate
 
 		//console.log(matrixStr);
 
-		if(p<1-1E-6) { // request new frame
+		if(p<0.999999) { // request new frame
 			requestAnimationFrame(ENV._transformAnimation);
 		}
 		else {
