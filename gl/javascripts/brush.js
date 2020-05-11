@@ -27,9 +27,12 @@ BrushManager.brushes=[
 		minAlpha:0,
 		isAlphaPressure:1,
 		edgeHardness:0,
-		blendMode:0
-		// scatter, jitter, etc
-
+		blendMode:0,
+		// jitters
+		quality: 10,
+		randTrans: 1, // random translation range, unit as basic size (size pressure controlled)
+		randScale: 0.5, // random scaling, unit as basic size
+		randRot: 0.5 // random rotation, unit as 1 full circle
 	},
 	{
 		name:"paint brush",
