@@ -97,17 +97,19 @@ BrushManager.sizeList=[
 // ===================== functions ======================
 
 BrushManager.init=function(){
-	for(const brush of BrushManager.brushes){
+	for(const brush of BrushManager.brushes){ // translate names
 		brush.name=Lang(brush.name);
 	}
 	// @TODO: add load customized brushes from settings
-	BrushManager.setActiveBrush(0);
-	let brushMenu=BrushManager.initBrushSettingMenu();
+	BrushManager.initBrushSelector();
+	BrushManager.setActiveBrush(BrushManager.brushes[0]); // set active
+
+	// init brush setting menus
+	const brushMenu=BrushManager.initBrushSettingMenu();
+	BrushManager.initBrushButton(brushMenu);
 	BrushManager.initMenuSizeSection(brushMenu);
 	BrushManager.initMenuOpacitySection(brushMenu);
 	BrushManager.initStylusSetting(brushMenu);
-	BrushManager.initBrushButton(brushMenu);
-	BrushManager.initBrushSelector();
 	brushMenu.update();
 	BrushManager.brushMenu=brushMenu; // record this
 }
@@ -150,15 +152,20 @@ BrushManager.changeActiveBrushSizeBy=function(dS){
 }
 
 BrushManager.setActiveBrush=function(v){
-	if(typeof(v)=="number"){
-		BrushManager.activeBrush=BrushManager.brushes[v];
-	}
-	else{ // object
-		BrushManager.activeBrush=v;
-	}
+	// deactivate all
+	$("#brush-selector-menu").find(".brush-selector-tr-selected").removeClass("brush-selector-tr-selected");
+
+	// if(typeof(v)=="number"){
+	// 	BrushManager.activeBrush=BrushManager.brushes[v];
+	// }
+	// else{ // object
+	BrushManager.activeBrush=v;
+	
+	v.$row.addClass("brush-selector-tr-selected");
+	// }
 	// Update display
-	$("#brush-name").text(BrushManager.activeBrush.name);
-	$("#brush-size").val(Math.round(BrushManager.activeBrush.size));
+	$("#brush-name").text(v.name);
+	$("#brush-size").val(Math.round(v.size));
 	if(BrushManager.brushMenu){ // if associated with menu
 		BrushManager.brushMenu.update(); // menu items and values updated here
 	}

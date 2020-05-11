@@ -136,8 +136,8 @@ class GLBrushRenderer {
 			uniform vec2 u_pos_dst; // circle position (x,y) in pixels of the stamping dest pos
 
 			varying float v_rel; // linear opacity interpolation
-			varying vec2 v_samp_tex; // samping coordinate (0~1)
-			varying vec2 v_samp_dst; // samping coordinate (0~1)
+			varying vec2 v_samp_tex; // samping coordinate (0~1) (prev pos)
+			varying vec2 v_samp_dst; // drawing target coordinate (0~1) (new pos)
 			void main(){
 				vec2 d_pos;
 				if(a_id<5.5){ // first two bg triangles
@@ -164,12 +164,13 @@ class GLBrushRenderer {
 				vec2 pos_dst=u_pos_dst+d_pos;
 				/** NOTE: add floor to these values creates very artistic effects */
 
-				vec2 v_clip=(pos_tgt/u_res_tgt*2.-1.)*vec2(1.,-1.); // vertex pos in clip space
 				vec2 coord_samp=pos_tex/u_res_tex; // sampling pos in sampler coordinate
 				vec2 coord_dst=pos_dst/u_res_tex;
 
 				v_samp_tex=vec2(coord_samp.x,1.-coord_samp.y);
 				v_samp_dst=vec2(coord_dst.x,1.-coord_dst.y);
+
+				vec2 v_clip=(pos_tgt/u_res_tgt*2.-1.)*vec2(1.,-1.); // vertex pos in clip space
 				gl_Position=vec4(v_clip,0.,1.);
 			}
 		`;
@@ -185,6 +186,11 @@ class GLBrushRenderer {
 			varying float v_rel;
 			varying vec2 v_samp_tex;
 			varying vec2 v_samp_dst;
+
+			// float random (vec2 st) {
+			// 	return fract(sin(dot(st.xy,vec2(12.9898,78.233)))*43758.5453123);
+			// }
+
 			void main(){
 				vec4 dst_color=texture2D(u_image,v_samp_dst);
 				if(v_rel<0.){ // bg triangle
@@ -199,9 +205,9 @@ class GLBrushRenderer {
 						float r=v_rel/u_softness;
 						opa=clamp(r*r,0.,1.)*u_opa_tex; // prevent NaN operation
 					}
+
 					vec4 samp_color=texture2D(u_image,v_samp_tex); // sample from texture
 					samp_color=u_color*samp_color.w+samp_color*(1.-u_color.w); // add tint, opa unchanged
-					//gl_FragColor=samp_color*dst_color.w+dst_color*(1.-samp_color.w); // This is interesting, like a paint brush
 					gl_FragColor=dst_color+(samp_color-dst_color)*opa; // average blending
 				}
 			}

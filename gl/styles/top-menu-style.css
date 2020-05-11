@@ -75,13 +75,14 @@
 #brush-selector-menu{
 	position: absolute;
 	width: 100%;
-	padding-bottom: 0.2em;
+	/* padding-bottom: 0.2em; */
 	border-radius: 0em 0em 1em 1em;
 	color: #ccc;
 	background: #000000bb;
 	pointer-events: none;
 	opacity: 0;
 	transition: opacity 0.5s;
+	overflow: hidden;
 }
 
 #brush-selector-panel:hover > #brush-selector-menu{
@@ -89,14 +90,73 @@
 	opacity: 1;
 }
 
-.brush-selector-item{
-	margin: 0.5em 0em 0.5em 0.7em;
-	transition: color 0.25s;
+.default-brush-table, .custom-brush-table{
+	width: 100%;
 }
-.brush-selector-item:hover{
+.default-brush-table{
+	border-style: none none solid none;
+	border-width: 2px;
+	border-color: #ffffff22;
+}
+.brush-selector-item{
+	padding: 0.3em 0.5em;
+	transition: color 0.5s;
+}
+.brush-selector-custom-item{
+	padding: 0.3em 0em 0.3em 0.5em;
+	transition: color 0.5s;
+}
+#brush-selector-menu tr:hover .brush-selector-item{
 	color: #fff;
 }
+#brush-selector-menu tr{
+	transition: background-color 0.25s;
+}
+#brush-selector-menu .brush-selector-tr-selected{
+	background-color: #66666699;
+}
+.brush-selector-canvas{
+	position: relative;
+	width: 2.1em; /* 1+0.3*2+0.5 */
+	height: 1.6em; /* 1+0.3*2 */
+	overflow: hidden;
+}
+.brush-selector-canvas > *{
+	height: 100%;
+}
+.custom-brush-name-label{
+	color: #ccc;
+	transition: color 0.5s;
+	width: 100%;
+	pointer-events: none;
+}
+.custom-brush-name-label:focus{
+	box-shadow: 0em 0.05em 0em 0em #aaa;
+}
+#brush-selector-menu tr:hover .brush-selector-custom-item > .custom-brush-name-label{
+	color: #fff; /* change color on tr hovered */
+}
+#brush-selector-panel:hover .brush-selector-tr-selected .custom-brush-name-label{
+	pointer-events: all; /* enable clicking */
+}
 
+/* custom scroll */
+#brush-selector-custom{
+	position: relative;
+	max-height: calc(50vh - 8em);
+	min-height: 3em;
+
+	overflow-x: hidden;
+	overflow-y: scroll;
+	overflow-y: -moz-scrollbars-none; /* IE 10+ */
+	-ms-overflow-style: none; /* Old FF */
+	scrollbar-width: none; /* FF 64+ */
+}
+#brush-selector-custom::-webkit-scrollbar{
+	display: none; /* Chrome, Edge, Safari, Opera */
+	width: 0px !important;
+}
+/* ============ top block buttons ============= */
 #brush-selector-buttons{
 	display: flex;
 	flex-direction: row;
