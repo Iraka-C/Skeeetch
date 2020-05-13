@@ -9,31 +9,29 @@ BrushManager.brushes=[
 		minSize:0.0, // 0~1 (0~100%) of size
 		isSizePressure:1, // 1: Enable, 0:Disable
 		alpha:1.0, // opacity 0~1 (0~100%)
-		minAlpha:1.0, // 0~1 (0~100%) of alpha
+		minAlpha:0.0, // 0~1 (0~100%) of alpha
 		isAlphaPressure:0,
 		edgeHardness:1.0, // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
 		blendMode:0, // 0: normal, -1: erase
-		brushtip: { // brush shape // This is the initial status
-			type: "round",
-			imageData: null
-		}
+		brushtip: null, // null: round tip, GLTexture: customized
+		isScatter: 0
 	},
-	{
-		name:"spray gun",
-		size:100,
-		minSize:0.4,
-		isSizePressure:1,
-		alpha:0.8,
-		minAlpha:0,
-		isAlphaPressure:1,
-		edgeHardness:0,
-		blendMode:0,
-		// jitters
-		quality: 10,
-		randTrans: 1, // random translation range, unit as basic size (size pressure controlled)
-		randScale: 0.5, // random scaling, unit as basic size
-		randRot: 0.5 // random rotation, unit as 1 full circle
-	},
+	// {
+	// 	name:"spray gun",
+	// 	size:100,
+	// 	minSize:0.4,
+	// 	isSizePressure:1,
+	// 	alpha:0.8,
+	// 	minAlpha:0,
+	// 	isAlphaPressure:1,
+	// 	edgeHardness:0,
+	// 	blendMode:0,
+	// 	quality: 10, // now many brushtips on one pixel. 0 for auto
+	// 	isRotWithStroke: 0, // is to rotate the brushtip along the stroke direction
+	// 	randTrans: 1, // random translation range, unit as basic size (size pressure controlled)
+	// 	randScale: 0.5, // random scaling, unit as basic size
+	// 	randRot: 0.5 // random rotation, unit as 1 full circle
+	// },
 	{
 		name:"paint brush",
 		size:80,
@@ -45,8 +43,8 @@ BrushManager.brushes=[
 		edgeHardness:1.0,
 		blendMode:1, // 1: with color adding
 		// paint brush specialized
-		extension: 0.8 // how much color to pick from sampler
-
+		extension: 0.8, // how much color to pick from sampler
+		isScatter: 0
 	},
 	{
 		name:"smudge brush",
@@ -58,18 +56,20 @@ BrushManager.brushes=[
 		isAlphaPressure:1,
 		edgeHardness:0.5,
 		blendMode:2, // 2: with smudging
-		extension: 0.8 // how much color to pick from sampler
+		extension: 0.8, // how much color to pick from sampler
+		// doesn't allow scatter
 	},
 	{
 		name:"eraser",
 		size:50,
 		minSize:1.0,
 		isSizePressure:0,
-		alpha:1,
-		minAlpha:1.0,
+		alpha:1.0,
+		minAlpha:0.0,
 		isAlphaPressure:0,
 		edgeHardness:1.0,
-		blendMode:-1
+		blendMode:-1,
+		isScatter: 0
 	}
 ];
 
@@ -109,6 +109,7 @@ BrushManager.init=function(){
 	BrushManager.initBrushButton(brushMenu);
 	BrushManager.initMenuSizeSection(brushMenu);
 	BrushManager.initMenuOpacitySection(brushMenu);
+	BrushManager.initScatterSetting(brushMenu);
 	BrushManager.initStylusSetting(brushMenu);
 	brushMenu.update();
 	BrushManager.brushMenu=brushMenu; // record this

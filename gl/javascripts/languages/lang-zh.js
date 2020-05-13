@@ -73,6 +73,8 @@ LANG_ZH={
 	"stylus-pressure-sensitivity":"笔压灵敏度",
 	"stroke-smoothness":"抖动修正",
 
+	"new-brush-prefix":"新",
+
 	// Layer
 	"layer-opacity-label-shown":"调节图层不透明度。右键隐藏图层",
 	"layer-opacity-label-hidden":"右键显示图层",

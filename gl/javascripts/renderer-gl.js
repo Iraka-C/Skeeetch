@@ -14,6 +14,15 @@ class GLRenderer extends BasicRenderer {
 			premultipliedAlpha: true, // premult: (r,g,b,a)->(ar,ag,ab,a)
 			antialias: true
 		}); // webgl context
+		this.canvas.addEventListener("webglcontextlost",e => {
+			// something catastrophic happened
+			console.err(e);
+		});
+		this.canvas.addEventListener("webglcontextrestored",e => {
+			// Rescue happened
+			console.log(e);
+		},false);
+
 		this.gl=gl;
 		this.bitDepth=param.bitDepth||32; // init 32-bit, every pixel
 		this.viewport={
@@ -48,12 +57,13 @@ class GLRenderer extends BasicRenderer {
 				gl.HALF_FLOAT=ext.HALF_FLOAT_OES;
 				this.dataFormat=gl.HALF_FLOAT;
 				break;
+			default:
 			case 8:
 				this.dataFormat=gl.UNSIGNED_BYTE;
 				break;
-			case 4:
-				this.dataFormat=gl.UNSIGNED_SHORT_4_4_4_4;
-				break;
+			// case 4: // Nope, LUMINOSITY not supported
+			// 	this.dataFormat=gl.UNSIGNED_SHORT_4_4_4_4;
+			// 	break;
 		}
 
 		// =================== Create Programs ====================
@@ -74,7 +84,7 @@ class GLRenderer extends BasicRenderer {
 
 		// children renderers
 		this.textureBlender=new GLTextureBlender(this);
-		this.imageDataFactory=new GLImageDataFactory(gl,this.dataFormat);
+		this.imageDataFactory=new GLImageDataFactory(this);
 		this.brushRenderer=new GLBrushRenderer(this);
 		this.vramManager=new GLVRAMManager(this,param.maxVRAMSize);
 
@@ -107,7 +117,7 @@ class GLRenderer extends BasicRenderer {
 
 	_initRenderCanvasProgram() {
 		// add the glsl codes inside a closure
-		const vCanvasShaderSource=glsl` // vertex shader for drawing a circle
+		const vCanvasShaderSource=glsl`
 			attribute vec2 a_position; // vertex position
 			varying vec2 v_position;
 			void main(){
@@ -121,7 +131,7 @@ class GLRenderer extends BasicRenderer {
 			uniform sampler2D u_image;
 			uniform vec2 u_aa_step; // anti-alias pixel interval (x,y) in sampler coordinate, may be non-int
 			uniform float u_aa_cnt; // how many steps to sample
-			varying vec2 v_position;
+			varying highp vec2 v_position;
 
 			const float max_its=10.;
 			void main(){
@@ -156,7 +166,7 @@ class GLRenderer extends BasicRenderer {
 		`;
 		const fClearShaderSource=glsl`
 			precision mediump float;
-			varying vec2 v_position;
+			varying highp vec2 v_position;
 			uniform vec4 u_clear_color;
 			void main(){
 				gl_FragColor=u_clear_color;
@@ -290,12 +300,12 @@ class GLRenderer extends BasicRenderer {
 	 * imagedata.type:
 	 * "GLTexture": WebGL texture for GL renderer
 	 * "GLRAMBuf": texture restored in RAM buffer, cannot be used directly
+	 * "GLRAMBuf8": texture in RAM using 8bit format: created by filesaver (not this function)
 	 */
 	createImageData(w,h,param) { // imagedata contains a texture
 		w=w||0;
 		h=h||0;
 		const isFrozen=!!(param&&param.isFrozen);
-		//const isAlpha=(param&&param.format=="alpha")? true:false; // to boolean @TODO: LUMINOSITY
 
 		let imgData=null;
 		if(isFrozen) { // create array
@@ -316,7 +326,7 @@ class GLRenderer extends BasicRenderer {
 		return { // a texture - image data type
 			type: isFrozen? "GLRAMBuf":"GLTexture",
 			data: imgData,
-			id: LAYERS.generateHash("t"), // for DEBUG ONLY! DO NOT use this as a hash
+			id: ENV?ENV.hash("t"):null, // for DEBUG ONLY! Does not guarantee uniqueness
 			bitDepth: this.bitDepth,
 			width: w, // width and ...
 			height: h, // ... height are immutable: do not change by assignment!
@@ -341,7 +351,7 @@ class GLRenderer extends BasicRenderer {
 		if(imgData.type=="GLTexture") {
 			this.gl.deleteTexture(imgData.data);
 		}
-		imgData.isDeleted=true; // set tag
+		imgData.isDeleted=true; // set tag, ONLY HERE!
 	}
 
 	// clear the contents with transparent black or white
@@ -352,8 +362,8 @@ class GLRenderer extends BasicRenderer {
 		if(!(target.width&&target.height)) { // No pixel, needless to clear
 			return;
 		}
-		if(target.type=="GLRAMBuf"){ // No need to de-compression
-			if(!isOpacityLocked){ // clear to single color
+		if(target.type=="GLRAMBuf") { // No need to de-compression
+			if(!isOpacityLocked) { // clear to single color
 				const tmpData=this.createImageData(target.width,target.height);
 				target.data=tmpData.data; // transfer data
 				tmpData.data=null; // release reference
@@ -492,8 +502,8 @@ class GLRenderer extends BasicRenderer {
 		}
 		initSize=GLProgram.borderIntersection(initSize,this.viewport); // initial cut
 
-		if(src.type=="GLRAMBuf"){ // No need to de-compression, creating new one is faster
-			if(!isPreservingContents){ // clear image
+		if(src.type=="GLRAMBuf") { // No need to de-compression, creating new one is faster
+			if(!isPreservingContents) { // clear image
 				const tmpData=this.createImageData(initSize.width,initSize.height);
 				src.data=tmpData.data; // transfer data
 				tmpData.data=null; // release reference
@@ -668,6 +678,35 @@ class GLRenderer extends BasicRenderer {
 		gl.disable(gl.SCISSOR_TEST);
 	}
 
+	/**
+	 * Get a brushtip image from src
+	 * returns a GLTexture, size no more than 500*500, OR null for failed
+	 * OR, null for not successfully created any brushtip imagedata
+	 * This function does not change the actual valid area of src (although it will recalculate)
+	 * @param {"GLTexture"} src GLTexture image data
+	 */
+	getBrushtipImageData(src) {
+		const MAXL=500;
+		const nArea=this.imageDataFactory.recalculateValidArea(src);
+
+		// create brushtip
+		const nW=nArea.width;
+		const nH=nArea.height;
+		if(!nW||!nH)return null; // empty
+		const nL=Math.max(nW,nH);
+
+		const padW=(nL-nW)/2;
+		const padH=(nL-nH)/2;
+
+		// @TODO: add size limit and zooming
+
+		// transfer image data (place at middle)
+		const bImg=this.createImageData(nL,nL);
+		bImg.left=nArea.left-padW;
+		bImg.top=nArea.top-padH;
+		this.blendImageData(src,bImg,{mode:GLTextureBlender.SOURCE});
+		return bImg;
+	}
 	// ====================== Data type transforms =======================
 	// Load/Get
 	loadToImageData(target,img) { // load img into target
@@ -730,19 +769,6 @@ class GLRenderer extends BasicRenderer {
 		this.vramManager.verify(src);
 		return this.imageDataFactory.imageDataToUint8(src,srcRange,targetSize);
 	}
-
-	// loadUint8ArrayToImageData(target,buffer){
-	// 	if(!(target.width&&target.height)) { // the src is empty
-	// 		return; // return directly
-	// 	}
-	// 	const canvas=document.createElement("canvas");
-	// 	canvas.width=target.width;
-	// 	canvas.height=target.height;
-	// 	const ctx2d=canvas.getContext("2d"); // Use Context2D mode
-	// 	const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
-	// 	imgData2D.data.set(buffer);
-	// 	this.loadToImageData(target,imgData2D);
-	// }
 
 	// Get a <canvas> element with a CanvasRenderingContext2D containing data in src
 	// left & top are used for indicating the left/top bias on the canvas

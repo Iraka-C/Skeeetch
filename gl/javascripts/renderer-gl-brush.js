@@ -30,7 +30,7 @@ class GLBrushRenderer {
 			uniform sampler2D u_image;
 			uniform vec2 u_aa_step; // anti-alias pixel interval (x,y) in sampler coordinate, may be non-int
 			uniform float u_aa_cnt; // how many steps to sample
-			varying vec2 v_position;
+			varying highp vec2 v_position;
 
 			const float max_its=10.;
 			void main(){
@@ -184,8 +184,8 @@ class GLBrushRenderer {
 			uniform float u_opa_tex; // sampling texture opacity
 
 			varying float v_rel;
-			varying vec2 v_samp_tex;
-			varying vec2 v_samp_dst;
+			varying highp vec2 v_samp_tex;
+			varying highp vec2 v_samp_dst;
 
 			// float random (vec2 st) {
 			// 	return fract(sin(dot(st.xy,vec2(12.9898,78.233)))*43758.5453123);
@@ -265,9 +265,8 @@ class GLBrushRenderer {
 			uniform vec4 u_color; // rgba, UNMULTIPLIED!
 			uniform float u_opa_tex; // sampling texture opacity
 
-			
-			uniform vec2 u_pos_tex; // sample position (x,y) in pixels
-			uniform vec2 u_res_tex; // sampler texture resolution
+			uniform highp vec2 u_pos_tex; // sample position (x,y) in pixels
+			uniform highp vec2 u_res_tex; // sampler texture resolution
 
 			varying float v_rel;
 			void main(){
@@ -382,17 +381,19 @@ class GLBrushRenderer {
 			pos[1]-target.top
 		],radius,color,softRange,brush.blendMode,isOpacityLocked);
 
-		const R=radius+1; // extend 1 pixel for border
-		const circleArea={
-			width: R*2,
-			height: R*2,
-			left: pos[0]-R,
-			top: pos[1]-R
+		if(!isOpacityLocked&&brush.blendMode>=0){ // valid area changed
+			const R=radius+1; // extend 1 pixel for border
+			const circleArea={
+				width: R*2,
+				height: R*2,
+				left: pos[0]-R,
+				top: pos[1]-R
+			}
+			target.validArea=GLProgram.borderIntersection(
+				GLProgram.extendBorderSize(circleArea,target.validArea),
+				target // clamp by border
+			);
 		}
-		target.validArea=GLProgram.borderIntersection(
-			GLProgram.extendBorderSize(circleArea,target.validArea),
-			target // clamp by border
-		);
 	}
 
 	renderSolidCircleBrushtip(imgData,pos,r,color,softRange,mode,isOpacityLocked) {

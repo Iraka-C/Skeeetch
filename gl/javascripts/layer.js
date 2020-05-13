@@ -14,12 +14,9 @@ LAYERS.active=null;
  * generate a unique hash tag for every layer/group
  */
 LAYERS.generateHash=function(prefix) {
-	const PRIME=2147483647;
 	let tag="";
-	const randArr=new Uint32Array(1);
 	do {
-		window.crypto.getRandomValues(randArr);
-		tag=prefix+randArr[0]%PRIME;
+		tag=ENV.hash(prefix);
 	} while(LAYERS.layerHash.hasOwnProperty(tag));
 	return tag;
 }

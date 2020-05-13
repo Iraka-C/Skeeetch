@@ -128,6 +128,7 @@ class CanvasNode extends ContentNode {
 		if(ENV.displaySettings.isAutoSave){ // auto update
 			STORAGE.FILES.removeContent(this.id); // remove storage resources
 		}
+		this.$ui.remove(); // remove all event handlers
 		super.delete();
 	}
 	getName() {

@@ -25,11 +25,11 @@ BrushManager.initMenuSizeSection=function(brushMenu){
 	);
 	brushMenu.addSwitch(Lang("Pressure Controlled Size"),[Lang("Disabled"),Lang("Enabled")],null,id=>{
 		BrushManager.activeBrush.isSizePressure=id;
-		minSizeHintUpdateFunc(id==0?true:false);
+		brushMenu.update();
 	},()=>BrushManager.activeBrush.isSizePressure);
 	BrushManager.minSizeUpdateFunc=brushMenu.addInstantNumberItem( // here, the minSize is in px
 		Lang("Min Size"),
-		()=>Math.round(BrushManager.activeBrush.size*BrushManager.activeBrush.minSize),
+		()=>BrushManager.activeBrush.isSizePressure?Math.round(BrushManager.activeBrush.size*BrushManager.activeBrush.minSize):NaN,
 		Lang("px"),
 		newVal=>{ // set on input
 			if(newVal){
@@ -47,8 +47,6 @@ BrushManager.initMenuSizeSection=function(brushMenu){
 			BrushManager.activeBrush.minSize=newVal;
 		} // set
 	);
-	let minSizeHintUpdateFunc=brushMenu.addHint(Lang("brush-pressure-hint-1"));
-	minSizeHintUpdateFunc(false); // @TODO: at start it will never show
 }
 
 BrushManager.initMenuOpacitySection=function(brushMenu){
@@ -98,12 +96,12 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 
 	brushMenu.addSwitch(Lang("Pressure Controlled Opacity"),[Lang("Disabled"),Lang("Enabled")],null,id=>{
 		BrushManager.activeBrush.isAlphaPressure=id;
-		minAlphaHintUpdateFunc(id==0?true:false);
+		brushMenu.update();
 	},()=>BrushManager.activeBrush.isAlphaPressure);
 	BrushManager.minAlphaUpdateFunc=brushMenu.addInstantNumberItem(
 		// here, minAlpha is shown in direct percentage, not alpha*minAlpha
 		Lang("Min Opacity"),
-		()=>Math.round(BrushManager.activeBrush.alpha*BrushManager.activeBrush.minAlpha*100),
+		()=>BrushManager.activeBrush.isAlphaPressure?Math.round(BrushManager.activeBrush.alpha*BrushManager.activeBrush.minAlpha*100):NaN,
 		"%",
 		newVal=>{ // set on input
 			if(newVal){
@@ -122,8 +120,7 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 			BrushManager.activeBrush.minAlpha=newVal;
 		} // set
 	);
-	let minAlphaHintUpdateFunc=brushMenu.addHint(Lang("brush-pressure-hint-1"));
-	minAlphaHintUpdateFunc(false);
+
 	BrushManager.edgeHardnessUpdateFunc=brushMenu.addInstantNumberItem(
 		Lang("Hard Edge"),()=>BrushManager.activeBrush.edgeHardness.toFixed(2),"",
 		newVal=>{ // set on input
@@ -143,6 +140,14 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 			BrushManager.activeBrush.edgeHardness=newVal;
 		} // set
 	);
+}
+
+BrushManager.initScatterSetting=function(brushMenu){
+	brushMenu.addSectionTitle(Lang("Scattering Control"));
+	brushMenu.addSwitch(Lang("Scattering"),[Lang("Disabled"),Lang("Enabled")],null,id=>{
+		BrushManager.activeBrush.isScatter=id;
+		// update many values here
+	},()=>BrushManager.activeBrush.isScatter);
 }
 
 BrushManager.initStylusSetting=function(brushMenu){

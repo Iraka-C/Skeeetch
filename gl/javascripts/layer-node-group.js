@@ -109,6 +109,7 @@ class LayerGroupNode extends ContentNode {
 		for(let v of this.children) {
 			v.delete();
 		}
+		this.$ui.remove(); // remove all event handlers
 		super.delete();
 	}
 	// ================= button =================

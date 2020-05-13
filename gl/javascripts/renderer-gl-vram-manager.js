@@ -58,11 +58,12 @@ class GLVRAMManager {
 				}
 			}
 		}
+		// @TODO: remove deleted texture from whitelist
 		if(sizeToRelease>0) { // still need to release
 			for(const [oldData,oldSize] of this.activeTextures) {
 				this.renderer.freezeImageData(oldData); // move VRAM to RAM
 				this.ramUsage+=size;
-				console.log("Compressed "+(oldSize/1048576).toFixed(2)+"MB");
+				console.log("Compressed VRAM"+(oldSize/1048576).toFixed(2)+"MB");
 				this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
 				this.vRAMUsage-=oldSize;
 				sizeToRelease-=oldSize;
@@ -91,8 +92,14 @@ class GLVRAMManager {
 	// imgData won't be compressed
 	addWhiteList(imgData) {
 		const size=imgData.width*imgData.height*4*imgData.bitDepth/8; // in bytes
-		this.whiteList.set(imgData,size);
-		this.vRAMUsage+=size;
+		if(this.whiteList.has(imgData)){ // already in whitelist
+			const prevSize=this.whiteList.get(imgData);
+			this.vRAMUsage+=size-prevSize;
+		}
+		else{ // not added yet
+			this.whiteList.set(imgData,size);
+			this.vRAMUsage+=size;
+		}
 
 		if(this.activeTextures.has(imgData)){ // remove from active texture
 			const prevSize=this.activeTextures.get(imgData);

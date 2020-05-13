@@ -22,7 +22,7 @@ class GLTextureBlender {
 			precision mediump sampler2D;
 			uniform sampler2D u_image;
 			uniform float u_image_alpha;
-			varying vec2 v_pos;
+			varying highp vec2 v_pos;
 			void main(){
 				if(v_pos.x<0.||v_pos.y<0.||v_pos.x>1.||v_pos.y>1.){ // out of bound, sharp cut
 					gl_FragColor=vec4(0.,0.,0.,0.); // transparent
@@ -53,8 +53,8 @@ class GLTextureBlender {
 			uniform float u_blend_mode; // according to enums
 			uniform vec4 u_neutral_color; // if provided, use neutral color to control filling
 			uniform float u_alpha_lock; // 0: src over; 1: src atop
-			varying vec2 v_pos_0; // vertex from src
-			varying vec2 v_pos_1; // vertex from dst
+			varying highp vec2 v_pos_0; // vertex from src
+			varying highp vec2 v_pos_1; // vertex from dst
 
 			vec3 multiply(vec3 Cb,vec3 Cs){return Cb*Cs;} // #2
 			vec3 screen(vec3 Cb,vec3 Cs){return Cb+Cs-Cb*Cs;} // #3
@@ -364,6 +364,7 @@ class GLTextureBlender {
 	/**
 	 * Blending that cannot be done with simple blendFunc()
 	 * and has to follow Porter Duff Compositing Operators and blend mode functions
+	 * blending area restricted in viewport size
 	 * @param {*} src 
 	 * @param {*} dst 
 	 * @param {*} param 
@@ -373,7 +374,7 @@ class GLTextureBlender {
 		const programB=this.advancedBlendProgram;
 		const tmp=this.renderer.tmpImageData;
 
-		// ============= Step 1: Blending ================
+		// ============= Step 1: Blending & Composition ================
 
 		// move tmp so that it contains the most part in the viewport
 		const tA=param.targetArea; // the area that changes
@@ -407,7 +408,7 @@ class GLTextureBlender {
 		else { // do not use neutral color
 			programB.setUniform("u_neutral_color",[0,0,0,0]);
 		}
-		programB.setUniform("u_alpha_lock",param.alphaLock?1:0);
+		programB.setUniform("u_alpha_lock",param.alphaLock? 1:0);
 
 		// Set attributes
 		const srcRect=GLProgram.getAttributeRect(tA,src,!param.antiAlias);
@@ -421,7 +422,7 @@ class GLTextureBlender {
 		gl.viewport(0,0,tmp.width,tmp.height); // temp texture as dst
 		programB.run();
 
-		// ============= Step 2: Composition ================
+		// ============= Step 2: copy ================
 		// now tmp contains modified source
 		const programC=this.blendProgram;
 		programC.setTargetTexture(dst.data);
@@ -465,9 +466,14 @@ class GLImageDataFactory {
 	 * 
 	 * These functions are all time consuming! Reduce the use.
 	 */
-	constructor(gl,dataFormat) {
-		this.gl=gl;
-		this.dataFormat=dataFormat;
+	constructor(renderer) {
+		this.gl=renderer.gl;
+		this.dataFormat=renderer.dataFormat;
+
+		this._initConverterProgram();
+	}
+
+	_initConverterProgram(){
 		// draw source 
 		const vConverterShaderSource=glsl` // vertex shader for drawing a circle
 			attribute vec2 a_position; // vertex position
@@ -485,7 +491,7 @@ class GLImageDataFactory {
 			uniform sampler2D u_image;
 			uniform float u_is_premult; // 1: premult->none alpha, 0: not change
 			uniform float u_range; // target range 0~u_range
-			varying vec2 v_position;
+			varying highp vec2 v_position;
 			void main(){
 				vec4 pix=texture2D(u_image,v_position); // float operation
 				if(u_is_premult!=0.){
@@ -501,7 +507,46 @@ class GLImageDataFactory {
 		`;
 		this.converterProgram=new GLProgram(this.gl,vConverterShaderSource,fConverterShaderSource);
 		this.converterProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
-		// a_position shall be the same rect order as a_src_position (getAttributeRect)
+		// a_position shall be the same rect order as a_src_position (in GLProgram.getAttributeRect)
+	}
+
+	_initAAZoomProgram(){
+		const vZoomShaderSource=glsl`
+			attribute vec2 a_position; // the position (sample space) on the drawing target
+			attribute vec2 a_src_position; // the position (sample space) from the sampled source
+			varying vec2 v_position;
+			void main(){
+				v_position=a_position;
+				gl_Position=vec4(a_position*2.0-1.0,0.0,1.0); // to clip space
+			}
+		`;
+		const fZoomShaderSource=glsl`
+			precision mediump float;
+			precision mediump sampler2D;
+			uniform sampler2D u_image;
+			uniform vec2 u_aa_step; // anti-alias pixel interval (x,y) in sampler coordinate, may be non-int
+			uniform float u_aa_cnt; // how many steps to sample
+			varying highp vec2 v_position;
+
+			const float max_its=10.;
+			void main(){
+				float cnt=u_aa_cnt+1.;
+				vec4 totalColor=texture2D(u_image,v_position)*cnt;
+				float totalCnt=cnt;
+				for(float i=1.;i<max_its;i++){
+					if(i>=cnt)break; // counting finished
+					vec2 dPos=u_aa_step*i;
+					float k=cnt-i;
+					totalColor+=texture2D(u_image,v_position+dPos)*k;
+					totalColor+=texture2D(u_image,v_position-dPos)*k;
+					totalCnt+=k+k;
+				}
+				gl_FragColor=totalColor/totalCnt; // average pixel
+			}
+		`;
+		// ================= Create program ====================
+		this.canvasProgram=new GLProgram(this.gl,vCanvasShaderSource,fCanvasShaderSource);
+		this.canvasProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
 	}
 
 	free() {
@@ -574,7 +619,7 @@ class GLImageDataFactory {
 		// If you REALLY want it to be even faster, try lookup tables ...
 		function decodeFloat16(bin) {
 			const exp=((bin>>>10)&0x1F)-15; // exp>0
-			return exp>=0?(1<<exp)*(1+(bin&0x03FF)/0x400):0;
+			return exp>=0? (1<<exp)*(1+(bin&0x03FF)/0x400):0;
 		};
 
 		// format transform
@@ -629,29 +674,6 @@ class GLImageDataFactory {
 
 		return pixels;
 	}
-
-	//src is a GLRAMBuf, tgt is a GLTexture. load the contents of src into tgt
-	// loadRAMBufToTexture(src,tgt) {
-	// 	if(tgt.type!="GLTexture") {
-	// 		throw new Error("Cannot load data into "+tgt.type);
-	// 	}
-	// 	const gl=this.gl;
-	// 	// Setup temp texture for extracting data
-	// 	const tmpTexture=GLProgram.createAndSetupTexture(gl);
-	// 	gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,src.width,src.height,0,gl.RGBA,this.dataFormat,src.data);
-
-	// 	const tmpImageData={ // create a GLTexture copy of src
-	// 		type: "GLTexture",
-	// 		data: tmpTexture,
-	// 		width: src.width,
-	// 		height: src.height,
-	// 		left: src.left,
-	// 		top: src.top,
-	// 		validArea: src // borrow values
-	// 	}
-
-	// 	gl.deleteTexture(tmpTexture);
-	// }
 
 	// get a new GLRAMBuf (with similar ids) from texture
 	/**
@@ -748,10 +770,91 @@ class GLImageDataFactory {
 
 	// ===================== Other Utilities ========================
 	/**
-	 * Get a range as small as possible that covers all non-zero pixels
-	 * return [l,r,u,b]: blank intervals in pixels. Shrinking the border these pixels won't delete non-zero pixel.
+	 * Renew the validArea of src.
+	 * src.validArea may contain zero rows or columns due to erasing operation
+	 * This function recalculates the area that contains no zero rows or columns
+	 * Guarantees 8bit precision
+	 * **NOTICE** using cpu calculation, slow
+	 * return the new valid area
+	 * @param {*} src 
 	 */
-	getImageDataNonZeroRange() {
+	recalculateValidArea(src) {
+		/**
+		 * The steps are:
+		 * 1. change src into uint8 array, to consider only alpha channel
+		 * 2. delete all-zero edges
+		 */
+		// Step 1: to alpha channel
+		const img2D=this.imageDataToUint8(src,src.validArea); // get 2d data of all range, y-flipped
+		const W=src.validArea.width;
+		const H=src.validArea.height;
 
+		// Step 2: detect zeros: zT > zB > zL > zR
+		let [zL,zR,zT,zB]=[0,W-1,0,H-1]; // non-zero edge of L, R, T, B
+
+		// zT
+		for(let j=0;j<H;j++) {
+			let isZero=true;
+			let jID=j*W;
+			for(let i=0;i<W;i++) { // test if any non-zeros
+				const id=(jID+i)*4;
+				if(img2D[id+3]) {isZero=false; break;}
+			}
+			if(isZero) zT=j+1; // peek the next line
+			else break;
+		}
+
+		if(zT==H) { // the whole image is empty
+			return {
+				left: src.validArea.left,
+				top: src.validArea.top,
+				width: 0,
+				height: 0
+			};
+		}
+
+		// zB > zT
+		for(let j=H-1;j>=0;j--) {
+			let isZero=true;
+			let jID=j*W;
+			for(let i=0;i<W;i++) {
+				const id=(jID+i)*4;
+				if(img2D[id+3]) {isZero=false; break;}
+			}
+			if(isZero) zB=j-1; // peek the prev line
+			else break;
+		}
+
+		// zL
+		for(let i=0;i<W;i++) {
+			let isZero=true;
+			for(let j=zT;j<=zB;j++) {
+				const id=(j*W+i)*4;
+				if(img2D[id+3]) {isZero=false; break;}
+			}
+			if(isZero) zL=i+1; // peek the next column
+			else break;
+		}
+
+		// zR > zL
+		for(let i=W-1;i>=0;i--) {
+			let isZero=true;
+			for(let j=zT;j<=zB;j++) {
+				const id=(j*W+i)*4;
+				if(img2D[id+3]) {isZero=false; break;}
+			}
+			if(isZero) zR=i-1; // peek the prev column
+			else break;
+		}
+
+		// now [zL,zR,zT,zB] contains the range of non-zero area
+
+		// Step 3: reassign values
+		return {
+			left: src.validArea.left+zL,
+			top: src.validArea.top+zT,
+			width: zR-zL+1,
+			height: zB-zT+1
+		};
 	}
 }
