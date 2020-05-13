@@ -16,7 +16,7 @@ class GLRenderer extends BasicRenderer {
 		}); // webgl context
 		this.canvas.addEventListener("webglcontextlost",e => {
 			// something catastrophic happened
-			console.err(e);
+			console.error(e);
 		});
 		this.canvas.addEventListener("webglcontextrestored",e => {
 			// Rescue happened

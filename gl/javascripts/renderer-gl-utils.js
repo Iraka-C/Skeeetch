@@ -561,17 +561,20 @@ class GLImageDataFactory {
 	 * Use nearest neighbor interpolation for zooming in/out
 	 * return non-premultiplied uint8 result, y-flipped from GL Texture as default
 	 */
-	imageDataToUint8(src,srcRange,targetSize,isResultPremultAlpha) {
+	imageDataToUint8(src,srcRange,targetSize,param) {
 		const gl=this.gl;
 		const program=this.converterProgram;
 
 		srcRange=srcRange||src; // init: same as src
 		targetSize=targetSize||[srcRange.width,srcRange.height]; // init: same as srcRange
-		isResultPremultAlpha=isResultPremultAlpha||false;
 		const [W,H]=targetSize;
 		if(!(W&&H)) {
 			return new Uint8ClampedArray();
 		}
+
+		param=param||{};
+		param.isResultPremultAlpha=param.isResultPremultAlpha||false;
+		param.isPreserveArrayType=param.isPreserveArrayType||false;
 
 		// Setup temp texture for extracting data
 		const tmpTexture=GLProgram.createAndSetupTexture(gl);
@@ -580,7 +583,7 @@ class GLImageDataFactory {
 		// Run program to get a zoomed texture
 		program.setSourceTexture("u_image",src.data);
 		program.setTargetTexture(tmpTexture); // draw to canvas
-		program.setUniform("u_is_premult",isResultPremultAlpha? 1:0); // pre -> non-pre
+		program.setUniform("u_is_premult",param.isResultPremultAlpha? 1:0); // pre -> non-pre
 		const attrRect=GLProgram.getAttributeRect(srcRange,src);
 		program.setAttribute("a_src_position",attrRect,2);
 		switch(this.dataFormat) {
@@ -623,9 +626,12 @@ class GLImageDataFactory {
 		};
 
 		// format transform
+		if(param.isPreserveArrayType){ // preserve the original type of array
+			return pixelsF; // return directly (may be put into WebWorker or ...)
+		}
 		switch(this.dataFormat) {
 			case gl.FLOAT:
-				return new Uint8ClampedArray(pixelsF);
+				return new Uint8ClampedArray(pixelsF); // This takes even longer time than readPixels!
 			case gl.UNSIGNED_BYTE: // same
 				return pixelsF;
 			case gl.HALF_FLOAT: // decode half float
@@ -634,7 +640,7 @@ class GLImageDataFactory {
 					res[i]=decodeFloat16(pixelsF[i]);
 				}
 				return res;
-			case gl.UNSIGNED_SHORT_4_4_4_4: // @TODO: unsupported yet
+			case gl.UNSIGNED_SHORT_4_4_4_4: // @TODO: unsupported yet, well maybe never.
 			default:
 				return null;
 		}

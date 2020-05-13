@@ -8,6 +8,8 @@
 
 #palette-hue-info{
 	height: 0em;
+	font-size: 0%;
+	margin-bottom: 1rem; /* maintain border */
 }
 
 #layer-panel-title{

@@ -1,7 +1,19 @@
 #top-menu-panel{
 	display: flex;
 	flex-direction: row;
+	justify-content: space-between;
 	background: #ccc;
+}
+
+:root { /* Sizes */
+	--filename-input-width: 10em;
+}
+
+#top-menu-left-center-panel{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	width: calc(50% + var(--filename-input-width));
 }
 
 #top-menu-left-panel,#top-menu-right-panel{
@@ -11,16 +23,19 @@
 }
 
 #top-menu-center-panel{
-	flex: auto;
-	display: flex;
+	/* flex: auto;
 	flex-direction: row;
-	justify-content: center;
+	justify-content: center; */
+	display: flex;
 }
 
 .top-block{
 	font-size: 125%;
 	padding: 0.5em;
-	transition: background 0.5s;
+	height: 1.2em;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
 }
 .top-block:hover{
 	background: #bbb;
@@ -29,11 +44,10 @@
 #filename-input{
 	color: #000000;
 	text-align: center;
+	width: var(--filename-input-width);
+	transition: background 0.5s;
 }
-#filename-input:focus{
-	background: #bbb;
-}
-#filename-input:hover{
+#filename-input:focus, #filename-input:hover{
 	background: #bbb;
 }
 
@@ -45,15 +59,13 @@
 }
 
 #brush-button{
-	display: flex;
-	flex-direction: row;
-	align-items: flex-start;
 	min-width: 6em;
 }
 
 #brush-size{
 	font-size: 80%;
 	pointer-events: none;
+	align-self: start; /* superscript */
 }
 
 #palette-button{
