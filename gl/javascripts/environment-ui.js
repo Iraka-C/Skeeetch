@@ -3,6 +3,7 @@ ENV.setUIOrientation=function(isLeft){
 	if(isLeft){ // Normal
 		$("#top-menu-panel").css("flex-direction","row");
 		$("#top-menu-right-panel").css("flex-direction","row");
+		$("#top-menu-left-center-panel").css("flex-direction","row");
 		$("#top-menu-left-panel").css("flex-direction","row");
 		$("#column-panel").css("flex-direction","row");
 		$("#layer-panel-right-menu").css("transform","none");
@@ -29,6 +30,7 @@ ENV.setUIOrientation=function(isLeft){
 	else{ // Reversed
 		$("#top-menu-panel").css("flex-direction","row-reverse");
 		$("#top-menu-right-panel").css("flex-direction","row-reverse");
+		$("#top-menu-left-center-panel").css("flex-direction","row-reverse");
 		$("#top-menu-left-panel").css("flex-direction","row-reverse");
 		$("#column-panel").css("flex-direction","row-reverse");
 		$("#layer-panel-right-menu").css("transform","scaleX(-1)");

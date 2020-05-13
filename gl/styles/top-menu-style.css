@@ -61,7 +61,12 @@
 #brush-button{
 	min-width: 6em;
 }
-
+#brush-name{
+	max-width: 10em;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
 #brush-size{
 	font-size: 80%;
 	pointer-events: none;
@@ -88,7 +93,7 @@
 	position: absolute;
 	width: 100%;
 	/* padding-bottom: 0.2em; */
-	border-radius: 0em 0em 1em 1em;
+	border-radius: 0em 0em 0.7em 0.7em;
 	color: #ccc;
 	background: #000000bb;
 	pointer-events: none;

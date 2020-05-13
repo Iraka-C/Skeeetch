@@ -31,10 +31,11 @@ BrushManager.addCustomizedBrush=function(brush){
 	// add clickable block
 	const $block=$("<td class='brush-selector-custom-item'>");
 	const $blockInput=$("<input class='custom-brush-name-label'>");
-	$blockInput.attr({"value":brush.name,"type": "text","maxLength": "16"});
+	$blockInput.attr({"value":brush.name,"type": "text","maxLength": "256"});
 	$blockInput.on("change",event => { // change name
 		brush.name=$blockInput.val();
 	});
+	EVENTS.disableInputSelection($blockInput);
 	$block.append($blockInput);
 
 	// add brushtip canvas
