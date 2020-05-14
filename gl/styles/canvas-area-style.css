@@ -19,7 +19,12 @@
 	height: 100%;
 	background: #00000055;
 	display: none;
+	pointer-events: none;
 }
+#debug-canvas{
+	position: absolute;
+}
+
 #canvas-layers-panel{
 	position: absolute;
 	width: 100%;

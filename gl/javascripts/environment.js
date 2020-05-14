@@ -73,7 +73,7 @@ ENV.init=function() { // When the page is loaded
 		PERFORMANCE.init();
 		LAYERS.init(lastLayerTreeJSON);
 
-		BrushManager.init();
+		BrushManager.init(sysSettingParams);
 		HISTORY.init();
 		FILES.init();
 

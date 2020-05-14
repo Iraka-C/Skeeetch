@@ -4,31 +4,7 @@ STORAGE.FILES={
 
 class FileWorker{
 	constructor(){
-		/**
-		 * **NOTE** even if you could load a worker locally with Blob()
-		 * it isn't privileged to access localForage
-		 */
-
-		// const errorHandler=()=>{
-		// 	this.worker.terminate();
-		// 	ENV.taskCounter.finishTask();
-		// }
-		// this.worker.onmessage=result=>{ // file saved
-		// 	const message=result.data;
-		// 	if(message.isError){ // error in worker
-		// 		errorHandler();
-		// 		return;
-		// 	}
-
-		// 	if(message.save){ // save operation finished
-		// 		this.worker.terminate();
-		// 		this.onSaved(message.id,message.chunkN);
-		// 	}
-		// };
-		// this.worker.onerror=errorHandler;
-		this.valid=false;
-		if(!window.Worker||document.location.protocol=="file:")return;
-		this.valid=true;
+		// Empty...
 	}
 	saveFile(node){
 		const imgData=node.rawImageData;

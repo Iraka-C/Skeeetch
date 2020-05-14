@@ -13,10 +13,10 @@ LAYERS.active=null;
 /**
  * generate a unique hash tag for every layer/group
  */
-LAYERS.generateHash=function(prefix) {
+LAYERS.generateHash=function() {
 	let tag="";
 	do {
-		tag=ENV.hash(prefix);
+		tag=ENV.hash("i");
 	} while(LAYERS.layerHash.hasOwnProperty(tag));
 	return tag;
 }
@@ -32,7 +32,7 @@ class LayerNode {
 		 * 2. parent: the parent node of this node. if root, set to null.
 		 * 3. name: the name of this layer
 		 */
-		this.id=id||LAYERS.generateHash("i");
+		this.id=id||LAYERS.generateHash();
 		LAYERS.layerHash[this.id]=this; // register this node
 		this.parent=null; // not specified, should be a node
 		this.children=[]; // not specified, should be an array of nodes

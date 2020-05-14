@@ -140,6 +140,9 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 			BrushManager.activeBrush.edgeHardness=newVal;
 		} // set
 	);
+	brushMenu.addSwitch(Lang("Pressure Controlled Eroding"),[Lang("Disabled"),Lang("Enabled")],null,id=>{
+		BrushManager.activeBrush.isEroding=id;
+	},()=>BrushManager.activeBrush.brushtip?BrushManager.activeBrush.isEroding:NaN);
 }
 
 BrushManager.initScatterSetting=function(brushMenu){
@@ -189,26 +192,22 @@ BrushManager.initScatterSetting=function(brushMenu){
 	});
 	// should belong to scatter, but still available when customizing brush: opacity control
 	brushMenu.addInstantNumberItem(
-		Lang("Brushtip Interval"),
+		Lang("Brushtip Density"),
 		()=>BrushManager.activeBrush.brushtip||BrushManager.activeBrush.isScatter>0? // allow customized interval
-			BrushManager.activeBrush.interval?
-			Math.round(BrushManager.activeBrush.interval*100):Lang("Auto")
-			:NaN,
+			Math.round(BrushManager.activeBrush.density):NaN,
 		"%",
 		newVal=>{ // set on input
 			if(newVal){
-				newVal=(newVal/100).clamp(0,1);
-				BrushManager.activeBrush.interval=newVal;
+				newVal=(newVal-0).clamp(1,100);
+				BrushManager.activeBrush.density=newVal;
 			}
 		},
 		(dW,oldVal)=>{ // set on scroll
-			oldVal-=0;
-			let newVal=(BrushManager.activeBrush.interval+dW/100).clamp(0,1);
-			BrushManager.activeBrush.interval=newVal;
+			let newVal=(BrushManager.activeBrush.density+dW).clamp(1,100);
+			BrushManager.activeBrush.density=newVal;
 		},
 		(dx,oldVal)=>{ // set on drag-x
-			oldVal=isNaN(oldVal)?0:oldVal-0; // numbered string also applies to isNaN
-			let newVal=(oldVal/100+dx/200).clamp(0,1);
+			let newVal=((oldVal-0)+dx/2).clamp(1,100);
 			BrushManager.activeBrush.interval=newVal;
 		}
 	);

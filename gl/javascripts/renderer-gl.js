@@ -348,10 +348,11 @@ class GLRenderer extends BasicRenderer {
 	}
 
 	deleteImageData(imgData) { // discard an image data after being used
+		this.vramManager.remove(imgData); // stop monitoring
 		if(imgData.type=="GLTexture") {
 			this.gl.deleteTexture(imgData.data);
 		}
-		imgData.isDeleted=true; // set tag, ONLY HERE!
+		//imgData.isDeleted=true; // set tag, ONLY HERE!
 	}
 
 	// clear the contents with transparent black or white
@@ -591,17 +592,18 @@ class GLRenderer extends BasicRenderer {
 
 	// swap the contents of the two image data
 	// Do not swap directly like [s1,s2]=[s2,s1]: causing object reference changing!
-	swapImageData(s1,s2) {
-		[s1.type,s2.type]=[s2.type,s1.type];
-		[s1.data,s2.data]=[s2.data,s1.data];
-		[s1.id,s2.id]=[s2.id,s1.id];
-		[s1.width,s2.width]=[s2.width,s1.width];
-		[s1.height,s2.height]=[s2.height,s1.height];
-		[s1.left,s2.left]=[s2.left,s1.left];
-		[s1.top,s2.top]=[s2.top,s1.top];
-		[s1.tagColor,s2.tagColor]=[s2.tagColor,s1.tagColor];
-		[s1.validArea,s2.validArea]=[s2.validArea,s1.validArea];
-	}
+	// Discarded: Not compatible with vRAMManager
+	// swapImageData(s1,s2) {
+	// 	[s1.type,s2.type]=[s2.type,s1.type];
+	// 	[s1.data,s2.data]=[s2.data,s1.data];
+	// 	[s1.id,s2.id]=[s2.id,s1.id];
+	// 	[s1.width,s2.width]=[s2.width,s1.width];
+	// 	[s1.height,s2.height]=[s2.height,s1.height];
+	// 	[s1.left,s2.left]=[s2.left,s1.left];
+	// 	[s1.top,s2.top]=[s2.top,s1.top];
+	// 	[s1.tagColor,s2.tagColor]=[s2.tagColor,s1.tagColor];
+	// 	[s1.validArea,s2.validArea]=[s2.validArea,s1.validArea];
+	// }
 	// ====================== Blend Functions =========================
 	// add source to target (all imagedata),
 	blendImageData(src,tgt,param) {
@@ -686,8 +688,9 @@ class GLRenderer extends BasicRenderer {
 	 * @param {"GLTexture"} src GLTexture image data
 	 */
 	getBrushtipImageData(src) {
+		this.vramManager.verify(src);
 		const MAXL=500;
-		const nArea=this.imageDataFactory.recalculateValidArea(src,0.5);
+		const nArea=this.imageDataFactory.recalculateValidArea(src,0);
 
 		// create brushtip
 		const nW=nArea.width;
@@ -706,7 +709,39 @@ class GLRenderer extends BasicRenderer {
 		const bImg=this.createImageData(nL,nL);
 		bImg.left=nArea.left-padW;
 		bImg.top=nArea.top-padH;
+		this.vramManager.addWhiteList(bImg); // No need to freeze brushtip always
 		this.blendImageData(src,bImg,{mode:GLTextureBlender.SOURCE});
+		return bImg;
+	}
+
+	/**
+	 * 
+	 * @param {"GLTexture"} src brushtipImageData of a brush
+	 */
+	copyBrushtipImageData(src) {
+		// transfer image data (place at middle)
+		const bImg=this.createImageData(src.width,src.height);
+		bImg.left=src.left;
+		bImg.top=src.top;
+		this.vramManager.addWhiteList(bImg); // No need to freeze brushtip always
+		this.blendImageData(src,bImg,{mode:GLTextureBlender.SOURCE});
+		return bImg;
+	}
+
+	// tgt is a RAMBuf8 but lack a real texture
+	loadBrushtipImageData(tgt,data){
+		if(tgt.type!="RAMBuf8"){
+			console.warn("Not RAMBuf8 brushtip imagedata!");
+			return;
+		}
+		const bImg=this.createImageData(tgt.width,tgt.height);
+		bImg.left=tgt.left;
+		bImg.top=tgt.top;
+		this.vramManager.addWhiteList(bImg); // No need to freeze brushtip always
+
+		// loading
+		tgt.data=data;
+		this.loadToImageData(bImg,tgt);
 		return bImg;
 	}
 	// ====================== Data type transforms =======================
@@ -733,7 +768,7 @@ class GLRenderer extends BasicRenderer {
 				this.textureBlender.blendTexture(tmpImageData,target,{mode: GLRenderer.SOURCE});
 				gl.deleteTexture(tmpTexture);
 			}
-			else if(img.type=="GLRAMBuf8") { // load a CTX2D ImageData, defined in Storage
+			else if(img.type=="RAMBuf8") { // load a CTX2D ImageData, defined in Storage
 				if(!(target.width&&target.height)) { // the target is empty
 					return; // return directly
 				}

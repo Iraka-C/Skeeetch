@@ -493,8 +493,8 @@ class CanvasNode extends ContentNode {
 		return Object.assign(super.getStorageJSON(),{
 			type: "CanvasNode",
 			rawImageData: { // Dummy structure for loading
-				type: "GLRAMBuf8",
-				data: 1, // not yet, assign when loading
+				type: "RAMBuf8", // <= Not Compatible!
+				data: {}, // not yet, assign when loading
 				id: img.id,
 				tagColor: img.tagColor,
 				bitDepth: 8,

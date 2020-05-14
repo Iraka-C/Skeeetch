@@ -101,4 +101,41 @@ STORAGE.SETTING.saveAllSettings=function(){
 		},
 		version: ENV.version
 	}));
+
+	STORAGE.SETTING.saveBrushes();
+}
+
+STORAGE.SETTING.saveBrushes=function(){
+	const defaultBrushJSON=BrushManager.brushes;
+
+	const N=BrushManager.customBrushes.length;
+	const customBrushJSON=new Array(N); // deep copy
+	for(let i=0;i<N;i++){
+		customBrushJSON[i]=Object.assign({},BrushManager.customBrushes[i]);
+		if(customBrushJSON[i].brushtip){
+			customBrushJSON[i].brushtip=Object.assign({},BrushManager.customBrushes[i].brushtip);
+			Object.assign(customBrushJSON[i].brushtip,{
+				type: "RAMBuf8",
+				data: {}, // not yet, assign when loading
+				bitDepth: 8
+			});
+		}
+	}
+	const activeJSON=BrushManager.activeBrush.isCustom?{
+		isCustom: true,
+		id: BrushManager.activeBrush.id
+	}:{
+		isCustom: false,
+		id: BrushManager.activeBrush.proto
+	};
+	const brushJSON=JSON.stringify({
+		default: defaultBrushJSON,
+		custom: customBrushJSON, // imageData.data stored in localForage
+		active: activeJSON
+	});
+	localStorage.setItem("brush-setting",brushJSON);
+}
+
+STORAGE.SETTING.getBrushes=function(){
+	return JSON.parse(localStorage.getItem("brush-setting"));
 }

@@ -13,6 +13,7 @@ BrushManager.brushes=[
 		isAlphaPressure:0,
 		edgeHardness:1.0, // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
 		blendMode:0, // 0: normal, -1: erase
+		isEroding: 0, // auto eroding brushtip by pressure
 
 		brushtip: null, // null: round tip, GLTexture: customized
 		// following valid when customized brushtip
@@ -25,7 +26,7 @@ BrushManager.brushes=[
 		randScale: 0.5, // random scaling, unit as basic size
 		randRot: 0.5, // random rotation, unit as 1 full circle
 		randOpa: 0.5, // random opacity, unit same as minAlpha
-		interval: 0.05 // 1/interval=quality. 0 for auto
+		density: 20 // auto when round & no scatter
 	},
 	// {
 	// 	name:"spray gun",
@@ -50,7 +51,8 @@ BrushManager.brushes=[
 		blendMode:1, // 1: with color adding
 		// paint brush specialized
 		extension: 0.8, // how much color to pick from sampler
-		isScatter: 0
+		isScatter: 0,
+		density: 20 // auto when round & no scatter
 	},
 	{
 		name:"smudge brush",
@@ -70,6 +72,7 @@ BrushManager.brushes=[
 		isRotWithStroke: 0, // is to rotate the brushtip along the stroke direction
 		// doesn't allow scatter
 		isScatter: -1 // -1 for not allowed
+		// fixed density
 	},
 	{
 		name:"eraser",
@@ -81,9 +84,19 @@ BrushManager.brushes=[
 		isAlphaPressure:0,
 		edgeHardness:1.0,
 		blendMode:-1,
-		isScatter: 0
+		isScatter: 0,
+		density: 20 // auto when round & no scatter
 	}
 ];
+BrushManager.customBrushes=[]; // customized brushes
+BrushManager.brushHash=new Map(); // hash code for customized brush
+BrushManager.generateHash=function(){
+	let tag="";
+	do {
+		tag=ENV.hash("b");
+	} while(BrushManager.brushHash.has(tag));
+	return tag;
+}
 
 BrushManager.general={
 	sensitivity:1.0, // 0.0 ~ 2.0: 1=normal 0: dull, 2: sharp
@@ -108,13 +121,39 @@ BrushManager.sizeList=[
 
 // ===================== functions ======================
 
-BrushManager.init=function(){
-	for(const brush of BrushManager.brushes){ // translate names
-		brush.name=Lang(brush.name);
+BrushManager.init=function(sysSettingParams){
+	let brushSettings=null;
+	if(!sysSettingParams.windowParams.query.reset){
+		brushSettings=STORAGE.SETTING.getBrushes();
 	}
-	// @TODO: add load customized brushes from settings
-	BrushManager.initBrushSelector();
-	BrushManager.setActiveBrush(BrushManager.brushes[0]); // set active
+	if(brushSettings){ // get default brush setting
+		if(brushSettings.default){ // assign value to make sure new setting compatible
+			for(let i=0;i<brushSettings.default.length;i++){
+				Object.assign(BrushManager.brushes[i],brushSettings.default[i]);
+			}
+		}
+		BrushManager.initBrushSelector(brushSettings.custom);
+		const activeBrush=brushSettings.active;
+		if(activeBrush){
+			if(activeBrush.isCustom){ // set custom active
+				BrushManager.setActiveBrush(BrushManager.brushHash.get(activeBrush.id));
+			}
+			else{ // set fixed active
+				BrushManager.setActiveBrush(BrushManager.brushes[activeBrush.id]);
+			}
+		}
+		else{ // set default active
+			BrushManager.setActiveBrush(BrushManager.brushes[0]);
+		}
+		
+	}
+	else{ // translate brushes
+		for(const brush of BrushManager.brushes){ // translate names
+			brush.name=Lang(brush.name);
+		}
+		BrushManager.initBrushSelector();
+		BrushManager.setActiveBrush(BrushManager.brushes[0]); // set default active
+	}
 
 	// init brush setting menus
 	const brushMenu=BrushManager.initBrushSettingMenu();

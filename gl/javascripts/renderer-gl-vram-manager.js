@@ -5,8 +5,8 @@ class GLVRAMManager {
 		this.maxVRAMSize=maxSize||(1024*1024*1024*4); // const, 4G at most @TODO: add settings
 		this.vRAMUsage=0; // total vram usage verified by manager
 		this.ramUsage=0;
-		this.activeTextures=new Map(); // recently active textures -> size
-		this.whiteList=new Map(); // white list: won't be compressed
+		this.activeTextures=new Map(); // recently active textures -> size, all GLTexture
+		this.whiteList=new Map(); // white list: won't be compressed, all GLTexture
 
 		this.lastVerified=null;
 		this.lastVerifiedSize=0;
@@ -38,26 +38,27 @@ class GLVRAMManager {
 		const remainingSize=this.maxVRAMSize-this.vRAMUsage;
 		let sizeToRelease=size-remainingSize; // how many space needed to release from VRAM
 
-		if(sizeToRelease>0) { // need to release this much VRAM space into RAM
-			for(const [oldData,oldSize] of this.activeTextures) { // Delete first
-				// Even if oldData size has changed, use stored oldSize to update usage
-				// The more you expanded, the more you will be frozen
-				if(oldData.isDeleted) { // already deleted/released
-					if(oldData.type=="GLTexture") {
-						this.vRAMUsage-=oldSize;
-						sizeToRelease-=oldSize;
-						//console.log("Deleted Texture "+oldData.id+" release "+(oldSize/1048576).toFixed(2)+"MB");
-					}
-					else { // GLRAMBuf
-						this.ramUsage-=oldSize;
-					}
-					this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
-				}
-				if(sizeToRelease<=0) { // get enough space
-					break;
-				}
-			}
-		}
+		// Deleted reported in this.remove(imgData)
+		// if(sizeToRelease>0) { // need to release this much VRAM space into RAM
+		// 	for(const [oldData,oldSize] of this.activeTextures) { // Delete first
+		// 		// Even if oldData size has changed, use stored oldSize to update usage
+		// 		// The more you expanded, the more you will be frozen
+		// 		if(oldData.isDeleted) { // already deleted/released
+		// 			if(oldData.type=="GLTexture") {
+		// 				this.vRAMUsage-=oldSize;
+		// 				sizeToRelease-=oldSize;
+		// 				//console.log("Deleted Texture "+oldData.id+" release "+(oldSize/1048576).toFixed(2)+"MB");
+		// 			}
+		// 			else { // GLRAMBuf
+		// 				this.ramUsage-=oldSize;
+		// 			}
+		// 			this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
+		// 		}
+		// 		if(sizeToRelease<=0) { // get enough space
+		// 			break;
+		// 		}
+		// 	}
+		// }
 		// @TODO: remove deleted texture from whitelist
 		if(sizeToRelease>0) { // still need to release
 			for(const [oldData,oldSize] of this.activeTextures) {
@@ -105,6 +106,23 @@ class GLVRAMManager {
 			const prevSize=this.activeTextures.get(imgData);
 			this.activeTextures.delete(imgData); // anyway take it out first
 			this.vRAMUsage-=prevSize;
+		}
+	}
+
+	remove(imgData){
+		const size=imgData.width*imgData.height*4*imgData.bitDepth/8; // in bytes
+		if(imgData.type=="GLRAMBuf") { // frozen texture to be added
+			this.ramUsage-=size;
+		}
+		else if(imgData.type=="GLTexture"){
+			if(this.whiteList.has(imgData)){ // already in whitelist
+				const prevSize=this.whiteList.get(imgData);
+				this.vRAMUsage-=prevSize;
+			}
+			else if(this.activeTextures.has(imgData)){ // already in active
+				const prevSize=this.activeTextures.get(imgData);
+				this.vRAMUsage-=prevSize;
+			}
 		}
 	}
 }
