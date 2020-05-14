@@ -767,9 +767,9 @@ class GLRenderer extends BasicRenderer {
 		return this.imageDataFactory.getRAMBufFromTexture(src,srcRange);
 	}
 
-	getUint8ArrayFromImageData(src,srcRange,targetSize) {
+	getUint8ArrayFromImageData(src,srcRange,targetSize,param) {
 		this.vramManager.verify(src);
-		return this.imageDataFactory.imageDataToUint8(src,srcRange,targetSize);
+		return this.imageDataFactory.imageDataToUint8(src,srcRange,targetSize,param);
 	}
 
 	// Get a <canvas> element with a CanvasRenderingContext2D containing data in src

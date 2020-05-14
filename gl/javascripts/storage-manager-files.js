@@ -2,43 +2,156 @@ STORAGE.FILES={
 	isNowActiveLayerSaved: true
 };
 
-STORAGE.FILES.init=function() {
-	// get the store of layer imageData & brushtips
-	STORAGE.FILES.saveFileWorker=null; // doesn't exist
-	if(window.Worker){ // Create file saver worker
-		let worker=null;
-		if(document.location.protocol!="file:"){ // online fetch
-			worker=new Worker("./javascripts/storage-manager-files-worker.js");
-		}
-		else{ // cannot create worker with direct url, using blob
-			const blobUrl=URL.createObjectURL(new Blob(
-				["("+fileWorkerScript.toString()+")()"],
-				{type: "text/javascript"}
-			));
-			worker=new Worker(blobUrl);
-			URL.revokeObjectURL(blobUrl);
+class FileWorker{
+	constructor(){
+		/**
+		 * **NOTE** even if you could load a worker locally with Blob()
+		 * it isn't privileged to access localForage
+		 */
 
-			// if loaded with blob, init script with message
-			const href=document.location.href;
-			worker.postMessage({ // on init
-				url: href.substring(0,href.lastIndexOf("/"))+"/"
+		// const errorHandler=()=>{
+		// 	this.worker.terminate();
+		// 	ENV.taskCounter.finishTask();
+		// }
+		// this.worker.onmessage=result=>{ // file saved
+		// 	const message=result.data;
+		// 	if(message.isError){ // error in worker
+		// 		errorHandler();
+		// 		return;
+		// 	}
+
+		// 	if(message.save){ // save operation finished
+		// 		this.worker.terminate();
+		// 		this.onSaved(message.id,message.chunkN);
+		// 	}
+		// };
+		// this.worker.onerror=errorHandler;
+		this.valid=false;
+		if(!window.Worker||document.location.protocol=="file:")return;
+		this.valid=true;
+	}
+	saveFile(node){
+		const imgData=node.rawImageData;
+		const vArea=imgData.validArea;
+
+		if(!window.Worker||document.location.protocol=="file:"){ // no worker available
+			
+			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea);
+
+			console.log("Local Save");
+			const CHUNK_SIZE=1024*1024*64; // 64MB, largest chunk browser may store in IDB
+			const data=Compressor.encode(rawData); // encode first!
+			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
+
+			const chunkN=Math.max(Math.ceil(data.length/CHUNK_SIZE),1); // at lease 1 chunk
+			
+			ENV.taskCounter.startTask(); // start node imagedata structure task
+			const bufPromise=STORAGE.FILES.layerStore.setItem(node.id,chunkN).finally(()=>{
+				ENV.taskCounter.finishTask();
+			});
+
+			const chunkPromises=[bufPromise];
+			for(let i=0;i<chunkN;i++) { // save a slice of data
+				const key=node.id+"#"+i;
+				const chunk=data.slice(i*CHUNK_SIZE,(i+1)*CHUNK_SIZE);
+				const kPromise=STORAGE.FILES.layerStore.setItem(key,chunk);
+				ENV.taskCounter.startTask(); // start save chunk i task
+				chunkPromises.push(kPromise.finally(()=>{
+					ENV.taskCounter.finishTask(); // end save chunk i task
+				}));
+			}
+			STORAGE.FILES.removeContent(node.id,chunkN); // do separately
+
+			return Promise.all(chunkPromises);
+		}
+		else return new Promise((resolve,reject)=>{
+			const worker=new Worker("./javascripts/storage-manager-files-worker.js");
+			worker.onmessage=result=>{ // file saved
+				worker.terminate();
+
+				const message=result.data;
+				if(message.isError){ // error in worker
+					reject();
+					return;
+				}
+		
+				const chunkN=message.chunkN;
+				STORAGE.FILES.removeContent(node.id,chunkN); // do separately
+				resolve(chunkN);
+			};
+			worker.onerror=err=>{
+				worker.terminate();
+				reject(err);
+			}
+
+			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea,null,{
+				isPreserveArrayType: true
+			});
+			worker.postMessage({
+				id: node.id,
+				rawData: rawData,
+				save: true
+			});
+		});
+	}
+	getFile(nodeID){
+		if(!window.Worker||document.location.protocol=="file:"){ // no worker available
+			return STORAGE.FILES.layerStore.getItem(nodeID).then(chunkN => {
+				if(!chunkN){ // Not stored or zero chunk
+					return null;
+				}
+		
+				//const chunkN=imgBuf.data;
+				const chunkPromises=[];
+				for(let i=0;i<chunkN;i++) { // get data slices
+					const key=nodeID+"#"+i;
+					const kPromise=STORAGE.FILES.layerStore.getItem(key);
+					chunkPromises.push(kPromise);
+				}
+				return Promise.all(chunkPromises).then(chunks=>{
+					// reconstruct data
+					let totalLen=0;
+					for(const v of chunks){
+						totalLen+=v.length;
+					}
+					let data=new Uint8Array(totalLen);
+					let offset=0;
+					for(const v of chunks){
+						data.set(v,offset);
+						offset+=v.length;
+					}
+
+					return Compressor.decode(data); // extract
+				});
 			});
 		}
+		else return new Promise((resolve,reject)=>{
+			const worker=new Worker("./javascripts/storage-manager-files-worker.js");
+			worker.onmessage=result=>{ // file saved
+				worker.terminate();
 
-		STORAGE.FILES.saveFileWorker=worker;
-		if(worker){ // created
-			worker.promise=function(){ // wrap with Promise
-				return new Promise((resolve,reject)=>{
-					worker.onmessage=result=>{
-						resolve(result.data);
-					};
-					worker.onerror=error=>{
-						reject(error);
-					};
-				});
+				const message=result.data;
+				if(message.isError){ // error in worker
+					reject();
+					return;
+				}
+		
+				const data=message.data;
+				resolve(data);
 			};
-		}
+			worker.onerror=err=>{
+				worker.terminate();
+				reject(err);
+			}
+			worker.postMessage({
+				id: nodeID,
+				get: true
+			});
+		});
 	}
+}
+
+STORAGE.FILES.init=function() { // @TODO: create multiple instances of workers
 	STORAGE.FILES.layerStore=localforage.createInstance({name: "img"});
 	STORAGE.FILES.brushtipStore=localforage.createInstance({name: "brush"});
 }
@@ -65,57 +178,23 @@ STORAGE.FILES.requestSaveContentChanges=function() {
 // @TODO: change flag into all + hint when exit
 // Max length of 1 key-value is 127MB!
 // isForceSaving is only used when saving manually
-STORAGE.FILES.savingList=new Set();
+STORAGE.FILES.savingList=new Map();
 STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 	if(!ENV.displaySettings.isAutoSave&&!isForceSaving)return; // do not require contents saving
 	if(node) { // operating on a CanvasNode
 		console.log("Saving contents ...");
 		
-		STORAGE.FILES.savingList.add(node.id);
+		STORAGE.FILES.savingList.set(node.id,node);
 		$("#icon").attr("href","./resources/favicon-working.png");
 
 		// There shouldn't be several save requests in 1 frame...
 		setTimeout(()=>{ // give icon a chance to change
 			// Get buffer out of valid area
-			const imgData=node.rawImageData;
-			const vArea=imgData.validArea;
 
-			// Start Saving
-			const CHUNK_SIZE=1024*1024*64; // 64MB, largest chunk browser may store in IDB
-
-			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea);
-			if(STORAGE.FILES.saveFileWorker){ // can be saved in background
-				console.log("Posting...");
-				STORAGE.FILES.saveFileWorker.postMessage(rawData); // @TODO: Promise this
-				STORAGE.FILES.saveFileWorker.promise().then(data=>{
-					console.log("Received from worker:",data);
-				});
-			}
-
-			const data=Compressor.encode(rawData); // encode first!
-			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
-
-			const chunkN=Math.max(Math.ceil(data.length/CHUNK_SIZE),1); // at lease 1 chunk
-			
-			ENV.taskCounter.startTask(); // start node imagedata structure task
-			const bufPromise=STORAGE.FILES.layerStore.setItem(node.id,chunkN).finally(()=>{
-				ENV.taskCounter.finishTask();
-			});
-
-			ENV.taskCounter.startTask(); // start save chunk task
-			const chunkPromises=[bufPromise];
-			for(let i=0;i<chunkN;i++) { // save a slice of data
-				const key=node.id+"#"+i;
-				const chunk=data.slice(i*CHUNK_SIZE,(i+1)*CHUNK_SIZE);
-				const kPromise=STORAGE.FILES.layerStore.setItem(key,chunk);
-				ENV.taskCounter.startTask(); // start save chunk i task
-				chunkPromises.push(kPromise.finally(()=>{
-					ENV.taskCounter.finishTask(); // end save chunk i task
-				}));
-			}
-
-			Promise.all(chunkPromises).then(v => {
-				//console.log(node.id+" Saved");
+			// Start Saving, try saver first
+			const fileSaver=new FileWorker();
+			ENV.taskCounter.startTask();
+			fileSaver.saveFile(node).then(()=>{
 				STORAGE.FILES.savingList.delete(node.id); // delete first
 				node.isContentChanged=false;
 				console.log(node.id+" Saved");
@@ -123,15 +202,14 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 					STORAGE.FILES.isNowActiveLayerSaved=true;
 					$("#icon").attr("href","./resources/favicon.png");
 				}
-			}).catch(err => {
+			}).catch(err=>{
 				STORAGE.FILES.savingList.delete(node.id); // remove failed task
 				$("#icon").attr("href","./resources/favicon.png");
 				console.warn(err);
 			}).finally(()=>{
-				ENV.taskCounter.finishTask(); // finish save chunk task
+				ENV.taskCounter.finishTask();
 			});
-
-			STORAGE.FILES.removeContent(node.id,chunkN); // do separately
+			
 		},0);
 	}
 }
@@ -169,35 +247,8 @@ STORAGE.FILES.isUnsaved=function(){
 }
 
 STORAGE.FILES.getContent=function(id){
-	return STORAGE.FILES.layerStore.getItem(id).then(chunkN => {
-		if(!chunkN){ // Not stored or zero chunk
-			return null;
-		}
-
-		//const chunkN=imgBuf.data;
-		const chunkPromises=[];
-		for(let i=0;i<chunkN;i++) { // get data slices
-			const key=id+"#"+i;
-			const kPromise=STORAGE.FILES.layerStore.getItem(key);
-			chunkPromises.push(kPromise);
-		}
-		return Promise.all(chunkPromises).then(chunks=>{
-			// reconstruct data
-			let totalLen=0;
-			for(const v of chunks){
-				totalLen+=v.length;
-			}
-			let data=new Uint8Array(totalLen);
-			let offset=0;
-			for(const v of chunks){
-				data.set(v,offset);
-				offset+=v.length;
-			}
-
-			//imgBuf.data=Compressor.decode(data);
-			return Compressor.decode(data); // extract
-		});
-	});
+	let fileReader=new FileWorker();
+	return fileReader.getFile(id);
 }
 
 STORAGE.FILES.removeContent=function(id,startChunk) {
