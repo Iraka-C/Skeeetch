@@ -73,7 +73,7 @@ class SettingManager{
 		let _updateFunc=function(){
 			if(valFunc){
 				const val=valFunc();
-				if(isNaN(val)){ // invalid: hide
+				if(typeof(val)!="string"&&isNaN(val)){ // invalid: hide
 					$row.css("display","none");
 				}
 				else{ // a value returned: show

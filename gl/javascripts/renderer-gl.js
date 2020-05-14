@@ -687,12 +687,14 @@ class GLRenderer extends BasicRenderer {
 	 */
 	getBrushtipImageData(src) {
 		const MAXL=500;
-		const nArea=this.imageDataFactory.recalculateValidArea(src);
+		const nArea=this.imageDataFactory.recalculateValidArea(src,0.5);
 
 		// create brushtip
 		const nW=nArea.width;
 		const nH=nArea.height;
-		if(!nW||!nH)return null; // empty
+		if(nW<3||nH<3){ // too few pixels
+			return null; // empty
+		}
 		const nL=Math.max(nW,nH);
 
 		const padW=(nL-nW)/2;

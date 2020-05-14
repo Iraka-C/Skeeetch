@@ -4,6 +4,41 @@ STORAGE.FILES={
 
 STORAGE.FILES.init=function() {
 	// get the store of layer imageData & brushtips
+	STORAGE.FILES.saveFileWorker=null; // doesn't exist
+	if(window.Worker){ // Create file saver worker
+		let worker=null;
+		if(document.location.protocol!="file:"){ // online fetch
+			worker=new Worker("./javascripts/storage-manager-files-worker.js");
+		}
+		else{ // cannot create worker with direct url, using blob
+			const blobUrl=URL.createObjectURL(new Blob(
+				["("+fileWorkerScript.toString()+")()"],
+				{type: "text/javascript"}
+			));
+			worker=new Worker(blobUrl);
+			URL.revokeObjectURL(blobUrl);
+
+			// if loaded with blob, init script with message
+			const href=document.location.href;
+			worker.postMessage({ // on init
+				url: href.substring(0,href.lastIndexOf("/"))+"/"
+			});
+		}
+
+		STORAGE.FILES.saveFileWorker=worker;
+		if(worker){ // created
+			worker.promise=function(){ // wrap with Promise
+				return new Promise((resolve,reject)=>{
+					worker.onmessage=result=>{
+						resolve(result.data);
+					};
+					worker.onerror=error=>{
+						reject(error);
+					};
+				});
+			};
+		}
+	}
 	STORAGE.FILES.layerStore=localforage.createInstance({name: "img"});
 	STORAGE.FILES.brushtipStore=localforage.createInstance({name: "brush"});
 }
@@ -49,6 +84,14 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 			const CHUNK_SIZE=1024*1024*64; // 64MB, largest chunk browser may store in IDB
 
 			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea);
+			if(STORAGE.FILES.saveFileWorker){ // can be saved in background
+				console.log("Posting...");
+				STORAGE.FILES.saveFileWorker.postMessage(rawData); // @TODO: Promise this
+				STORAGE.FILES.saveFileWorker.promise().then(data=>{
+					console.log("Received from worker:",data);
+				});
+			}
+
 			const data=Compressor.encode(rawData); // encode first!
 			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
 

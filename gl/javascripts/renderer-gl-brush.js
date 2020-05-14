@@ -346,7 +346,10 @@ class GLBrushRenderer {
 	 * @param {Number} softRange 
 	 */
 	render(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange) {
-		if(brush.blendMode==2){ // smudge
+		if(brush.brushtip){ // customized brushtip
+			// blabla...
+		}
+		else if(brush.blendMode==2){ // smudge
 			this.renderSamplingCircle(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange);
 		}
 		else if(brush.blendMode==1){ // paint
@@ -381,6 +384,8 @@ class GLBrushRenderer {
 			pos[1]-target.top
 		],radius,color,softRange,brush.blendMode,isOpacityLocked);
 
+		// Update valid area
+		// In other brushes, valid area update is made by blendTexture()
 		if(!isOpacityLocked&&brush.blendMode>=0){ // valid area changed
 			const R=radius+1; // extend 1 pixel for border
 			const circleArea={

@@ -54,14 +54,48 @@ BrushManager.addCustomizedBrush=function(brush){
 	$("#brush-selector-custom").children().append($row);
 }
 BrushManager.initCustomizedBrush=function(){
-	$("#brush-selector-new").click(e=>{
+	EventDistributer.footbarHint($("#brush-selector-new"),() => Lang("Add new brush based on current brush"));
+	EventDistributer.footbarHint($("#brush-selector-delete"),() => Lang("Delete current brush"));
+	EventDistributer.footbarHint($("#brush-selector-set"),() => Lang("Set contents of current layer as brushtip"));
+	EventDistributer.footbarHint($("#brush-selector-clear"),() => Lang("Reset brushtip"));
+
+	function addNewBrush(){
 		const brush=BrushManager.activeBrush;
 		const newBrush=Object.assign({},brush);
 		newBrush.name=(Lang("new-brush-prefix")+newBrush.name).slice(-16); // always 16 length
 		newBrush.isCustom=true; // custom flag
+		// @TODO: copy brushtip
 		BrushManager.customBrushes.push(newBrush); // add to list
 		BrushManager.addCustomizedBrush(newBrush); // add to selector
+		return newBrush;
+	}
+	function updateBrushtipThumb(brush){ // Update canvas in selector
+		const bImg=brush.brushtip;
+		const cv=brush.$row.find(".brush-selector-canvas-container").children()[0];
+		if(!bImg){ // clear contents
+			cv.width=cv.height=0;
+			return;
+		}
+		cv.width=bImg.width; // in fact it's a square
+		cv.height=bImg.height;
+		const ctx=cv.getContext("2d");
+		const imgData2d=ctx.createImageData(bImg.width,bImg.height);
+
+		// get image contents
+		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(bImg,null,[bImg.width,bImg.height]);
+		for(let i=0;i<pixels.length;i+=4){ // set as white color
+			pixels[i]=255;
+			pixels[i+1]=255;
+			pixels[i+2]=255;
+		}
+		imgData2d.data.set(pixels); // copy pixel data
+		ctx.putImageData(imgData2d,0,0);
+	}
+
+	$("#brush-selector-new").click(e=>{
+		const newBrush=addNewBrush();
 		BrushManager.setActiveBrush(newBrush); // @TODO: scroll to active
+		// updated in setActive
 	});
 	$("#brush-selector-delete").click(e=>{
 		const brush=BrushManager.activeBrush;
@@ -92,18 +126,20 @@ BrushManager.initCustomizedBrush=function(){
 			}
 		}
 		brush.$row.remove(); // remove from selector
+		// update in setActive
 	});
 	$("#brush-selector-set").click(e=>{
-		const brush=BrushManager.activeBrush;
-		if(!brush.isCustom){ // cannot set primitive brush
-			return;
-		}
-
 		// get brushtip image data
 		const nowImg=LAYERS.active.maskedImageData;
 		const bImg=CANVAS.renderer.getBrushtipImageData(nowImg);
 		if(!bImg){ // no pixel
+			EventDistributer.footbarHint.showInfo("ERROR: No solid pixel found to set as brushtip");
 			return;
+		}
+
+		let brush=BrushManager.activeBrush;
+		if(!brush.isCustom){ // primitive brush, add new one
+			brush=addNewBrush();
 		}
 
 		// clear last brushtip (if there is one)
@@ -111,23 +147,9 @@ BrushManager.initCustomizedBrush=function(){
 			CANVAS.renderer.deleteImageData(brush.brushtip);
 		}
 		brush.brushtip=bImg;
-
-		// Update selector canvas
-		const cv=brush.$row.find(".brush-selector-canvas-container").children()[0];
-		cv.width=bImg.width; // in fact it's a square
-		cv.height=bImg.height;
-		const ctx=cv.getContext("2d");
-		const imgData2d=ctx.createImageData(bImg.width,bImg.height);
-
-		// get image contents
-		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(bImg,null,[bImg.width,bImg.height]);
-		for(let i=0;i<pixels.length;i+=4){ // set as white color
-			pixels[i]=255;
-			pixels[i+1]=255;
-			pixels[i+2]=255;
-		}
-		imgData2d.data.set(pixels); // copy pixel data
-		ctx.putImageData(imgData2d,0,0);
+		updateBrushtipThumb(brush);
+		
+		BrushManager.setActiveBrush(brush); // update menu & selector (if new brush created)
 	});
 	$("#brush-selector-clear").click(e=>{
 		const brush=BrushManager.activeBrush;
@@ -139,10 +161,9 @@ BrushManager.initCustomizedBrush=function(){
 		if(brush.brushtip){ // already customized, delete it
 			CANVAS.renderer.deleteImageData(brush.brushtip);
 			brush.brushtip=null;
-			
-			const cv=brush.$row.find(".brush-selector-canvas-container").children()[0];
-			cv.width=0; // clear
-			cv.height=0;
+			updateBrushtipThumb(brush);
 		}
+		
+		BrushManager.brushMenu.update(); // update related items
 	});
 }

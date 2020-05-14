@@ -2,6 +2,7 @@ SMath={};
 
 
 Number.prototype.clamp=function(min,max){
+	if(isNaN(this))return min;
 	return Math.min(Math.max(this,min),max);
 };
 

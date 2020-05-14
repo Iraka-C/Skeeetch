@@ -13,8 +13,19 @@ BrushManager.brushes=[
 		isAlphaPressure:0,
 		edgeHardness:1.0, // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
 		blendMode:0, // 0: normal, -1: erase
+
 		brushtip: null, // null: round tip, GLTexture: customized
-		isScatter: 0
+		// following valid when customized brushtip
+		brushtipRot: 0, // degree of brushtip pattern rotation.
+		isRotWithStroke: 0, // is to rotate the brushtip along the stroke direction
+
+		isScatter: 0,
+		// following valid when scattering
+		scatRad: 1, // random translation range, unit as basic size (size pressure controlled)
+		randScale: 0.5, // random scaling, unit as basic size
+		randRot: 0.5, // random rotation, unit as 1 full circle
+		randOpa: 0.5, // random opacity, unit same as minAlpha
+		interval: 0.05 // 1/interval=quality. 0 for auto
 	},
 	// {
 	// 	name:"spray gun",
@@ -26,11 +37,6 @@ BrushManager.brushes=[
 	// 	isAlphaPressure:1,
 	// 	edgeHardness:0,
 	// 	blendMode:0,
-	// 	quality: 10, // now many brushtips on one pixel. 0 for auto
-	// 	isRotWithStroke: 0, // is to rotate the brushtip along the stroke direction
-	// 	randTrans: 1, // random translation range, unit as basic size (size pressure controlled)
-	// 	randScale: 0.5, // random scaling, unit as basic size
-	// 	randRot: 0.5 // random rotation, unit as 1 full circle
 	// },
 	{
 		name:"paint brush",
@@ -57,7 +63,13 @@ BrushManager.brushes=[
 		edgeHardness:0.5,
 		blendMode:2, // 2: with smudging
 		extension: 0.8, // how much color to pick from sampler
+
+		brushtip: null, // null: round tip, GLTexture: customized
+		// following valid when customized brushtip
+		brushtipRot: 0, // degree of brushtip pattern rotation.
+		isRotWithStroke: 0, // is to rotate the brushtip along the stroke direction
 		// doesn't allow scatter
+		isScatter: -1 // -1 for not allowed
 	},
 	{
 		name:"eraser",

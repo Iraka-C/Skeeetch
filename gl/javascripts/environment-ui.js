@@ -54,4 +54,5 @@ ENV.setUIOrientation=function(isLeft){
 		$("#left-menu-panels .setting-panel").children().addClass("menu-scroll-wrapper").removeClass("left-menu-scroll-wrapper");
 		$("#brush-button").css("justify-content","flex-end");
 	}
+	PALETTE.refreshUIParam(); // refresh palette position
 }

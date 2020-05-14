@@ -71,9 +71,21 @@ LANG_ZH={
 
 	"Stylus Control":"数位笔",
 	"stylus-pressure-sensitivity":"笔压灵敏度",
-	"stroke-smoothness":"抖动修正",
+	"stroke-smoothness":"笔尖抖动修正",
 
 	"new-brush-prefix":"新",
+
+	"Pattern Control":"形态控制",
+	"Brushtip Interval":"笔尖间距",
+	"Brushtip Rotation":"笔尖旋转角度",
+	"Rotate With Stroke":"自动笔尖旋转",
+	"Scattering":"散布",
+	"Scattering Radius":"散布强度",
+	"Random Size":"尺寸抖动",
+	"Random Rotation":"角度抖动",
+	"Random Opacity":"不透明度抖动",
+	"circ":"圈",
+	"Auto":"自动",
 
 	// Layer
 	"layer-opacity-label-shown":"调节图层不透明度。右键隐藏图层",

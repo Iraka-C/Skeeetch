@@ -51,7 +51,7 @@ BrushManager.initMenuSizeSection=function(brushMenu){
 
 BrushManager.initMenuOpacitySection=function(brushMenu){
 	brushMenu.addSectionTitle(Lang("Opacity Control"));
-	BrushManager.brushAlphaUpdateFunc=brushMenu.addInstantNumberItem(
+	brushMenu.addInstantNumberItem(
 		Lang("Opacity"),()=>Math.round(BrushManager.activeBrush.alpha*100),"%",
 		newVal=>{ // set on input
 			if(newVal){
@@ -73,7 +73,7 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 		} // set
 	);
 	// Moisture, Extension: for smudging / color sampling
-	BrushManager.brushExtensionUpdateFunc=brushMenu.addInstantNumberItem(
+	brushMenu.addInstantNumberItem(
 		Lang("Extension"),()=>Math.round(BrushManager.activeBrush.extension*100),"%",
 		newVal=>{ // set on input
 			if(newVal){
@@ -121,7 +121,7 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 		} // set
 	);
 
-	BrushManager.edgeHardnessUpdateFunc=brushMenu.addInstantNumberItem(
+	brushMenu.addInstantNumberItem(
 		Lang("Hard Edge"),()=>BrushManager.activeBrush.edgeHardness.toFixed(2),"",
 		newVal=>{ // set on input
 			if(newVal){
@@ -143,16 +143,177 @@ BrushManager.initMenuOpacitySection=function(brushMenu){
 }
 
 BrushManager.initScatterSetting=function(brushMenu){
-	brushMenu.addSectionTitle(Lang("Scattering Control"));
+	brushMenu.addSectionTitle(Lang("Pattern Control"));
+	brushMenu.addInstantNumberItem(
+		Lang("Brushtip Rotation"),
+		()=>BrushManager.activeBrush.brushtip?
+			Math.round(BrushManager.activeBrush.brushtipRot):
+			NaN,
+		"&deg;",
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=(newVal-0)%360;
+				if(newVal<0) newVal+=360; // 0 to 360
+				if(newVal>180) newVal-=360; // -180 to 180
+				BrushManager.activeBrush.brushtipRot=newVal;
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			oldVal-=0;
+			let newVal=(oldVal+dW)%360;
+			if(newVal<0) newVal+=360; // 0 to 360
+			if(newVal>180) newVal-=360; // -180 to 180
+			BrushManager.activeBrush.brushtipRot=newVal;
+		},
+		(dx,oldVal)=>{ // set on drag-x
+			oldVal-=0;
+			let newVal=(oldVal+dx)%360;
+			if(newVal<0) newVal+=360; // 0 to 360
+			if(newVal>180) newVal-=360; // -180 to 180
+			BrushManager.activeBrush.brushtipRot=newVal;
+		}
+	);
+	brushMenu.addSwitch(Lang("Rotate With Stroke"),[Lang("Disabled"),Lang("Enabled")],null,id=>{
+		BrushManager.activeBrush.isRotWithStroke=id;
+	},()=>BrushManager.activeBrush.brushtip?BrushManager.activeBrush.isRotWithStroke:NaN);
+	// ================= Scattering control =================
 	brushMenu.addSwitch(Lang("Scattering"),[Lang("Disabled"),Lang("Enabled")],null,id=>{
 		BrushManager.activeBrush.isScatter=id;
 		// update many values here
-	},()=>BrushManager.activeBrush.isScatter);
+		brushMenu.update();
+	},()=>{
+		if(BrushManager.activeBrush.isScatter==-1){ // scattering not allowed
+			return NaN; // disable selection
+		}
+		return BrushManager.activeBrush.isScatter;
+	});
+	// should belong to scatter, but still available when customizing brush: opacity control
+	brushMenu.addInstantNumberItem(
+		Lang("Brushtip Interval"),
+		()=>BrushManager.activeBrush.brushtip||BrushManager.activeBrush.isScatter>0? // allow customized interval
+			BrushManager.activeBrush.interval?
+			Math.round(BrushManager.activeBrush.interval*100):Lang("Auto")
+			:NaN,
+		"%",
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=(newVal/100).clamp(0,1);
+				BrushManager.activeBrush.interval=newVal;
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			oldVal-=0;
+			let newVal=(BrushManager.activeBrush.interval+dW/100).clamp(0,1);
+			BrushManager.activeBrush.interval=newVal;
+		},
+		(dx,oldVal)=>{ // set on drag-x
+			oldVal=isNaN(oldVal)?0:oldVal-0; // numbered string also applies to isNaN
+			let newVal=(oldVal/100+dx/200).clamp(0,1);
+			BrushManager.activeBrush.interval=newVal;
+		}
+	);
+	brushMenu.addInstantNumberItem(
+		Lang("Scattering Radius"),
+		()=>BrushManager.activeBrush.isScatter>0?
+			isNaN(BrushManager.activeBrush.scatRad)?NaN:
+			BrushManager.activeBrush.scatRad.toFixed(2):
+			NaN,
+		"x",
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=(newVal-0).clamp(0,1);
+				BrushManager.activeBrush.scatRad=newVal;
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			oldVal-=0;
+			let newVal=(oldVal+dW/20).clamp(0,1);
+			BrushManager.activeBrush.scatRad=newVal;
+		},
+		(dx,oldVal)=>{ // set on drag-x
+			oldVal-=0;
+			let newVal=(oldVal+dx/100).clamp(0,1);
+			BrushManager.activeBrush.scatRad=newVal;
+		}
+	);
+	brushMenu.addInstantNumberItem(
+		Lang("Random Size"),
+		()=>BrushManager.activeBrush.isScatter>0?
+			isNaN(BrushManager.activeBrush.randScale)?NaN:
+			BrushManager.activeBrush.randScale.toFixed(2):
+			NaN,
+		"x",
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=(newVal-0).clamp(0,1);
+				BrushManager.activeBrush.randScale=newVal;
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			oldVal-=0;
+			let newVal=(oldVal+dW/20).clamp(0,1);
+			BrushManager.activeBrush.randScale=newVal;
+		},
+		(dx,oldVal)=>{ // set on drag-x
+			oldVal-=0;
+			let newVal=(oldVal+dx/100).clamp(0,1);
+			BrushManager.activeBrush.randScale=newVal;
+		}
+	);
+	brushMenu.addInstantNumberItem(
+		Lang("Random Rotation"),
+		()=>BrushManager.activeBrush.isScatter>0? // scatter is enabled
+			isNaN(BrushManager.activeBrush.randRot)?NaN: // brush allows random rotation
+			BrushManager.activeBrush.brushtip? // customized brushtip
+			BrushManager.activeBrush.randRot.toFixed(2):NaN:
+			NaN,
+		Lang("circ"),
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=(newVal-0).clamp(0,1);
+				BrushManager.activeBrush.randRot=newVal;
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			oldVal-=0;
+			let newVal=(oldVal+dW/20).clamp(0,1);
+			BrushManager.activeBrush.randRot=newVal;
+		},
+		(dx,oldVal)=>{ // set on drag-x
+			oldVal-=0;
+			let newVal=(oldVal+dx/100).clamp(0,1);
+			BrushManager.activeBrush.randRot=newVal;
+		}
+	);
+	brushMenu.addInstantNumberItem(
+		Lang("Random Opacity"),
+		()=>BrushManager.activeBrush.isScatter>0?
+			isNaN(BrushManager.activeBrush.randOpa)?NaN:
+			Math.round(BrushManager.activeBrush.randOpa*100):
+			NaN,
+		"%",
+		newVal=>{ // set on input
+			if(newVal){
+				newVal=(newVal/100).clamp(0,1);
+				BrushManager.activeBrush.randOpa=newVal;
+			}
+		},
+		(dW,oldVal)=>{ // set on scroll
+			oldVal-=0;
+			let newVal=(BrushManager.activeBrush.randOpa+dW/100).clamp(0,1);
+			BrushManager.activeBrush.randOpa=newVal;
+		},
+		(dx,oldVal)=>{ // set on drag-x
+			oldVal=isNaN(oldVal)?0:oldVal-0; // numbered string also applies to isNaN
+			let newVal=(oldVal/100+dx/200).clamp(0,1);
+			BrushManager.activeBrush.randOpa=newVal;
+		}
+	);
 }
 
 BrushManager.initStylusSetting=function(brushMenu){
 	brushMenu.addSectionTitle(Lang("Stylus Control"));
-	BrushManager.sensitivityUpdateFunc=brushMenu.addInstantNumberItem(
+	brushMenu.addInstantNumberItem(
 		Lang("stylus-pressure-sensitivity"),()=>BrushManager.general.sensitivity.toFixed(1),"",
 		newVal=>{ // set on input
 			if(newVal){
@@ -170,7 +331,7 @@ BrushManager.initStylusSetting=function(brushMenu){
 			BrushManager.general.sensitivity=newVal;
 		} // set
 	);
-	BrushManager.sensitivityUpdateFunc=brushMenu.addInstantNumberItem(
+	brushMenu.addInstantNumberItem(
 		Lang("stroke-smoothness"),()=>CANVAS.settings.smoothness,"",
 		newVal=>{ // set on input
 			if(newVal){

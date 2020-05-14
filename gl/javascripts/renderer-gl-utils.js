@@ -784,7 +784,7 @@ class GLImageDataFactory {
 	 * return the new valid area
 	 * @param {*} src 
 	 */
-	recalculateValidArea(src) {
+	recalculateValidArea(src,minOpa) {
 		/**
 		 * The steps are:
 		 * 1. change src into uint8 array, to consider only alpha channel
@@ -794,6 +794,7 @@ class GLImageDataFactory {
 		const img2D=this.imageDataToUint8(src,src.validArea); // get 2d data of all range, y-flipped
 		const W=src.validArea.width;
 		const H=src.validArea.height;
+		const MIN_A=minOpa*255;
 
 		// Step 2: detect zeros: zT > zB > zL > zR
 		let [zL,zR,zT,zB]=[0,W-1,0,H-1]; // non-zero edge of L, R, T, B
@@ -804,7 +805,7 @@ class GLImageDataFactory {
 			let jID=j*W;
 			for(let i=0;i<W;i++) { // test if any non-zeros
 				const id=(jID+i)*4;
-				if(img2D[id+3]) {isZero=false; break;}
+				if(img2D[id+3]>=MIN_A) {isZero=false; break;}
 			}
 			if(isZero) zT=j+1; // peek the next line
 			else break;
@@ -825,7 +826,7 @@ class GLImageDataFactory {
 			let jID=j*W;
 			for(let i=0;i<W;i++) {
 				const id=(jID+i)*4;
-				if(img2D[id+3]) {isZero=false; break;}
+				if(img2D[id+3]>=MIN_A) {isZero=false; break;}
 			}
 			if(isZero) zB=j-1; // peek the prev line
 			else break;
@@ -836,7 +837,7 @@ class GLImageDataFactory {
 			let isZero=true;
 			for(let j=zT;j<=zB;j++) {
 				const id=(j*W+i)*4;
-				if(img2D[id+3]) {isZero=false; break;}
+				if(img2D[id+3]>=MIN_A) {isZero=false; break;}
 			}
 			if(isZero) zL=i+1; // peek the next column
 			else break;
@@ -847,7 +848,7 @@ class GLImageDataFactory {
 			let isZero=true;
 			for(let j=zT;j<=zB;j++) {
 				const id=(j*W+i)*4;
-				if(img2D[id+3]) {isZero=false; break;}
+				if(img2D[id+3]>=MIN_A) {isZero=false; break;}
 			}
 			if(isZero) zR=i-1; // peek the prev column
 			else break;
