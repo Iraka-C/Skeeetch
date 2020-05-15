@@ -38,69 +38,48 @@
 
 画笔相比普通笔刷多出了额外参数`brush.extension`，即延伸量。画笔的渲染逻辑依然是先渲染到临时纹理`brushtipImageData`再复制回原`imageData`，只不过多出了颜色采样的部分，而延伸量控制的即为颜色采样的比例。绘制的流程如下：
 
-1. 从源图像的笔刷中心位置选取颜色`samp_color`（$C_s$），并乘以采样比例$\alpha$。
-2. 将笔刷颜色$C_c$乘以采样比例$1-\alpha$，并和源图像颜色采样相加。
-3. 将相加后的颜色乘以笔刷纹理透明度$\beta$，绘制到临时纹理。
+1. 从源图像的笔刷中心位置选取颜色`samp_color`**Cs**，并乘以采样比例**α**。
+2. 将笔刷颜色**Cc**乘以采样比例**1-α**，并和源图像颜色采样相加。
+3. 将相加后的颜色乘以笔刷纹理透明度**β**，绘制到临时纹理。
 4. 将临时纹理以普通混合模式绘制到源图像相应位置。
 
 <img src="./images/paint-brush-mix.png" width="400"/>
 
 ---
 
-我们考察这样的情况：从原色$C_s$向背景颜色$C_b$上延伸笔刷颜色$C_c$。
+我们考察这样的情况：从原色**Cs**向背景颜色**Cb**上延伸笔刷颜色**Cc**。
 
-如果假设绘制第$n$个纹理时，绘制前笔刷中心位置的颜色为$a_{n-1}$，绘制后颜色为$a_n$，如果源图像透明度为1（完全不透明），则从上述步骤可以得出如下关系：
-$$
-\begin{aligned}
-	a_{n}&=(1-\beta)a_{n-1}+\beta(\alpha a_{n-1}+(1-\alpha)C_c) \\
-	&=(1-\beta(1-\alpha))a_{n-1}+\beta(1-\alpha)C_c \\
-	a_{1}&=(1-\beta)C_b+\beta(\alpha C_s+(1-\alpha)C_c)
-\end{aligned}
-$$
-要计算经过$n$步混合后的颜色，设$1-\beta(1-\alpha)=k$，于是有：
-$$
-\begin{aligned}
-	a_{n} &= k a_{n-1}+(1-k)C_c \\
-	&= k^{n-1} a_1 + (1-k^{n-1})C_c \\
-	&= k^{n-1}((1-\beta)C_b+\alpha\beta C_s+(1-k) C_c) + (1-k^{n-1})C_c \\
-	&= k^{n-1}(1-\beta)C_b+\underline{k^{n-1}\alpha\beta}C_s+\underline{(1-k^{n})}C_c
-\end{aligned}
-$$
-我们希望笔尖在运动在给定的相对笔刷直径的距离$d$之后新颜色$C_c$能增加至一定的比例。假设画过$d=1$倍直径的距离后笔刷颜色含量增加为$\delta$（即笔刷颜色不透明度），由于1倍直径中包含$q=$`renderer.quality`次绘制，此时的$C_c$含量为：
-$$
-\begin{aligned}
-	1-k^q=\delta
-\end{aligned}
-$$
-另外，希望原色$C_s$含量在剩余的$1-\delta$部分颜色中减至$\varepsilon\in [0,1]$，于是有：
-$$
-\begin{aligned}
-	k^{q-1}\alpha\beta=(1-\delta)\varepsilon
-\end{aligned}
-$$
+如果假设绘制第n个纹理时，绘制前笔刷中心位置的颜色为**a(n-1)**，绘制后颜色为**a(n)**，如果源图像透明度为1（完全不透明），则从上述步骤可以得出如下关系：
+
+![](https://latex.codecogs.com/svg.latex?%5Cdpi%7B100%7D%20%5Cbegin%7Baligned%7D%20a_%7Bn%7D%26%3D%281-%5Cbeta%29a_%7Bn-1%7D&plus;%5Cbeta%28%5Calpha%20a_%7Bn-1%7D&plus;%281-%5Calpha%29C_c%29%20%5C%5C%20%26%3D%281-%5Cbeta%281-%5Calpha%29%29a_%7Bn-1%7D&plus;%5Cbeta%281-%5Calpha%29C_c%20%5C%5C%20a_%7B1%7D%26%3D%281-%5Cbeta%29C_b&plus;%5Cbeta%28%5Calpha%20C_s&plus;%281-%5Calpha%29C_c%29%20%5Cend%7Baligned%7D)
+
+要计算经过n步混合后的颜色，设![](https://latex.codecogs.com/svg.latex?%5Cdpi%7B100%7D%201-%5Cbeta%281-%5Calpha%29%3Dk)，于是有：
+
+![](https://latex.codecogs.com/svg.latex?%5Cdpi%7B100%7D%20%5Cbegin%7Baligned%7D%20a_%7Bn%7D%20%26%3D%20k%20a_%7Bn-1%7D&plus;%281-k%29C_c%20%5C%5C%20%26%3D%20k%5E%7Bn-1%7D%20a_1%20&plus;%20%281-k%5E%7Bn-1%7D%29C_c%20%5C%5C%20%26%3D%20k%5E%7Bn-1%7D%28%281-%5Cbeta%29C_b&plus;%5Calpha%5Cbeta%20C_s&plus;%281-k%29%20C_c%29%20&plus;%20%281-k%5E%7Bn-1%7D%29C_c%20%5C%5C%20%26%3D%20k%5E%7Bn-1%7D%281-%5Cbeta%29C_b&plus;%5Cunderline%7Bk%5E%7Bn-1%7D%5Calpha%5Cbeta%7DC_s&plus;%5Cunderline%7B%281-k%5E%7Bn%7D%29%7DC_c%20%5Cend%7Baligned%7D)
+
+我们希望笔尖在运动在给定的相对笔刷直径的距离d之后新颜色Cc能增加至一定的比例。假设画过d=1倍直径的距离后笔刷颜色含量增加为**δ**（即笔刷颜色不透明度），由于1倍直径中包含**q=**`renderer.quality`次绘制，此时的Cc含量为：
+
+![](https://latex.codecogs.com/svg.latex?%5Cdpi%7B100%7D%201-k%5Eq%3D%5Cdelta)
+
+另外，希望原色Cc含量在剩余的1-δ部分颜色中减至**0<ε<1**，于是有：
+
+![](https://latex.codecogs.com/svg.latex?%5Cdpi%7B100%7D%20k%5E%7Bq-1%7D%5Calpha%5Cbeta%3D%281-%5Cdelta%29%5Cvarepsilon)
+
 综合上述方程，可以得到：
-$$
-\begin{cases} 
-    k^q &= 1-\delta \\
-   \alpha\beta &= k\varepsilon \\
-   1-\beta(1-\alpha) &= k
-\end{cases}
-$$
-解得：
-$$
-\begin{cases} 
-    k &= (1-\delta)^{1/q} \\
-   \beta &= 1-(1-\varepsilon)k \\
-   \alpha &= k\varepsilon/\beta
-\end{cases}
-$$
-可以发现$k$就是之前在铅笔算法处推算出的**笔刷纹理透明度**。另外，$\varepsilon$控制了颜色延伸量，但这并不是一个随`brush.extension`均匀变化的参数。用：
-$$
-\varepsilon=-\frac{\ln(1-{\rm extension})}{{\rm quality}/6}
-$$
-得到视觉上和`brush.extension`符合较好的延伸量，由于可能出现$\varepsilon>1$，需要做截断。注意由于软边笔刷沿笔触透明度相比硬边画笔都是降低的，降低Hard Edge会使得延伸量也同时略微减小。
 
-此外，如果背景颜色$C_b$带有透明度，画笔混色算法会将$C_s$的透明度一并叠加到$C_b$上，使得延伸量的模型发生变化。无所谓啦……
+![](https://latex.codecogs.com/svg.latex?%5Cdpi%7B100%7D%20%5Cbegin%7Bcases%7D%20k%5Eq%20%26%3D%201-%5Cdelta%20%5C%5C%20%5Calpha%5Cbeta%20%26%3D%20k%5Cvarepsilon%20%5C%5C%201-%5Cbeta%281-%5Calpha%29%20%26%3D%20k%20%5Cend%7Bcases%7D)
+
+解得：
+
+![](https://latex.codecogs.com/svg.latex?%5Cdpi%7B100%7D%20%5Cbegin%7Bcases%7D%20k%20%26%3D%20%281-%5Cdelta%29%5E%7B1/q%7D%20%5C%5C%20%5Cbeta%20%26%3D%201-%281-%5Cvarepsilon%29k%20%5C%5C%20%5Calpha%20%26%3D%20k%5Cvarepsilon/%5Cbeta%20%5Cend%7Bcases%7D)
+
+可以发现$k$就是之前在铅笔算法处推算出的**笔刷纹理透明度**。另外，ε控制了颜色延伸量，但这并不是一个随`brush.extension`均匀变化的参数。用：
+
+![](https://latex.codecogs.com/svg.latex?%5Cdpi%7B100%7D%20%5Cvarepsilon%3D-%5Cfrac%7B%5Cln%281-%7B%5Crm%20extension%7D%29%7D%7B%7B%5Crm%20quality%7D/6%7D)
+
+得到视觉上和`brush.extension`符合较好的延伸量，由于可能出现ε>1，需要做截断。注意由于软边笔刷沿笔触透明度相比硬边画笔都是降低的，降低Hard Edge会使得延伸量也同时略微减小。
+
+此外，如果背景颜色Cb带有透明度，画笔混色算法会将Cs的透明度一并叠加到Cb上，使得延伸量的模型发生变化。无所谓啦……
 
 
 
