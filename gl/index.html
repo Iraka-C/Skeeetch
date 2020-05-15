@@ -16,8 +16,14 @@
 
 		<link id="icon" rel="icon" type="image/png" href="./resources/favicon.png">
 
-		<!-- load static libraries -->
 		<script src="./javascripts/jquery-3.4.1.min.js"></script>
+		<script type="text/javascript">
+			const glsl=s=>s; // string conversion, for glsl tag linting.
+			const LOGGING=true; // logging switch & optimize unused console object
+			$(e=>ENV.init());
+		</script>
+
+		<!-- load static libraries -->
 		<script src="./javascripts/Sortable.min.js"></script>
 		<script src="./javascripts/ag-psd.js"></script>
 		<script src="./javascripts/localforage.min.js"></script>
@@ -84,10 +90,6 @@
 		<script src="./javascripts/file-settings.js"></script>
 		<script src="./javascripts/performance.js"></script>
 		
-		<script type="text/javascript">
-			const glsl=s=>s; // string conversion, for glsl tag linting.
-			$(ENV.init);
-		</script>
 		<title>Skeeetch</title>
 	</head>
 

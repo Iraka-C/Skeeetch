@@ -32,7 +32,7 @@ class GLProgram {
 				return program;
 			}
 			//ERROR
-			console.log(gl.getProgramInfoLog(program));
+			LOGGING&&console.log(gl.getProgramInfoLog(program));
 			gl.deleteProgram(program);
 		}
 		this.gl=gl;
@@ -279,15 +279,18 @@ class GLProgram {
 	 * @param {imageData} img the texture area
 	 */
 	static getAttributeRect(tgt,img,isRound){ // get a rectangle of 0~1 coord space
+		if(!tgt){ // unit rect
+			return [0,0,1,0,0,1,0,1,1,0,1,1];
+		}
 		let rL=tgt.left-img.left;
 		let rR=rL+tgt.width;
 		let rT=img.top+img.height-tgt.top;
 		let rB=rT-tgt.height;
 		if(isRound){ // round to nearest pixel, crucial for smudge brush like pixel copying operation
-			rL=Math.round(rL);
-			rT=Math.round(rT);
-			rR=Math.round(rR);
-			rB=Math.round(rB);
+			rL=Math.floor(rL);
+			rT=Math.ceil(rT);
+			rR=Math.ceil(rR);
+			rB=Math.floor(rB);
 		}
 		rL/=img.width;
 		rT/=img.height;

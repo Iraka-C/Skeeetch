@@ -255,13 +255,18 @@ class GLTextureBlender {
 	 */
 	blendTexture(src,dst,param) {
 		if(!param.targetArea) param.targetArea=src.validArea; // blend all src valid pixels
-		param.targetArea=GLProgram.borderIntersection(param.targetArea,dst);
+		param.alphaLock=param.alphaLock||false;
+		if(param.alphaLock||param.mode==GLTextureBlender.ERASE){ // only need to blend within dst.validArea
+			param.targetArea=GLProgram.borderIntersection(param.targetArea,dst.validArea);
+		}
+		else{
+			param.targetArea=GLProgram.borderIntersection(param.targetArea,dst);
+		}
 		if(!param.targetArea.width||!param.targetArea.height) { // target contains zero pixel
 			return; // needless to blend
 		}
 
 		const gl=this.gl;
-		param.alphaLock=param.alphaLock||false;
 		if(param.mode===undefined) param.mode=GLTextureBlender.NORMAL;
 		if(param.srcAlpha===undefined) param.srcAlpha=1;
 		if(param.antiAlias===undefined) param.antiAlias=true;
@@ -347,10 +352,27 @@ class GLTextureBlender {
 
 			// set target area attribute, to 0~1 coord space(LB origin).
 			// gl will automatically trim within viewport
-			program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,src,!param.antiAlias),2);
-			program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,dst,!param.antiAlias),2);
+			// program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,src,!param.antiAlias),2);
+			// program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,dst,!param.antiAlias),2);
 
-			gl.viewport(0,0,dst.width,dst.height); // target area as dst
+			// gl.viewport(0,0,dst.width,dst.height); // target area as dst
+			const viewArea={ // round the target area
+				left: Math.floor(tA.left),
+				top: Math.floor(tA.top),
+				width: Math.ceil(tA.width),
+				height: Math.ceil(tA.height)
+			}
+			
+			program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,src,!param.antiAlias),2);
+			program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,viewArea,!param.antiAlias),2);
+
+			gl.viewport( // target area as tA
+				viewArea.left-dst.left,
+				dst.top+dst.height-viewArea.top-viewArea.height,
+				viewArea.width,
+				viewArea.height
+			);
+
 			program.run();
 		}
 
@@ -373,11 +395,12 @@ class GLTextureBlender {
 		const gl=this.gl;
 		const programB=this.advancedBlendProgram;
 		const tmp=this.renderer.tmpImageData;
+		this.renderer.clearImageData(tmp);
 
 		// ============= Step 1: Blending & Composition ================
 
 		// move tmp so that it contains the most part in the viewport
-		const tA=param.targetArea; // the area that changes
+		let tA=param.targetArea; // the area that changes
 		// round to int
 		tA.left=Math.floor(tA.left);
 		tA.top=Math.floor(tA.top);
@@ -396,6 +419,9 @@ class GLTextureBlender {
 		if(t1>0) tmp.top=t1;
 		if(t2<0) tmp.top=t2;
 
+		// within viewport
+		tA=GLProgram.borderIntersection(tmp,tA);
+
 		// Set uniforms
 		programB.setTargetTexture(tmp.data);
 		programB.setSourceTexture("u_image_0",src.data);
@@ -413,13 +439,18 @@ class GLTextureBlender {
 		// Set attributes
 		const srcRect=GLProgram.getAttributeRect(tA,src,!param.antiAlias);
 		const dstRect=GLProgram.getAttributeRect(tA,dst,!param.antiAlias);
-		const tmpRect=GLProgram.getAttributeRect(tA,tmp,!param.antiAlias);
+		const unitRect=GLProgram.getAttributeRect(); // unit rect
 		programB.setAttribute("a_pos_0",srcRect,2);
 		programB.setAttribute("a_pos_1",dstRect,2);
-		programB.setAttribute("a_pos_tgt",tmpRect,2);
+		programB.setAttribute("a_pos_tgt",unitRect,2);
 
 		gl.blendFunc(gl.ONE,gl.ZERO); // src only
-		gl.viewport(0,0,tmp.width,tmp.height); // temp texture as dst
+		gl.viewport(
+			tA.left-tmp.left,
+			tmp.top+tmp.height-tA.top-tA.height,
+			tA.width,
+			tA.height
+		); // temp texture as dst
 		programB.run();
 
 		// ============= Step 2: copy ================
@@ -431,10 +462,16 @@ class GLTextureBlender {
 
 		// set target area attribute, to 0~1 coord space(LB origin).
 		// gl will automatically trim within viewport
-		programC.setAttribute("a_src_pos",tmpRect,2);
-		programC.setAttribute("a_dst_pos",dstRect,2);
+		const tARect=GLProgram.getAttributeRect(tA,tmp,!param.antiAlias);
+		programC.setAttribute("a_src_pos",tARect,2);
+		programC.setAttribute("a_dst_pos",unitRect,2);
 
-		gl.viewport(0,0,dst.width,dst.height); // target area as dst
+		gl.viewport(
+			tA.left-dst.left,
+			dst.top+dst.height-tA.top-tA.height,
+			tA.width,
+			tA.height
+		); // target area as dst
 		gl.blendFunc(gl.ONE,gl.ZERO); // copy
 		programC.run();
 	}
@@ -444,7 +481,7 @@ class GLTextureBlender {
 GLTextureBlender.AVERAGE=-3;
 GLTextureBlender.ERASE=-2;
 GLTextureBlender.NONE=-1;
-GLTextureBlender.SOURCE=1;
+GLTextureBlender.SOURCE=BasicRenderer.SOURCE;
 GLTextureBlender.NORMAL=BasicRenderer.NORMAL;
 GLTextureBlender.MULTIPLY=BasicRenderer.MULTIPLY;
 GLTextureBlender.SCREEN=BasicRenderer.SCREEN;
@@ -506,7 +543,7 @@ class GLImageDataFactory {
 			}
 		`;
 		this.converterProgram=new GLProgram(this.gl,vConverterShaderSource,fConverterShaderSource);
-		this.converterProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
+		this.converterProgram.setAttribute("a_position",GLProgram.getAttributeRect(),2);
 		// a_position shall be the same rect order as a_src_position (in GLProgram.getAttributeRect)
 	}
 
@@ -746,7 +783,7 @@ class GLImageDataFactory {
 		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,target.width,target.height,0,gl.RGBA,this.dataFormat,target.data);
 		target.type="GLTexture";
 		target.data=texture;
-		//console.log("RAM->TEX",target);
+		//LOGGING&&console.log("RAM->TEX",target);
 	}
 
 	// ============== Loading functions ==============
@@ -769,8 +806,8 @@ class GLImageDataFactory {
 				top: target.top
 			};
 		} catch(err) {
-			console.warn(img);
-			console.err(err);
+			LOGGING&&console.warn(img);
+			LOGGING&&console.err(err);
 		}
 	}
 

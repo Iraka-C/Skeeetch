@@ -379,10 +379,7 @@ class GLBrushRenderer {
 		else { // white
 			color=[opacity,opacity,opacity,opacity];
 		}
-		this.renderSolidCircleBrushtip(target,[ // relative to target.data
-			pos[0]-target.left,
-			pos[1]-target.top
-		],radius,color,softRange,brush.blendMode,isOpacityLocked);
+		this.renderSolidCircleBrushtip(target,pos,radius,color,softRange,brush.blendMode,isOpacityLocked);
 
 		// Update valid area
 		// In other brushes, valid area update is made by blendTexture()
@@ -401,13 +398,19 @@ class GLBrushRenderer {
 		}
 	}
 
+	// pos relative to viewport
 	renderSolidCircleBrushtip(imgData,pos,r,color,softRange,mode,isOpacityLocked) {
 		const gl=this.gl;
 		const program=this.solidCircleProgram;
 
 		program.setTargetTexture(imgData.data); // render to brushtip
-		program.setUniform("u_res_tgt",[imgData.width,imgData.height]);
-		gl.viewport(0,0,imgData.width,imgData.height);
+		//program.setUniform("u_res_tgt",[imgData.width,imgData.height]);
+		//gl.viewport(0,0,imgData.width,imgData.height);
+		const L=Math.round(pos[0]-imgData.left-r-1);
+		const B=Math.round(imgData.top+imgData.height-pos[1]-r-1);
+		const D=Math.ceil(r*2+2);
+		program.setUniform("u_res_tgt",[D,D]); // minimum viewport required
+		gl.viewport(L,B,D,D);
 		// 1 step: do not clear texture
 		if(mode>=0){ // add
 			if(isOpacityLocked){ // source atop
@@ -426,7 +429,12 @@ class GLBrushRenderer {
 			}
 		}
 
-		program.setUniform("u_pos_tgt",[pos[0],pos[1],r]);
+		//program.setUniform("u_pos_tgt",[pos[0],pos[1],r]);
+		program.setUniform("u_pos_tgt",[ // precise position in viewport
+			pos[0]-imgData.left-L,
+			pos[1]-imgData.top-(imgData.height-B-D),
+			r
+		]);
 		program.setUniform("u_color",color); // set circle color, alpha pre-multiply
 		program.setUniform("u_softness",softRange);
 		program.run();
@@ -460,7 +468,7 @@ class GLBrushRenderer {
 		this.mainRenderer.blendImageData(bImg,target,{
 			mode: isOpacityLocked?GLTextureBlender.NORMAL:GLTextureBlender.SOURCE, // NORMAL avoid alpha loss
 			alphaLock: isOpacityLocked,
-			antiAlias: false // pixel-aligned
+			antiAlias: false, // pixel-aligned
 		});
 	}
 
@@ -469,7 +477,7 @@ class GLBrushRenderer {
 		const program=this.samplingCircleProgram;
 
 		program.setTargetTexture(imgData.data); // render to brushtip
-		gl.viewport(0,0,imgData.width,imgData.height);
+		gl.viewport(0,0,imgData.width,imgData.height); // @TODO: may shrink a little bit?
 		gl.clearColor(0,0,0,0); // clear brushtip
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.blendFunc(gl.ONE,gl.ZERO); // pure source draw

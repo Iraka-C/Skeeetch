@@ -16,7 +16,7 @@ FILES.init=function() {
  */
 FILES.loadAsPSD=function(data,filename) {
 	let psdFile=agPsd.readPsd(data); // ag-psd function, use raw Context2D ImageData rather than loading into canvas
-	console.log(psdFile);
+	LOGGING&&console.log(psdFile);
 	if(psdFile.width>ENV.maxPaperSize||psdFile.height>ENV.maxPaperSize) {
 		// larger than maximum paper size
 		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.maxPaperSize+"px",2000);
@@ -54,7 +54,7 @@ FILES.loadPSDNodes=function(node) {
 			// **NOTE** setProperties() actually requested screen refresh
 			const sNode=this.json;
 			if(sNode.hasOwnProperty("children")) { // group node
-				//console.log(sNode.name+": "+sNode.blendMode+", '"+sNode.sectionDivider.key+"'");
+				//LOGGING&&console.log(sNode.name+": "+sNode.blendMode+", '"+sNode.sectionDivider.key+"'");
 				this.N=sNode.children.length; // children count
 				const newElement=new LayerGroupNode();
 

@@ -16,11 +16,11 @@ class GLRenderer extends BasicRenderer {
 		}); // webgl context
 		this.canvas.addEventListener("webglcontextlost",e => {
 			// something catastrophic happened
-			console.error(e);
+			LOGGING&&console.error(e);
 		});
 		this.canvas.addEventListener("webglcontextrestored",e => {
 			// Rescue happened
-			console.log(e);
+			LOGGING&&console.log(e);
 		},false);
 
 		this.gl=gl;
@@ -184,7 +184,7 @@ class GLRenderer extends BasicRenderer {
 
 		if(param.imageData.type!="GLTexture") { // not GL texture type
 			// @TODO: check texture bitdepth
-			console.warn(param.imageData);
+			LOGGING&&console.warn(param.imageData);
 			throw new Error("ImageData not a GLTexture");
 		}
 		// init rendering environment
@@ -196,7 +196,7 @@ class GLRenderer extends BasicRenderer {
 	// Init before every stroke: setting the rendering environment
 	initBeforeStroke(param) {
 		super.initBeforeStroke(param);
-		//console.log(this.brush);
+		//LOGGING&&console.log(this.brush);
 		// pre-render the brushtip data
 		this.lastCircleFromPrevStroke=null;
 	}
@@ -415,7 +415,7 @@ class GLRenderer extends BasicRenderer {
 		const gl=this.gl;
 		gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuffer); // render to a texture
 		gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,target.data,0);
-		gl.viewport(0,0,target.width,target.height);
+		gl.viewport(0,0,target.width,target.height); // @TODO: by directly changing viewport?
 		gl.enable(gl.SCISSOR_TEST);
 		gl.scissor(range.left-target.left,target.top+target.height-range.top-range.height,range.width,range.height);
 		gl.clearColor(0,0,0,0); // Set clear color
@@ -439,7 +439,7 @@ class GLRenderer extends BasicRenderer {
 		// copy to tmp
 		const tmp=this.tmpImageData;
 		if(src.width>tmp.width||src.height>tmp.height) {
-			console.warn("Resize Imagedata: Tmp texture ("
+			LOGGING&&console.warn("Resize Imagedata: Tmp texture ("
 				+tmp.width+"x"+tmp.height+") smaller than target ("
 				+src.width+"x"+src.height+"), may be cropped");
 		}
@@ -549,7 +549,7 @@ class GLRenderer extends BasicRenderer {
 				this.clearImageData(tmp,null,false);
 				this.blendImageData(src,tmp,{mode: BasicRenderer.SOURCE});
 
-				console.log("New Texture");
+				LOGGING&&console.log("New Texture");
 				gl.bindTexture(gl.TEXTURE_2D,src.data);
 				gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,initSize.width,initSize.height,0,gl.RGBA,this.dataFormat,null);
 				src.width=initSize.width;
@@ -564,7 +564,7 @@ class GLRenderer extends BasicRenderer {
 			// else: no need to expand, simply don't move at all
 		}
 		else if(initSize.width>src.width||initSize.height>src.height) {
-			//console.log("New Texture Change");
+			//LOGGING&&console.log("New Texture Change");
 			initSize.width=Math.ceil(initSize.width/BLOCK_SIZE)*BLOCK_SIZE;
 			initSize.height=Math.ceil(initSize.height/BLOCK_SIZE)*BLOCK_SIZE;
 			initSize=GLProgram.borderIntersection(initSize,this.viewport); // cut again within viewport
@@ -738,7 +738,7 @@ class GLRenderer extends BasicRenderer {
 	// tgt is a RAMBuf8 but lack a real texture
 	loadBrushtipImageData(tgt,data){
 		if(tgt.type!="RAMBuf8"){
-			console.warn("Not RAMBuf8 brushtip imagedata!");
+			LOGGING&&console.warn("Not RAMBuf8 brushtip imagedata!");
 			return;
 		}
 		const bImg=this.createImageData(tgt.width,tgt.height);

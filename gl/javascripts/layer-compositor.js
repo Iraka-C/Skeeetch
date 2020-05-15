@@ -23,9 +23,9 @@ COMPOSITOR.updateLayerTreeStructure=function(){
  * This function entrance assumes that all nodes have valid imageData.
  */
 COMPOSITOR.onUpdate=function(){
-	//console.log("Update");
+	//LOGGING&&console.log("Update");
 	if(!LAYERS.layerTree.isImageDataValid){
-		//console.warn(LAYERS.layerTree._getTreeNodeString()); // print the present layer tree
+		//LOGGING&&console.warn(LAYERS.layerTree._getTreeNodeString()); // print the present layer tree
 		//throw new Error("Try to construct cache structure while there are invalid image data.");
 	}
 	/**
@@ -35,7 +35,7 @@ COMPOSITOR.onUpdate=function(){
 	 * 3. composite while freezing/restoring
 	 */
 	// Presently, use the same function as CANVAS.refreshScreen
-	CANVAS.refreshScreen();
+	CANVAS.requestRefresh();
 }
 // =========================== Main Cache Constructor =============================
 /**
@@ -67,7 +67,7 @@ COMPOSITOR.compileLayerTree=function(){
  * @param node a ContentNode to be recomposited
  * @TODO: implement dirty area recomposition
  */
-COMPOSITOR.recompositeLayers=function(node) {
+COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 	node=node||LAYERS.layerTree; // init: root
 	const isNeutralColor=ENV.displaySettings.blendWithNeutralColor;
 
@@ -88,7 +88,7 @@ COMPOSITOR.recompositeLayers=function(node) {
 			const child=list[i];
 			// for group, only blend non-clip mask layers
 			// use node.imageDataCombinedCnt to skip clip mask
-			COMPOSITOR.recompositeLayers(child); // recomposite this level
+			COMPOSITOR.recompositeLayers(child,dirtyArea); // recomposite this level
 			if(child.properties.visible&&child.imageData.width&&child.imageData.height){
 				// visible and has content
 				// to blend the imageData into layer's raw imageData
@@ -98,16 +98,21 @@ COMPOSITOR.recompositeLayers=function(node) {
 			i-=child.clipMaskChildrenCnt+1; // skip clip masks
 		}
 		// Make sizes integer to contain all layers
-		initSize.left=Math.round(initSize.left);
-		initSize.top=Math.round(initSize.top);
-		initSize.width=Math.round(initSize.width);
-		initSize.height=Math.round(initSize.height);
+		initSize.left=Math.floor(initSize.left);
+		initSize.top=Math.floor(initSize.top);
+		initSize.width=Math.ceil(initSize.width);
+		initSize.height=Math.ceil(initSize.height);
 
 		// Now the initSize contains the minimum size to contain the children's imageData
 		let bg=node.rawImageData; // present uncleared imagedata
 		// Shall contain all children size.
 		CANVAS.renderer.adjustImageDataBorders(bg,initSize,false);
-		CANVAS.renderer.clearImageData(bg); // clear the data to blank.
+		if(dirtyArea){// @TODO: clear by viewport?
+			CANVAS.renderer.clearScissoredImageData(bg,dirtyArea); // clear only dirtyarea part
+		}
+		else{
+			CANVAS.renderer.clearImageData(bg); // clear the data to blank.
+		}
 
 		// blend the children
 		for(const v of childrenToBlend) {
@@ -115,10 +120,11 @@ COMPOSITOR.recompositeLayers=function(node) {
 			CANVAS.renderer.blendImageData(child.imageData,bg,{
 				mode: child.properties.blendMode,
 				srcAlpha: child.properties.opacity,
-				blendWithNeutralColor: isNeutralColor
+				blendWithNeutralColor: isNeutralColor,
+				targetArea: dirtyArea||null // default all area
 			}); // blend layer with backdrop
 			if(PERFORMANCE.debugger.isDrawingLayerBorder){ // For DEBUG: draw the edge of each layer
-				CANVAS.renderer.drawEdge(child.imageData,bg);
+				CANVAS.renderer.drawEdge(child.imageData,bg,dirtyArea);
 			}
 		}
 
@@ -153,16 +159,26 @@ COMPOSITOR.recompositeLayers=function(node) {
 			const mask=node.maskedImageData;
 			const clipped=node.imageData; // present uncleared imagedata
 			CANVAS.renderer.adjustImageDataBorders(clipped,mask.validArea,false); // move to the position of mask
-			CANVAS.renderer.clearImageData(clipped); // clear the data to blank.
+
+			if(dirtyArea){// @TODO: clear by viewport?
+				CANVAS.renderer.blendImageData(mask,clipped,{
+					mode: BasicRenderer.SOURCE,
+					targetArea: dirtyArea
+				}); // copy masked image
+			}
+			else{
+				CANVAS.renderer.clearImageData(clipped); // clear the data to blank.
+				CANVAS.renderer.blendImageData(mask,clipped,{mode: BasicRenderer.SOURCE}); // copy masked image
+			}
 			// combine all image data
-			CANVAS.renderer.blendImageData(mask,clipped,{mode: BasicRenderer.SOURCE}); // copy masked image
 			for(const v of childrenToBlend) {
 				const clipMaskNode=siblings[v];
 				CANVAS.renderer.blendImageData(clipMaskNode.imageData,clipped,{
 					mode: clipMaskNode.properties.blendMode,
 					alphaLock: true, // lock alpha
 					srcAlpha: clipMaskNode.properties.opacity,
-					blendWithNeutralColor: isNeutralColor
+					blendWithNeutralColor: isNeutralColor,
+					targetArea: dirtyArea||null // default all area
 				});
 				if(PERFORMANCE.debugger.isDrawingLayerBorder){
 					CANVAS.renderer.drawEdge(clipMaskNode.imageData,clipped);

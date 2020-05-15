@@ -19,7 +19,7 @@ CANVAS.drawSuccessful=false; // if you try to stroke on canvas, will it be succe
 
 // ========================= Functions ===========================
 CANVAS.init=function() {
-	//console.log("Canvas init "+CANVAS.rendererBitDepth+" bit");
+	//LOGGING&&console.log("Canvas init "+CANVAS.rendererBitDepth+" bit");
 	CANVAS.drawSuccessful=true;
 	CANVAS.actualFps=300; // actual rendering fps
 	
@@ -34,6 +34,7 @@ CANVAS.init=function() {
 		bitDepth: CANVAS.rendererBitDepth,
 		maxVRAMSize: PERFORMANCE.maxMem.gpu/2 // Experimental value
 	});
+	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
 }
 /**
  * Update the target canvas to draw
@@ -114,6 +115,7 @@ CANVAS.setCanvasEnvironment=function() {
 	// init changed area, put this first as isChanged sign init
 	// changed area for history
 	CANVAS.changedArea={width:0,height:0,left:0,top:0};
+	//CANVAS.dirtyArea={width:0,height:0,left:0,top:0}; // set by refreshScreen
 };
 
 CANVAS.updateSpeed=function() {
@@ -136,8 +138,8 @@ CANVAS.updateCursor=function(point,isPointerDown) {
 	 * pT seems to contain some of the uncorrect values
 	 */
 	// if(CURSOR.isDown){
-	// 	console.log(pT);
-	// 	console.log(pT.p0);
+	// 	LOGGING&&console.log(pT);
+	// 	LOGGING&&console.log(pT.p0);
 	// }
 
 	// Coordinate transform
@@ -245,7 +247,7 @@ CANVAS.stroke=function() {
 	// render end
 	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize);
 	nowLayer.setRawImageDataInvalid(); // the layers needs to be recomposited
-	CANVAS.requestRefresh(); // request a refresh on the screen. Saved Time?
+	CANVAS.requestRefresh(clippedTargetSize); // request a refresh on the screen. Saved Time?
 };
 
 /**
@@ -270,7 +272,17 @@ CANVAS.strokeEnd=function() {
  * request recomposing and rendering all contents in the layer tree
  * multiple requests within 1 animation frame will be combined
  */
-CANVAS.requestRefresh=function() {
+CANVAS.requestRefresh=function(targetArea) {
+	if(CANVAS.dirtyArea){
+		if(targetArea){
+			CANVAS.dirtyArea=GLProgram.extendBorderSize(CANVAS.dirtyArea,targetArea);
+		}
+		else{ // whole view
+			CANVAS.dirtyArea=null;
+		}
+	}
+	// else: already full range
+	
 	if(CANVAS.isRefreshRequested) {
 		return; // already requested
 	}
@@ -309,10 +321,10 @@ CANVAS.onRefresh=function() {
 CANVAS.refreshScreen=function() {
 	//const startT=window.performance.now();
 	const antiAliasRadius=ENV.displaySettings.antiAlias?0.7*Math.max(1/ENV.window.scale-1,0):0;
-	COMPOSITOR.recompositeLayers(); // recomposite from root.
-	// **NOTE** No difference found with/without using dirty area only renewal
+	COMPOSITOR.recompositeLayers(null,CANVAS.dirtyArea); // recomposite from root.
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
-	//console.log("Refresh Time = "+Math.round(window.performance.now()-startT)+" ms");
+	//LOGGING&&console.log("Refresh Time = "+Math.round(window.performance.now()-startT)+" ms");
+	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
 }
 
 /**
@@ -413,7 +425,7 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 	pSum[2]/=SIZE;
 	pSum[3]/=SIZE*255;
 
-	console.log(pSum);
+	LOGGING&&console.log(pSum);
 	
 
 	return SMath.blendNormal([...PALETTE.colorSelector.getRGB(),1],pSum); //pSum

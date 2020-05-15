@@ -57,7 +57,7 @@ ENV.init=function() { // When the page is loaded
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
 		if(lastLayerTreeJSON){
-			console.log("Reading File...",lastLayerTreeJSON);
+			LOGGING&&console.log("Reading File...",lastLayerTreeJSON);
 			ENV.setPaperSize(...lastLayerTreeJSON.paperSize);
 			ENV.setFileTitle(lastLayerTreeJSON.title);
 		}
@@ -158,14 +158,14 @@ ENV.translateTo=function(x,y) { // pixelated
  * Set (x,y) translation, a rotation, r scaling in one function
  */
 ENV.transformTo=function(x,y,r,s) { // four values, with hint
-	//console.log("x = "+x+" y = "+y+" a = "+a);
+	//LOGGING&&console.log("x = "+x+" y = "+y+" a = "+a);
 	s=s.clamp(0.1,8.0);
 	ENV.window.rot=r;
 	ENV.window.scale=s;
 
 	let borderSize=ENV.paperSize.diag*s;
 	if(Math.abs(x)>borderSize||Math.abs(y)>borderSize) {
-		//console.log("Reach Border");
+		//LOGGING&&console.log("Reach Border");
 		x.clamp(-borderSize,borderSize);
 		y.clamp(-borderSize,borderSize);
 	}
