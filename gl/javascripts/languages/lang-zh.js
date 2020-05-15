@@ -69,6 +69,8 @@ LANG_ZH={
 	"Min Opacity":"最低不透明度",
 	"Hard Edge":"边缘硬度",
 	"Pressure Controlled Eroding":"压感腐蚀",
+	"erode-opacity":"不透明度",
+	"erode-shape":"形状",
 
 	"Stylus Control":"数位笔",
 	"stylus-pressure-sensitivity":"笔压灵敏度",
@@ -77,7 +79,7 @@ LANG_ZH={
 	"new-brush-prefix":"新",
 
 	"Pattern Control":"形态控制",
-	"Brushtip Density":"笔刷密度",
+	"Brushtip Interval":"笔刷间距",
 	"Brushtip Rotation":"笔尖旋转角度",
 	"Rotate With Stroke":"自动笔尖旋转",
 	"Scattering":"散布",

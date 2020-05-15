@@ -40,10 +40,13 @@ class BasicRenderer {
 		// 2/(this.softness+0.01)+16 adjusts the quality according to softness
 		// this.brush.size guarantees that the neighboring circles with 2px interval at least
 		// @TODO: ripples reduction?
-		if(this.brush.blendMode==2) {
+		if(this.brush.blendMode==2) { // smudge must have an interval of 1
 			this.quality=this.brush.size;
 		}
-		else {
+		else if(this.brush.brushtip||this.brush.isScatter){ // need to specify
+			this.quality=1/this.brush.interval;
+		}
+		else{ // auto quality
 			// The MAX param is only for controling alpha composition quality
 			// does not do with speed
 			const MAX_NORMAL=this.bitDepth==32? 100:this.bitDepth==16? 20:10;
@@ -113,6 +116,8 @@ class BasicRenderer {
 		}
 		bLen-=remL;
 
+		const brush=this.brush;
+
 		for(let t=bc.getTWithLength(remL,0);!isNaN(t);) {
 			// draw one plate at tstart
 			const t2=t*t;
@@ -124,10 +129,28 @@ class BasicRenderer {
 			nr=this.pressureToStrokeRadius(nd)*softRadiusCompensation;
 			// convert pressure to plate alpha. Note that na may > 1
 			const targetOpa=this.pressureToStrokeOpacity(nd);
-			const na=(1-Math.pow(1-targetOpa,this._invQuality))*tHardness;
-			// Calculate speed
-			const nsBezier=bc.getDir(t);
-			const data=[nx,ny,nr,nd,targetOpa,na.clamp(0,1),nsBezier.x,nsBezier.y];
+			let na=(1-Math.pow(1-targetOpa,this._invQuality))*tHardness;
+
+			// calculate related params of a circle (brushtip)
+			const nsBezier=bc.getDir(t); // Calculate speed
+			if(brush.isScatter>0){ // scatter on size/opacity/position
+				// scatter radius
+				let dR=brush.scatRad*nr*Math.random(); // use unscattered nr
+				let dA=Math.random()*Math.PI*2;
+				let dX=dR*Math.cos(dA);
+				let dY=dR*Math.sin(dA);
+				nx+=dX;
+				ny+=dY;
+				const sR1=brush.scatRad+1;
+				let naK=Math.pow(Math.random(),brush.randOpa/(1-brush.randOpa*0.99));
+				na=na*sR1*sR1*naK;
+
+				// scatter size
+				let nrK=Math.random()*brush.randScale+(1-brush.randScale);
+				nr=nr*nrK;
+			}
+
+			const data=[nx,ny,nr,nd,null,na.clamp(0,1),nsBezier.x,nsBezier.y];
 			kPoints.push(data); // add one key point
 
 			// update borders

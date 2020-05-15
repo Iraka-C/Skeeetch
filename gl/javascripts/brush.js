@@ -13,7 +13,7 @@ BrushManager.brushes=[
 		isAlphaPressure:0,
 		edgeHardness:1.0, // for how much part of the radius near edge is smoothed (0:gauss~1:binary)
 		blendMode:0, // 0: normal, -1: erase
-		isEroding: 0, // auto eroding brushtip by pressure
+		isEroding: 0, // auto eroding brushtip by pressure. 0: disabled, 1: opacity, 2: shape
 
 		brushtip: null, // null: round tip, GLTexture: customized
 		// following valid when customized brushtip
@@ -26,19 +26,8 @@ BrushManager.brushes=[
 		randScale: 0.5, // random scaling, unit as basic size
 		randRot: 0.5, // random rotation, unit as 1 full circle
 		randOpa: 0.5, // random opacity, unit same as minAlpha
-		density: 20 // auto when round & no scatter
+		interval: 0.02 // auto when round & no scatter
 	},
-	// {
-	// 	name:"spray gun",
-	// 	size:100,
-	// 	minSize:0.4,
-	// 	isSizePressure:1,
-	// 	alpha:0.8,
-	// 	minAlpha:0,
-	// 	isAlphaPressure:1,
-	// 	edgeHardness:0,
-	// 	blendMode:0,
-	// },
 	{
 		name:"paint brush",
 		size:80,
@@ -52,7 +41,7 @@ BrushManager.brushes=[
 		// paint brush specialized
 		extension: 0.8, // how much color to pick from sampler
 		isScatter: 0,
-		density: 20 // auto when round & no scatter
+		interval: 0.02 // auto when round & no scatter
 	},
 	{
 		name:"smudge brush",
@@ -85,7 +74,7 @@ BrushManager.brushes=[
 		edgeHardness:1.0,
 		blendMode:-1,
 		isScatter: 0,
-		density: 20 // auto when round & no scatter
+		interval: 0.02 // auto when round & no scatter
 	}
 ];
 BrushManager.customBrushes=[]; // customized brushes

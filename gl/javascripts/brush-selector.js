@@ -3,7 +3,7 @@ BrushManager.initBrushSelector=function(customBrushes) {
 	const $defTable=$("<table class='default-brush-table'>");
 	for(let i=0;i<BrushManager.brushes.length;i++) {
 		const brush=BrushManager.brushes[i];
-		brush.proto=i; // prototype
+		brush.proto=i; // prototype @TODO: in init
 
 		const $block=$("<td class='brush-selector-item'>").text(brush.name);
 		const $row=$("<tr>").append($block);
@@ -83,15 +83,20 @@ BrushManager.updateBrushtipThumb=function(brush,data){ // Update canvas in selec
 
 	// get image contents if not provided
 	const pixels=data||CANVAS.renderer.getUint8ArrayFromImageData(bImg);
-	for(let i=0;i<pixels.length;i+=4){ // set as white color @TODO: in renderer
-		pixels[i]=255;
-		pixels[i+1]=255;
-		pixels[i+2]=255;
+	// for(let i=0;i<pixels.length;i+=4){ // set as white color @TODO: in renderer
+	// 	pixels[i]=255;
+	// 	pixels[i+1]=255;
+	// 	pixels[i+2]=255;
+	// }
+	const iData=imgData2d.data;
+	for(let i=0;i<iData.length;i+=4){ // set as white color using alpha channel
+		iData[i]=255;
+		iData[i+1]=255;
+		iData[i+2]=255;
+		iData[i+3]=pixels[i+3]; // copy pixel data
 	}
-	imgData2d.data.set(pixels); // copy pixel data
 	ctx.putImageData(imgData2d,0,0);
 
-	return pixels;
 	// const dcv=$("#debug-canvas")[0];
 	// dcv.width=bImg.width; // in fact it's a square
 	// dcv.height=bImg.height;
@@ -99,9 +104,12 @@ BrushManager.updateBrushtipThumb=function(brush,data){ // Update canvas in selec
 	// const dctx=dcv.getContext("2d");
 	// const dimgData2d=dctx.createImageData(bImg.width,bImg.height);
 	
-	// BrushManager.getErosionMap(bImg.width,bImg.height,pixels);
-	// dimgData2d.data.set(pixels); // copy pixel data
+	// const p=new Uint8ClampedArray(iData);
+	// BrushManager.getErosionMap(bImg.width,bImg.height,p);
+	// dimgData2d.data.set(p); // copy pixel data
 	// dctx.putImageData(dimgData2d,0,0);
+
+	return pixels;
 }
 
 // ===================== Panel init ======================
@@ -227,50 +235,76 @@ BrushManager.getErosionMap=function(w,h,pixels){ // O(n^2)
 		}
 	}
 
-	for(let y=0;y<h;y++){
+	for(let y=0;y<h;y++){ // This part is suitable for GPU parallelization
 		for(let x=0;x<w;x++){
 			// operating on pixel (x,y) of erDis
 			const Axy=erMap[y][x];
-			for(let dy=-3;dy<=3;dy++){
-				for(let dx=-3;dx<=3;dx++){
+			for(let dy=-5;dy<=5;dy++){
+				for(let dx=-5;dx<=5;dx++){
 					const [i,j]=[x+dx,y+dy];
 					//if(i<0||i>=w||j<0||j>=h)continue;
 					// operating on pixel (i,j) of erMap
 					const Aij=(i<0||i>=w||j<0||j>=h)?0:erMap[j][i];
 					const dis=Math.hypot(dx,dy);
-					if(dis<=3&&Aij<0.05){ // a good estimation at the edge
+					if(dis<=5&&Aij<0.05){ // a good estimation at the edge
 						const C=((dis+1)/Math.max(Axy-Aij,1E-4)-1)*Axy*Axy;
 						if(C<erDis[y][x]){
-							erDis[y][x]=C;
+							erDis[y][x]=C; // C should be relatively small (<50?)
 						}
 					}
 				}
 			}
 		}
 	}
+	
+	const erMin=new Float32Array(w*h*4);
+	for(let j=0;j<h;j++){
+		for(let i=0;i<w;i++){
+			let id=(j*w+i)*4;
+			erMin[id]=erDis[j][i];
+			erMin[id+1]=erDis[j][i];
+			erMin[id+2]=erDis[j][i];
+			erMin[id+3]=erDis[j][i];
+		}
+	}
 
+	// This part is suitable for CPU parallelization
 	for(let t=0;t<4;t++){ // turns
 		// extend
+		let isChange=false;
 		for(let ty=0;ty<h;ty++){
 			for(let tx=0;tx<w;tx++){
-				let x=!(t%2)?tx:w-1-tx;
+				let x=(t%2)?tx:w-1-tx;
+				//let y=(t%2)?ty:h-1-ty;
 				let y=t%4<2?ty:h-1-ty;
+
+				let xyid=(y*w+x)*4+t;
 				// operating on pixel (x,y) of erDis
-				for(let dy=-3;dy<=3;dy++){
-					for(let dx=-3;dx<=3;dx++){
+				for(let dy=-5;dy<=5;dy++){ // rad 5 makes it almost a circle (12 sides)
+					for(let dx=-5;dx<=5;dx++){
 						const [i,j]=[x+dx,y+dy];
 						if(i<0||i>=w||j<0||j>=h)continue;
 						const dis=Math.hypot(dx,dy);
-						if(dis>3)continue;
+						if(dis>5)continue;
 						// operating on pixel (i,j) of erMap
 						// use erDis directly accelerates the convergence
-						const tDis=erDis[j][i]+dis*erMap[y][x];
-						if(tDis<erDis[y][x]){
-							erDis[y][x]=tDis;
+						let id=(j*w+i)*4+t;
+						const tDis=erMin[id]+dis*erMap[y][x];
+						if(tDis<erMin[xyid]){
+							erMin[xyid]=tDis;
+							isChange=true;
 						}
 					}
 				}
 			}
+		}
+		console.log("Turn "+t,isChange);
+	}
+
+	for(let j=0;j<h;j++){
+		for(let i=0;i<w;i++){
+			let id=(j*w+i)*4;
+			erDis[j][i]=Math.min(erMin[id],erMin[id+1],erMin[id+2],erMin[id+3]);
 		}
 	}
 
@@ -290,7 +324,7 @@ BrushManager.getErosionMap=function(w,h,pixels){ // O(n^2)
 			for(let i=0;i<w;i++){
 				let id=(j*w+i)*4;
 				const t=erDis[j][i]*k;
-				pixels[id]=t%16<8?0:255;
+				pixels[id]=t%32<16?0:255;
 				pixels[id+3]=t;//t>64?255:0;
 			}
 		}
@@ -301,7 +335,7 @@ BrushManager.getErosionMap=function(w,h,pixels){ // O(n^2)
 			for(let i=0;i<w;i++){
 				let id=(j*w+i)*4;
 				const t=(erDis[j][i]).clamp(0,minW)*k;
-				pixels[id]=t%16<8?0:255;
+				pixels[id]=t%32<16?0:255;
 				pixels[id+3]=t;//t>127?255:0;
 			}
 		}

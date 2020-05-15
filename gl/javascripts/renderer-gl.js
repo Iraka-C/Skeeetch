@@ -222,7 +222,6 @@ class GLRenderer extends BasicRenderer {
 			const p=kPoints[k];
 			const lastP=this.lastCircleFromPrevStroke;
 			const prevP=k? kPoints[k-1]:lastP? lastP:p; // p as fallback
-			const strokeOpa=p[4];
 			const plateOpa=p[5]; // plate opacity
 			const softRange=this.softness+fixedSoftEdge/p[2];
 			let rad=p[2];
@@ -685,6 +684,14 @@ class GLRenderer extends BasicRenderer {
 	 * returns a GLTexture, size no more than 500*500, OR null for failed
 	 * OR, null for not successfully created any brushtip imagedata
 	 * This function does not change the actual valid area of src (although it will recalculate)
+	 * 
+	 * BrushtipImageData: "GLTexture" type
+	 * no more than 500*500 in size
+	 * R channel: opacity
+	 * G channel: erosion map
+	 * B channel: <reserved>
+	 * A channel: 1
+	 * 
 	 * @param {"GLTexture"} src GLTexture image data
 	 */
 	getBrushtipImageData(src) {
