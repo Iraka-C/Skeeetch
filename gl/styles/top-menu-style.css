@@ -161,7 +161,6 @@
 #brush-selector-custom{
 	position: relative;
 	max-height: calc(50vh - 8em);
-	min-height: 1.6em;
 
 	overflow-x: hidden;
 	overflow-y: scroll;

@@ -125,7 +125,13 @@ BrushManager.init=function(sysSettingParams){
 		const activeBrush=brushSettings.active;
 		if(activeBrush){
 			if(activeBrush.isCustom){ // set custom active
-				BrushManager.setActiveBrush(BrushManager.brushHash.get(activeBrush.id));
+				const brush=BrushManager.brushHash.get(activeBrush.id);
+				if(brush){
+					BrushManager.setActiveBrush(brush);
+				}
+				else{ // not found
+					BrushManager.setActiveBrush(BrushManager.brushes[0]);
+				}
 			}
 			else{ // set fixed active
 				BrushManager.setActiveBrush(BrushManager.brushes[activeBrush.id]);

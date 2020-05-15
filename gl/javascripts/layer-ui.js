@@ -77,6 +77,13 @@ LAYERS._updateScrollBar=function(isAnimate){
 	}
 }
 
+/**
+ * Scroll to the position of a certain layer
+ */
+LAYERS.scrollTo=function(layer){
+
+}
+
 // For Debugging!
 LAYERS.toString=function(){
 	return "\n"+LAYERS.layerTree._getTreeNodeString();

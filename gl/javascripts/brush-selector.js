@@ -62,7 +62,15 @@ BrushManager.addCustomizedBrush=function(brush){
 	$row.click(() => {
 		BrushManager.setActiveBrush(brush);
 	});
-	$("#brush-selector-custom").children().append($row);
+
+	const $sel=$("#brush-selector-custom");
+	$sel.children().append($row);
+	if($sel.children().length>2){
+		$sel.css("min-height","3em");
+	}
+	else{
+		$sel.css("min-height","initial");
+	}
 
 	// add hash
 	BrushManager.brushHash.set(brush.id,brush);
@@ -111,6 +119,14 @@ BrushManager.updateBrushtipThumb=function(brush,data){ // Update canvas in selec
 
 	return pixels;
 }
+
+/**
+ * Scroll to the position of a certain custom brush
+ */
+BrushManager.scrollTo=function(brush){
+
+}
+
 
 // ===================== Panel init ======================
 BrushManager.initCustomizedBrushPanel=function(){
@@ -173,7 +189,15 @@ BrushManager.initCustomizedBrushPanel=function(){
 		}
 		brush.$row.remove(); // remove from selector
 		BrushManager.brushHash.delete(brush.id);
-		// update in setActive
+		// menu updated in setActive
+
+		const $sel=$("#brush-selector-custom"); // update min height
+		if($sel.children().length>2){
+			$sel.css("min-height","3em");
+		}
+		else{
+			$sel.css("min-height","initial");
+		}
 	});
 	$("#brush-selector-set").click(e=>{
 		// get brushtip image data
