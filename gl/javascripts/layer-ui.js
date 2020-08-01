@@ -28,9 +28,25 @@ LAYERS.initScrollbar=function(){
 	const scrollButton=$scrollButton[0];
 	LAYERS._updateScrollBar.scrollbar=scroll;
 	LAYERS._updateScrollBar.$scrollButton=$scrollButton;
+
+	// scroll and disable scroll on contents
+	// also stops thumb translating effect
+	let scrollTimer=null;
 	$scroll.on("scroll",event=>{ // set position
 		LAYERS._updateScrollBar();
+		if(scrollTimer){
+			clearTimeout(scrollTimer); // do it later
+		}
+		else{ // no timer, start disable
+			$("#layer-panel-inner").css("pointer-events","none");
+		}
+		scrollTimer=setTimeout(e=>{
+			scrollTimer=null;
+			$("#layer-panel-inner").css("pointer-events","auto");
+		},300);
 	});
+
+
 	$scroll.on("pointerenter",event=>{
 		LAYERS._updateScrollBar();
 	});

@@ -145,28 +145,29 @@ CANVAS.updateCursor=function(point,isPointerDown) {
 	// Coordinate transform
 	const pC=ENV.toPaperXY(point[0],point[1]);
 
-	const p=CANVAS.settings._speed;
-	const q=1-p;
-
-	if(pT.length) { // Smooth the trail
-		const p1=pT[pT.length-1]; // last point
-		if(isNaN(p1[0])){ // not a valid point
+	if(isPointerDown){ // keep tracking a whole sequence
+		if(pT.length) { // Smooth the trail
+			const p1=pT[pT.length-1]; // last point
+			if(isNaN(p1[0])){ // not a valid point
+				pT.push([pC[0],pC[1],point[2]]);
+			}
+			else{ // interpolate
+				const p=CANVAS.settings._speed;
+				const q=1-p;
+				pT.push([
+					pC[0]*p+p1[0]*q,
+					pC[1]*p+p1[1]*q,
+					point[2]*p+p1[2]*q
+				]);
+			}
+		}
+		else { // no point recorded yet,
 			pT.push([pC[0],pC[1],point[2]]);
 		}
-		else{ // interpolate
-			pT.push([
-				pC[0]*p+p1[0]*q,
-				pC[1]*p+p1[1]*q,
-				point[2]*p+p1[2]*q
-			]);
-		}
 	}
-	else {
-		pT.push([pC[0],pC[1],point[2]]);
-	}
-
-	if(!isPointerDown){ // keep tracking only a little piece
-		CANVAS.points=CANVAS.points.slice(-2);
+	else{ // keep tracking the first two points
+		CANVAS.points=CANVAS.points.slice(-1); // if [] then => []
+		CANVAS.points.push([pC[0],pC[1],point[2]]);
 	}
 }
 

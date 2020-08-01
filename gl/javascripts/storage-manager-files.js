@@ -316,8 +316,6 @@ STORAGE.FILES.loadLayerTree=function(node) {
 			if(sNode.type=="LayerGroupNode") { // group node
 				this.N=sNode.children.length; // children count
 				const newElement=new LayerGroupNode(sNode.id);
-				this.parent.elem.insertNode(newElement,0); // insert first
-				this.parent.elem.insertNode$UI(newElement.$ui,0);
 				newElement.setProperties(sNode);
 				this.elem=newElement;
 				if(this.N==0) {
@@ -326,8 +324,6 @@ STORAGE.FILES.loadLayerTree=function(node) {
 			}
 			else if(sNode.type=="CanvasNode") { // canvas node, load image data from canvas
 				const newElement=new CanvasNode(sNode.id);
-				this.parent.elem.insertNode(newElement,0); // sync insert first
-				this.parent.elem.insertNode$UI(newElement.$ui,0);
 				newElement.setRawImageDataInvalid();
 				STORAGE.FILES.getContent(sNode.id).then(imgBuf => {
 					if(imgBuf&&sNode.rawImageData){ // contents get
@@ -341,11 +337,13 @@ STORAGE.FILES.loadLayerTree=function(node) {
 						STORAGE.FILES.removeContent(sNode.id);
 						STORAGE.FILES.isFailedLayer=true;
 					}
-					newElement.setProperties(sNode);
+					newElement.setProperties(sNode); // also request refresh. This might be a potential bottleneck
+					// @TODO: possible solution: insert after loading?
 				}).catch(err => { // load failed
 					console.warn("ImageData Loading Failed");
 					console.error(err);
 					STORAGE.FILES.isFailedLayer=true;
+					// @TODO: delete $ui & texture?
 				}).finally(()=>{
 					this.loaded();
 				});
@@ -365,6 +363,12 @@ STORAGE.FILES.loadLayerTree=function(node) {
 			}
 		}
 		reportLoad(child) {
+			if(child.elem) { // valid node
+				this.elem.insertNode(child.elem,0);
+				this.elem.insertNode$UI(child.elem.$ui,0);
+				child.elem.setRawImageDataInvalid();
+			}
+
 			this.loadedChildrenCnt++;
 			if(this.loadedChildrenCnt==this.N) { // all children loaded
 				// may do compression / composition here

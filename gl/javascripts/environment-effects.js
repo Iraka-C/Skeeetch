@@ -94,7 +94,10 @@ ENV._transformAnimation=function(timestamp) { // timestamp in ms
 			"transform": matrixStr, // transform
 			"box-shadow": "0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
 		});
-		CANVAS.requestRefresh(); // update canvas anti-aliasing, another frame rate
+
+		if(ENV.displaySettings.antiAlias){
+			CANVAS.requestRefresh(); // update canvas anti-aliasing
+		}
 
 		//console.log(matrixStr);
 

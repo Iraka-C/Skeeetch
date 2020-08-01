@@ -52,7 +52,8 @@ class GLRenderer extends BasicRenderer {
 			case 16:
 				const ext=gl.getExtension("OES_texture_half_float");
 				gl.getExtension("OES_texture_half_float_linear");
-				gl.getExtension("EXT_color_buffer_float");
+				gl.getExtension("EXT_color_buffer_half_float");
+				gl.getExtension("WEBGL_color_buffer_float"); // fallback of EXT_color_buffer_half_float
 				gl.getExtension("EXT_float_blend");
 				gl.HALF_FLOAT=ext.HALF_FLOAT_OES;
 				this.dataFormat=gl.HALF_FLOAT;
@@ -785,7 +786,8 @@ class GLRenderer extends BasicRenderer {
 				const canvas=document.createElement("canvas");
 				canvas.width=img.width;
 				canvas.height=img.height;
-				const ctx2d=canvas.getContext("2d"); // Use Context2D mode
+				const ctx2d=canvas.getContext("2d"); // Use Context2D mode @TODO: may cause context lost on large data!
+				// @TODO: using texImage2D-ArrayBuffer as input
 				const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
 				imgData2D.data.set(img.data);
 				this.loadToImageData(target,imgData2D);

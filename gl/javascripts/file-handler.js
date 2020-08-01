@@ -143,7 +143,7 @@ FILES.loadPSDNodes=function(node) {
 				this.loaded();
 			}
 		}
-		loaded() {
+		loaded() { // loaded when all children are loaded, and then, append to LayerTree.
 			// report sth
 			ENV.taskCounter.finishTask(1); // register load node
 			if(this.parent) {
