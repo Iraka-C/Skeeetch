@@ -359,22 +359,25 @@ BrushManager.initStylusSetting=function(brushMenu) {
 	);
 }
 
+BrushManager.brushButtonUpdateFunc=function() {
+	$("#brush-size").val(Math.round(BrushManager.activeBrush.size));
+};
 BrushManager.initBrushButton=function(brushMenu) {
-	brushMenu.setOpenButton($("#brush-button"));
-	BrushManager.brushButtonUpdateFunc=function() {
-		$("#brush-size").val(Math.round(BrushManager.activeBrush.size));
+	const $brushButton=$("#brush-button");
+	brushMenu.setOpenButton($brushButton);
+	const scrollFunc=(dW,oldVal) => { // set on scroll
+		let oldId=BrushManager._findBrushSizeId(BrushManager.activeBrush.size);
+		let newId=Math.round(oldId+dW).clamp(0,BrushManager.sizeList.length-1);
+		BrushManager.activeBrush.size=BrushManager.sizeList[newId];
+		BrushManager.minSizeUpdateFunc();
+		BrushManager.brushSizeUpdateFunc();
+		BrushManager.brushButtonUpdateFunc();
 	};
+	scrollFunc.target=$brushButton; // set scroll target
+
 	SettingManager.setInputInstantNumberInteraction(
 		// @TODO: disabled input color
-		$("#brush-size"),$("#brush-button"),null, // no input
-		(dW,oldVal) => { // set on scroll
-			let oldId=BrushManager._findBrushSizeId(BrushManager.activeBrush.size);
-			let newId=Math.round(oldId+dW).clamp(0,BrushManager.sizeList.length-1);
-			BrushManager.activeBrush.size=BrushManager.sizeList[newId];
-			BrushManager.minSizeUpdateFunc();
-			BrushManager.brushSizeUpdateFunc();
-			BrushManager.brushButtonUpdateFunc();
-		}, // set
+		$("#brush-size"),$brushButton,null,scrollFunc, // no input operation
 		(dx,oldVal) => { // set on drag-x
 			let originId=BrushManager._findBrushSizeId(oldVal-0);
 			let newId=Math.round(originId+dx/5).clamp(0,BrushManager.sizeList.length-1);

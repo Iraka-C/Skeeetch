@@ -99,6 +99,8 @@ class SettingManager{
 	 * scrollUpdateFunc(dWheel, oldVal): try to update corresponding variable by dWheel (+1/0/-1), return updated value
 	 * dragUpdateFunc(dx, oldVal): try to update corresponding variable by dx mouse move, return updated value
 	 *    Provide oldVal before clicking for precision reference (Optional)
+	 * 
+	 * scrollUpdateFunc/dragUpdateFunc .target: the scrolling or dragging target $ui object
 	 */
 	static setInputInstantNumberInteraction($input,$parent,inputUpdateFunc,scrollUpdateFunc,dragUpdateFunc,_updateFunc){
 		$parent=$parent||$input; // if no parent provided, then set itself as the trigger element
@@ -116,17 +118,19 @@ class SettingManager{
 		}
 		$input.on("select",event=>{ // No selection - conflict wuth drag action
 			event.preventDefault();
-			let v=$input[0];
+			const v=$input[0];
 			v.selectionStart=v.selectionEnd;
 		});
-		EventDistributer.wheel.addListener($input,dw=>{ // Scroll on ONLY input
+		const scrollTgt=scrollUpdateFunc.target?scrollUpdateFunc.target:$input;
+		EventDistributer.wheel.addListener(scrollTgt,dw=>{ // Scroll on ONLY input by default
 			let val=$input.val();
 			if(scrollUpdateFunc){
 				scrollUpdateFunc(dw,val);
 			}
 			_updateFunc();
 		});
-		EventDistributer.button.addListener($parent,
+		const dragTgt=dragUpdateFunc.target?dragUpdateFunc.target:$parent;
+		EventDistributer.button.addListener(dragTgt, // Drag on parent by default
 			dP=>{ // Drag
 				if(dragUpdateFunc){
 					dragUpdateFunc(dP.x,dP.initVal);
