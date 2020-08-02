@@ -311,6 +311,16 @@ STORAGE.FILES.loadLayerTree=function(node) {
 			ENV.taskCounter.startTask(1); // register load node
 		}
 		load() { // sync function, can be called async
+			const loadNextNodeAsync=()=>{
+				if(this.nextNodeToLoad){ // prepare to load the next node
+					setTimeout(e=>{
+						const percentage=(this.index/loadQueue.length*100).toFixed(1);
+						EventDistributer.footbarHint.showInfo("Loading "+percentage+"% ...",5000);
+						this.nextNodeToLoad.load();
+					},0);
+				}
+			};
+
 			// **NOTE** setProperties() actually requested screen refresh
 			const sNode=this.json;
 			if(sNode.type=="LayerGroupNode") { // group node
@@ -318,9 +328,10 @@ STORAGE.FILES.loadLayerTree=function(node) {
 				const newElement=new LayerGroupNode(sNode.id);
 				newElement.setProperties(sNode);
 				this.elem=newElement;
-				if(this.N==0) {
+				if(this.N==0) { // No children: already fully loaded
 					this.loaded();
 				}
+				// else: load the next node (children)
 			}
 			else if(sNode.type=="CanvasNode") { // canvas node, load image data from canvas
 				const newElement=new CanvasNode(sNode.id);
@@ -346,23 +357,20 @@ STORAGE.FILES.loadLayerTree=function(node) {
 					// @TODO: delete $ui & texture?
 				}).finally(()=>{
 					this.loaded();
+					loadNextNodeAsync();
+					// @TODO: load contents after inserting UI?
 				});
 				this.elem=newElement;
+				return;
 			}
 			else { // Other layers
 				// ...?
 				this.loaded();
 			}
 
-			if(this.nextNodeToLoad){ // prepare to load the next node
-				setTimeout(e=>{
-					const percentage=(this.index/loadQueue.length*100).toFixed(1);
-					EventDistributer.footbarHint.showInfo("Loading "+percentage+"% ...",5000);
-					this.nextNodeToLoad.load();
-				},0);
-			}
+			loadNextNodeAsync();
 		}
-		reportLoad(child) {
+		append(child) {
 			if(child.elem) { // valid node
 				this.elem.insertNode(child.elem,0);
 				this.elem.insertNode$UI(child.elem.$ui,0);
@@ -378,10 +386,10 @@ STORAGE.FILES.loadLayerTree=function(node) {
 		loaded() {
 			ENV.taskCounter.finishTask(1); // end loading layer task
 			if(this.parent) {
-				this.parent.reportLoad(this);
+				this.parent.append(this);
 			}
 			else { // root loaded
-				STORAGE.FILES.onLayerTreeLoad(node.active);
+				STORAGE.FILES.onLayerTreeLoad(LAYERS.layerHash[node.active]);
 			}
 		}
 	}
@@ -395,7 +403,7 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	const traverse=function(jsonNode,parentStackNode) {
 		const stackNode=new StackNode(jsonNode,parentStackNode);
 		const M=loadQueue.length;
-		stackNode.index=M;
+		stackNode.index=M; // start from 1 (0 for root)
 		if(M){ // create linked list of loading items
 			loadQueue[M-1].nextNodeToLoad=stackNode;
 		}
@@ -418,10 +426,11 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	}
 }
 
-STORAGE.FILES.onLayerTreeLoad=function(activeID) {
+STORAGE.FILES.onLayerTreeLoad=function(activeNode) {
 	STORAGE.FILES.clearUnusedContents(); // maybe uncleared history
 	COMPOSITOR.updateLayerTreeStructure(); // async!
-	LAYERS.setActive(activeID);
+	LAYERS.setActive(activeNode);
+	LAYERS.scrollTo(activeNode,true);
 	LAYERS.updateAllThumbs();
 	if(STORAGE.FILES.isFailedLayer){
 		EventDistributer.footbarHint.showInfo("ERROR: Loaded with corrupted layers",2000);

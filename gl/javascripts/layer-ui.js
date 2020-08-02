@@ -85,6 +85,7 @@ LAYERS._updateScrollBar=function(isAnimate){
 	const sT=scroll.scrollTop;
 	const scrollRatio=Math.min(sT/(sH-cH),1); // why can it exceed 1.0?
 	$scrollButton.css("display",Math.abs(sH-cH)<1E-3?"none":"block"); // show scrollbar when needed
+	// @TODO: hard coded 16px slider size! change into height()
 	if(isAnimate){
 		$scrollButton.animate({"top":(isNaN(scrollRatio)?0:scrollRatio*(cH-16))+"px"},300);
 	}
@@ -94,10 +95,21 @@ LAYERS._updateScrollBar=function(isAnimate){
 }
 
 /**
- * Scroll to the position of a certain layer
+ * Scroll to the position of a certain layer node / node ID
  */
-LAYERS.scrollTo=function(layer){
-
+LAYERS.scrollTo=function(node,isAnimate){
+	const nTop=node.$ui.offset().top;
+	const $scroll=$("#layer-panel-scroll");
+	const $panel=$("#layer-panel-inner");
+	const pTop=$panel.offset().top;
+	const sTop=nTop-pTop; // scroll top
+	
+	if(isAnimate){
+		$scroll.animate({scrollTop:sTop},isNaN(isAnimate)?300:isAnimate);
+	}
+	else{
+		$scroll.scrollTop(sTop);
+	}
 }
 
 // For Debugging!

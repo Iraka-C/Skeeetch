@@ -210,6 +210,7 @@ FILES.onPSDLoaded=function() {
 	const toActive=FILES.loadPSDNodes.lastLoadingElement;
 	FILES.loadPSDNodes.lastLoadingElement=null; // release ref
 	LAYERS.setActive(toActive);
+	LAYERS.scrollTo(toActive,true);
 	LAYERS.updateAllThumbs();
 }
 

@@ -10,7 +10,7 @@ CURSOR.p0=[NaN,NaN,NaN]; // latest point
 CURSOR.p1=[NaN,NaN,NaN]; // last point
 CURSOR.isShown=false; // is the pointer visible
 CURSOR.isDown=false; //is the pointer pressed on screen
-CURSOR.type=null;
+CURSOR.type=null; // NOTICE: the "type" here is in fact pointerId
 CURSOR.eventIdList=["","",""]; // a list to record now id
 
 CURSOR.nowActivity=null; // what is the cursor doing at this moment?
@@ -45,7 +45,7 @@ CURSOR.init=function() {
 }
 
 CURSOR.moveCursor=function(event) {
-	let type=event.originalEvent.pointerType;
+	let type=event.originalEvent.pointerId;
 
 	// push one id in
 	CURSOR.eventIdList[2]=CURSOR.eventIdList[1];
@@ -59,12 +59,13 @@ CURSOR.moveCursor=function(event) {
 	if(CURSOR.type!=type) { // not the present id, no moving
 		return;
 	}
+	//console.log(event.originalEvent.pointerType);
 
 	CURSOR.p1=CURSOR.p0; // hand to the last event
 	CURSOR.p0=[ // new movement
 		event.originalEvent.offsetX,
 		event.originalEvent.offsetY,
-		type=="pen"? event.originalEvent.pressure:1 // 1 as default
+		event.originalEvent.pointerType=="pen"? event.originalEvent.pressure:1 // 1 as default: how about touch?
 	];
 	// set cursor size
 	CURSOR.updateXYR();
@@ -270,15 +271,15 @@ CURSOR.setCursor.lastType=null;
 CURSOR.down=function(event) {
 	if(CURSOR.isDown) {
 		return;
-		//CURSOR.type=event.originalEvent.pointerId;
 	}
 	CURSOR.isDown=true;
 	CURSOR.panRecord.isPanned=false;
+	//CURSOR.type=event.originalEvent.pointerId;
 }
 
 CURSOR.up=function(event) {
 	if(CURSOR.isDown&&(
-		CURSOR.type==event.originalEvent.pointerType // on the target leave
+		CURSOR.type==event.originalEvent.pointerId // on the target leave
 		||CURSOR.type===null)) { // on init
 		CURSOR.isDown=false;
 		//CURSOR.type=NaN;
