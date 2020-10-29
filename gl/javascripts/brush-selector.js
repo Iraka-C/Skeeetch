@@ -3,8 +3,6 @@ BrushManager.initBrushSelector=function(customBrushes) {
 	const $defTable=$("<table class='default-brush-table'>");
 	for(let i=0;i<BrushManager.brushes.length;i++) {
 		const brush=BrushManager.brushes[i];
-		brush.proto=i; // prototype @TODO: in init
-
 		const $block=$("<td class='brush-selector-item'>").text(brush.name);
 		const $row=$("<tr>").append($block);
 		brush.$row=$row; // backward ref
@@ -39,12 +37,15 @@ BrushManager.initBrushSelector=function(customBrushes) {
  * Append a brush block to selector
  */
 BrushManager.addCustomizedBrush=function(brush){
-	// add clickable block
+	// add clickable block of one brush
 	const $block=$("<td class='brush-selector-custom-item'>");
 	const $blockInput=$("<input class='custom-brush-name-label'>");
 	$blockInput.attr({"value":brush.name,"type": "text","maxLength": "256"});
 	$blockInput.on("change",event => { // change name
 		brush.name=$blockInput.val();
+		if(BrushManager.activeBrush==brush){ // this is the current active brush
+			$("#brush-name").text(brush.name); // Update title name display
+		}
 	});
 	EVENTS.disableInputSelection($blockInput);
 	$block.append($blockInput);
@@ -241,7 +242,8 @@ BrushManager.initCustomizedBrushPanel=function(){
 	});
 }
 
-BrushManager.getErosionMap=function(w,h,pixels){ // O(n^2)
+// You don't need an erosion map for brushtip: no better than opacity-control
+/*BrushManager.getErosionMap=function(w,h,pixels){ // O(n^2)
 	const erMap=new Array(h);
 	for(let j=0;j<h;j++){
 		erMap[j]=new Float32Array(w);
@@ -364,4 +366,4 @@ BrushManager.getErosionMap=function(w,h,pixels){ // O(n^2)
 			}
 		}
 	}
-}
+}*/

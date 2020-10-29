@@ -37,10 +37,10 @@ CURSOR.panRecord={ // recording the status of panning a layer/group
  */
 
 CURSOR.init=function() {
-	$("#brush-cursor-layer").attr({
-		width: ENV.window.SIZE.width,
-		height: ENV.window.SIZE.height
-	});
+	// $("#brush-cursor-layer").attr({
+	// 	width: ENV.window.SIZE.width,
+	// 	height: ENV.window.SIZE.height
+	// });
 	CURSOR.updateColor(PALETTE.colorSelector.getRGB());
 }
 

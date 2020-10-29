@@ -238,13 +238,13 @@ class GLTextureBlender {
 	}
 	/**
 	 * blend the src and dst textures in corresponding ranges
-	 * src, dst: imagedatas of this.gl
+	 * src, dst: imagedata of this.gl
 	 * param={
 	 *    mode: // see css mix-blend-mode standard
 	 *       GLTextureBlender.SOURCE: use src to replace dst
 	 *       GLTextureBlender.NORMAL: 1*src+(1-src)*dst normal blend
 	 *       GLTextureBlender.EXCLUSION: color exclusion
-	 *       GLTextureBlender.SCREEN: lighten
+	 *       GLTextureBlender.xxx: All other supported blend modes
 	 *    alphaLock: true | false // to change the dst alpha
 	 *    srcAlpha: additional opacity of source, 0~1
 	 *    targetArea: the area to blend, {w,h,l,t} under paper coordinate. The smaller, the faster.
@@ -547,44 +547,44 @@ class GLImageDataFactory {
 		// a_position shall be the same rect order as a_src_position (in GLProgram.getAttributeRect)
 	}
 
-	_initAAZoomProgram(){
-		const vZoomShaderSource=glsl`
-			attribute vec2 a_position; // the position (sample space) on the drawing target
-			attribute vec2 a_src_position; // the position (sample space) from the sampled source
-			varying vec2 v_position;
-			void main(){
-				v_position=a_position;
-				gl_Position=vec4(a_position*2.0-1.0,0.0,1.0); // to clip space
-			}
-		`;
-		const fZoomShaderSource=glsl`
-			precision mediump float;
-			precision mediump sampler2D;
-			uniform sampler2D u_image;
-			uniform vec2 u_aa_step; // anti-alias pixel interval (x,y) in sampler coordinate, may be non-int
-			uniform float u_aa_cnt; // how many steps to sample
-			varying highp vec2 v_position;
+	// _initAAZoomProgram(){
+	// 	const vZoomShaderSource=glsl`
+	// 		attribute vec2 a_position; // the position (sample space) on the drawing target
+	// 		attribute vec2 a_src_position; // the position (sample space) from the sampled source
+	// 		varying vec2 v_position;
+	// 		void main(){
+	// 			v_position=a_position;
+	// 			gl_Position=vec4(a_position*2.0-1.0,0.0,1.0); // to clip space
+	// 		}
+	// 	`;
+	// 	const fZoomShaderSource=glsl`
+	// 		precision mediump float;
+	// 		precision mediump sampler2D;
+	// 		uniform sampler2D u_image;
+	// 		uniform vec2 u_aa_step; // anti-alias pixel interval (x,y) in sampler coordinate, may be non-int
+	// 		uniform float u_aa_cnt; // how many steps to sample
+	// 		varying highp vec2 v_position;
 
-			const float max_its=10.;
-			void main(){
-				float cnt=u_aa_cnt+1.;
-				vec4 totalColor=texture2D(u_image,v_position)*cnt;
-				float totalCnt=cnt;
-				for(float i=1.;i<max_its;i++){
-					if(i>=cnt)break; // counting finished
-					vec2 dPos=u_aa_step*i;
-					float k=cnt-i;
-					totalColor+=texture2D(u_image,v_position+dPos)*k;
-					totalColor+=texture2D(u_image,v_position-dPos)*k;
-					totalCnt+=k+k;
-				}
-				gl_FragColor=totalColor/totalCnt; // average pixel
-			}
-		`;
-		// ================= Create program ====================
-		this.canvasProgram=new GLProgram(this.gl,vCanvasShaderSource,fCanvasShaderSource);
-		this.canvasProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
-	}
+	// 		const float max_its=10.;
+	// 		void main(){
+	// 			float cnt=u_aa_cnt+1.;
+	// 			vec4 totalColor=texture2D(u_image,v_position)*cnt;
+	// 			float totalCnt=cnt;
+	// 			for(float i=1.;i<max_its;i++){
+	// 				if(i>=cnt)break; // counting finished
+	// 				vec2 dPos=u_aa_step*i;
+	// 				float k=cnt-i;
+	// 				totalColor+=texture2D(u_image,v_position+dPos)*k;
+	// 				totalColor+=texture2D(u_image,v_position-dPos)*k;
+	// 				totalCnt+=k+k;
+	// 			}
+	// 			gl_FragColor=totalColor/totalCnt; // average pixel
+	// 		}
+	// 	`;
+	// 	// ================= Create program ====================
+	// 	this.canvasProgram=new GLProgram(this.gl,vCanvasShaderSource,fCanvasShaderSource);
+	// 	this.canvasProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
+	// }
 
 	free() {
 		this.converterProgram.free();
@@ -900,5 +900,43 @@ class GLImageDataFactory {
 			width: zR-zL+1,
 			height: zB-zT+1
 		};
+	}
+}
+
+/**
+ * Homographic & similar transformation
+ */
+class GLTransformation {
+	constructor(renderer) {
+		this.gl=renderer.gl;
+		this.dataFormat=renderer.dataFormat;
+
+		this._initTransformProgram();
+	}
+
+	_initTransformProgram(){
+		// draw source 
+		const vTransformShaderSource=glsl`
+			attribute vec2 a_position; // vertex position
+			varying vec2 v_position;
+			void main(){
+				v_position=a_position;
+				vec2 clipPos=(a_position*2.-1.)*vec2(1.,-1.);
+				gl_Position=vec4(clipPos,0.,1.); // to clip space
+			}
+		`;
+		const fTransformShaderSource=glsl`
+			precision mediump float;
+			precision mediump sampler2D;
+			uniform sampler2D u_image;
+			varying highp vec2 v_position;
+			void main(){
+				vec4 pix=texture2D(u_image,v_position);
+				gl_FragColor=pix; // get the color
+			}
+		`;
+		this.transformProgram=new GLProgram(this.gl,vTransformShaderSource,fTransformShaderSource);
+		this.transformProgram.setAttribute("a_position",GLProgram.getAttributeRect(),2);
+		// a_position shall be the same rect order as a_src_position (in GLProgram.getAttributeRect)
 	}
 }

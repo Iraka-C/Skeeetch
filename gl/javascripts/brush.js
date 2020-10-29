@@ -4,6 +4,7 @@
 BrushManager={};
 BrushManager.brushes=[
 	{
+		proto:0, // a prototype id indicating the type of brush, also the order in brushes
 		name:"pencil",
 		size:20, // diameter in sizeList[size]
 		minSize:0.0, // 0~1 (0~100%) of size
@@ -29,6 +30,7 @@ BrushManager.brushes=[
 		interval: 0.02 // auto when round & no scatter
 	},
 	{
+		proto:1,
 		name:"paint brush",
 		size:80,
 		minSize:0.25,
@@ -44,6 +46,7 @@ BrushManager.brushes=[
 		interval: 0.02 // auto when round & no scatter
 	},
 	{
+		proto:2,
 		name:"smudge brush",
 		size:80,
 		minSize:1,
@@ -64,6 +67,7 @@ BrushManager.brushes=[
 		// fixed density
 	},
 	{
+		proto:3,
 		name:"eraser",
 		size:50,
 		minSize:1.0,

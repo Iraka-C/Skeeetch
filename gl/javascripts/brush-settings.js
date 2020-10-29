@@ -177,9 +177,14 @@ BrushManager.initScatterSetting=function(brushMenu) {
 			BrushManager.activeBrush.brushtipRot=newVal;
 		}
 	);
-	brushMenu.addSwitch(Lang("Rotate With Stroke"),[Lang("Disabled"),Lang("Enabled")],null,id => {
-		BrushManager.activeBrush.isRotWithStroke=id;
-	},() => BrushManager.activeBrush.brushtip? BrushManager.activeBrush.isRotWithStroke:NaN);
+	brushMenu.addSwitch(
+		Lang("Rotate With Stroke"),[Lang("Disabled"),Lang("Enabled")],null,id => {
+			BrushManager.activeBrush.isRotWithStroke=id;
+		},
+		() => BrushManager.activeBrush.brushtip||BrushManager.activeBrush.proto==2?
+		// has a brushtip or is smudge brush
+		BrushManager.activeBrush.isRotWithStroke:NaN
+	);
 	// ================= Scattering control =================
 	brushMenu.addSwitch(Lang("Scattering"),[Lang("Disabled"),Lang("Enabled")],null,id => {
 		BrushManager.activeBrush.isScatter=id;

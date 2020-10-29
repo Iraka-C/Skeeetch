@@ -234,9 +234,11 @@ table{
 	opacity: 1;
 }
 /* ==================== Canvas panels ==================== */
-#brush-cursor-layer{
+#brush-cursor-layer{ /* svg layer for cursor */
 	position: absolute;
 	pointer-events: none;
+	width: 100%;
+	height: 100%;
 }
 #canvas-window{
 	position: absolute;

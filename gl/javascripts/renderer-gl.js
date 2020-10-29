@@ -697,7 +697,7 @@ class GLRenderer extends BasicRenderer {
 	 */
 	getBrushtipImageData(src) {
 		this.vramManager.verify(src);
-		const MAXL=500;
+		const MAXL=500; // Not used now
 		const nArea=this.imageDataFactory.recalculateValidArea(src,0);
 
 		// create brushtip
