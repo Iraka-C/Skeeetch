@@ -157,17 +157,18 @@ STORAGE.FILES.requestSaveContentChanges=function() {
 STORAGE.FILES.savingList=new Map();
 STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 	if(!ENV.displaySettings.isAutoSave&&!isForceSaving)return; // do not require contents saving
-	if(node) { // operating on a CanvasNode
+	if(node) { // @TODO: operating on a CanvasNode
 		console.log("Saving contents ...");
 		
 		STORAGE.FILES.savingList.set(node.id,node);
 		$("#icon").attr("href","./resources/favicon-working.png");
 
-		// There shouldn't be several save requests in 1 frame...
+		// There shouldn't be several save requests of 1 node in 1 frame...
 		setTimeout(()=>{ // give icon a chance to change
 			// Get buffer out of valid area
 
 			// Start Saving, try saver first
+			// FileWorker will try Worker first, then async saving
 			const fileSaver=new FileWorker();
 			ENV.taskCounter.startTask();
 			fileSaver.saveFile(node).then(()=>{

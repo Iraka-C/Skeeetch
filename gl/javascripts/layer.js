@@ -194,18 +194,25 @@ LAYERS.init=function(layerTreeJSON) {
  * Add a first blank layer to the layer panel
  */
 LAYERS.initFirstLayer=function() {
-	// Create Node
-	let layer=new CanvasNode();
-	LAYERS.layerTree.insertNode$UI(layer.$ui);
-	LAYERS.layerTree.insertNode(layer,0); // append the contents to layerTree
+	// 1. Create background Node
+	const layerBG=new CanvasNode();
+	LAYERS.layerTree.insertNode$UI(layerBG.$ui);
+	LAYERS.layerTree.insertNode(layerBG,0); // append the contents to layerTree
 	// Clear Blank imageData
-	layer.assignNewRawImageData(ENV.paperSize.width,ENV.paperSize.height,0,0);
-	CANVAS.renderer.clearImageData(layer.rawImageData,[1,1,1,1],false);
-	layer.setRawImageDataInvalid();
+	layerBG.assignNewRawImageData(ENV.paperSize.width,ENV.paperSize.height,0,0);
+	CANVAS.renderer.clearImageData(layerBG.rawImageData,[1,1,1,1],false);
+	layerBG.setRawImageDataInvalid();
 	// Set Properties
-	layer.setProperties({name: Lang("Background"),pixelOpacityLocked: true});
-	LAYERS.setActive(layer);
-	STORAGE.FILES.saveContentChanges(layer);
+	layerBG.setProperties({name: Lang("Background"),pixelOpacityLocked: true});
+
+	// 2. Create first drawing Node
+	const layer1=new CanvasNode();
+	layerBG.addNodeBefore(layer1);
+	layerBG.$ui.before(layer1.$ui);
+
+	LAYERS.setActive(layer1);
+	STORAGE.FILES.saveContentChanges(layerBG);
+	STORAGE.FILES.saveContentChanges(layer1);
 }
 
 /**
