@@ -5,6 +5,7 @@ BrushManager={};
 BrushManager.brushes=[
 	{
 		proto:0, // a prototype id indicating the type of brush, also the order in brushes
+		// Of course you can assign proto with for loop. Write it here for clearance.
 		name:"pencil",
 		size:20, // diameter in sizeList[size]
 		minSize:0.0, // 0~1 (0~100%) of size
@@ -81,7 +82,12 @@ BrushManager.brushes=[
 		interval: 0.02 // auto when round & no scatter
 	}
 ];
-BrushManager.customBrushes=[]; // customized brushes
+/**
+ * Customized brushes
+ * BrushManager.customBrushes[i] has property brush.isCustom == true
+ */
+BrushManager.customBrushes=[];
+
 BrushManager.brushHash=new Map(); // hash code for customized brush
 BrushManager.generateHash=function(){
 	let tag="";
@@ -122,7 +128,12 @@ BrushManager.init=function(sysSettingParams){
 	if(brushSettings){ // get default brush setting
 		if(brushSettings.default){ // assign value to make sure new setting compatible
 			for(let i=0;i<brushSettings.default.length;i++){
-				Object.assign(BrushManager.brushes[i],brushSettings.default[i]);
+				const brush=BrushManager.brushes[i];
+				const name=brush.name; // get initial name
+				Object.assign(brush,brushSettings.default[i]);
+				if(!brush.isCustom){ // a primitive brush
+					brush.name=Lang(name); // use translated name rather than saved name
+				}
 			}
 		}
 		BrushManager.initBrushSelector(brushSettings.custom);
@@ -147,7 +158,7 @@ BrushManager.init=function(sysSettingParams){
 		
 	}
 	else{ // translate brushes
-		for(const brush of BrushManager.brushes){ // translate names
+		for(const brush of BrushManager.brushes){ // translate initial brush names
 			brush.name=Lang(brush.name);
 		}
 		BrushManager.initBrushSelector();

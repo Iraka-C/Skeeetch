@@ -202,14 +202,15 @@ LAYERS.initFirstLayer=function() {
 	layerBG.assignNewRawImageData(ENV.paperSize.width,ENV.paperSize.height,0,0);
 	CANVAS.renderer.clearImageData(layerBG.rawImageData,[1,1,1,1],false);
 	layerBG.setRawImageDataInvalid();
-	// Set Properties
-	layerBG.setProperties({name: Lang("Background"),pixelOpacityLocked: true});
 
 	// 2. Create first drawing Node
 	const layer1=new CanvasNode();
 	layerBG.addNodeBefore(layer1);
 	layerBG.$ui.before(layer1.$ui);
-
+	layer1.setRawImageDataInvalid();
+	
+	// 3. Set Properties, and refresh canvas, save present status
+	layerBG.setProperties({name: Lang("Background"),pixelOpacityLocked: true});
 	LAYERS.setActive(layer1);
 	STORAGE.FILES.saveContentChanges(layerBG);
 	STORAGE.FILES.saveContentChanges(layer1);

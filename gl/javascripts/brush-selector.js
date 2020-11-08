@@ -3,7 +3,8 @@ BrushManager.initBrushSelector=function(customBrushes) {
 	const $defTable=$("<table class='default-brush-table'>");
 	for(let i=0;i<BrushManager.brushes.length;i++) {
 		const brush=BrushManager.brushes[i];
-		const $block=$("<td class='brush-selector-item'>").text(brush.name);
+		const $block=$("<td class='brush-selector-item'>");
+		$block.text(brush.name);//.attr("id","default-brush-"+i);
 		const $row=$("<tr>").append($block);
 		brush.$row=$row; // backward ref
 		$row.click(event => {
