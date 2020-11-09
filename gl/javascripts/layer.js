@@ -434,7 +434,6 @@ LAYERS.replaceGroupWithLayer=function(group) {
 	// transfer image data
 	CANVAS.renderer.adjustImageDataBorders(layer.rawImageData,group.rawImageData.validArea,false);
 	CANVAS.renderer.blendImageData(group.rawImageData,layer.rawImageData,{mode: GLTextureBlender.SOURCE});
-	// @TODO: layer.maskImageData
 	const hist2={ // add raw image data changed history
 		type: "image-data",
 		id: layer.id,

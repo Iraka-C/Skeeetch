@@ -71,14 +71,7 @@ PERFORMANCE.getRAMEstimation=function(){ // in MB
 		if(item.rawImageData.type!="GLTexture"){
 			imgDataRAMSize+=item.rawImageData.width*item.rawImageData.height*pixelBytes;
 		}
-
-		if(item.maskedImageData!=item.rawImageData){
-			if(item.rawImageData.type!="GLTexture"){
-				imgDataRAMSize+=item.maskImageData.width*item.maskImageData.height*alphaBytes; // Only alpha
-				imgDataRAMSize+=item.maskedImageData.width*item.maskedImageData.height*pixelBytes;
-			}
-		}
-		if(item.imageData!=item.maskedImageData){
+		if(item.imageData!=item.rawImageData){
 			if(item.rawImageData.type!="GLTexture"){
 				imgDataRAMSize+=item.imageData.width*item.imageData.height*pixelBytes;
 			}
@@ -121,7 +114,7 @@ PERFORMANCE.getGPUMemEstimation=function(){
 	// 		}
 	// 	}
 	// }
-	if(CANVAS.renderer){
+	if(CANVAS.renderer){ // Directly as the VRAM manager
 		imgDataGPUSize+=CANVAS.renderer.getGPUMemUsage();
 	}
 	gpuBytes+=imgDataGPUSize;
