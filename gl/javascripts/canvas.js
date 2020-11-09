@@ -385,7 +385,6 @@ CANVAS.clearAll=function() {
 		return false;
 	}
 
-	// @TODO: consider mask
 	const validArea={...CANVAS.nowLayer.rawImageData.validArea}; // the valid area doesn't change or turns 0
 	CANVAS.renderer.clearImageData(CANVAS.nowLayer.rawImageData,null,CANVAS.targetLayerOpacityLocked);
 	HISTORY.addHistory({ // add raw image data changed history
@@ -438,10 +437,9 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 /**
  * set the contents of targetLayer at {left:x,top:y}
  * Also move all child layers
- * @TODO: move masks
  * 
  * This is a rather low-cost but not logically correct implementation.
- * After panning, the masked/imageData become invalid (as they didn't moved)
+ * After panning, the imageData become invalid (as they didn't moved)
  * but if no rendering into these layers happen, there will be no difference.
  */
 CANVAS.panLayer=function(targetLayer,dx,dy,isToSetInvalid){
@@ -460,7 +458,6 @@ CANVAS.panLayer=function(targetLayer,dx,dy,isToSetInvalid){
 	if(isToSetInvalid){
 		targetLayer.setRawImageDataInvalid();
 	}
-	// @TODO: pan Masked data // @TODO: link Mask data
 	if(targetLayer.children.length){
 		for(const v of targetLayer.children) {
 			CANVAS.panLayer(v,dx,dy,isToSetInvalid);
@@ -483,7 +480,6 @@ CANVAS.roundLayerPosition=function(targetLayer){
 		lastD.validArea.top=Math.round(lastD.validArea.top);
 	}
 	targetLayer.setRawImageDataInvalid(); // render out-of-viewport-before-panning area
-	// @TODO: pan Masked data // @TODO: link Mask data
 	if(targetLayer.children.length){
 		for(const v of targetLayer.children) {
 			CANVAS.roundLayerPosition(v);

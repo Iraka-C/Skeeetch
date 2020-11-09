@@ -215,13 +215,8 @@ class CanvasNode extends ContentNode {
 	}
 	// ================ ImageData management =================
 	setRawImageDataInvalid() {
-		//console.log("set raw invalid "+this.id);
-		// this.isRawImageDataValid shall always be true
-		this.setMaskedImageDataInvalid();
-	}
-	setMaskedImageDataInvalid() {
 		this.isContentChanged=true; // mark here
-		super.setMaskedImageDataInvalid();
+		this.setImageDataInvalid(); // this.isRawImageDataValid shall always be true
 	}
 	// ================= button =================
 	
@@ -366,26 +361,17 @@ class CanvasNode extends ContentNode {
 		const setSourceButtonStatus=v => {
 			const $sourceButtonImg=$sourceButton.children("img");
 			switch(v) {
-				case -1: // No mask
-					$sourceButtonImg.attr("src","./resources/mask-inactive.svg");
-					$sourceButtonImg.css("opacity","0.2");
-					this.deleteMaskImageData(); // Delete the mask image data (if there is one)
-					this.properties.maskSelected=false; // the mask is not selected
-					break;
-				case 0: // With an inactive mask
+				case 0: // not a source
 					$sourceButtonImg.attr("src","./resources/mask-inactive.svg");
 					$sourceButtonImg.css("opacity","1");
-					this.createMaskImageData(); // Create a new mask image data (if there isn't one)
-					this.properties.maskSelected=false; // the mask is not selected
 					break;
-				case 1: // With an active mask
+				case 1: // is a source
 					$sourceButtonImg.attr("src","./resources/mask-active.svg");
 					$sourceButtonImg.css("opacity","1");
-					this.properties.maskSelected=true; // the mask is selected
 					break;
 			}
 		}
-		const fSource=SettingManager.setSwitchInteraction($sourceButton,null,{N:2},($el,v) => {
+		const fSource=SettingManager.setSwitchInteraction($sourceButton,null,2,($el,v) => {
 			// @TODO: add history here
 			setSourceButtonStatus(v);
 		});

@@ -131,18 +131,18 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 	}
 	node.isRawImageDataValid=true;
 
-	if(!node.isMaskedImageDataValid) { // masked data needs recomposition
+	// Discard mask layer logic
+	/*if(!node.isMaskedImageDataValid) { // masked data needs recomposition
 		if(node.maskImageData) { // there is a mask in this layer
 			// @TODO: blend raw & mask ==> masked
-			
-
 		}
 		// else: node.maskedImageData==node.rawImageData;
 		// do nothing
 	}
-	node.isMaskedImageDataValid=true;
+	node.isMaskedImageDataValid=true;*/
 
 	if(!node.isImageDataValid) { // image data needs recomposition (with clip masks)
+		// @TODO: change condition to imagedata equal
 		if(node.clipMaskChildrenCnt>0) { // there is a clip mask over this layer
 			// At here, imageData is surely not equal to rawImageData
 			const siblings=node.parent.children;
@@ -158,19 +158,19 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 			}
 
 			// Now the initSize contains the minimum size to contain the children's & this node's imageData
-			const mask=node.maskedImageData;
+			const raw=node.rawImageData;
 			const clipped=node.imageData; // present uncleared imagedata
-			CANVAS.renderer.adjustImageDataBorders(clipped,mask.validArea,false); // move to the position of mask
+			CANVAS.renderer.adjustImageDataBorders(clipped,raw.validArea,false); // move to the position of raw
 
 			if(dirtyArea){// @TODO: clear by viewport?
-				CANVAS.renderer.blendImageData(mask,clipped,{
+				CANVAS.renderer.blendImageData(raw,clipped,{
 					mode: BasicRenderer.SOURCE,
 					targetArea: dirtyArea
-				}); // copy masked image
+				}); // copy raw image
 			}
 			else{
 				CANVAS.renderer.clearImageData(clipped); // clear the data to blank.
-				CANVAS.renderer.blendImageData(mask,clipped,{mode: BasicRenderer.SOURCE}); // copy masked image
+				CANVAS.renderer.blendImageData(raw,clipped,{mode: BasicRenderer.SOURCE}); // copy raw image
 			}
 			// combine all image data
 			for(const v of childrenToBlend) {
@@ -187,7 +187,7 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 				}
 			}
 		}
-		// else: clipped==node.maskedImageData
+		// else: no children clipped==node.rawImageData
 	}
 	node.isImageDataValid=true;
 }

@@ -22,8 +22,8 @@ LAYERS.$newLayerGroupUI=function(id) {
 	let lockButton=$("<div class='group-lock-button'>").append($("<img>")); // group lock
 	let blendModeButton=$("<div class='group-blend-mode-button'>").append($("<img>")); // group blend mode
 	let clipMaskButton=$("<div class='group-clip-mask-button'>").append($("<img>")); // group clip mask
-	let maskButton=$("<div class='group-mask-button'>").append($("<img>")); // layer mask
-	groupButton.append(opacityLabel,lockButton,blendModeButton,clipMaskButton,maskButton);
+	let sourceButton=$("<div class='group-mask-button'>").append($("<img>")); // this layer as source
+	groupButton.append(opacityLabel,lockButton,blendModeButton,clipMaskButton,sourceButton);
 	layerGroupUI.append(groupButton);
 
 	// Layer clip mask hint

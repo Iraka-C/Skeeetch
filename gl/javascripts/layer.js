@@ -406,7 +406,7 @@ LAYERS.deleteItem=function(obj) {
 
 /**
  * Replace group with a layer containing the composited contents
- * Only replace contents. Do not change the properties including masks.
+ * Only replace contents. Do not change the properties.
  */
 LAYERS.replaceGroupWithLayer=function(group) {
 	// insert new node before
@@ -443,11 +443,9 @@ LAYERS.replaceGroupWithLayer=function(group) {
 
 	// delete old imageData to save space. @TODO: clear all non-leaf imageData
 	group.assignNewRawImageData(0,0);
-	group.assignNewMaskedImageData(0,0);
 	group.assignNewImageData(0,0);
-	group.maskImageData=null; // @TODO
 	group.setRawImageDataInvalid();
-	layer.setMaskedImageDataInvalid();
+	layer.setImageDataInvalid();
 
 	// remove group from ui
 	const groupId=group.id;

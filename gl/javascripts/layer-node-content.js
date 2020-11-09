@@ -5,10 +5,9 @@ class ContentNode extends LayerNode {
 		/**
 		 * ImageData management
 		 * The rendering pipeline is:
-		 * this.rawImageData  |==> this.maskedImageData    |==> this.imageData
-		 * this.maskImageData |    other nodes (Clip Masks)|
+		 * this.rawImageData       |==> this.imageData
+		 * other nodes (Clip Masks)|
 		 * 
-		 * If there is no maskImageData, it should be set null (not {} or naything else)
 		 */
 		/**
 		 * **NOTE** Never do direct assignment on this.(*)ImageData
@@ -16,15 +15,10 @@ class ContentNode extends LayerNode {
 		 * 2. It breaks the pointer connections between different image data
 		 */
 		this.rawImageData=CANVAS.renderer.createImageData(); // content
-		this.isRawImageDataValid=true; // is this imgData the latest (not modified)
+		this.isRawImageDataValid=true; // is this raw imgData the latest (not modified)
 
-		this.maskImageData=null; // <nope>should be "luminance"</nope> No luminance in WebGL Ver. 1, use RGB
-
-		this.maskedImageData=this.rawImageData;
-		this.isMaskedImageDataValid=true;
-
-		this.imageData=this.maskedImageData;
-		this.isImageDataValid=true;
+		this.imageData=this.rawImageData;
+		this.isImageDataValid=true; // is this imgData the latest (not modified)
 
 		// Image Data Managements
 		this.isChildrenClipMaskOrderValid=true; // do all children own proper clip mask id?
@@ -74,7 +68,6 @@ class ContentNode extends LayerNode {
 			opacity:1, // overall display opacity
 			visible:true, // is this layer visible in the DOM
 			clipMask:false, // is this layer a clip mask
-			maskSelected:false, // focus on mask canvas of this layer
 			blendMode:BasicRenderer.NORMAL // blend mode of this layer
 		};
 	}
@@ -114,12 +107,8 @@ class ContentNode extends LayerNode {
 		//console.log("Delete "+this.getName());
 		// release image data
 		if(this.rawImageData)CANVAS.renderer.deleteImageData(this.rawImageData);
-		if(this.maskImageData)CANVAS.renderer.deleteImageData(this.maskImageData);
-		if(this.maskedImageData)CANVAS.renderer.deleteImageData(this.maskedImageData);
 		if(this.imageData)CANVAS.renderer.deleteImageData(this.imageData);
 		this.rawImageData=null;
-		this.maskImageData=null;
-		this.maskedImageData=null;
 		this.imageData=null;
 		super.delete();
 	}
@@ -143,10 +132,6 @@ class ContentNode extends LayerNode {
 		}
 		if(prop.clipMask!==undefined){
 			p.clipMask=prop.clipMask;
-		}
-		if(prop.maskSelected!==undefined){
-			// TODO: if there's mask data, pass it to updatePropertyUI();
-			p.maskSelected=prop.maskSelected;
 		}
 		if(prop.blendMode!==undefined){
 			p.blendMode=prop.blendMode;
@@ -207,17 +192,18 @@ class ContentNode extends LayerNode {
 	}
 	// =============== mask & clip mask ==================
 	createImageData(){ // create a new imagedata for combining clip masks
-		if(this.imageData!=this.maskedImageData)return; // already created
+		if(this.imageData!=this.rawImageData)return; // already created
 		this.imageData=CANVAS.renderer.createImageData();
 		this.imageDataCombinedCnt=1;
 	}
 	deleteImageData(){ // delete the imagedata for combining clip masks
-		if(this.imageData==this.maskedImageData)return; // already deleted
+		if(this.imageData==this.rawImageData)return; // already deleted
 		CANVAS.renderer.deleteImageData(this.imageData);
-		this.imageData=this.maskedImageData;
+		this.imageData=this.rawImageData;
 		this.imageDataCombinedCnt=1;
 	}
-	createMaskImageData(){
+	// Discard mask logic
+	/*createMaskImageData(){
 		if(this.maskImageData)return; // already created
 
 		console.log(this.id+" Create ML");
@@ -250,7 +236,7 @@ class ContentNode extends LayerNode {
 		else{ // no clip mask
 			this.imageData=this.maskedImageData; // change the reference
 		}
-	}
+	}*/
 
 	// w,h,l,t are width, height, left, and top params
 	// When they are all provided, toCopy==true copies the old contents to the new one
@@ -262,7 +248,7 @@ class ContentNode extends LayerNode {
 			top:t===undefined?0:t
 		},toCopy||false);
 	}
-	assignNewMaskedImageData(w,h){ // Safe way to assign a new masked image data
+	/*assignNewMaskedImageData(w,h){ // Safe way to assign a new masked image data
 		if(this.maskedImageData==this.rawImageData){ // error: masked is the same as raw
 			//throw new Error("Assign error: Masked image data is the same as raw. id="+this.id);
 			return;
@@ -273,9 +259,9 @@ class ContentNode extends LayerNode {
 			left:0,
 			top:0
 		},false);
-	}
+	}*/
 	assignNewImageData(w,h){ // Safe way to assign a new clip image data
-		if(this.imageData==this.maskedImageData){ // error: masked is the same as raw
+		if(this.imageData==this.rawImageData){ // error: masked is the same as raw
 			//throw new Error("Assign error: Image data is the same as masked. id="+this.id);
 			return;
 		}
@@ -342,29 +328,29 @@ class ContentNode extends LayerNode {
 	 * There are two cases of rendering pipe:
 	 * 1. This node is not a clip mask and has clip mask children:
 	 * 
-	 * ┌ imageData          ┐
-	 * ┌ imageData          ┐
-	 * raw + mask -> masked -> imageData
+	 * ┌ imageData ┐
+	 * ┌ imageData ┐
+	 * raw ---------> imageData
 	 * 
 	 * 2. This node is a clip mask:
 	 * 
-	 * ┌ raw + mask -> masked == imageData ┐
-	 * clip parent:[clipMaskParentIndex]   -> clip parent.imageData
+	 * ┌ raw ================= imageData ┐
+	 * clip parent:[clipMaskParentIndex] -> clip parent.imageData
 	 */
 	setRawImageDataInvalid() { // @TODO: follow the pipeline
 		//console.log("set raw invalid "+this.id);
 		
 		if(!this.isRawImageDataValid)return; // already set
 		this.isRawImageDataValid=false;
-		this.setMaskedImageDataInvalid();
+		this.setImageDataInvalid();
 	}
 
-	setMaskedImageDataInvalid(){
+	/*setMaskedImageDataInvalid(){
 		//console.log("set masked invalid "+this.id);
 		if(!this.isMaskedImageDataValid)return; // already set
 		this.isMaskedImageDataValid=false;
 		this.setImageDataInvalid();
-	}
+	}*/
 
 	setImageDataInvalid(){
 		//console.log("set invalid "+this.id);
@@ -461,7 +447,7 @@ class ContentNode extends LayerNode {
 			+(this.properties.clipMask?"┌":" ")
 			+this.id+"["+this.imageDataCombinedCnt+"] "
 			+(CANVAS.renderer.isImageDataFrozen(this.imageData)?" ":this.isImageDataValid?"I":"i")
-			+(CANVAS.renderer.isImageDataFrozen(this.maskedImageData)?" ":this.isMaskedImageDataValid?"M":"m")
+			//+(CANVAS.renderer.isImageDataFrozen(this.maskedImageData)?" ":this.isMaskedImageDataValid?"M":"m")
 			+(CANVAS.renderer.isImageDataFrozen(this.rawImageData)?" ":this.isRawImageDataValid?"R":"r")
 			+"\n";
 		for(let v of this.children){
