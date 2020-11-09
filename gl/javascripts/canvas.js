@@ -228,6 +228,8 @@ CANVAS.stroke=function() {
 	let clippedTargetSize=targetSize;
 	// render
 	if(CANVAS.renderer.brush.blendMode!=-1&&!CANVAS.targetLayerOpacityLocked){ // need to expand border
+		//console.log("now Target",nowTarget,"Clipp",);
+		
 		CANVAS.renderer.adjustImageDataBorders(nowTarget,clippedTargetSize,true);
 		if(!nowTarget.width||!nowTarget.height){ // zero size. may happen when drawing out of canvas border
 			return;

@@ -5,25 +5,25 @@
 EVENTS={};
 
 EVENTS.key={
-	ctrl:false,
-	shift:false,
-	alt:false
+	ctrl: false,
+	shift: false,
+	alt: false
 };
 
-EVENTS.init=function(){
+EVENTS.init=function() {
 	/**
 	 * @TODO: touch event / multitouch support
 	 */
 
 	// disable pen long press => context menu
-	//$(window).on("contextmenu",e=>false);
+	$(window).on("contextmenu",e => false);
 
 	// ============ Auto File saving related ==============
 	let isNotSavedOnExit=false;
-	$(window).on("blur",e=>{
+	$(window).on("blur",e => {
 		//console.log(isUnloadTriggered);
-		
-		if(ENV.displaySettings.isAutoSave){
+
+		if(ENV.displaySettings.isAutoSave) {
 			EventDistributer.footbarHint.showInfo("Saving contents ...");
 			STORAGE.FILES.requestSaveContentChanges();
 			isNotSavedOnExit=false;
@@ -36,18 +36,18 @@ EVENTS.init=function(){
 		// 	isUnloadTriggered=false;
 		// }
 	});
-	$(window).on("beforeunload",e=>{
+	$(window).on("beforeunload",e => {
 		//isUnloadTriggered=true;
 		// see STORAGE.SETTING.saveAllSettings
 		STORAGE.saveOnExit();
-		if(STORAGE.FILES.isUnsaved()){ // there are unsaved contents
+		if(STORAGE.FILES.isUnsaved()) { // there are unsaved contents
 			// show promp window
 			isNotSavedOnExit=true;
 			e.preventDefault();
 			return "";
 		}
 	});
-	$("#canvas-area-panel").on("pointerleave",event=>{
+	$("#canvas-area-panel").on("pointerleave",event => {
 		// const offset=$("#canvas-area-panel").offset();
 		// const w=$("#canvas-area-panel").width();
 		// const h=$("#canvas-area-panel").height();
@@ -55,7 +55,7 @@ EVENTS.init=function(){
 		// let dY=offset.top+h-event.originalEvent.clientY;
 		// console.log("Pointer left at "+dX+" "+dY);
 
-		if(!CURSOR.isDown&&event.originalEvent.relatedTarget){ // moving to other blocks
+		if(!CURSOR.isDown&&event.originalEvent.relatedTarget) { // moving to other blocks
 			STORAGE.FILES.requestSaveContentChanges();
 		}
 	});
@@ -64,46 +64,57 @@ EVENTS.init=function(){
 	/**
 	 * Window resize handler
 	 */
-	$(window).on("resize",event=>{
+	$(window).on("resize",event => {
+		if(LOGGING) { // for debugger checking
+			var devtools=/./;
+			devtools.toString=function() {
+				this.opened=true;
+			}
+			console.log("%c",devtools);
+			if(devtools.opened){
+				$(window).unbind("contextmenu");
+			}
+		}
+
 		ENV.window.SIZE.width=$canvasWindow.width();
 		ENV.window.SIZE.height=$canvasWindow.height();
 		ENV.refreshTransform();
 		$("#brush-cursor-layer").attr({
-			width:ENV.window.SIZE.width,
-			height:ENV.window.SIZE.height
+			width: ENV.window.SIZE.width,
+			height: ENV.window.SIZE.height
 		});
 	});
 
 	// Tidy the logic here: better if only use over/move/out. Do not use down/up
-	$canvasWindow.on("pointerover",event=>{
-		if(!CURSOR.isDown&&event.originalEvent.buttons&0x3){ // left/right
+	$canvasWindow.on("pointerover",event => {
+		if(!CURSOR.isDown&&event.originalEvent.buttons&0x3) { // left/right
 			CANVAS.setCanvasEnvironment();
 			CURSOR.down(event); // also considered as down
-			eachMenuPanelFunc($el=>$el.css("pointer-events","none"));
+			eachMenuPanelFunc($el => $el.css("pointer-events","none"));
 		}
-		
+
 		CURSOR.setIsShown(true);
 		CURSOR.updateAction(event); // provide an action
 	});
-	$canvasWindow.on("pointermove",event=>{
+	$canvasWindow.on("pointermove",event => {
 		CURSOR.setIsShown(true); // pen->mouse switching
 		CURSOR.updateAction(event); // still registering right button: change to movecursor?
 		CURSOR.moveCursor(event); // may be stroke or pan
 	});
-	$canvasWindow.on("pointerout",event=>{
+	$canvasWindow.on("pointerout",event => {
 		CURSOR.setIsShown(false); // pen away, disable cursor
 	});
 
 	// do sth to each menu panel
 	const menuPanels=$("#menu-panel").find(".setting-panel");
 	menuPanels.push($("#bottom-info-panel")[0]); // also add footnotes into
-	const eachMenuPanelFunc=callback=>{ // callback($el)
-		menuPanels.each(function(){
+	const eachMenuPanelFunc=callback => { // callback($el)
+		menuPanels.each(function() {
 			callback($(this));
 		});
 	}
 	// DOWN / UP outside the window
-	$canvasWindow.on("pointerdown",event=>{
+	$canvasWindow.on("pointerdown",event => {
 		/**
 			0 : No button or un-initialized
 			1 : Primary button (usually the left button)
@@ -116,10 +127,10 @@ EVENTS.init=function(){
 		CURSOR.down(event);
 		CURSOR.updateAction(event); // doesn't change the action
 		CURSOR.moveCursor(event);
-		eachMenuPanelFunc($el=>$el.css("pointer-events","none")); // do not enable menu operation
+		eachMenuPanelFunc($el => $el.css("pointer-events","none")); // do not enable menu operation
 	});
-	$(window).on("pointerup",event=>{
-		if(event.target==$canvasWindow[0]){
+	$(window).on("pointerup",event => {
+		if(event.target==$canvasWindow[0]) {
 			// on canvas
 			CURSOR.moveCursor(event);
 		}
@@ -129,25 +140,25 @@ EVENTS.init=function(){
 		// }
 		CANVAS.strokeEnd();
 		CURSOR.updateAction(event);
-		eachMenuPanelFunc($el=>$el.css("pointer-events","all")); // after stroke, enable menus
+		eachMenuPanelFunc($el => $el.css("pointer-events","all")); // after stroke, enable menus
 	});
 	// When menus enabled, disable canvas operation
 	// This also disables drawing on canvas when the cursor moves out of the menu part
-	eachMenuPanelFunc($el=>$el.on("pointerdown",e=>e.stopPropagation()));
+	eachMenuPanelFunc($el => $el.on("pointerdown",e => e.stopPropagation()));
 
 	// Scroll on canvas
-	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx)=>{ // Scroll
-		if(EVENTS.key.alt||EVENTS.key.ctrl){ // normal pan
+	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx) => { // Scroll
+		if(EVENTS.key.alt||EVENTS.key.ctrl) { // normal pan
 			let newTx=ENV.window.trans.x-dx*10;
 			let newTy=ENV.window.trans.y-dy*10;
 			ENV.translateTo(newTx,newTy);
 		}
-		else if(EVENTS.key.shift){ // Shift pressed, pan horizontally
+		else if(EVENTS.key.shift) { // Shift pressed, pan horizontally
 			let newTx=ENV.window.trans.x-dy*10;
 			let newTy=ENV.window.trans.y-dx*10;
 			ENV.translateTo(newTx,newTy);
 		}
-		else{ // no key: zoom
+		else { // no key: zoom
 			// Alt menu cannot be prevented in Firefox
 			// zooming center is the cursor
 			let newS=SettingHandler.updateScale(dy,ENV.window.scale); // 0.1~8.0 clamped
@@ -172,25 +183,25 @@ EVENTS.init=function(){
 }
 
 // keyboard down handler
-EVENTS.keyDown=function(event){
+EVENTS.keyDown=function(event) {
 	let shift=event.shiftKey==1;
 	let ctrl=event.ctrlKey==1;
 	let alt=event.altKey==1;
 	let functionKeyChanged=false;
 
-	if(shift&&!EVENTS.key.shift){ // long pressing a key may fire several events
+	if(shift&&!EVENTS.key.shift) { // long pressing a key may fire several events
 		EVENTS.key.shift=true;
 		functionKeyChanged=true;
 		// change cursor on panning whole canvas
 		CURSOR.updateAction();
 	}
-	if(ctrl&&!EVENTS.key.ctrl){
+	if(ctrl&&!EVENTS.key.ctrl) {
 		EVENTS.key.ctrl=true;
 		functionKeyChanged=true;
 		// change cursor on panning layer
 		CURSOR.updateAction();
 	}
-	if(alt&&!EVENTS.key.alt){
+	if(alt&&!EVENTS.key.alt) {
 		EVENTS.key.alt=true;
 		functionKeyChanged=true;
 		// change cursor on picking color
@@ -198,31 +209,31 @@ EVENTS.keyDown=function(event){
 		$("#palette-selector").css("cursor","crosshair");
 		event.preventDefault(); // prevent browser menu
 	}
-	
-	if(functionKeyChanged){ // shift|ctrl|alt pressed
+
+	if(functionKeyChanged) { // shift|ctrl|alt pressed
 		// more actions related to key changed?
 		EventDistributer.footbarHint.update();
 	}
 }
 
 // keyboard up handler
-EVENTS.keyUp=function(event){
+EVENTS.keyUp=function(event) {
 	let shift=event.shiftKey==1;
 	let ctrl=event.ctrlKey==1;
 	let alt=event.altKey==1;
 	let functionKeyChanged=false;
 
-	if(!shift&&EVENTS.key.shift){ // long pressing a key may fire several events
+	if(!shift&&EVENTS.key.shift) { // long pressing a key may fire several events
 		EVENTS.key.shift=false;
 		functionKeyChanged=true;
 		CURSOR.updateAction();
 	}
-	if(!ctrl&&EVENTS.key.ctrl){
+	if(!ctrl&&EVENTS.key.ctrl) {
 		EVENTS.key.ctrl=false;
 		functionKeyChanged=true;
 		CURSOR.updateAction();
 	}
-	if(!alt&&EVENTS.key.alt){
+	if(!alt&&EVENTS.key.alt) {
 		EVENTS.key.alt=false;
 		functionKeyChanged=true;
 		CURSOR.updateAction();
@@ -230,15 +241,15 @@ EVENTS.keyUp=function(event){
 		event.preventDefault(); // prevent browser menu
 	}
 
-	if(functionKeyChanged){ // shift|ctrl|alt leave
+	if(functionKeyChanged) { // shift|ctrl|alt leave
 		EventDistributer.footbarHint.update();
 	}
 }
 
 // disable the selections in <input>
-EVENTS.disableInputSelection=function($input){
+EVENTS.disableInputSelection=function($input) {
 	let ci=$input[0];
-	ci.addEventListener("select",event=>{
+	ci.addEventListener("select",event => {
 		ci.selectionStart=ci.selectionEnd;
 	},false);
 }

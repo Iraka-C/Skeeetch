@@ -491,12 +491,12 @@ class GLRenderer extends BasicRenderer {
 	adjustImageDataBorders(src,targetRange,isPreservingContents) {
 		const BLOCK_SIZE=512; // pixels to extend when drawing out of an imageData, better to be 2^N to fit GPU memory
 		// 512^2 takes each single block 4MB
-		const tmp=this.tmpImageData;
+		const tmp=this.tmpImageData; // always valid
 		const gl=this.gl;
 
 		let initSize; // the size {w,h,l,t} to be resized to
 		if(isPreservingContents) {
-			initSize=GLProgram.extendBorderSize(src,targetRange); // extend range
+			initSize=GLProgram.extendBorderSize(src.validArea,targetRange); // extend range containing all contents
 		}
 		else {
 			initSize=targetRange;
@@ -517,12 +517,14 @@ class GLRenderer extends BasicRenderer {
 				this.vramManager.verify(src); // submit this to manager
 				return;
 			}
+			// else? probably never happens...
 		}
 
 		this.vramManager.verify(src);
 		if(isPreservingContents) { // extend the contents in blocks, valid area doesn't change
 			let [sL,sR,sT,sB]=[src.left,src.left+src.width,src.top,src.top+src.height];
 			let [tL,tR,tT,tB]=[initSize.left,initSize.left+initSize.width,initSize.top,initSize.top+initSize.height];
+
 			let [dL,dR,dT,dB]=[sL-tL,tR-sR,sT-tT,tB-sB]; // change on each border
 
 			// round to a block
@@ -531,38 +533,47 @@ class GLRenderer extends BasicRenderer {
 			dT=Math.ceil(dT/BLOCK_SIZE)*BLOCK_SIZE;
 			dB=Math.ceil(dB/BLOCK_SIZE)*BLOCK_SIZE;
 
-			if(dL>0||dR>0||dT>0||dB>0) { // need to expand
-				[tL,tR,tT,tB]=[sL-dL,sR+dR,sT-dT,sB+dB];
-				// require the whole block when near the edge
-				// also, if overflow, crop the border to viewport
-				const HALF_BLOCK=BLOCK_SIZE/2;
-				const w=this.viewport.width;
-				const h=this.viewport.height;
-				if(tL<HALF_BLOCK) tL=0;
-				if(w-tR<HALF_BLOCK) tR=w;
-				if(tT<HALF_BLOCK) tT=0;
-				if(h-tB<HALF_BLOCK) tB=h;
-				initSize={left: tL,top: tT,width: Math.max(Math.ceil(tR-tL),0),height: Math.max(Math.ceil(tB-tT),0)};
-
-				// only copy the part in viewport
-				tmp.left=Math.max(src.left,0);
+			if(dL>0||dR>0||dT>0||dB>0) { // need to move
+				//console.log(src.width,initSize.width,src.height,initSize.height);
+				tmp.left=Math.max(src.left,0); // record source position
 				tmp.top=Math.max(src.top,0);
-				this.clearImageData(tmp,null,false);
+				this.clearImageData(tmp,null,false); // record source content
 				this.blendImageData(src,tmp,{mode: BasicRenderer.SOURCE});
+				
+				if(src.width>=initSize.width&&src.height>=initSize.height){ // able to contain, simply pan around
+					//console.log("Preserve - Pan");
+					src.left=initSize.left; // pan src area
+					src.top=initSize.top;
+				}
+				else{ // create new texture
+					//console.log("Preserve - New");
+					// only copy the part in viewport
 
-				LOGGING&&console.log("New Texture");
-				gl.bindTexture(gl.TEXTURE_2D,src.data);
-				gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,initSize.width,initSize.height,0,gl.RGBA,this.dataFormat,null);
-				src.width=initSize.width;
-				src.height=initSize.height;
-				src.left=initSize.left;
-				src.top=initSize.top;
-
+					[tL,tR,tT,tB]=[sL-dL,sR+dR,sT-dT,sB+dB];
+					// require the whole block when near the edge
+					// also, if overflow, crop the border to viewport
+					const HALF_BLOCK=BLOCK_SIZE/2;
+					const w=this.viewport.width;
+					const h=this.viewport.height;
+					if(tL<HALF_BLOCK) tL=0;
+					if(w-tR<HALF_BLOCK) tR=w;
+					if(tT<HALF_BLOCK) tT=0;
+					if(h-tB<HALF_BLOCK) tB=h;
+					initSize={left: tL,top: tT,width: Math.max(Math.ceil(tR-tL),0),height: Math.max(Math.ceil(tB-tT),0)};
+	
+					LOGGING&&console.log("New Texture");
+					gl.bindTexture(gl.TEXTURE_2D,src.data);
+					gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,initSize.width,initSize.height,0,gl.RGBA,this.dataFormat,null);
+					src.width=initSize.width;
+					src.height=initSize.height;
+					src.left=initSize.left;
+					src.top=initSize.top;
+				}
 				// copy back
 				this.clearImageData(src,null,false); // tmp might cover only part of src
 				this.blendImageData(tmp,src,{mode: BasicRenderer.SOURCE});
 			}
-			// else: no need to expand, simply don't move at all
+			// else: simply don't move at all
 		}
 		else if(initSize.width>src.width||initSize.height>src.height) {
 			//LOGGING&&console.log("New Texture Change");

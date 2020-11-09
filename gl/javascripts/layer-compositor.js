@@ -70,7 +70,7 @@ COMPOSITOR.compileLayerTree=function(){
 COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 	node=node||LAYERS.layerTree; // init: root
 	const isNeutralColor=ENV.displaySettings.blendWithNeutralColor;
-
+	//dirtyArea=null;
 	// If no dirty area provided, assume that node shall contain all contents of leaves
 
 	if(!node.isRawImageDataValid&&!(node instanceof CanvasNode)) {
@@ -106,11 +106,12 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 		// Now the initSize contains the minimum size to contain the children's imageData
 		let bg=node.rawImageData; // present uncleared imagedata
 		// Shall contain all children size.
-		CANVAS.renderer.adjustImageDataBorders(bg,initSize,false);
-		if(dirtyArea){// @TODO: clear by viewport?
-			CANVAS.renderer.clearScissoredImageData(bg,dirtyArea); // clear only dirtyarea part
+		if(dirtyArea){
+			CANVAS.renderer.adjustImageDataBorders(bg,initSize,true);
+			CANVAS.renderer.clearScissoredImageData(bg,dirtyArea); // clear only dirtyArea part
 		}
 		else{
+			CANVAS.renderer.adjustImageDataBorders(bg,initSize,false);
 			CANVAS.renderer.clearImageData(bg); // clear the data to blank.
 		}
 
@@ -160,15 +161,16 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 			// Now the initSize contains the minimum size to contain the children's & this node's imageData
 			const raw=node.rawImageData;
 			const clipped=node.imageData; // present uncleared imagedata
-			CANVAS.renderer.adjustImageDataBorders(clipped,raw.validArea,false); // move to the position of raw
 
-			if(dirtyArea){// @TODO: clear by viewport?
+			if(dirtyArea){
+				CANVAS.renderer.adjustImageDataBorders(clipped,raw.validArea,true); // move to the position of raw
 				CANVAS.renderer.blendImageData(raw,clipped,{
 					mode: BasicRenderer.SOURCE,
 					targetArea: dirtyArea
 				}); // copy raw image
 			}
 			else{
+				CANVAS.renderer.adjustImageDataBorders(clipped,raw.validArea,false); // move to the position of raw
 				CANVAS.renderer.clearImageData(clipped); // clear the data to blank.
 				CANVAS.renderer.blendImageData(raw,clipped,{mode: BasicRenderer.SOURCE}); // copy raw image
 			}
