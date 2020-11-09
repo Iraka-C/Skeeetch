@@ -598,6 +598,7 @@ class GLRenderer extends BasicRenderer {
 			src.top=initSize.top;
 			src.validArea.left+=dx; // valid area panned
 			src.validArea.top+=dy;
+			src.validArea={width: 0,height: 0,left: 0,top: 0}; // empty valid area
 		}
 	}
 
