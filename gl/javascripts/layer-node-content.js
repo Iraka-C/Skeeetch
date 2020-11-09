@@ -7,6 +7,8 @@ class ContentNode extends LayerNode {
 		 * The rendering pipeline is:
 		 * this.rawImageData  |==> this.maskedImageData    |==> this.imageData
 		 * this.maskImageData |    other nodes (Clip Masks)|
+		 * 
+		 * If there is no maskImageData, it should be set null (not {} or naything else)
 		 */
 		/**
 		 * **NOTE** Never do direct assignment on this.(*)ImageData
@@ -16,7 +18,7 @@ class ContentNode extends LayerNode {
 		this.rawImageData=CANVAS.renderer.createImageData(); // content
 		this.isRawImageDataValid=true; // is this imgData the latest (not modified)
 
-		this.maskImageData=null; // should be "luminance"
+		this.maskImageData=null; // <nope>should be "luminance"</nope> No luminance in WebGL Ver. 1, use RGB
 
 		this.maskedImageData=this.rawImageData;
 		this.isMaskedImageDataValid=true;
@@ -204,12 +206,12 @@ class ContentNode extends LayerNode {
 		return false;
 	}
 	// =============== mask & clip mask ==================
-	createImageData(){
+	createImageData(){ // create a new imagedata for combining clip masks
 		if(this.imageData!=this.maskedImageData)return; // already created
 		this.imageData=CANVAS.renderer.createImageData();
 		this.imageDataCombinedCnt=1;
 	}
-	deleteImageData(){
+	deleteImageData(){ // delete the imagedata for combining clip masks
 		if(this.imageData==this.maskedImageData)return; // already deleted
 		CANVAS.renderer.deleteImageData(this.imageData);
 		this.imageData=this.maskedImageData;
@@ -217,15 +219,37 @@ class ContentNode extends LayerNode {
 	}
 	createMaskImageData(){
 		if(this.maskImageData)return; // already created
-		this.maskImageData=CANVAS.renderer.createImageData(); // todo: luminance
+
+		console.log(this.id+" Create ML");
+		const isClipMask=(this.imageData!=this.maskedImageData); // is there a imagedata for clip mask
+		
+		this.maskImageData=CANVAS.renderer.createImageData();
 		this.maskedImageData=CANVAS.renderer.createImageData();
+
+		if(isClipMask){ // with clip mask
+			// Do nothing, technically
+		}
+		else{ // no clip mask
+			this.imageData=this.maskedImageData; // change the reference
+		}
 	}
 	deleteMaskImageData(){
 		if(!this.maskImageData)return; // already deleted
+
+		console.log(this.id+" Delete ML");
+		const isClipMask=(this.imageData!=this.maskedImageData); // is there a imagedata for clip mask
+
 		CANVAS.renderer.deleteImageData(this.maskImageData);
-		this.maskImageData={};
+		this.maskImageData=null;
 		CANVAS.renderer.deleteImageData(this.maskedImageData);
 		this.maskedImageData=this.rawImageData;
+
+		if(isClipMask){ // with clip mask
+			// Do nothing, technically
+		}
+		else{ // no clip mask
+			this.imageData=this.maskedImageData; // change the reference
+		}
 	}
 
 	// w,h,l,t are width, height, left, and top params

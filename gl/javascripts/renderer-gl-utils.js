@@ -32,6 +32,25 @@ class GLTextureBlender {
 				}
 			}
 		`;
+		// Use average of rgb values as brightness (SAI standard)
+		const fBlendMaskShaderSource=glsl` // For masking blending
+			precision mediump float;
+			precision mediump sampler2D;
+			uniform sampler2D u_image;
+			uniform float u_image_alpha;
+			varying highp vec2 v_pos;
+			void main(){
+				if(v_pos.x<0.||v_pos.y<0.||v_pos.x>1.||v_pos.y>1.){ // out of bound, sharp cut
+					gl_FragColor=vec4(0.,0.,0.,1.); // no change
+				}
+				else{ // sample from u_image
+					vec4 color=texture2D(u_image,v_pos)*u_image_alpha;
+					float lum=(color.x+color.y+color.z)/3.; // x,y,z are pre-mult
+					float final_alpha=1.-color.w+lum;
+					gl_FragColor=vec4(0.,0.,0.,final_alpha);
+				}
+			}
+		`;
 		const vAdvancedBlendShaderSource=glsl`
 			attribute vec2 a_pos_0; // src area
 			attribute vec2 a_pos_1; // dst area
@@ -229,11 +248,13 @@ class GLTextureBlender {
 
 		this.gl=gl;
 		this.blendProgram=new GLProgram(gl,vBlendShaderSource,fBlendShaderSource);
+		this.blendMaskProgram=new GLProgram(gl,vBlendShaderSource,fBlendMaskShaderSource);
 		this.advancedBlendProgram=new GLProgram(gl,vAdvancedBlendShaderSource,fAdvancedBlendShaderSource);
 	}
 
 	free() {
 		this.blendProgram.free();
+		this.blendMaskProgram.free();
 		this.advancedBlendProgram.free();
 	}
 	/**
@@ -336,6 +357,9 @@ class GLTextureBlender {
 					gl.blendFunc(gl.ONE,gl.ONE_MINUS_CONSTANT_ALPHA);
 				}
 				break;
+			case GLTextureBlender.MASK: // use source alpha
+				gl.blendFunc(gl.ZERO,gl.SRC_ALPHA);
+				break;
 			default:
 				advancedBlendFlag=true;
 		}
@@ -345,7 +369,8 @@ class GLTextureBlender {
 			this.advancedBlendTexture(src,dst,param);
 		}
 		else { // blend with blendFunc
-			const program=this.blendProgram;
+			// if is blending mask, use this.blendMaskProgram
+			const program=(param.mode==GLTextureBlender.MASK)?this.blendMaskProgram:this.blendProgram;
 			program.setTargetTexture(dst.data);
 			program.setSourceTexture("u_image",src.data);
 			program.setUniform("u_image_alpha",param.srcAlpha);
@@ -478,7 +503,8 @@ class GLTextureBlender {
 }
 
 // Mode enums, shall be the same def as BasicRenderer
-GLTextureBlender.AVERAGE=-3;
+GLTextureBlender.MASK=-4; // mask layer
+GLTextureBlender.AVERAGE=-3; // naive kS+(1-k)D method for non-alpha premultiplied texture
 GLTextureBlender.ERASE=-2;
 GLTextureBlender.NONE=-1;
 GLTextureBlender.SOURCE=BasicRenderer.SOURCE;
@@ -494,6 +520,22 @@ GLTextureBlender.DIFFERENCE=BasicRenderer.DIFFERENCE;
 GLTextureBlender.EXCLUSION=BasicRenderer.EXCLUSION;
 GLTextureBlender.COLOR_DODGE=BasicRenderer.COLOR_DODGE;
 GLTextureBlender.COLOR_BURN=BasicRenderer.COLOR_BURN;
+
+// Non-basic
+GLTextureBlender.LINEAR_DODGE=BasicRenderer.LINEAR_DODGE;
+GLTextureBlender.LINEAR_BURN=BasicRenderer.LINEAR_BURN;
+GLTextureBlender.LINEAR_LIGHT=BasicRenderer.LINEAR_LIGHT;
+GLTextureBlender.VIVID_LIGHT=BasicRenderer.VIVID_LIGHT;
+GLTextureBlender.PIN_LIGHT=BasicRenderer.PIN_LIGHT;
+GLTextureBlender.DARKER_COLOR=BasicRenderer.DARKER_COLOR;
+GLTextureBlender.LIGHTER_COLOR=BasicRenderer.LIGHTER_COLOR;
+GLTextureBlender.HARD_MIX=BasicRenderer.HARD_MIX;
+GLTextureBlender.SUBTRACT=BasicRenderer.SUBTRACT;
+GLTextureBlender.DIVIDE=BasicRenderer.DIVIDE;
+GLTextureBlender.HUE=BasicRenderer.HUE;
+GLTextureBlender.SATURATION=BasicRenderer.SATURATION;
+GLTextureBlender.COLOR=BasicRenderer.COLOR;
+GLTextureBlender.LUMINOSITY=BasicRenderer.LUMINOSITY;
 
 
 class GLImageDataFactory {

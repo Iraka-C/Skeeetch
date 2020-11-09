@@ -40,7 +40,7 @@ CANVAS.init=function() {
  * Update the target canvas to draw
  */
 CANVAS.setTargetLayer=function(targetLayer) {
-	if(CANVAS.nowLayer){ // Must be a CanvasNode
+	if(CANVAS.nowLayer){ // Ensure to be a CanvasNode
 		const lastD=CANVAS.nowLayer.lastRawImageData; // release its lastRawImageData
 		CANVAS.renderer.deleteImageData(lastD);
 		CANVAS.nowLayer.lastRawImageData=null;

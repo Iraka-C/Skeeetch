@@ -134,9 +134,11 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 	if(!node.isMaskedImageDataValid) { // masked data needs recomposition
 		if(node.maskImageData) { // there is a mask in this layer
 			// @TODO: blend raw & mask ==> masked
+			
 
 		}
 		// else: node.maskedImageData==node.rawImageData;
+		// do nothing
 	}
 	node.isMaskedImageDataValid=true;
 

@@ -226,20 +226,30 @@ class SettingManager{
 	/**
 	 * Set a div as switch / toggle
 	 * Click on $parent, change the value of $input
-	 * N is the number of selections of this switch
+	 * N_ is the number of selections of this switch
+	 *    If N_ is a "number" type, auto initialize the switch as start from 0
+	 *    If N_ is a {"N":<number>} type, no initialization. Must manually initialize by calling _updateFunc.
+	 * 
 	 * callback is the function called when toggle value is set (by clicking or _updateFunc)
 	 * If you want to specify the action only when clicking:
 	 *    clickCallbacks.before is called before toggle change
 	 *    clickCallbacks.after is called after toggle change
+	 * 
+	 * The return value is a function where you can manually control the toggle status.
+	 * call the _updateFunc(val) will also trigger callback
+	 * Notice you can call with a negative value such as _updateFunc(-1) to set up a leading status before toggling
 	 */
-	static setSwitchInteraction($el,$parent,N,callback,clickCallbacks){
+	static setSwitchInteraction($el,$parent,N_,callback,clickCallbacks){
 		$parent=$parent||$el; // if no parent provided, set as itself
 		let toggle=0; // Init as 0;
+		const N=typeof(N_)=="number"?N_:N_.N;
 		function setVal(v){ // set the status of this switch as v
 			toggle=Math.round(v)%N;
 			if(callback)callback($el,toggle);
 		};
-		setVal(0); // Init target as 0
+		if(typeof(N_)=="number"){
+			setVal(0); // Init target as 0
+		}
 
 		/**
 		 * **NOTE** In some browsers, the following listener may be

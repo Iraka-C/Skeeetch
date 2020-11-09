@@ -16,11 +16,10 @@ LAYERS.$newCanvasLayerUI=function(id) {
 	// blend mode selector
 	let blendModeButton=$("<div class='layer-blend-mode-button layer-button-to-hide'>").append($("<img>")); // layer blend mode
 
-	// mask buttons
+	// clip mask and source buttons
 	let clipMaskButton=$("<div class='layer-clip-mask-button layer-button-to-hide'>").append($("<img>")); // layer clip mask
-	let maskButton=$("<div class='layer-mask-button'>").append($("<img>")); // layer mask
+	let sourceButton=$("<div class='layer-source-button'>").append($("<img>")); // layer mask
 
-	//buttons.append(lockButton,blendModeButton,clipMaskButton,maskButton);
 	buttons.append($("<table>").append( // layer button table 2x2
 		$("<tr>").append(
 			$("<td>").append(blendModeButton),
@@ -28,7 +27,7 @@ LAYERS.$newCanvasLayerUI=function(id) {
 		),
 		$("<tr>").append(
 			$("<td>").append(clipMaskButton),
-			$("<td>").append(maskButton)
+			$("<td>").append(sourceButton)
 		)
 	));
 
@@ -36,7 +35,7 @@ LAYERS.$newCanvasLayerUI=function(id) {
 	// Blend label hint in initButtons
 	EventDistributer.footbarHint(lockButton,() => Lang("Lock pixel / opacity"));
 	EventDistributer.footbarHint(clipMaskButton,() => Lang("Set this layer as a clipping mask"));
-	EventDistributer.footbarHint(maskButton,() => Lang("Activate the mask layer"));
+	EventDistributer.footbarHint(sourceButton,() => Lang("Activate the selection source"));
 
 	// Layer name label
 	let nameLabel=$("<input class='layer-name-label'>");
@@ -54,7 +53,7 @@ LAYERS.$newCanvasLayerUI=function(id) {
 	// show name when layers collapsed
 	EventDistributer.footbarHint(maskUI,() => LAYERS.isUIExpanded? null:nameLabel.val());
 
-	// Layer clip mask hint
+	// Layer clip mask hint, the triangle icon on the bottom-right
 	let clipHint=$("<img class='layer-clip-mask-hint' src='./resources/clip-mask-hint.svg'>");
 
 	// prevent down event from influencing dragging
@@ -87,7 +86,7 @@ class CanvasNode extends ContentNode {
 		this.$ui=LAYERS.$newCanvasLayerUI(this.id); // set ui in layer list
 
 		// thumb image canvas
-		this.$thumb=this.$ui.children(".layer-ui-canvas-container").children("canvas");
+		this.$thumb=this.$ui.children(".layer-ui-canvas-container").children(".layer-ui-canvas");
 
 		this.name=Lang("New Layer");
 		this._setName(this.name);
@@ -362,30 +361,41 @@ class CanvasNode extends ContentNode {
 		};
 		this.buttonUpdateFuncs.blendButton(); // init
 
-		// mask button. @TODO: the logic is much more difficult to tidy
-		const $maskButton=$buttons.find(".layer-mask-button");
-		const setMaskButtonStatus=v => {
-			const $maskButtonImg=$maskButton.children("img");
+		// source button
+		const $sourceButton=$buttons.find(".layer-source-button");
+		const setSourceButtonStatus=v => {
+			const $sourceButtonImg=$sourceButton.children("img");
 			switch(v) {
-				case 0:
-					$maskButtonImg.attr("src","./resources/mask-inactive.svg");
+				case -1: // No mask
+					$sourceButtonImg.attr("src","./resources/mask-inactive.svg");
+					$sourceButtonImg.css("opacity","0.2");
+					this.deleteMaskImageData(); // Delete the mask image data (if there is one)
+					this.properties.maskSelected=false; // the mask is not selected
 					break;
-				case 1:
-					$maskButtonImg.attr("src","./resources/mask-active.svg");
+				case 0: // With an inactive mask
+					$sourceButtonImg.attr("src","./resources/mask-inactive.svg");
+					$sourceButtonImg.css("opacity","1");
+					this.createMaskImageData(); // Create a new mask image data (if there isn't one)
+					this.properties.maskSelected=false; // the mask is not selected
+					break;
+				case 1: // With an active mask
+					$sourceButtonImg.attr("src","./resources/mask-active.svg");
+					$sourceButtonImg.css("opacity","1");
+					this.properties.maskSelected=true; // the mask is selected
 					break;
 			}
 		}
-		const fMask=SettingManager.setSwitchInteraction($maskButton,null,2,($el,v) => {
+		const fSource=SettingManager.setSwitchInteraction($sourceButton,null,{N:2},($el,v) => {
 			// @TODO: add history here
-			setMaskButtonStatus(v);
+			setSourceButtonStatus(v);
 		});
-		this.buttonUpdateFuncs.maskButton=() => fMask();// @TODO
+		this.buttonUpdateFuncs.sourceButton=() => fSource();// @TODO
 	}
 	initInputs() {
 		const $opacityLabel=this.$ui.children(".layer-opacity-label");
 		const $opacityInput=$opacityLabel.children("input");
 		const setOpacity=opacity => { // set opacity function
-			if(this.properties.locked) return; // locked, doen't change
+			if(this.properties.locked) return; // locked, doesn't change
 			const prevOpacity=this.properties.opacity;
 			this.properties.opacity=opacity;
 			this.setImageDataInvalid(); // In fact this is a little more, only need to set parent/clip parent
@@ -475,8 +485,7 @@ class CanvasNode extends ContentNode {
 		this.buttonUpdateFuncs.lockButton();
 		this.buttonUpdateFuncs.clipButton();
 		this.buttonUpdateFuncs.blendButton();
-		// @TODO: create blend mode enum value
-		//this.buttonUpdateFuncs.maskButton();
+		//this.buttonUpdateFuncs.sourceButton();
 		this.$ui.children(".layer-opacity-label").children("input").val(prop.visible? Math.round(prop.opacity*100)+"%":"----");
 	}
 	// =================== Export settings =====================

@@ -268,8 +268,10 @@
 	pointer-events: none;
 	overflow: hidden;
 }
-.layer-ui-canvas{ /* pointer over transition animation */
+.layer-ui-canvas{
+	/* pointer over transition animation */
 	transition: transform 0.25s ease-out;
+	position: absolute;
 }
 
 .layer-clip-mask-hint,.group-clip-mask-hint{
