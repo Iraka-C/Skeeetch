@@ -1,4 +1,4 @@
-LAYERS.initScrollbar=function(){
+LAYERS.initScrollbar=function() {
 	// @TODO: scroll to active layer when add/delete
 	/**
 	 * When dragging in the layer list, it does not automatically scroll
@@ -6,17 +6,17 @@ LAYERS.initScrollbar=function(){
 	 */
 	const $scroll=$("#layer-panel-scroll");
 	const scroll=$scroll[0];
-	$("#layer-panel-drag-up").on("dragover",event=>{ // scroll upwards
+	$("#layer-panel-drag-up").on("dragover",event => { // scroll upwards
 		const sT=scroll.scrollTop;
-		if(sT>0){ // space at the top
+		if(sT>0) { // space at the top
 			$scroll.scrollTop(sT-8);
 		}
 	});
-	$("#layer-panel-drag-down").on("dragover",event=>{ // scroll downwards
+	$("#layer-panel-drag-down").on("dragover",event => { // scroll downwards
 		const sH=scroll.scrollHeight;
 		const cH=scroll.clientHeight;
 		const sT=scroll.scrollTop;
-		if(sH>sT+cH){ // space at the bottom
+		if(sH>sT+cH) { // space at the bottom
 			$scroll.scrollTop(sT+8);
 		}
 	});
@@ -32,33 +32,33 @@ LAYERS.initScrollbar=function(){
 	// scroll and disable scroll on contents
 	// also stops thumb translating effect
 	let scrollTimer=null;
-	$scroll.on("scroll",event=>{ // set position
+	$scroll.on("scroll",event => { // set position
 		LAYERS._updateScrollBar();
-		if(scrollTimer){
+		if(scrollTimer) {
 			clearTimeout(scrollTimer); // do it later
 		}
-		else{ // no timer, start disable
+		else { // no timer, start disable
 			$("#layer-panel-inner").css("pointer-events","none");
 		}
-		scrollTimer=setTimeout(e=>{
+		scrollTimer=setTimeout(e => {
 			scrollTimer=null;
 			$("#layer-panel-inner").css("pointer-events","auto");
 		},300);
 	});
 
 
-	$scroll.on("pointerenter",event=>{
+	$scroll.on("pointerenter",event => {
 		LAYERS._updateScrollBar();
 	});
 	// Set dragging operation
 	let isDown=false;
-	$scrollButton.on("pointerdown",event=>{
+	$scrollButton.on("pointerdown",event => {
 		const e=event.originalEvent;
 		scrollButton.setPointerCapture(e.pointerId); // fix pointer to this element
 		isDown=true;
 	});
-	$scrollButton.on("pointermove",event=>{
-		if(!isDown)return; // call callback when down
+	$scrollButton.on("pointermove",event => {
+		if(!isDown) return; // call callback when down
 		// Do sth
 		const scrollPos=event.pageY-$scroll.offset().top-8; // r=8
 		const totalHeight=$scroll.height()-16; // 2r=16
@@ -69,14 +69,14 @@ LAYERS.initScrollbar=function(){
 		const newTop=(sH-cH)*pos;
 		$scroll.scrollTop(newTop);
 	});
-	$scrollButton.on("pointerup pointercancel",event=>{
+	$scrollButton.on("pointerup pointercancel",event => {
 		const e=event.originalEvent;
 		scrollButton.releasePointerCapture(e.pointerId); // release pointer from this element
 		isDown=false;
 	});
 }
 
-LAYERS._updateScrollBar=function(isAnimate){
+LAYERS._updateScrollBar=function(isAnimate) {
 	const scroll=LAYERS._updateScrollBar.scrollbar;
 	const $scrollButton=LAYERS._updateScrollBar.$scrollButton;
 
@@ -84,47 +84,47 @@ LAYERS._updateScrollBar=function(isAnimate){
 	const cH=scroll.clientHeight;
 	const sT=scroll.scrollTop;
 	const scrollRatio=Math.min(sT/(sH-cH),1); // why can it exceed 1.0?
-	$scrollButton.css("display",Math.abs(sH-cH)<1E-3?"none":"block"); // show scrollbar when needed
+	$scrollButton.css("display",Math.abs(sH-cH)<1E-3? "none":"block"); // show scrollbar when needed
 	// @TODO: hard coded 16px slider size! change into height()
-	if(isAnimate){
-		$scrollButton.animate({"top":(isNaN(scrollRatio)?0:scrollRatio*(cH-16))+"px"},300);
+	if(isAnimate) {
+		$scrollButton.animate({"top": (isNaN(scrollRatio)? 0:scrollRatio*(cH-16))+"px"},300);
 	}
-	else{ // normal update
-		$scrollButton.css("top",(isNaN(scrollRatio)?0:scrollRatio*(cH-16))+"px");
+	else { // normal update
+		$scrollButton.css("top",(isNaN(scrollRatio)? 0:scrollRatio*(cH-16))+"px");
 	}
 }
 
 /**
  * Scroll to the position of a certain layer node / node ID
  */
-LAYERS.scrollTo=function(node,isAnimate){
+LAYERS.scrollTo=function(node,isAnimate) {
 	const nTop=node.$ui.offset().top;
 	const $scroll=$("#layer-panel-scroll");
 	const $panel=$("#layer-panel-inner");
 	const pTop=$panel.offset().top;
 	const sTop=nTop-pTop; // scroll top
-	
-	if(isAnimate){
-		$scroll.animate({scrollTop:sTop},isNaN(isAnimate)?300:isAnimate);
+
+	if(isAnimate) {
+		$scroll.animate({scrollTop: sTop},isNaN(isAnimate)? 300:isAnimate);
 	}
-	else{
+	else {
 		$scroll.scrollTop(sTop);
 	}
 }
 
 // For Debugging!
-LAYERS.toString=function(){
+LAYERS.toString=function() {
 	return "\n"+LAYERS.layerTree._getTreeNodeString();
 }
 
 // ================= LAYER panels as a whole =================
-LAYERS.shrinkUI=function(){
+LAYERS.shrinkUI=function() {
 	const initWidth=$("#layer-panel").width();
 	$("#layer-panel-style-collapsed").attr("rel","stylesheet");
 
-	const mutate=event=>{ // after css rendered
+	const mutate=event => { // after css rendered
 		const nowWidth=$("#layer-panel").width(); // Test if the style's changed
-		if(nowWidth==initWidth){ // continue waiting
+		if(nowWidth==initWidth) { // continue waiting
 			requestAnimationFrame(mutate);
 			return;
 		}
@@ -147,13 +147,13 @@ LAYERS.shrinkUI=function(){
 
 // @TODO: change these into .class operation: no need to operate when new/del layer
 // This is crucial when undo/redo in HISTORY
-LAYERS.expandUI=function(){
+LAYERS.expandUI=function() {
 	const initWidth=$("#layer-panel").width();
 	$("#layer-panel-style-collapsed").attr("rel","alternate stylesheet");
 
-	const mutate=event=>{ // after css rendered
+	const mutate=event => { // after css rendered
 		const nowWidth=$("#layer-panel").width(); // Test if the style's changed
-		if(nowWidth==initWidth){ // continue waiting
+		if(nowWidth==initWidth) { // continue waiting
 			requestAnimationFrame(mutate);
 			return;
 		}
@@ -162,7 +162,7 @@ LAYERS.expandUI=function(){
 
 		// refresh palette window
 		PALETTE.refreshUIParam();
-	
+
 		// refresh canvas window
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
@@ -175,8 +175,8 @@ LAYERS.expandUI=function(){
 }
 
 // ================ Layers blend mode selector ================
-class LayerBlendModeSelector{
-	constructor(){
+class LayerBlendModeSelector {
+	constructor() {
 		let blendModeSelector=$("<div class='layer-blend-mode-selector'>");
 		blendModeSelector.append($("<table>").append( // lblend mode table
 			$("<tr>").append(
@@ -233,7 +233,7 @@ class LayerBlendModeSelector{
 		this.caller=null; // the node that calls for setting blend mode
 	}
 
-	_initOnClickOperation(){
+	_initOnClickOperation() {
 		const $buttons=this.$selector.find("img").parent();
 		const $blendNameTitle=this.$selector.find(".layer-blend-mode-selector-title");
 		for(let i=0;i<$buttons.length;i++) {
@@ -242,8 +242,17 @@ class LayerBlendModeSelector{
 
 			$targetButton.on("click",e => {
 				if(!this.caller||this.caller.properties.locked) return;
-				const prevStatus={blendMode: this.caller.properties.blendMode};
-				const nowStatus={blendMode: mode};
+				let prevClip=this.caller.properties.clipMask;
+				let prevMode=this.caller.properties.blendMode;
+				let nowClip=prevClip;
+				if(mode==BasicRenderer.MASK) {
+					nowClip=true;
+				}
+				else if(prevMode==BasicRenderer.MASK&&prevClip) {
+					nowClip=false;
+				}
+				const prevStatus={blendMode: prevMode,clipMask: prevClip};
+				const nowStatus={blendMode: mode,clipMask: nowClip};
 				this.caller.setProperties(nowStatus); // change mode
 				HISTORY.addHistory({ // add a history
 					type: "node-property",
@@ -255,13 +264,13 @@ class LayerBlendModeSelector{
 				this.$buttons.removeClass("active-blend-mode");
 				$targetButton.addClass("active-blend-mode");
 			});
-			$targetButton.on("pointerover",e=>{ // show name
+			$targetButton.on("pointerover",e => { // show name
 				$blendNameTitle.text(
 					BasicRenderer.blendModeEnumToDisplayedName(mode)
 				);
 			});
-			$targetButton.on("pointerout",e=>{ // hide name, show now mode name
-				if(!this.caller)return;
+			$targetButton.on("pointerout",e => { // hide name, show now mode name
+				if(!this.caller) return;
 				$blendNameTitle.text(
 					BasicRenderer.blendModeEnumToDisplayedName(
 						this.caller.properties.blendMode
@@ -272,8 +281,8 @@ class LayerBlendModeSelector{
 		this.$buttons=$buttons;
 		this.$blendNameTitle=$blendNameTitle;
 	}
-	
-	static blendModeEnumToFilename(mode){ // the order of blend buttons in the ui
+
+	static blendModeEnumToFilename(mode) { // the order of blend buttons in the ui
 		switch(mode) {
 			default:
 			case BasicRenderer.NORMAL: return "normal";
@@ -306,7 +315,7 @@ class LayerBlendModeSelector{
 		}
 	};
 
-	static blendModeIDToEnum(id){ // the order of blend buttons in the ui
+	static blendModeIDToEnum(id) { // the order of blend buttons in the ui
 		return [
 			BasicRenderer.NORMAL,BasicRenderer.SCREEN,BasicRenderer.MULTIPLY,
 			BasicRenderer.OVERLAY,BasicRenderer.SOFT_LIGHT,BasicRenderer.HARD_LIGHT,
@@ -322,8 +331,8 @@ class LayerBlendModeSelector{
 			BasicRenderer.MASK
 		][id]||BasicRenderer.NORMAL;
 	};
-	static blendModeEnumToID(mode){ // reverse list of blendModeIDToEnum
-		switch(mode){
+	static blendModeEnumToID(mode) { // reverse list of blendModeIDToEnum
+		switch(mode) {
 			default:
 			case BasicRenderer.NORMAL: return 0;
 			case BasicRenderer.SCREEN: return 1;
@@ -355,7 +364,7 @@ class LayerBlendModeSelector{
 		};
 	};
 
-	setCaller(contentNode){
+	setCaller(contentNode) {
 		this.caller=contentNode;
 		const mode=this.caller.properties.blendMode;
 		this.$blendNameTitle.text(BasicRenderer.blendModeEnumToDisplayedName(mode));
@@ -363,26 +372,26 @@ class LayerBlendModeSelector{
 		const $targetButton=this.$buttons.eq(LayerBlendModeSelector.blendModeEnumToID(mode));
 		$targetButton.addClass("active-blend-mode");
 	}
-	show(targetArea){ // px in the window
+	show(targetArea) { // px in the window
 		const w=this.$selector.width();
 		const h=this.$selector.height();
 		const sW=window.innerWidth;
 		const sH=window.innerHeight;
 		let L=targetArea.left-3;
 		let H=targetArea.top-3;
-		if(L+w+3>=sW)L=sW-w-3;
-		if(H+h+3>=sH)H=sH-h-3;
+		if(L+w+3>=sW) L=sW-w-3;
+		if(H+h+3>=sH) H=sH-h-3;
 
 		this.$selector.css({
-			"left":L,
-			"top":H,
-			"pointer-events":"all",
-			"opacity":"1"
+			"left": L,
+			"top": H,
+			"pointer-events": "all",
+			"opacity": "1"
 		});
-		setTimeout(e=>{ // Use :hover to keep display
+		setTimeout(e => { // Use :hover to keep display
 			this.$selector.css({
-				"pointer-events":"",
-				"opacity":""
+				"pointer-events": "",
+				"opacity": ""
 			});
 		},500);
 	}
