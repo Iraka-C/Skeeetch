@@ -210,7 +210,8 @@ FILES.loadPSDNodes=function(node) {
 			}
 		}
 
-		if(jsonNode.mask) { // load mask json
+		// Some layers, such as adjustment layers, has a mask without canvas
+		if(jsonNode.mask&&jsonNode.mask.canvas) { // load mask json
 			const stackNodeM=new StackNode(Object.assign(jsonNode.mask,{
 				isMask: true, // Note that this is a mask layer
 				masterName: jsonNode.name
