@@ -1,5 +1,6 @@
 STORAGE.FILES={
-	isNowActiveLayerSaved: true
+	isNowActiveLayerSaved: true,
+	fileList: new Map() // A Map containing all fileID-fileContent pairs
 };
 
 class FileWorker{

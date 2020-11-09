@@ -41,6 +41,8 @@ ENV.displaySettings={
 };
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
 
+// File ID related properties
+ENV.fileID="DEADBEEF";
 
 // ========================= Functions ============================
 ENV.init=function() { // When the page is loaded

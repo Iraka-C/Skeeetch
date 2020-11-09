@@ -428,7 +428,8 @@ BasicRenderer.blendModeNameList={ // name: PSD standard
 	"hue": BasicRenderer.HUE,
 	"saturation": BasicRenderer.SATURATION,
 	"color": BasicRenderer.COLOR,
-	"luminosity": BasicRenderer.LUMINOSITY
+	"luminosity": BasicRenderer.LUMINOSITY,
+	"mask": BasicRenderer.MASK
 };
 // create reversed list
 for(const v of Object.keys(BasicRenderer.blendModeNameList)) {

@@ -1645,7 +1645,8 @@ exports.toBlendMode = {
     'hue ': 'hue',
     'sat ': 'saturation',
     'colr': 'color',
-    'lum ': 'luminosity',
+	'lum ': 'luminosity',
+	'mask': 'mask' // skeeetch default
 };
 Object.keys(exports.toBlendMode).forEach(function (key) { return exports.fromBlendMode[exports.toBlendMode[key]] = key; });
 // export const enum ColorSpace {
@@ -2597,8 +2598,10 @@ function addChildren(layers, children) {
         }
         if (c.children) { // @Iraka-C: a group here
 			function groupBlendModeKey(mode){ // blend mode to key
-				return {"normal":"norm","multiply":"mul ","screen":"scrn","overlay":"over","darken":"dark","color burn":"idiv","linear burn":"lbrn","darker color":"dkCl","lighten":"lite","color dodge":"div ","linear dodge":"lddg","lighter color":"lgCl","soft light":"sLit","hard light":"hLit","vivid light":"vLit","linear light":"lLit","pin light":"pLit","hard mix":"hMix","difference":"diff","exclusion":"smud","subtract":"fsub","divide":"fdiv","hue":"hue ","saturation":"sat ","color":"colr","luminosity":"lum "
-				}[mode]||"norm"; // regardless of "pass", which is not supported in Skeeetch (yet)
+				return {"normal":"norm","multiply":"mul ","screen":"scrn","overlay":"over","darken":"dark","color burn":"idiv","linear burn":"lbrn","darker color":"dkCl","lighten":"lite","color dodge":"div ","linear dodge":"lddg","lighter color":"lgCl","soft light":"sLit","hard light":"hLit","vivid light":"vLit","linear light":"lLit","pin light":"pLit","hard mix":"hMix","difference":"diff","exclusion":"smud","subtract":"fsub","divide":"fdiv","hue":"hue ","saturation":"sat ","color":"colr","luminosity":"lum ","mask":"mask"
+				}[mode]||"norm";
+				// regardless of "pass", which is not supported in Skeeetch (yet).
+				// Also, add "mask" type in Skeeetch for masking layers (not supported by PS)
 			}
             var sectionDivider = {
                 type: c.opened === false ? 2 /* ClosedFolder */ : 1 /* OpenFolder */,
