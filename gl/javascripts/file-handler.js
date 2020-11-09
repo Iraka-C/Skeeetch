@@ -53,7 +53,38 @@ FILES.loadPSDNodes=function(node) {
 		load() { // sync function, can be called async
 			// **NOTE** setProperties() actually requested screen refresh
 			const sNode=this.json;
-			if(sNode.hasOwnProperty("children")) { // group node
+			if(sNode.isMask){ // mask node, similar to CanvasNode
+				const newElement=new CanvasNode();
+				CANVAS.renderer.loadToImageData(newElement.rawImageData,sNode.canvas); // load data
+				// Release canvas contents
+				sNode.canvas.width=0;
+				sNode.canvas.height=0;
+				// Set image data position
+				if(sNode.hasOwnProperty("left")) { // set both border and valid area
+					newElement.rawImageData.left=sNode.left;
+					newElement.rawImageData.validArea.left=sNode.left;
+				}
+				if(sNode.hasOwnProperty("top")) {
+					newElement.rawImageData.top=sNode.top;
+					newElement.rawImageData.validArea.top=sNode.top;
+				}
+
+				// UI/status settings
+				newElement.setProperties({ // also requested recomposition @TODO: add initial value
+					locked: false,
+					pixelOpacityLocked: false,
+					opacity: 1, // 1 by default, change the alpha with the same ratio
+					visible: !sNode.disabled,
+					clipMask: true, // only to the following one layer by default
+					name: sNode.masterName+" "+Lang("layer-mask"),
+					blendMode: BasicRenderer.MASK // MASK blend mode
+				});
+
+				// store contents
+				STORAGE.FILES.saveContentChanges(newElement); // save loaded contents
+				this.elem=newElement;
+			}
+			else if(sNode.hasOwnProperty("children")) { // group node
 				//LOGGING&&console.log(sNode.name+": "+sNode.blendMode+", '"+sNode.sectionDivider.key+"'");
 				this.N=sNode.children.length; // children count
 				const newElement=new LayerGroupNode();
@@ -178,6 +209,17 @@ FILES.loadPSDNodes=function(node) {
 				traverse(jsonNode.children[i],stackNode);
 			}
 		}
+
+		if(jsonNode.mask) { // load mask json
+			const stackNodeM=new StackNode(Object.assign(jsonNode.mask,{
+				isMask: true, // Note that this is a mask layer
+				masterName: jsonNode.name
+			}),parentStackNode);
+			const M1=loadQueue.length;
+			stackNodeM.index=M1;
+			loadQueue[M1-1].nextNodeToLoad=stackNodeM;
+			loadQueue.push(stackNodeM);
+		}
 	};
 	for(let i=0;i<node.children.length;i++) { // traverse root
 		traverse(node.children[i],rootStackNode);
@@ -211,7 +253,9 @@ FILES.onPSDLoaded=function() {
 	FILES.loadPSDNodes.lastLoadingElement=null; // release ref
 	LAYERS.setActive(toActive);
 	LAYERS.scrollTo(toActive,true);
-	LAYERS.updateAllThumbs();
+	PERFORMANCE.idleTaskManager.addTask(e=>{ // update all layer thumbs when idle
+		LAYERS.updateAllThumbs();
+	});
 }
 
 // Image Handlers

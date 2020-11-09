@@ -132,6 +132,7 @@ LANG_ZH={
 	"blend-saturation":"饱和度",
 	"blend-color":"颜色",
 	"blend-luminosity":"明度",
+	"blend-mask":"蒙版",
 
 	// Workspace
 	"Paper Width":"宽度",
@@ -150,7 +151,7 @@ LANG_ZH={
 	"Save as PSD":"导出为PSD文档",
 	"Auto Save":"自动保存",
 	"Save in browser":"在浏览器中保存",
-	"":""
+	"layer-mask":"蒙版"
 };
 LANG_ZH._id={
 	"filename-input":"Skeeetch",

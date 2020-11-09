@@ -362,11 +362,11 @@ class CanvasNode extends ContentNode {
 			const $sourceButtonImg=$sourceButton.children("img");
 			switch(v) {
 				case 0: // not a source
-					$sourceButtonImg.attr("src","./resources/mask-inactive.svg");
-					$sourceButtonImg.css("opacity","1");
+					$sourceButtonImg.attr("src","");
+					$sourceButtonImg.css("opacity","0.2");
 					break;
 				case 1: // is a source
-					$sourceButtonImg.attr("src","./resources/mask-active.svg");
+					$sourceButtonImg.attr("src","");
 					$sourceButtonImg.css("opacity","1");
 					break;
 			}

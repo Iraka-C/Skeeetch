@@ -317,6 +317,7 @@ class BasicRenderer {
 			case BasicRenderer.SATURATION: return Lang("blend-saturation");
 			case BasicRenderer.COLOR: return Lang("blend-color");
 			case BasicRenderer.LUMINOSITY: return Lang("blend-luminosity");
+			case BasicRenderer.MASK: return Lang("blend-mask");
 		}
 	}
 
@@ -393,6 +394,8 @@ BasicRenderer.HUE=40;
 BasicRenderer.SATURATION=41;
 BasicRenderer.COLOR=42;
 BasicRenderer.LUMINOSITY=43;
+
+BasicRenderer.MASK=1000;
 
 BasicRenderer.blendModeNameList={ // name: PSD standard
 	"normal": BasicRenderer.NORMAL,

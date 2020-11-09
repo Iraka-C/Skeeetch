@@ -220,7 +220,9 @@ class LayerBlendModeSelector{
 				$("<td>").append($("<img src='./resources/blend-mode/hue.svg'>")),
 				$("<td>").append($("<img src='./resources/blend-mode/saturation.svg'>")),
 				$("<td>").append($("<img src='./resources/blend-mode/color.svg'>")),
-				$("<td>").append($("<img src='./resources/blend-mode/luminosity.svg'>"))
+				$("<td>").append($("<img src='./resources/blend-mode/luminosity.svg'>")),
+				$("<td>").append(""),
+				$("<td>").append($("<img src='./resources/blend-mode/mask.svg'>"))
 			)
 		));
 		$("#layer-panel-container").append(blendModeSelector);
@@ -300,6 +302,7 @@ class LayerBlendModeSelector{
 			case BasicRenderer.SATURATION: return "saturation";
 			case BasicRenderer.COLOR: return "color";
 			case BasicRenderer.LUMINOSITY: return "luminosity";
+			case BasicRenderer.MASK: return "mask";
 		}
 	};
 
@@ -316,6 +319,7 @@ class LayerBlendModeSelector{
 			BasicRenderer.SUBTRACT,BasicRenderer.DIVIDE,
 			BasicRenderer.HUE,BasicRenderer.SATURATION,
 			BasicRenderer.COLOR,BasicRenderer.LUMINOSITY,
+			BasicRenderer.MASK
 		][id]||BasicRenderer.NORMAL;
 	};
 	static blendModeEnumToID(mode){ // reverse list of blendModeIDToEnum
@@ -347,6 +351,7 @@ class LayerBlendModeSelector{
 			case BasicRenderer.SATURATION: return 23;
 			case BasicRenderer.COLOR: return 24;
 			case BasicRenderer.LUMINOSITY: return 25;
+			case BasicRenderer.MASK: return 26;
 		};
 	};
 

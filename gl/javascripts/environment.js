@@ -4,7 +4,7 @@
 */
 
 ENV={}; // Environment
-ENV.version="20200515";
+ENV.version="20201109";
 
 //===================== Settings =====================
 
@@ -206,13 +206,11 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 			const layer=LAYERS.layerHash[k];
 			if(layer instanceof CanvasNode) {
 				// Do not change raw data
-				layer.assignNewMaskedImageData(0,0);
 				layer.assignNewImageData(0,0);
-				layer.setMaskedImageDataInvalid();
+				layer.setImageDataInvalid();
 			}
 			else {
 				layer.assignNewRawImageData(0,0);
-				layer.assignNewMaskedImageData(0,0);
 				layer.assignNewImageData(0,0);
 			}
 		}
@@ -235,7 +233,7 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 				v.delete();
 			}
 			LAYERS.layerTree.children=[];
-			LAYERS.layerTree.assignNewRawImageData(0,0); // root does not have masked or imageData
+			LAYERS.layerTree.assignNewRawImageData(0,0); // root does not have imageData
 		}
 		$("#layer-panel-inner").empty();
 	}

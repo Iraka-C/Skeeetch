@@ -503,7 +503,6 @@ class GLTextureBlender {
 }
 
 // Mode enums, shall be the same def as BasicRenderer
-GLTextureBlender.MASK=-4; // mask layer
 GLTextureBlender.AVERAGE=-3; // naive kS+(1-k)D method for non-alpha premultiplied texture
 GLTextureBlender.ERASE=-2;
 GLTextureBlender.NONE=-1;
@@ -536,6 +535,8 @@ GLTextureBlender.HUE=BasicRenderer.HUE;
 GLTextureBlender.SATURATION=BasicRenderer.SATURATION;
 GLTextureBlender.COLOR=BasicRenderer.COLOR;
 GLTextureBlender.LUMINOSITY=BasicRenderer.LUMINOSITY;
+
+GLTextureBlender.MASK=BasicRenderer.MASK; // mask layer
 
 
 class GLImageDataFactory {
