@@ -118,10 +118,12 @@ class GLVRAMManager {
 			if(this.whiteList.has(imgData)){ // already in whitelist
 				const prevSize=this.whiteList.get(imgData);
 				this.vRAMUsage-=prevSize;
+				this.whiteList.delete(imgData);
 			}
 			else if(this.activeTextures.has(imgData)){ // already in active
 				const prevSize=this.activeTextures.get(imgData);
 				this.vRAMUsage-=prevSize;
+				this.activeTextures.delete(imgData);
 			}
 		}
 	}
