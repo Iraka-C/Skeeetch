@@ -20,7 +20,7 @@
 		<script src="./javascripts/jquery-3.4.1.min.js"></script>
 		<script type="text/javascript">
 			const glsl=s=>s; // string conversion, for glsl tag linting.
-			const LOGGING=true; // logging switch & optimize unused console object
+			const LOGGING=false; // logging switch & optimize unused console object
 			$(e=>ENV.init());
 		</script>
 
@@ -280,6 +280,10 @@
 							<svg width="1.5em" height="1.5em" viewBox="0 0 100 100" shape-rendering="geometricPrecision" id="indicator-svg" xmlns="http://www.w3.org/2000/svg" version="1.1">
 								<circle id="work-indicator-arc-background" cx="50" cy="50" r="40" stroke="#000000" fill="none" stroke-width="10"/>
 								<path id="work-indicator-arc" stroke="#000000" fill="none" stroke-width="10" stroke-linecap="round"/>
+								<g id="work-indicator-abort-button" stroke="#000000" fill="none" stroke-width="8" stroke-linecap="round" opacity="1">
+									<line x1="40" y1="40" x2="60" y2="60"/>
+									<line x1="40" y1="60" x2="60" y2="40"/>
+								</g>
 							</svg>
 						</div>
 						<div id="front-info-box">

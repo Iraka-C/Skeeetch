@@ -314,6 +314,12 @@ STORAGE.FILES.loadLayerTree=function(node) {
 		}
 		load() { // sync function, can be called async
 			const loadNextNodeAsync=()=>{
+				if(ENV.taskCounter.isTryingToAbort){ // User tries to abort the loading process
+					ENV.taskCounter.init(); // reset task indicator
+					STORAGE.FILES.isFailedLayer=true;
+					EventDistributer.footbarHint.showInfo("File loading aborted",2000);
+					return; // give up
+				}
 				if(this.nextNodeToLoad){ // prepare to load the next node
 					setTimeout(e=>{
 						const percentage=(this.index/loadQueue.length*100).toFixed(1);

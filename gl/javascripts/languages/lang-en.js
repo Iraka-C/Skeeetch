@@ -14,15 +14,30 @@ LANG_EN={
 	"layer-opacity-label-hidden":"Right click to show this layer.",
 	"Pressure Controlled Size":"Pen-Pressure Size",
 	"Pressure Controlled Opacity":"Pen-Pressure Opacity",
+	"new-brush-prefix":"New ",
 
 	// Settings part
 	"sys-info":"Information",
 	"sys-mem":"RAM Usage",
 	"sys-gpumem":"VRAM Usage",
+	"sys-disk":"Drive Usage",
 	"workspace-hint-1":"Resizing paper clears all histories and the pixels out-of-bound!",
 	"workspace-title":"Paper",
 	"display-hint-1":"These settings does not affect rendering results.",
 	"toggle-fullscreen":"Toggle Fullscreen",
+
+	"palette-title":"Palette",
+	"Color Information":"Color Info",
+
+	"ui-left":"Left",
+	"ui-right":"Right",
+	"sys-lim":"Performance",
+	"sys-max-vram":"VRAM Limit",
+	"sys-unlimited":"---",
+	"sys-max-fps":"FPS Limit",
+	"UI Theme":"Color Theme",
+	"ui-dark":"Dark",
+	"ui-light":"Light",
 
 	// Palette part
 	"palette-hue-sign":"Hue",

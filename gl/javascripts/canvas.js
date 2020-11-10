@@ -322,6 +322,7 @@ CANVAS.onRefresh=function() {
  * The antialiasing parameter 0.7 is a balance of sharpness and crispiness.
  */
 CANVAS.refreshScreen=function() {
+	if(!LAYERS.layerTree)return; // not valid layerTree
 	//const startT=window.performance.now();
 	const antiAliasRadius=ENV.displaySettings.antiAlias?0.7*Math.max(1/ENV.window.scale-1,0):0;
 	COMPOSITOR.recompositeLayers(null,CANVAS.dirtyArea); // recomposite from root.

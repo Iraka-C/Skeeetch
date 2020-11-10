@@ -141,7 +141,7 @@ BrushManager.initCustomizedBrushPanel=function(){
 		const brush=BrushManager.activeBrush;
 		const newBrush=Object.assign({},brush);
 		newBrush.id=BrushManager.generateHash(); // offer new hash
-		newBrush.name=(Lang("new-brush-prefix")+newBrush.name).slice(-16); // always 16 length
+		newBrush.name=Lang("new-brush-prefix")+newBrush.name.slice(-14); // always within 14 length
 		newBrush.isCustom=true; // custom flag
 		BrushManager.customBrushes.push(newBrush); // add to list
 		BrushManager.addCustomizedBrush(newBrush); // add to selector

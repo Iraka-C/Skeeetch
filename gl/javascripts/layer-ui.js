@@ -98,6 +98,7 @@ LAYERS._updateScrollBar=function(isAnimate) {
  * Scroll to the position of a certain layer node / node ID
  */
 LAYERS.scrollTo=function(node,isAnimate) {
+	if(!node||!node.$ui)return; // not a layer
 	const nTop=node.$ui.offset().top;
 	const $scroll=$("#layer-panel-scroll");
 	const $panel=$("#layer-panel-inner");

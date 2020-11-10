@@ -152,6 +152,11 @@ FILES.loadPSDNodes=function(node) {
 			}
 
 			if(this.nextNodeToLoad) { // prepare to load the next node
+				if(ENV.taskCounter.isTryingToAbort){ // User tries to abort the loading process
+					ENV.taskCounter.init(); // reset task indicator
+					EventDistributer.footbarHint.showInfo("File loading aborted",2000);
+					return; // give up
+				}
 				setTimeout(e => {
 					const percentage=(this.index/loadQueue.length*100).toFixed(1);
 					EventDistributer.footbarHint.showInfo("Loading "+percentage+"% ...",5000);

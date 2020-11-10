@@ -155,6 +155,12 @@ function describeSVGArc(x,y,radius,startAngle,endAngle) {
 	return d.join(" ");
 }
 
+/**
+ * Task Counter for foreground & background tasks
+ * call ENV.taskCounter.startTask()/finishTask() to update the indicator
+ * read ENV.taskCounter.isTryingToAbort to see if user is trying to abort a task
+ * call ENV.taskCounter.isWorking() to see if there is a task working
+ */
 ENV.taskCounter={};
 ENV.taskCounter.init=function(){
 	const tc=ENV.taskCounter;
@@ -162,6 +168,13 @@ ENV.taskCounter.init=function(){
 	tc.backgroundTaskCnt=0;
 	tc.foregroundTaskCompleted=0;
 	tc.backgroundTaskCompleted=0;
+
+	tc.isTryingToAbort=false; // a sign indicating if user is trying to abort
+	$("#front-info-indicator").on("pointerdown",e=>{
+		tc.isTryingToAbort=true;
+	});
+	ENV.taskCounter._updateIndicator(); // reset indicator ui
+	CURSOR.setBusy(false); // reset busy status
 }
 
 ENV.taskCounter._updateIndicator=function(){
@@ -174,6 +187,8 @@ ENV.taskCounter._updateIndicator=function(){
 			"stroke":"#cc6735",
 			"d":describeSVGArc(50,50,40,0,angle)
 		});
+		$("#work-indicator-abort-button").attr("stroke","#cc6735");
+		$("#front-info-panel").css("pointer-events","auto");
 	}
 	else if(tc.backgroundTaskCnt){ // there's background task
 		const angle=tc.backgroundTaskCompleted/tc.backgroundTaskCnt*359.9;
@@ -183,9 +198,12 @@ ENV.taskCounter._updateIndicator=function(){
 			"stroke":"#3398ca",
 			"d":describeSVGArc(50,50,40,0,angle)
 		});
+		$("#work-indicator-abort-button").attr("stroke","#3398ca");
+		$("#front-info-panel").css("pointer-events","auto");
 	}
 	else{
 		$("#front-info-indicator").css("display","none");
+		$("#front-info-panel").css("pointer-events","none");
 	}
 }
 
@@ -212,6 +230,7 @@ ENV.taskCounter.finishTask=function(taskKind){ // 0: background, else: foregroun
 		if(tc.foregroundTaskCompleted>=tc.foregroundTaskCnt){ // reset
 			tc.foregroundTaskCnt=0;
 			tc.foregroundTaskCompleted=0;
+			tc.isTryingToAbort=false;
 			CURSOR.setBusy(false);
 			PERFORMANCE.idleTaskManager.startIdle();
 		}
@@ -221,6 +240,7 @@ ENV.taskCounter.finishTask=function(taskKind){ // 0: background, else: foregroun
 		if(tc.backgroundTaskCompleted>=tc.backgroundTaskCnt){ // reset
 			tc.backgroundTaskCnt=0;
 			tc.backgroundTaskCompleted=0;
+			tc.isTryingToAbort=false;
 		}
 	}
 	tc._updateIndicator();
