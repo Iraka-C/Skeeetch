@@ -66,12 +66,26 @@ input:disabled {
 .layer-ui-mask2{
 	background: #ffffff66;
 }
+.layer-ui-mask-active{
+	opacity: 0;
+}
+.layer-name-label{
+	text-shadow: none;
+}
+.layer-opacity-label{
+	color: #86c2e0;
+	mix-blend-mode: multiply;
+}
 
 .layer-group-ui{ 
 	color: #222;
 }
 .layer-group-ui-active{
 	color: #fff;
+}
+
+.layer-clip-mask-hint,.group-clip-mask-hint{
+	opacity: 0.2;
 }
 
 .layer-panel-button:hover{

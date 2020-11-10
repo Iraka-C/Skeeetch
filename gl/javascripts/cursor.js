@@ -86,23 +86,11 @@ CURSOR.moveCursor=function(event) {
 				||LAYERS.active.isLocked()||LAYERS.active.isDescendantLocked()
 				||LAYERS.active.isOpacityLocked()||LAYERS.active.isDescendantOpacityLocked()) {
 				// if locked in layer tree, or the layer is invisible, cannot move
+				CURSOR.updateAction("disable");
 				return;
 			}
 			// @TODO: move all cursor coordinate translate into CURSOR
-			const cp0=ENV.toPaperXY(CURSOR.p0[0],CURSOR.p0[1]);
-			const cp1=ENV.toPaperXY(CURSOR.p1[0],CURSOR.p1[1]);
-			const dxP=cp0[0]-cp1[0]; // difference in paper coordinate
-			const dyP=cp0[1]-cp1[1];
-			if(isNaN(dxP)||isNaN(dyP)) return;
-
-			if(!CURSOR.panRecord.isPanned) { // record panning status
-				CURSOR.panRecord.isPanned=true;
-				const imgData=LAYERS.active.rawImageData;
-				CURSOR.panRecord.startPosition=[imgData.left,imgData.top];
-			}
-			CANVAS.panLayer(LAYERS.active,cp0[0]-cp1[0],cp0[1]-cp1[1],false);
-			LAYERS.active.setImageDataInvalid(); // merge with clip mask
-			CANVAS.requestRefresh();
+			panLayers();
 		}
 		else if(CURSOR.nowActivity=="pick") {
 			if(isNaN(CURSOR.p0[0])||isNaN(CURSOR.p0[1])) return;
@@ -114,6 +102,28 @@ CURSOR.moveCursor=function(event) {
 		else { // is drawing
 			CANVAS.stroke();
 		}
+	}
+
+	/**
+	 * Pan a layer with its clip masks
+	 */
+	function panLayers(){
+		const cp0=ENV.toPaperXY(CURSOR.p0[0],CURSOR.p0[1]);
+		const cp1=ENV.toPaperXY(CURSOR.p1[0],CURSOR.p1[1]);
+		const dxP=cp0[0]-cp1[0]; // difference in paper coordinate
+		const dyP=cp0[1]-cp1[1];
+		if(isNaN(dxP)||isNaN(dyP)) return;
+
+		if(!CURSOR.panRecord.isPanned) { // record panning status
+			CURSOR.panRecord.isPanned=true;
+			const imgData=LAYERS.active.rawImageData;
+			CURSOR.panRecord.startPosition=[imgData.left,imgData.top];
+		}
+
+		// TODO: take with clip masks?
+		CANVAS.panLayer(LAYERS.active,cp0[0]-cp1[0],cp0[1]-cp1[1],false);
+		LAYERS.active.setImageDataInvalid(); // merge with clip mask
+		CANVAS.requestRefresh();
 	}
 
 };
@@ -176,21 +186,21 @@ CURSOR.updateAction=function(event) {
 	else if(!CURSOR.isShown) { // hidden has the next priority
 		CURSOR.nowActivity="hidden";
 	}
-	else if(event&&(event.originalEvent.buttons&0x2)) { // 2^1==2, right button
+	else if((event instanceof Object)&&(event.originalEvent.buttons&0x2)) { // 2^1==2, right button
 		CURSOR.nowActivity="pick";
 	}
 	else if(EVENTS.key.shift) {
 		CURSOR.nowActivity="pan-paper";
 		// used as a flag in ENV._transformAnimation
 	}
-	else if(EVENTS.key.ctrl) {
-		CURSOR.nowActivity="pan-layer";
-	}
 	else if(EVENTS.key.alt) {
 		CURSOR.nowActivity="pick";
 	}
-	else if(!CANVAS.drawSuccessful&&CURSOR.isDown) {
+	else if((!CANVAS.drawSuccessful||event=="disable")&&CURSOR.isDown) {
 		CURSOR.nowActivity="disable";
+	}
+	else if(EVENTS.key.ctrl) {
+		CURSOR.nowActivity="pan-layer";
 	}
 	else {
 		CURSOR.nowActivity="stroke";

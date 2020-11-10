@@ -68,7 +68,20 @@ input:disabled {
 	background: #00000066;
 }
 .layer-ui-mask2{
-	background: #ffffff00;
+	background: #ffffff22;
+}
+.layer-ui-mask-active{
+	opacity: 0.5;
+}
+.layer-name-label, .layer-opacity-label{
+	mix-blend-mode: screen;
+	color: #86c2e0;
+}
+.layer-ui-active > .layer-name-label,.layer-ui-active > .layer-opacity-label{
+	mix-blend-mode: color-dodge;
+}
+.layer-ui:hover .layer-buttons{
+	filter: invert(100%);
 }
 
 .layer-group-ui{ 
@@ -76,6 +89,11 @@ input:disabled {
 }
 .layer-group-ui-active{
 	color: #ccc;
+}
+
+.layer-clip-mask-hint,.group-clip-mask-hint{
+	filter: invert(100%);
+	opacity: 0.6;
 }
 
 .layer-panel-button:hover{
