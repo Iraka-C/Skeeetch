@@ -187,8 +187,11 @@ ENV.taskCounter._updateIndicator=function(){
 			"stroke":"#cc6735",
 			"d":describeSVGArc(50,50,40,0,angle)
 		});
-		$("#work-indicator-abort-button").attr("stroke","#cc6735");
-		$("#front-info-panel").css("pointer-events","auto");
+		$("#work-indicator-abort-button").attr({ // show abort button
+			"stroke":"#cc6735",
+			"opacity":"1"
+		});
+		$("#front-info-panel").css("pointer-events","auto"); // allow clicking
 	}
 	else if(tc.backgroundTaskCnt){ // there's background task
 		const angle=tc.backgroundTaskCompleted/tc.backgroundTaskCnt*359.9;
@@ -198,8 +201,11 @@ ENV.taskCounter._updateIndicator=function(){
 			"stroke":"#3398ca",
 			"d":describeSVGArc(50,50,40,0,angle)
 		});
-		$("#work-indicator-abort-button").attr("stroke","#3398ca");
-		$("#front-info-panel").css("pointer-events","auto");
+		$("#work-indicator-abort-button").attr({
+			"stroke":"#3398ca",
+			"opacity":"0"
+		});
+		$("#front-info-panel").css("pointer-events","none");
 	}
 	else{
 		$("#front-info-indicator").css("display","none");

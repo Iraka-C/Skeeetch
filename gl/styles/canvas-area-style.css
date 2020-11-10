@@ -194,6 +194,7 @@ table{
 	pointer-events: none;
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 }
 #front-info-indicator{
 	/* Indicator uses absolute color */
