@@ -95,7 +95,9 @@ CURSOR.moveCursor=function(event) {
 		else if(CURSOR.nowActivity=="pick") {
 			if(isNaN(CURSOR.p0[0])||isNaN(CURSOR.p0[1])) return;
 			const pix=CANVAS.pickColor(CURSOR.p0[0],CURSOR.p0[1]);
-			PALETTE.colorSelector.setRGB(pix.slice(0,3));
+			if(pix){ // a successful color picking
+				PALETTE.colorSelector.setRGB(pix.slice(0,3));
+			}
 			// PALETTE.drawPalette();
 			// PALETTE.setCursor();
 		}

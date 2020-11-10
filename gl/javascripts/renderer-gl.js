@@ -352,7 +352,6 @@ class GLRenderer extends BasicRenderer {
 		if(imgData.type=="GLTexture") {
 			this.gl.deleteTexture(imgData.data);
 		}
-		//imgData.isDeleted=true; // set tag, ONLY HERE!
 	}
 
 	// clear the contents with transparent black or white

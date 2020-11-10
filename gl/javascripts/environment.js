@@ -12,7 +12,7 @@ ENV.paperSize={width: 0,height: 0,diag: 0}; // diag == sqrt(x^2+y^2)
 ENV.window={
 	SIZE: {width: 0,height: 0}, // window size, unit: window pixel *** NOW READ ONLY! ***
 	/**
-	 * Transform of the paper canvas related to the canvas window
+	 * Transform of the paper canvas center related to the canvas window center
 	 * all in window pixels
 	 * order: trans -> rot CW(paper center) -> scale(paper center)
 	 */
@@ -22,7 +22,7 @@ ENV.window={
 	scale: 1.0, // not zoomed
 	_transAnimation: { // translation control animation
 		time: 1, // total time in s
-		target: [0,0,0,1], // end point
+		target: [0,0,0,1], // end point, [x,y,r,s]
 		start: [0,0,0,1], // start point
 		now: [0,0,0,1], // present status
 		process: 1, // the processed animation part, 0~1

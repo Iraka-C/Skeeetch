@@ -402,12 +402,19 @@ CANVAS.clearAll=function() {
 }
 
 // ================ Other tools ==================
+/**
+ * Pick color from visible workspace.
+ * Return [r,g,b,a] (r,g,b in 0~255; a in 0~1), non-premultiplied form
+ */
 CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the window coordinate
 	const EXT=1; // p-EXT to p+EXT pixels. 1 for 3pix
 	const RANGE=2*EXT+1;
 	const SIZE=RANGE*RANGE;
 
 	const p=ENV.toPaperXY(x,y);
+	if(p[0]<0||p[0]>ENV.paperSize.width||p[1]<0||p[1]>ENV.paperSize.height){
+		return null; // out of paper area, return failed (null)
+	}
 	const imgData=LAYERS.layerTree.imageData;
 	const buffer=CANVAS.renderer.getUint8ArrayFromImageData(imgData,{
 		left: Math.round(p[0])-EXT-imgData.left,
@@ -427,9 +434,7 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 	pSum[1]/=SIZE;
 	pSum[2]/=SIZE;
 	pSum[3]/=SIZE*255;
-
 	LOGGING&&console.log(pSum);
-	
 
 	return SMath.blendNormal([...PALETTE.colorSelector.getRGB(),1],pSum); //pSum
 }
