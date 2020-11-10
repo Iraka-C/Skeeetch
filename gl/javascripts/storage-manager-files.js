@@ -6,9 +6,9 @@ STORAGE.FILES={
 
 STORAGE.FILES.generateFileID=function(){
 	let tag="";
-	do { // generate string with alphabet/number
+	do { // generate string with alphabet/number, doesn't collide even with non-dropped ones
 		tag=ENV.hash().toString(36);
-	} while(STORAGE.FILES.fileList.has(tag));
+	} while(STORAGE.FILES.filesStore.undroppedList.hasOwnProperty(tag));
 	return tag;
 }
 
@@ -147,31 +147,9 @@ class FileWorker {
  * Init the storage database.
  * call callback after initializaiton
  */
-STORAGE.FILES.init=function(callback) {
-	STORAGE.FILES.filesStore=JSON.parse(localStorage.getItem("files"));
+STORAGE.FILES.init=function() {
+	STORAGE.FILES.loadFilesStore();
 	STORAGE.FILES.brushtipStore=localforage.createInstance({name: "brush"});
-	/**
-	 * STORAGE.FILES.filesStore is
-	 * {
-	 *    fileList: {
-	 *       id1: fileItem1,
-	 *       ...
-	 *    },
-	 *    fileListUndropped: [id1, ...]
-	 * }
-	 * 
-	 * Each item in fileList is a fileID - fileContent pair
-	 * fileID is a string. ENV.fileID records the current working fileID
-	 * fileContent={
-	 *   fileName,
-	 *   thumb,
-	 *   lastOpenedDate,
-	 *   createdDate,
-	 *   fileSize,
-	 *   paperSize,
-	 *   ... ...
-	 * }
-	 */
 }
 STORAGE.FILES.initLayerStorage=function(fileID) {
 	// if not in fileStore, blabla
@@ -181,7 +159,7 @@ STORAGE.FILES.initLayerStorage=function(fileID) {
 	});
 
 	// update the contents in fileList and filesStore
-	const oldContent=STORAGE.FILES.fileList.get(fileID)||{};
+	const oldContent=STORAGE.FILES.filesStore.fileList[fileID]||{};
 	const time=Date.now();
 	const fileContent={
 		fileName: ENV.getFileTitle()||oldContent.fileName,
@@ -189,8 +167,8 @@ STORAGE.FILES.initLayerStorage=function(fileID) {
 		lastOpenedDate: time // now
 		//...
 	};
-	STORAGE.FILES.fileList.set(fileID,fileContent); // add in list @TODO: move to file selector
-	STORAGE.FILES.fileListUndropped.add(fileID);
+	STORAGE.FILES.filesStore.fileList[fileID]=fileContent;
+	STORAGE.FILES.filesStore.undroppedList[fileID]=true;
 }
 
 STORAGE.FILES.reportUnsavedContentChanges=function() {
@@ -558,15 +536,59 @@ STORAGE.FILES.clearUnusedContents=function(layerStore) {
 }
 
 // ======================= File ID related ==========================
-STORAGE.FILES.removeFileID=function(fileID){
-	STORAGE.FILES.fileList.delete(fileID);
-	STORAGE.FILES.filesStore.removeItem(fileID);
-	console.log("Trying to drop store "+fileID);
+STORAGE.FILES.loadFilesStore=function(){
+	/**
+	 * STORAGE.FILES.filesStore is
+	 * {
+	 *    fileList: { // containing all files in Skeeetch
+	 *       id1: fileItem1,
+	 *       ...
+	 *    },
+	 *    undroppedList: {id1:true, ...} // containing all files that are not dropped yet
+	 * }
+	 * 
+	 * Each item in fileList is a fileID - fileContent pair
+	 * fileID is a string. ENV.fileID records the current working fileID
+	 * fileContent={
+	 *   fileName,
+	 *   thumb,
+	 *   lastOpenedDate,
+	 *   createdDate,
+	 *   fileSize,
+	 *   paperSize,
+	 *   ... ...
+	 * }
+	 */
+	STORAGE.FILES.filesStore=JSON.parse(localStorage.getItem("files"))||{
+		fileList:{}, // init as nothing
+		undroppedList:{}
+	};
+}
+
+/**
+ * This function saves all the file information (including the editing one)
+ * especially when exiting the webpage
+ */
+STORAGE.FILES.saveFilesStore=function(){ // must be sync
+	// editing the now-editing file contents
+	const nowFileItem=STORAGE.FILES.filesStore.fileList[ENV.fileID];
+	nowFileItem.fileName=ENV.getFileTitle();
+	nowFileItem.lastOpenedDate=Date.now();
 	
+	localStorage.setItem("files",JSON.stringify(STORAGE.FILES.filesStore)); // save
+}
+
+STORAGE.FILES.removeFileID=function(fileID){
+	delete STORAGE.FILES.filesStore.fileList[fileID];
+	console.log("Trying to drop store "+fileID);
 	localforage.dropInstance({
 		name: "img",
 		storeName: fileID
-	}).catch(err=>{
-		console.log("Something happened",err);
+	})
+	.then(()=>{ // successfully dropped, remove from undropped
+		delete STORAGE.FILES.filesStore.undroppedList[fileID];
+	})
+	.catch(err=>{
+		console.trace("Something happened",err);
 	});
 }

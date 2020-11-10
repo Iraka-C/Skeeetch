@@ -78,7 +78,7 @@ FILES.initFileMenu=function() {
 			fileManager.toggleExpand();
 
 			// Only for debug: remove everything about oldID
-			STORAGE.FILES.removeFileID(oldID);
+			//STORAGE.FILES.removeFileID(oldID);
 		});
 	});
 	fileManager.addButton(Lang("Change Paper Size"),() => {
@@ -137,7 +137,7 @@ FILES.initFileMenu=function() {
 		setTimeout(FILES.saveAsPNG,1000);
 	});
 
-	FILES.initFileSelector(fileManager);
+	FILES.fileSelector.init(fileManager);
 
 	// ============== open action ===============
 	fileManager.setOpenButton($("#file-button"));

@@ -106,6 +106,7 @@ STORAGE.SETTING.saveAllSettings=function(){
 	}));
 
 	STORAGE.SETTING.saveBrushes();
+	STORAGE.FILES.saveFilesStore();
 }
 
 STORAGE.SETTING.saveBrushes=function(){
