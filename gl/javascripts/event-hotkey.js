@@ -27,7 +27,8 @@ EVENTS.initHotKeys=function(){
 	// Save
 	EventDistributer.key.addListener("ctrl+s",e=>{ // Save in browser
 		EventDistributer.footbarHint.showInfo("Saving all contents ...");
-		STORAGE.FILES.saveLayerTree();
+		const layerTreeStr=STORAGE.FILES.saveLayerTree();
+		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
 		STORAGE.FILES.saveAllContents();
 	});
 	EventDistributer.key.addListener("ctrl+shift+s",e=>{ // Save as psd

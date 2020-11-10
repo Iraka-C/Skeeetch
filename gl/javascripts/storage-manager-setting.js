@@ -26,6 +26,7 @@ sysSettingParams={
 			enableTransformAnimation
 		}
 	},
+	nowFileID, // the present fileID
 	windowParams // params from the url call
 }
 */
@@ -58,6 +59,7 @@ STORAGE.SETTING.init=function(){ // synced
 	v.preference=v.preference||{};
 	v.preference.displaySettings=v.preference.displaySettings||{};
 	v.preference.debugger=v.preference.debugger||{};
+	v.nowFileID=v.nowFileID||"deadbeef"; // init ID
 	v.windowParams=windowParams;
 	return v;
 }
@@ -99,7 +101,8 @@ STORAGE.SETTING.saveAllSettings=function(){
 			channelBitDepth: CANVAS.rendererBitDepth,
 			displaySettings: ENV.displaySettings
 		},
-		version: ENV.version
+		version: ENV.version,
+		nowFileID: ENV.fileID
 	}));
 
 	STORAGE.SETTING.saveBrushes();

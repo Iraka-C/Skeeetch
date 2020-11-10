@@ -125,7 +125,7 @@ class CanvasNode extends ContentNode {
 		// lastRawImageData handled by CANVAS
 		//if(this.lastRawImageData) CANVAS.renderer.deleteImageData(this.lastRawImageData);
 		if(ENV.displaySettings.isAutoSave){ // auto update
-			STORAGE.FILES.removeContent(this.id); // remove storage resources
+			STORAGE.FILES.removeContent(null,this.id); // remove storage resources
 		}
 		this.$ui.remove(); // remove all event handlers
 		super.delete();

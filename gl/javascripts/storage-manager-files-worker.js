@@ -6,18 +6,18 @@
 
 importScripts("./compressor.js");
 importScripts("./localforage.min.js");
-storage=localforage.createInstance({name: "img"});
+//storage=localforage.createInstance({name: "img"});
 
 onmessage=e => { // to global scope
 	if(e.data.save){
-		saveData(e.data.id,e.data.rawData);
+		saveData(e.storage,e.data.id,e.data.rawData);
 	}
 	else if(e.data.get){
-		getData(e.data.id);
+		getData(e.storage,e.data.id);
 	}
 }
 
-function saveData(nodeID,rawData){
+function saveData(storage,nodeID,rawData){
 	// Initialization
 	function decodeFloat16(bin) {
 		const exp=((bin>>>10)&0x1F)-15; // exp>0
@@ -45,12 +45,12 @@ function saveData(nodeID,rawData){
 	console.log("Compress in worker "+(100*data.length/pixels.length).toFixed(2)+"%");
 
 	const chunkN=Math.max(Math.ceil(data.length/CHUNK_SIZE),1); // at lease 1 chunk
-	const bufPromise=self.storage.setItem(nodeID,chunkN);
+	const bufPromise=storage.setItem(nodeID,chunkN);
 	const chunkPromises=[bufPromise];
 	for(let i=0;i<chunkN;i++) { // save a slice of data
 		const key=nodeID+"#"+i;
 		const chunk=data.slice(i*CHUNK_SIZE,(i+1)*CHUNK_SIZE);
-		const kPromise=self.storage.setItem(key,chunk);
+		const kPromise=storage.setItem(key,chunk);
 		chunkPromises.push(kPromise);
 	}
 
@@ -72,7 +72,7 @@ function saveData(nodeID,rawData){
 	});
 }
 
-function getData(nodeID){
+function getData(storage,nodeID){
 	storage.getItem(nodeID).then(chunkN => {
 		if(!chunkN){ // Not stored or zero chunk
 			postMessage({

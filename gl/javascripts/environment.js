@@ -43,11 +43,12 @@ ENV.displaySettings={
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
 
 // File ID related properties
-ENV.fileID="DEADBEEF";
+ENV.fileID=""; // present working file ID
 
 // ========================= Functions ============================
 ENV.init=function() { // When the page is loaded
 	STORAGE.init(sysSettingParams => { // after loading all settings
+		ENV.fileID=sysSettingParams.nowFileID; // get file ID
 		LANG.init(sysSettingParams); // set all doms after load?
 		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
 		
@@ -59,7 +60,7 @@ ENV.init=function() { // When the page is loaded
 		const lastLayerTreeJSON=STORAGE.FILES.getLayerTree();
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
-		if(lastLayerTreeJSON){
+		if(lastLayerTreeJSON){ // there is a saved file structure in local storage
 			LOGGING&&console.log("Reading File...",lastLayerTreeJSON);
 			ENV.setPaperSize(...lastLayerTreeJSON.paperSize);
 			ENV.setFileTitle(lastLayerTreeJSON.title);
@@ -74,7 +75,10 @@ ENV.init=function() { // When the page is loaded
 
 		CURSOR.init();
 		PERFORMANCE.init();
-		LAYERS.init(lastLayerTreeJSON);
+
+		STORAGE.FILES.initLayerStorage(ENV.fileID); // load the layer database, file title already set BEFORE (ENV.setFileTitle)
+		STORAGE.FILES.saveLayerTreeInDatabase(lastLayerTreeJSON); // update layer tree in database
+		LAYERS.init(lastLayerTreeJSON); // load all layers
 
 		BrushManager.init(sysSettingParams);
 		HISTORY.init();
@@ -341,5 +345,7 @@ ENV.hash=function(prefix){
 	const PRIME=2147483647;
 	const randArr=new Uint32Array(1);
 	window.crypto.getRandomValues(randArr);
-	return prefix+randArr[0]%PRIME;
+	const hash=randArr[0]%PRIME;
+
+	return typeof(prefix)=="string"?prefix+hash:hash;
 }

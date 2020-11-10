@@ -62,14 +62,24 @@ FILES.initFileMenu=function() {
 	sizeChangeHint(false);
 
 	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
-		if(ENV.displaySettings.isAutoSave){ // auto update contents
-			STORAGE.FILES.removeContent();
-		}
-		ENV.setFileTitle("Skeeetch");
-		ENV.setPaperSize(FILES.tempPaperSize.width,FILES.tempPaperSize.height); // if unchanged, same as
-		sizeChangeHint(false);
-		LAYERS.initFirstLayer();
-		fileManager.toggleExpand();
+		// Save current layerTree and contents in files
+		const layerTreeStr=STORAGE.FILES.saveLayerTree();
+		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
+		STORAGE.FILES.saveAllContents().then(()=>{
+			// init a new storage space
+			const oldID=ENV.fileID;
+			ENV.fileID=STORAGE.FILES.generateFileID();
+			ENV.setFileTitle("Skeeetch");
+			STORAGE.FILES.initLayerStorage(ENV.fileID); // record new title and create storage
+			// Some works on new file
+			ENV.setPaperSize(FILES.tempPaperSize.width,FILES.tempPaperSize.height);
+			sizeChangeHint(false);
+			LAYERS.initFirstLayer(); // also store the initial layer contents
+			fileManager.toggleExpand();
+
+			// Only for debug: remove everything about oldID
+			STORAGE.FILES.removeFileID(oldID);
+		});
 	});
 	fileManager.addButton(Lang("Change Paper Size"),() => {
 		if(FILES.tempPaperSize.width!=ENV.paperSize.width
@@ -126,6 +136,8 @@ FILES.initFileMenu=function() {
 		ENV.taskCounter.startTask(1); // save PNG task
 		setTimeout(FILES.saveAsPNG,1000);
 	});
+
+	FILES.initFileSelector(fileManager);
 
 	// ============== open action ===============
 	fileManager.setOpenButton($("#file-button"));
