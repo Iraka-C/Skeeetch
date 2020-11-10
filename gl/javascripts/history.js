@@ -36,18 +36,15 @@ class HistoryItem{
 
 				this.oldValidArea={...oldImageData.validArea};
 				this.newValidArea={...newImageData.validArea};
-
 				const area=param.area;
 				const oldArea=GLProgram.borderIntersection(this.oldValidArea,area);
 				const newArea=GLProgram.borderIntersection(this.newValidArea,area);
 				this.oldData=CANVAS.renderer.getBufferFromImageData(oldImageData,oldArea);
 				this.newData=CANVAS.renderer.getBufferFromImageData(newImageData,newArea);
-
 				this.oldIntersectionArea=oldArea;
 				this.newIntersectionArea=newArea;
 				
-				// copy contents
-				CANVAS.updateLastImageData(node);
+				CANVAS.updateLastImageData(node); // update, copy contents
 				break;
 			case "node-pan":
 				this.dx=param.dx; // all in paper coordinate, left-top as origin

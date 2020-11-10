@@ -342,6 +342,12 @@ LAYERS.initLayerPanelButtons=function() {
 		}
 	});
 
+	// Make a copy of the current layer/group button
+	$("#copy-button").on("click",event => {
+		LAYERS.copyLayers();
+	});
+	EventDistributer.footbarHint($("#copy-button"),() => Lang("Make a copy of the current layer / group"));
+
 	// Expand / Collapse button
 	LAYERS.isUIExpanded=true;
 	$("#layer-panel-right-menu").on("click",event => {
@@ -413,7 +419,7 @@ LAYERS.replaceGroupWithLayer=function(group) {
 	const layer=new CanvasNode();
 	group.addNodeBefore(layer);
 	group.$ui.before(layer.$ui);
-	const hist1={ // add a history item
+	const hist1={ // add a history item: create new
 		type: "node-structure",
 		id: layer.id,
 		from: null,
@@ -421,7 +427,7 @@ LAYERS.replaceGroupWithLayer=function(group) {
 		oldIndex: null,
 		newIndex: layer.getIndex(),
 		oldActive: group.id,
-		newActive: group.id // active layr not set yet
+		newActive: group.id // active layer not set yet
 	};
 
 	LAYERS.setActive(layer); // set lastImageData (as empty)
@@ -432,13 +438,10 @@ LAYERS.replaceGroupWithLayer=function(group) {
 	// Here, needless to set property change history: after all a "new" operation before
 
 	// transfer image data
-	CANVAS.renderer.adjustImageDataBorders(layer.rawImageData,group.rawImageData.validArea,false);
+	CANVAS.renderer.resizeImageData(layer.rawImageData,group.rawImageData.validArea,false);
 	CANVAS.renderer.blendImageData(group.rawImageData,layer.rawImageData,{mode: GLTextureBlender.SOURCE});
-	const hist2={ // add raw image data changed history
-		type: "image-data",
-		id: layer.id,
-		area: {...group.rawImageData.validArea}
-	};
+	STORAGE.FILES.saveContentChanges(layer); // save changes
+	// No need to set image data change history for newly created layer
 
 	// delete old imageData to save space. @TODO: clear all non-leaf imageData
 	group.assignNewRawImageData(0,0);
@@ -454,7 +457,7 @@ LAYERS.replaceGroupWithLayer=function(group) {
 	group.detach(); // remove from layer tree, also handles data/clip order invalidation
 
 
-	const hist3={ // add a history item
+	const hist2={ // add a history item: delete old
 		type: "node-structure",
 		id: groupId,
 		from: fromId,
@@ -464,15 +467,153 @@ LAYERS.replaceGroupWithLayer=function(group) {
 		oldActive: groupId,
 		newActive: layer.id
 	};
-	HISTORY.addHistory({ // combine 3 steps
+	HISTORY.addHistory({ // combine history steps
 		type: "bundle",
-		children: [hist1,hist2,hist3]
+		children: [hist1,hist2]
 	});
 
 	// recomposite
 	COMPOSITOR.updateLayerTreeStructure();
-	STORAGE.FILES.saveContentChanges(layer);
 	layer.updateThumb();
+}
+
+/**
+ * Make a copy of the active node, including the contents and properties
+ * Also update the layer panel and record a history
+ */
+LAYERS.copyLayers=function(){
+	let node=LAYERS.active; // active node
+	let newActiveID;
+
+	// src & dst are LayerGroupNode
+	// dst should be the copy of src, empty at first
+	// copy contents & ui of src into dst
+	// return the history item containing all the operations
+	function makeACopy(src,dst){
+		const histItem={ // Remember History
+			type: "bundle",
+			children: []
+		}
+		for(let i=src.children.length-1;i>=0;i--){
+			const c=src.children[i]; // take out one child (reverse order)
+			if(c instanceof CanvasNode){ // copy a CanvasNode
+				const newC=new CanvasNode(); // create and insert empty contents
+				dst.insertNode(newC,0);
+				dst.insertNode$UI(newC.$ui,0);
+				histItem.children.push({ // history item: create new
+					type: "node-structure",
+					id: newC.id,
+					from: null,
+					to: dst.id,
+					oldIndex: null,
+					newIndex: 0, // at first
+					oldActive: newActiveID,
+					newActive: newActiveID
+				});
+
+				CANVAS.renderer.resizeImageData(newC.rawImageData,c.rawImageData.validArea,false);
+				CANVAS.renderer.blendImageData(c.rawImageData,newC.rawImageData,{mode:BasicRenderer.SOURCE});STORAGE.FILES.saveContentChanges(newC); // save changes
+				newC.setImageDataInvalid();
+				// No need to set image data history: the new layers are NEWLY created
+
+				const prop=c.getProperties();
+				newC.setProperties(prop); // newly created ones doesn't need prop history
+				newC.updateThumb(); // update display
+			}
+			else{ // copy a group
+				const newG=new LayerGroupNode();
+				dst.insertNode(newG,0);
+				dst.insertNode$UI(newG.$ui,0);
+				histItem.children.push({ // history item: create new
+					type: "node-structure",
+					id: newG.id,
+					from: null,
+					to: dst.id,
+					oldIndex: null,
+					newIndex: 0, // at first
+					oldActive: newActiveID,
+					newActive: newActiveID
+				});
+
+				const prop=c.getProperties();
+				newG.setProperties(prop); // newly created ones doesn't need prop history
+				histItem.children.push(makeACopy(c,newG)); // sub-histories
+			}
+		}
+		return histItem; // return all the recorded histories
+	}
+
+	const rootHistItem={ // Remember History: root is here
+		type: "bundle",
+		children: []
+	}
+	if(node instanceof CanvasNode){
+		// ========== Create Node ==========
+		const newC=new CanvasNode(); // create and insert empty contents
+		node.addNodeBefore(newC); // add this node before
+		node.$ui.before(newC.$ui);
+		rootHistItem.children.push({ // history item: create new
+			type: "node-structure",
+			id: newC.id,
+			from: null,
+			to: newC.parent.id,
+			oldIndex: null,
+			newIndex: newC.getIndex(),
+			oldActive: node.id,
+			newActive: newC.id // active to this one
+		});
+		newActiveID=newC.id; // all following active refers to this
+
+		// ========== Copy Contents ==========
+		CANVAS.renderer.resizeImageData(newC.rawImageData,node.rawImageData.validArea,false);
+		CANVAS.renderer.blendImageData(node.rawImageData,newC.rawImageData,{mode:BasicRenderer.SOURCE});STORAGE.FILES.saveContentChanges(newC); // save changes
+		newC.setImageDataInvalid();
+		// No need to set image data history: the new layers are NEWLY created
+
+		// ========== Copy Properties ==========
+		const prop=node.getProperties();
+		if(prop.name.length>240){ // too long, cut it
+			prop.name=prop.name.slice(0,240)+"..."+Lang("node-copy-suffix");
+		}
+		else{
+			prop.name+=Lang("node-copy-suffix");
+		}
+		newC.setProperties(prop);
+		// No need to set prop history: the new layers are NEWLY created
+		newC.updateThumb();
+		LAYERS.setActive(newC); // also set lastRawImageData
+	}
+	else{ // LayerGroupNode
+		const newG=new LayerGroupNode();
+		node.addNodeBefore(newG); // add this node before
+		node.$ui.before(newG.$ui);
+		rootHistItem.children.push({ // history item: create new
+			type: "node-structure",
+			id: newG.id,
+			from: null,
+			to: newG.parent.id,
+			oldIndex: null,
+			newIndex: newG.getIndex(),
+			oldActive: node.id,
+			newActive: newG.id // active to this one
+		});
+		newActiveID=newG.id; // all following active refers to this
+
+		// ========== Copy Properties ==========
+		const prop=node.getProperties();
+		if(prop.name.length>240){ // too long, cut it
+			prop.name=prop.name.slice(0,240)+"..."+Lang("node-copy-suffix");
+		}
+		else{
+			prop.name+=Lang("node-copy-suffix");
+		}
+		newG.setProperties(prop);
+		rootHistItem.children.push(makeACopy(node,newG)); // sub-histories
+		// No need to set prop history: the new layers are NEWLY created
+		LAYERS.setActive(newG); // also set lastRawImageData
+	}
+
+	HISTORY.addHistory(rootHistItem); // submit history
 }
 
 LAYERS.updateAllThumbs=function() {

@@ -39,6 +39,9 @@ LANG_EN={
 	"ui-dark":"Dark",
 	"ui-light":"Light",
 
+	// Layer
+	"node-copy-suffix":" copy",
+
 	// Palette part
 	"palette-hue-sign":"Hue",
 	"palette-value-sign":"Value",

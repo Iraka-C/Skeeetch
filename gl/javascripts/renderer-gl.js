@@ -424,7 +424,7 @@ class GLRenderer extends BasicRenderer {
 		gl.disable(gl.SCISSOR_TEST);
 	}
 	/**
-	 * Change src's size to newParam, size may be smaller
+	 * Change src's size to newParam, size may be smaller (will crop the src)
 	 * The pointer of src won't change
 	 * if is toCopy, only copy part contained within a viewport size
 	 * // @TODO: use new image data to replace, regardless of viewport size

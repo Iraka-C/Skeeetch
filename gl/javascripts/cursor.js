@@ -81,12 +81,12 @@ CURSOR.moveCursor=function(event) {
 			let newTy=ENV.window.trans.y+dy;
 			ENV.translateTo(newTx,newTy);
 		}
-		else if(CURSOR.nowActivity=="pan-layer") { // ctrl: pan canvas only
+		else if(CURSOR.nowActivity=="pan-layer"||CURSOR.nowActivity=="pan-disable") { // ctrl: pan canvas only
 			if(!LAYERS.active.isVisible()
 				||LAYERS.active.isLocked()||LAYERS.active.isDescendantLocked()
 				||LAYERS.active.isOpacityLocked()||LAYERS.active.isDescendantOpacityLocked()) {
 				// if locked in layer tree, or the layer is invisible, cannot move
-				CURSOR.updateAction("disable");
+				CURSOR.updateAction("pan-disable");
 				return;
 			}
 			// @TODO: move all cursor coordinate translate into CURSOR
@@ -193,14 +193,19 @@ CURSOR.updateAction=function(event) {
 		CURSOR.nowActivity="pan-paper";
 		// used as a flag in ENV._transformAnimation
 	}
+	else if(EVENTS.key.ctrl) {
+		if(event=="pan-disable"&&CURSOR.isDown) { // disabled by some reason
+			CURSOR.nowActivity="pan-disable";
+		}
+		else{
+			CURSOR.nowActivity="pan-layer";
+		}
+	}
 	else if(EVENTS.key.alt) {
 		CURSOR.nowActivity="pick";
 	}
-	else if((!CANVAS.drawSuccessful||event=="disable")&&CURSOR.isDown) {
+	else if(!CANVAS.drawSuccessful&&CURSOR.isDown) {
 		CURSOR.nowActivity="disable";
-	}
-	else if(EVENTS.key.ctrl) {
-		CURSOR.nowActivity="pan-layer";
 	}
 	else {
 		CURSOR.nowActivity="stroke";
@@ -266,6 +271,7 @@ CURSOR.setCursor=function() {
 			$("#canvas-area-panel").css("cursor","alias");
 			$("#brush-cursor").css("display","none");
 			break;
+		case "pan-disable": // disabled when panning
 		case "disable": // disabling
 			$("#canvas-area-panel").css("cursor","not-allowed");
 			$("#brush-cursor").css("display","none");

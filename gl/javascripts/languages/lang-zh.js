@@ -107,6 +107,9 @@ LANG_ZH={
 	"Activate the mask layer":"切换蒙版编辑（未完成）",
 	"Merge group contents into one layer":"合并图层组",
 
+	"node-copy-suffix":" 副本",
+	"Make a copy of the current layer / group":"复制图层（组）",
+
 	// Blend Modes
 	"blend-mode-hint":"混合模式 - ",
 	"blend-normal":"正常",
