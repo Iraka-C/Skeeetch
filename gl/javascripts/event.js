@@ -16,7 +16,9 @@ EVENTS.init=function() {
 	 */
 
 	// disable pen long press => context menu
-	$(window).on("contextmenu",e => false);
+	if(!LOGGING){
+		$(window).on("contextmenu",e => false);
+	}
 
 	// ============ Auto File saving related ==============
 	let isNotSavedOnExit=false;
@@ -65,17 +67,6 @@ EVENTS.init=function() {
 	 * Window resize handler
 	 */
 	$(window).on("resize",event => {
-		if(LOGGING) { // for debugger checking
-			var devtools=/./;
-			devtools.toString=function() {
-				this.opened=true;
-			}
-			console.log("%c",devtools);
-			if(devtools.opened){
-				$(window).unbind("contextmenu");
-			}
-		}
-
 		ENV.window.SIZE.width=$canvasWindow.width();
 		ENV.window.SIZE.height=$canvasWindow.height();
 		ENV.refreshTransform();

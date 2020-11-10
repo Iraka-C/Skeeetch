@@ -43,7 +43,7 @@ LAYERS.initScrollbar=function() {
 		scrollTimer=setTimeout(e => {
 			scrollTimer=null;
 			$("#layer-panel-inner").css("pointer-events","auto");
-		},300);
+		},500); // allow on-layer-node scrolling after 500ms
 	});
 
 

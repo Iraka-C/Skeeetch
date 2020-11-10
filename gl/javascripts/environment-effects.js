@@ -49,7 +49,7 @@ ENV.fireTransformAnimation=function(pArr) {
 		anim.process=1;
 		$("#canvas-container").css({ // set style
 			"transform": matrixStr, // transform
-			"box-shadow": "0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
+			"box-shadow": "0px 0px "+(4/anim.now[3])+"em #00000088" // shadow size
 		});
 		CANVAS.requestRefresh(); // update canvas anti-aliasing
 		return;
@@ -92,7 +92,7 @@ ENV._transformAnimation=function(timestamp) { // timestamp in ms
 		let matrixStr="matrix("+newM[0]+","+newM[1]+","+newM[2]+","+newM[3]+","+newM[4]+","+newM[5]+")";
 		$("#canvas-container").css({
 			"transform": matrixStr, // transform
-			"box-shadow": "0px 0px "+(4/anim.now[3])+"em #808080" // shadow size
+			"box-shadow": "0px 0px "+(4/anim.now[3])+"em #00000088" // shadow size
 		});
 
 		if(ENV.displaySettings.antiAlias){

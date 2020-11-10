@@ -1,0 +1,97 @@
+body{
+	color: #000;
+	background-color: #fff;
+}
+
+#ui-panel{
+	background-color: #eee;
+}
+
+input:disabled {
+	color: #000;
+}
+
+/* Top panel bar */
+
+#top-menu-panel{
+	background: #ccc;
+}
+
+.top-block:hover{
+	background: #bbb;
+}
+
+#filename-input{
+	color: #000;
+}
+#filename-input:focus, #filename-input:hover{
+	background: #bbb;
+}
+
+#file-button{
+	background: #aaa;
+}
+#file-button:hover{
+	background: #bbb;
+}
+
+/* layer panel */
+
+#palette-panel{
+	background: #888;
+}
+#palette-selector{
+	box-shadow: 0px 0px 20px #666;
+}
+
+#layer-panel{
+	background: #aaa;
+}
+
+.layer-item{
+	background: #00000018;
+}
+
+.layer-ui{
+	color: #000;
+	background: #fff;
+	box-shadow: 0em 0em 1em #00000066;
+}
+.layer-ui-active{
+	box-shadow: 0em 0em 1em #ffffffff;
+}
+.layer-ui-mask{
+	background: #00000018;
+}
+.layer-ui-mask2{
+	background: #ffffff66;
+}
+
+.layer-group-ui{ 
+	color: #222;
+}
+.layer-group-ui-active{
+	color: #fff;
+}
+
+.layer-panel-button:hover{
+	background: #bbb;
+}
+.layer-panel-button:active{
+	box-shadow: 0px 0px 10px #00000022;
+}
+
+/* canvas area */
+
+#canvas-container{
+	background-color: #ccc;
+	box-shadow: 0px 0px 0em #00000088;
+}
+
+#front-info-box, #bottom-info-panel{
+	mix-blend-mode: exclusion;
+	color: #cc6735;
+}
+#bottom-info-box input{
+	color: #cc6735;
+}

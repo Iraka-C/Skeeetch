@@ -36,6 +36,7 @@ ENV.displaySettings={
 	enableTransformAnimation: true, // smooth animation when moving paper
 	blendWithNeutralColor: true, // blend layers with neutral color filling under certain blend modes
 	uiOrientationLeft: true, // UI flows from left->right: true
+	uiTheme: "light", // UI is the "light"/"dark" theme
 	isAutoSave: true, // Auto save files when modified in browser
 	maxFps: Infinity // 30, 60, Infinity
 };
@@ -80,6 +81,7 @@ ENV.init=function() { // When the page is loaded
 		FILES.init();
 
 		ENV.setUIOrientation(ENV.displaySettings.uiOrientationLeft); // set UI orientation at init, after settings
+		ENV.setUITheme(ENV.displaySettings.uiTheme); // set color theme
 		ENV.debug();
 
 		// prevent pen-dragging in Firefox causing window freezing

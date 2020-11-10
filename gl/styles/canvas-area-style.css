@@ -189,7 +189,6 @@ table{
 	position: absolute;
 	overflow: hidden;
 	bottom: 0px;
-	color: #cc6735;
 }
 #front-info-panel{
 	pointer-events: none;
@@ -205,7 +204,6 @@ table{
 	margin: 0.5em;
 	opacity: 0;
 	transition: opacity 0.3s;
-	mix-blend-mode: exclusion;
 }
 #front-info-box, #bottom-info-box{
 	white-space: nowrap;
@@ -214,7 +212,6 @@ table{
 	padding: 0.5em;
 	right: 0px;
 	cursor: auto;
-	mix-blend-mode: exclusion;
 }
 #bottom-info-panel *{
 	display: flex;
@@ -223,7 +220,6 @@ table{
 }
 #bottom-info-box input{
 	text-align: right;
-	color: #cc6735;
 }
 .bottom-info-block{
 	margin-left: 2em;
@@ -252,8 +248,6 @@ table{
 	position: relative;
 	pointer-events: none;
 	transform-origin: 50% 50%;
-	background-color: #ccc;
-	box-shadow: 0px 0px 0em #00000088;
 	/* will-change: transform; */ /* Never use this: may crash the browser (Chrome) */
 }
 

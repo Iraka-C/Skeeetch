@@ -2,7 +2,6 @@
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
-	background: #ccc;
 }
 
 :root { /* Sizes */
@@ -36,26 +35,13 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-}
-.top-block:hover{
-	background: #bbb;
+	transition: background 0.5s;
 }
 
 #filename-input{
-	color: #000000;
 	text-align: center;
 	width: var(--filename-input-width);
 	transition: background 0.5s;
-}
-#filename-input:focus, #filename-input:hover{
-	background: #bbb;
-}
-
-#file-button{
-	background: #aaa;
-}
-#file-button:hover{
-	background: #bbb;
 }
 
 #brush-button{

@@ -33,7 +33,6 @@ body{
 	user-select: none;
 	overflow-x: hidden;
 	overflow-y: hidden;
-	background-color: #fff;
 	padding: 0px;
 	margin: 0px;
 	touch-action: none;
@@ -57,7 +56,6 @@ body{
 	top: 0px;
 	right: 0px;
 	bottom: 0px;
-	background-color: #eee;
 	display: flex;
 	flex-direction: column;
 }
@@ -90,9 +88,7 @@ input{
 	margin: 0em;
 	text-overflow: ellipsis;
 }
-input:disabled {
-	color: #000;
-}
+
 input:focus{
 	outline: none;
 }
@@ -133,4 +129,9 @@ a:hover{
 /* selected link */
 a:active{
 	color: #86c2e0;
+}
+
+hr{
+	border-top: none;
+	border-bottom: 0.05em solid #ffffffaa;
 }

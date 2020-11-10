@@ -12,6 +12,8 @@ LANG_EN={
 	"brush-pressure-hint-1":"Invalid when pressure is disabled",
 	"layer-opacity-label-shown":"Change opacity. Right click to hide this layer.",
 	"layer-opacity-label-hidden":"Right click to show this layer.",
+	"Pressure Controlled Size":"Pen-Pressure Size",
+	"Pressure Controlled Opacity":"Pen-Pressure Opacity",
 
 	// Settings part
 	"sys-info":"Information",
@@ -26,6 +28,9 @@ LANG_EN={
 	"palette-hue-sign":"Hue",
 	"palette-value-sign":"Value",
 	"CIS-none":"Default",
+
+	// Workspace
+	"Change Paper Size":"Change Size",
 }
 LANG_EN._id={
 	"filename-input":"Skeeetch",

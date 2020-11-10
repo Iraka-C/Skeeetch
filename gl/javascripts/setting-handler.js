@@ -174,6 +174,12 @@ SettingHandler.initSystemSetting=function(sysParams) {
 			default: ENV.setUIOrientation(true); break;
 		}
 	},() => ENV.displaySettings.uiOrientationLeft? 0:1);
+	sys.addSwitch(Lang("UI Theme"),[Lang("ui-light"),Lang("ui-dark")],null,val => {
+		switch(val) {
+			case 1: ENV.setUITheme("dark"); break;
+			default: ENV.setUITheme("light"); break;
+		}
+	},() => ENV.displaySettings.uiTheme=="dark"? 1:0);
 	sys.addButton(Lang("toggle-fullscreen"),() => {
 		if(!document.fullscreenElement) {
 			document.documentElement.requestFullscreen();
@@ -267,8 +273,12 @@ SettingHandler.initSystemSetting=function(sysParams) {
 	$infoDiv.css("font-size","80%");
 	$infoDiv.html(`
 		This web app is designed and programmed by
-		<${aTag} href='https://github.com/Iraka-C/Skeeetch'>Iraka-C</a>.<br>
-		Distributed under <${aTag} href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>.
+		<${aTag} href='https://github.com/Iraka-C'>Iraka-C</a>.<br>
+		Distributed under <${aTag} href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>.<br>
+		Star this project or give me some feedback!
+		<br><hr>
+		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch" data-size="large" data-show-count="true" aria-label="Star Iraka-C/Skeeetch on GitHub">Star</a>
+		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch/issues" data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue Iraka-C/Skeeetch on GitHub">Issue</a>
 	`);
 
 	sys.setOpenButton($("#system-button"));

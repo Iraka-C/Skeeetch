@@ -1,0 +1,108 @@
+body{
+	color: #aaa;
+	background-color: #000;
+}
+
+#ui-panel{
+	background-color: #333;
+}
+
+input:disabled {
+	color: #aaa;
+}
+
+/* Top panel bar */
+
+#top-menu-panel{
+	background: #222;
+}
+
+.top-block:hover{
+	background: #444;
+}
+
+#filename-input{
+	color: #aaa;
+}
+#filename-input:focus, #filename-input:hover{
+	background: #444;
+}
+
+#file-button{
+	background: #111;
+}
+#file-button:hover{
+	background: #444;
+}
+
+/* #brush-size{
+	color: #eee;
+} */
+
+/* layer panel */
+
+#palette-panel{
+	background: #444;
+}
+#palette-selector{
+	box-shadow: 0px 0px 20px #222;
+}
+
+#layer-panel{
+	background: #3a3a3a;
+}
+
+.layer-item{
+	background: #ffffff18;
+}
+
+.layer-ui{
+	color: #000;
+	background: #fff;
+	box-shadow: 0em 0em 1em #00000066;
+}
+.layer-ui-active{
+	box-shadow: 0em 0em 1em #ffffff88;
+}
+.layer-ui-mask{
+	background: #00000066;
+}
+.layer-ui-mask2{
+	background: #ffffff00;
+}
+
+.layer-group-ui{ 
+	color: #000;
+}
+.layer-group-ui-active{
+	color: #ccc;
+}
+
+.layer-panel-button:hover{
+	background: #444;
+}
+.layer-panel-button:hover > img{
+	filter: invert(70%);
+}
+.layer-panel-button:active{
+	box-shadow: 0px 0px 10px #ffffff44;
+}
+
+/* canvas area */
+
+#canvas-container{
+	background-color: #444;
+	box-shadow: 0px 0px 0em #00000088;
+}
+
+#main-canvas-background{
+	opacity: 0.3;
+}
+
+#front-info-box, #bottom-info-panel{
+	mix-blend-mode: difference;
+	color: #cc8835;
+}
+#bottom-info-box input{
+	color: #cc8835;
+}

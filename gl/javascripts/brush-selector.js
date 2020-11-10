@@ -202,8 +202,8 @@ BrushManager.initCustomizedBrushPanel=function(){
 		}
 	});
 	$("#brush-selector-set").click(e=>{
-		// get brushtip image data
-		const nowImg=LAYERS.active.maskedImageData;
+		// get brushtip image data from THIS layer
+		const nowImg=LAYERS.active.rawImageData;
 		const bImg=CANVAS.renderer.getBrushtipImageData(nowImg);
 		if(!bImg){ // no pixel
 			EventDistributer.footbarHint.showInfo("ERROR: No solid pixel found to set as brushtip");

@@ -1,6 +1,6 @@
-ENV.setUIOrientation=function(isLeft){
+ENV.setUIOrientation=function(isLeft) {
 	ENV.displaySettings.uiOrientationLeft=isLeft;
-	if(isLeft){ // Normal
+	if(isLeft) { // Normal
 		$("#top-menu-panel").css("flex-direction","row");
 		$("#top-menu-right-panel").css("flex-direction","row");
 		$("#top-menu-left-center-panel").css("flex-direction","row");
@@ -8,26 +8,26 @@ ENV.setUIOrientation=function(isLeft){
 		$("#column-panel").css("flex-direction","row");
 		$("#layer-panel-right-menu").css("transform","none");
 		$("#layer-panel-scrollbar").css({
-			"left":"auto",
-			"right":"0em",
-			"transform":"translateX(50%)",
+			"left": "auto",
+			"right": "0em",
+			"transform": "translateX(50%)",
 		});
 		// exchange menu open direction
 		$("#right-menu-panels").css({
-			"left":"auto",
-			"right":"0em",
-			"flex-direction":"row"
+			"left": "auto",
+			"right": "0em",
+			"flex-direction": "row"
 		});
 		$("#left-menu-panels").css({
-			"left":"0em",
-			"right":"auto",
-			"flex-direction":"row"
+			"left": "0em",
+			"right": "auto",
+			"flex-direction": "row"
 		});
 		$("#right-menu-panels .setting-panel").children().addClass("menu-scroll-wrapper").removeClass("left-menu-scroll-wrapper");
 		$("#left-menu-panels .setting-panel").children().addClass("left-menu-scroll-wrapper").removeClass("menu-scroll-wrapper");
 		$("#brush-button").css("justify-content","flex-start");
 	}
-	else{ // Reversed
+	else { // Reversed
 		$("#top-menu-panel").css("flex-direction","row-reverse");
 		$("#top-menu-right-panel").css("flex-direction","row-reverse");
 		$("#top-menu-left-center-panel").css("flex-direction","row-reverse");
@@ -35,24 +35,37 @@ ENV.setUIOrientation=function(isLeft){
 		$("#column-panel").css("flex-direction","row-reverse");
 		$("#layer-panel-right-menu").css("transform","scaleX(-1)");
 		$("#layer-panel-scrollbar").css({
-			"left":"0em",
-			"right":"auto",
-			"transform":"translateX(-50%)",
+			"left": "0em",
+			"right": "auto",
+			"transform": "translateX(-50%)",
 		});
 		// exchange menu open direction
 		$("#right-menu-panels").css({
-			"left":"0em",
-			"right":"auto",
-			"flex-direction":"row-reverse"
+			"left": "0em",
+			"right": "auto",
+			"flex-direction": "row-reverse"
 		});
 		$("#left-menu-panels").css({
-			"left":"auto",
-			"right":"0em",
-			"flex-direction":"row-reverse"
+			"left": "auto",
+			"right": "0em",
+			"flex-direction": "row-reverse"
 		});
 		$("#right-menu-panels .setting-panel").children().addClass("left-menu-scroll-wrapper").removeClass("menu-scroll-wrapper");
 		$("#left-menu-panels .setting-panel").children().addClass("menu-scroll-wrapper").removeClass("left-menu-scroll-wrapper");
 		$("#brush-button").css("justify-content","flex-end");
 	}
 	PALETTE.refreshUIParam(); // refresh palette position
+}
+
+ENV.setUITheme=function(theme) {
+	switch(theme) {
+		case "dark":
+			ENV.displaySettings.uiTheme="dark";
+			$("#css-theme").attr("href","./styles/color-theme-dark.css");
+			break;
+		case "light": // default as light theme
+		default:
+			ENV.displaySettings.uiTheme="light";
+			$("#css-theme").attr("href","./styles/color-theme-light.css");
+	}
 }

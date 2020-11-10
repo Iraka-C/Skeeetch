@@ -51,6 +51,9 @@ LANG_ZH={
 	"sys-max-vram":"显存限制",
 	"sys-unlimited":"无限制",
 	"sys-max-fps":"刷新率限制",
+	"UI Theme":"界面主题",
+	"ui-dark":"深色",
+	"ui-light":"浅色",
 
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",
@@ -68,7 +71,7 @@ LANG_ZH={
 	"Pressure Controlled Opacity":"压感不透明度",
 	"Min Opacity":"最低不透明度",
 	"Hard Edge":"边缘硬度",
-	"Pressure Controlled Eroding":"压感腐蚀",
+	//"Pressure Controlled Eroding":"压感腐蚀",
 	"erode-opacity":"不透明度",
 	"erode-shape":"形状",
 
