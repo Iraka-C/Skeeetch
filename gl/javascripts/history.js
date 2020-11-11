@@ -465,9 +465,10 @@ HISTORY.popHead=function(){
 		return;
 	}
 	const clearAllDeleteNode=item=>{
-		if(item.type=="node-structure"&&!item.to){
+		if(item.type=="node-structure"&&!item.to){ // delete node action
 			const node=LAYERS.layerHash[item.id];
 			node.delete(); // destroy imageData or hash number, this method is resursive for a group
+			// @TODO: If is a "delete canvas node" operation? consider managing the storage
 		}
 		if(item.type=="bundle"){
 			for(const v of item.children){
@@ -477,8 +478,8 @@ HISTORY.popHead=function(){
 	};
 
 	const item=HISTORY.list[0];
-	clearAllDeleteNode(item);
 	HISTORY.nowRAMUsage-=item.getRAMSize();
+	clearAllDeleteNode(item);
 	HISTORY.list.shift();
 	HISTORY.nowId--;
 }
@@ -493,9 +494,10 @@ HISTORY.clearAllHistoryBefore=function(){
 // clear all history after present status
 HISTORY.clearAllHistoryAfter=function(){
 	const clearAllNewNode=item=>{
-		if(item.type=="node-structure"&&!item.from){
+		if(item.type=="node-structure"&&!item.from){ // create node action
 			const node=LAYERS.layerHash[item.id];
 			node.delete(); // destroy imageData or hash number, this method is resursive for a group
+			// @TODO: If is a "new canvas node" operation? consider managing the storage
 		}
 		if(item.type=="bundle"){
 			for(const v of item.children){
@@ -506,8 +508,8 @@ HISTORY.clearAllHistoryAfter=function(){
 	let len=HISTORY.list.length;
 	for(let i=HISTORY.nowId+1;i<len;i++){ // clear all history afterwards
 		const item=HISTORY.list[i];
-		clearAllNewNode(item);
 		HISTORY.nowRAMUsage-=item.getRAMSize();
+		clearAllNewNode(item);
 	}
 	HISTORY.list.splice(HISTORY.nowId+1,len); // len>HISTORY.nowId: delete all item after nowId
 }

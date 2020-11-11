@@ -100,8 +100,10 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 FILES.fileSelector.openFileWithID=function(fileID) {
 	// Save current first
 	const layerTreeStr=STORAGE.FILES.saveLayerTree();
-	STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
-	STORAGE.FILES.saveAllContents().then(() => {
+	Promise.all([
+		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
+		STORAGE.FILES.saveAllContents()
+	]).then(() => {
 		const fileItem=STORAGE.FILES.filesStore.fileList[fileID];
 		// open fileID
 		ENV.fileID=fileID;
@@ -117,7 +119,7 @@ FILES.fileSelector.openFileWithID=function(fileID) {
 	});
 }
 
-// ================ On UI Operation =================
+// ================ Operation On UI =================
 FILES.fileSelector.changeFileNameByFileID=function(fileID,newName) {
 	const fileItem=STORAGE.FILES.filesStore.fileList[fileID];
 	const $ui=FILES.fileSelector.$uiList[fileID];

@@ -7,8 +7,11 @@
 	height: 5em;
 	position: relative;
 	background-color: #000;
-	box-shadow: 0em 0em 1em #00000066;
+	box-shadow: 0em 0em 1.5em #444;
 	margin: 1em 0em 0em 0em;
+}
+#file-selector-container>:first-child{
+	box-shadow: 0em 0em 1em #888;
 }
 
 .file-ui-canvas-container, .file-ui-mask{
@@ -18,9 +21,6 @@
 }
 .file-ui-mask{
 	background-color: #00000088;
-}
-.file-ui-active > .file-ui-mask{
-	background-color: #00000044;
 }
 .file-ui-name-label{
 	position: absolute;

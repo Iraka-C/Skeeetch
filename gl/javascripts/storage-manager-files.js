@@ -12,9 +12,10 @@ STORAGE.FILES.generateFileID=function(){
 	return tag;
 }
 
-class FileWorker {
-	constructor(layerStore) {
+class FileWorker { // Work on canvas layer content, not files in repository!
+	constructor(layerStore,fileID) { // the layerStore and fileID this worker is working on
 		this.layerStore=layerStore;
+		this.fileID=fileID;
 	}
 	saveFile(node) {
 		const imgData=node.rawImageData;
@@ -75,7 +76,7 @@ class FileWorker {
 				isPreserveArrayType: true
 			});
 			worker.postMessage({
-				storage: this.layerStore,
+				fileID: this.fileID,
 				id: node.id,
 				rawData: rawData,
 				save: true
@@ -132,7 +133,7 @@ class FileWorker {
 				reject(err);
 			}
 			worker.postMessage({
-				storage: this.layerStore,
+				fileID: this.fileID,
 				id: nodeID,
 				get: true
 			});
@@ -212,6 +213,7 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 		//$("#icon").attr("href","./resources/favicon-working.png");
 
 		const storage=STORAGE.FILES.layerStore; // note here in case of layerStore changing
+		const fileID=ENV.fileID; // same as above
 		// There shouldn't be several save requests of 1 node in 1 frame...
 		return new Promise((resolve,reject)=>{
 			setTimeout(() => { // give icon a chance to change
@@ -219,7 +221,7 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 	
 				// Start Saving, try saver first
 				// FileWorker will try Worker first, then async saving
-				const fileSaver=new FileWorker(storage);
+				const fileSaver=new FileWorker(storage,fileID);
 				ENV.taskCounter.startTask();
 				fileSaver.saveFile(node).then(() => {
 					STORAGE.FILES.savingList.delete(node.id); // delete first
@@ -278,7 +280,7 @@ STORAGE.FILES.isUnsaved=function() {
 }
 
 STORAGE.FILES.getContent=function(id) {
-	let fileReader=new FileWorker(STORAGE.FILES.layerStore);
+	let fileReader=new FileWorker(STORAGE.FILES.layerStore,ENV.fileID);
 	return fileReader.getFile(id);
 }
 
@@ -352,7 +354,7 @@ STORAGE.FILES.saveLayerTree=function() {
  */
 STORAGE.FILES.saveLayerTreeInDatabase=function(json) {
 	ENV.taskCounter.startTask(); // start saving layer tree task
-	STORAGE.FILES.layerStore.setItem("layer-tree",json).finally(() => {
+	return STORAGE.FILES.layerStore.setItem("layer-tree",json).finally(() => {
 		ENV.taskCounter.finishTask();
 	});
 }
@@ -637,7 +639,7 @@ STORAGE.FILES.saveCurrentOpenedFileAs=function(){
 	const layerTreeStr=STORAGE.FILES.saveLayerTree();
 	STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
 	const taskList=[]; // containing all tasks
-	for(const k in LAYERS.layerHash) { // Save all layers
+	for(const k in LAYERS.layerHash) { // Save all layer contents
 		const layer=LAYERS.layerHash[k];
 		if(layer instanceof CanvasNode) {
 			taskList.push(STORAGE.FILES.saveContentChanges(layer,true));

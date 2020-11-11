@@ -6,18 +6,25 @@
 
 importScripts("./compressor.js");
 importScripts("./localforage.min.js");
-//storage=localforage.createInstance({name: "img"});
+
+let storage=null;
 
 onmessage=e => { // to global scope
+	console.log("Create Instance "+e.data.fileID);
+	
+	storage=localforage.createInstance({ // working on the instance
+		name: "img",
+		storeName: e.data.fileID
+	});
 	if(e.data.save){
-		saveData(e.storage,e.data.id,e.data.rawData);
+		saveData(e.data.id,e.data.rawData);
 	}
 	else if(e.data.get){
-		getData(e.storage,e.data.id);
+		getData(e.data.id);
 	}
 }
 
-function saveData(storage,nodeID,rawData){
+function saveData(nodeID,rawData){
 	// Initialization
 	function decodeFloat16(bin) {
 		const exp=((bin>>>10)&0x1F)-15; // exp>0
@@ -55,7 +62,7 @@ function saveData(storage,nodeID,rawData){
 	}
 
 	Promise.all(chunkPromises).then(v => {
-		//console.log(nodeID+" Saved");
+		console.log(nodeID+" Saved");
 		postMessage({
 			chunkN: chunkN,
 			id: nodeID,
@@ -72,7 +79,7 @@ function saveData(storage,nodeID,rawData){
 	});
 }
 
-function getData(storage,nodeID){
+function getData(nodeID){
 	storage.getItem(nodeID).then(chunkN => {
 		if(!chunkN){ // Not stored or zero chunk
 			postMessage({
@@ -100,6 +107,7 @@ function getData(storage,nodeID){
 				offset+=v.length;
 			}
 
+			console.log(nodeID+"Get");
 			postMessage({
 				data: Compressor.decode(data),
 				get: true

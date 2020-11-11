@@ -169,6 +169,8 @@ ENV.taskCounter.init=function(){
 	tc.foregroundTaskCompleted=0;
 	tc.backgroundTaskCompleted=0;
 
+	tc.taskInfoRecorder=new Map();
+
 	tc.isTryingToAbort=false; // a sign indicating if user is trying to abort
 	$("#front-info-indicator").on("pointerdown",e=>{
 		tc.isTryingToAbort=true;
@@ -213,7 +215,7 @@ ENV.taskCounter._updateIndicator=function(){
 	}
 }
 
-ENV.taskCounter.startTask=function(taskKind){ // 0: background, else: foreground
+ENV.taskCounter.startTask=function(taskKind,taskInfo){ // 0: background, else: foreground
 	const tc=ENV.taskCounter;
 	if(taskKind){ // foreground
 		if(!tc.foregroundTaskCnt){ // start to have busy tasks
@@ -226,9 +228,14 @@ ENV.taskCounter.startTask=function(taskKind){ // 0: background, else: foreground
 		tc.backgroundTaskCnt++;
 	}
 	tc._updateIndicator();
+
+	if(taskInfo){
+		const cnt=tc.taskInfoRecorder.get(taskInfo)||0;
+		tc.taskInfoRecorder.set(taskInfo,cnt+1);
+	}
 }
 
-ENV.taskCounter.finishTask=function(taskKind){ // 0: background, else: foreground
+ENV.taskCounter.finishTask=function(taskKind,taskInfo){ // 0: background, else: foreground
 	const tc=ENV.taskCounter;
 	
 	if(taskKind){ // foreground
@@ -250,10 +257,29 @@ ENV.taskCounter.finishTask=function(taskKind){ // 0: background, else: foregroun
 		}
 	}
 	tc._updateIndicator();
+
+	if(taskInfo){
+		const cnt=tc.taskInfoRecorder.get(taskInfo)||0;
+		if(cnt<=1){ // all dealt
+			tc.taskInfoRecorder.delete(taskInfo);
+		}
+		else{
+			tc.taskInfoRecorder.set(taskInfo,cnt-1);
+		}
+	}
 }
 
 ENV.taskCounter.isWorking=function(){
 	return !!(ENV.taskCounter.foregroundTaskCnt||ENV.taskCounter.backgroundTaskCnt);
+}
+ENV.taskCounter.printStatus=function(){
+	const tc=ENV.taskCounter;
+	let info="Foreground Task: "+tc.foregroundTaskCnt
+		+", Background Task: "+tc.backgroundTaskCnt+"\n";
+	for(const [taskInfo,cnt] of tc.taskInfoRecorder){
+		info+="\t"+taskInfo+" - "+cnt+"\n";
+	}
+	console.log(info);
 }
 
 ENV.debug=function() {

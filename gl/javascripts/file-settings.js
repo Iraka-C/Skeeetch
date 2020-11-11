@@ -64,8 +64,10 @@ FILES.initFileMenu=function() {
 	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
 		// Save current layerTree and contents in files
 		const layerTreeStr=STORAGE.FILES.saveLayerTree();
-		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
-		STORAGE.FILES.saveAllContents().then(()=>{
+		Promise.all([
+			STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
+			STORAGE.FILES.saveAllContents()
+		]).then(()=>{
 			// init a new storage space
 			ENV.fileID=STORAGE.FILES.generateFileID();
 			ENV.setFileTitle("Skeeetch");
@@ -123,15 +125,30 @@ FILES.initFileMenu=function() {
 	autoSaveButtonFunc(!ENV.displaySettings.isAutoSave); // init when loading
 
 	fileManager.addButton(Lang("Save as new file"),e => {
-		let nowName=ENV.getFileTitle(); // current name
-		if(nowName.length>240){ // too long, cut it
-			nowName=nowName.slice(0,240)+"..."+Lang("node-copy-suffix");
+		let newName=ENV.getFileTitle(); // current name
+		if(newName.length>240){ // too long, cut it
+			newName=newName.slice(0,240)+"..."+Lang("node-copy-suffix");
 		}
 		else{
-			nowName+=Lang("node-copy-suffix");
+			newName+=Lang("node-copy-suffix");
 		}
-		ENV.setFileTitle(nowName);
-		STORAGE.FILES.saveCurrentOpenedFileAs();
+		function toSaveAsNew(){ // save as new file operation
+			ENV.setFileTitle(newName);
+			STORAGE.FILES.saveCurrentOpenedFileAs();
+		}
+		if(ENV.displaySettings.isAutoSave){ // shall save present before switching to a new file
+			const layerTreeStr=STORAGE.FILES.saveLayerTree();
+			Promise.all([
+				STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
+				STORAGE.FILES.saveAllContents()
+			]).then(()=>{
+				toSaveAsNew();
+			});
+		}
+		else{ // directly save as new
+			toSaveAsNew();
+		}
+		
 	});
 
 	const psdButtonFunc=fileManager.addButton(Lang("Save as PSD"),e => {
