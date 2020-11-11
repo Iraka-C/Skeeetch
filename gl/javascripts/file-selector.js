@@ -74,7 +74,7 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 	EventDistributer.footbarHint($ui,() => fileID);
 	$ui.on("click",event => { // open this file
 		if(fileID==ENV.fileID) return; // same file, no need to open
-		console.log("Try to open "+fileID);
+		if(ENV.taskCounter.isWorking()) return; // there's operation on the present file
 		//FILES.fileSelector.fileManager.toggleExpand(); // Don't need to close?
 		FILES.fileSelector.openFileWithID(fileID);
 

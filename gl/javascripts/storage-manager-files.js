@@ -157,6 +157,8 @@ STORAGE.FILES.init=function() {
  * also update the fileName (so the filename must be set in advance) and lastOpenedDate
  */
 STORAGE.FILES.initLayerStorage=function(fileID) { // This is a synced function
+	console.log("Change layer store to "+fileID);
+	
 	// if not in fileStore, blabla
 	STORAGE.FILES.layerStore=localforage.createInstance({
 		name: "img",
@@ -204,7 +206,7 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 		return Promise.resolve();
 	}
 	if(node) { // @TODO: operating on a CanvasNode
-		console.log("Saving contents ...");
+		console.trace("Saving contents ...");
 
 		STORAGE.FILES.savingList.set(node.id,node);
 		//$("#icon").attr("href","./resources/favicon-working.png");
@@ -305,7 +307,7 @@ STORAGE.FILES.removeContent=function(layerStore_,id,startChunk) {
 					if(chunkId>=startChunk) { // to remove
 						ENV.taskCounter.startTask(); // start remove chunk task
 						layerStore.removeItem(v).then(() => {
-							//console.log("removed",v);
+							//console.log("removed chunk "+chunkId+" of "+id,v);
 						}).finally(() => {
 							ENV.taskCounter.finishTask(); // end remove chunk task
 						});
@@ -419,6 +421,8 @@ STORAGE.FILES.loadLayerTree=function(node) {
 				const newElement=new CanvasNode(sNode.id);
 				newElement.setRawImageDataInvalid();
 				STORAGE.FILES.getContent(sNode.id).then(imgBuf => {
+					//console.log("Trying to get imgData id "+sNode.id+" from store "+ENV.fileID,imgBuf);
+					
 					if(imgBuf&&sNode.rawImageData) { // contents get
 						sNode.rawImageData.data=imgBuf;
 						CANVAS.renderer.resizeImageData(newElement.rawImageData,sNode.rawImageData);
@@ -619,4 +623,28 @@ STORAGE.FILES.organizeDatabase=function(){
 			});
 		}
 	}
+}
+
+/**
+ * Save the contents of the current opened file as a new file in repo
+ * Do not change any content of the previous file
+ */
+STORAGE.FILES.saveCurrentOpenedFileAs=function(){
+	const newID=STORAGE.FILES.generateFileID();
+	ENV.fileID=newID; // environment working on new ID
+	STORAGE.FILES.initLayerStorage(newID); // create storage for newID with the same title
+	// save layer tree and contents in database
+	const layerTreeStr=STORAGE.FILES.saveLayerTree();
+	STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
+	const taskList=[]; // containing all tasks
+	for(const k in LAYERS.layerHash) { // Save all layers
+		const layer=LAYERS.layerHash[k];
+		if(layer instanceof CanvasNode) {
+			taskList.push(STORAGE.FILES.saveContentChanges(layer,true));
+		}
+	}
+	Promise.all(taskList);
+	//STORAGE.FILES.savingList.
+
+	FILES.fileSelector.addNewFileUIToSelector(newID); // add the icon in selector
 }

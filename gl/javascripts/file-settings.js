@@ -123,7 +123,15 @@ FILES.initFileMenu=function() {
 	autoSaveButtonFunc(!ENV.displaySettings.isAutoSave); // init when loading
 
 	fileManager.addButton(Lang("Save as new file"),e => {
-		
+		let nowName=ENV.getFileTitle(); // current name
+		if(nowName.length>240){ // too long, cut it
+			nowName=nowName.slice(0,240)+"..."+Lang("node-copy-suffix");
+		}
+		else{
+			nowName+=Lang("node-copy-suffix");
+		}
+		ENV.setFileTitle(nowName);
+		STORAGE.FILES.saveCurrentOpenedFileAs();
 	});
 
 	const psdButtonFunc=fileManager.addButton(Lang("Save as PSD"),e => {

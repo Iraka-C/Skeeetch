@@ -122,11 +122,13 @@ class CanvasNode extends ContentNode {
 		this.initInputs();
 	}
 	delete() { // delete buffer image data
-		// lastRawImageData handled by CANVAS
-		//if(this.lastRawImageData) CANVAS.renderer.deleteImageData(this.lastRawImageData);
-		if(ENV.displaySettings.isAutoSave){ // auto update
-			STORAGE.FILES.removeContent(null,this.id); // remove storage resources
-		}
+		/** Don't know why this is connected with storage
+		 * Maybe history contents @TODO: do this in HISTORY
+		 * But better not to move this. STORAGE.FILES will be handled by self-check when start-up
+		 */
+		// if(ENV.displaySettings.isAutoSave){ // auto update
+		// 	STORAGE.FILES.removeContent(null,this.id); // remove storage resources
+		// }
 		this.$ui.remove(); // remove all event handlers
 		super.delete();
 	}
