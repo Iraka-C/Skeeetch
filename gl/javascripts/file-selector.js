@@ -42,6 +42,34 @@ FILES.fileSelector.$newUI=function() {
 			event.stopPropagation(); // cancel the following "drag" event on pen
 		}
 	});
+
+	// preview thumb moving effect
+	const setThumbTransform=str => $cv.css("transform",str);
+	$ui.on("pointermove",event => { // move thumb image
+		let offset=$ui.offset();
+		let dx=event.pageX-offset.left,dy=event.pageY-offset.top;
+		let w=$ui.width(),h=$ui.height();
+		const transformType=$cv.attr("data-transform-type");
+		const transformAmount=$cv.attr("data-transform-amount");
+		if(transformType=="X") { // perform X transform
+			let tx=dx/w;
+			setThumbTransform("translateX("+(transformAmount*tx)+"px)");
+		}
+		else { // perform Y transform
+			let ty=dy/h;
+			setThumbTransform("translateY("+(transformAmount*ty)+"px)");
+		}
+	});
+	$ui.on("pointerout",event => { // reset thumb image position
+		const transformType=$cv.attr("data-transform-type");
+		const transformAmount=$cv.attr("data-transform-amount");
+		if(transformType=="X") { // perform X transform
+			setThumbTransform("translateX("+(transformAmount/2)+"px)");
+		}
+		else { // perform Y transform
+			setThumbTransform("translateY("+(transformAmount/2)+"px)");
+		}
+	});
 	return $ui;
 }
 

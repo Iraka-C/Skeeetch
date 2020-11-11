@@ -160,7 +160,7 @@ class CanvasNode extends ContentNode {
 	updateThumb() {
 		let thumbCV=this.$thumb;
 		let w=this.rawImageData.width,h=this.rawImageData.height;
-		let uW=this.$ui.width(),uH=this.$ui.height();
+		let uW=Math.round(this.$ui.width()),uH=Math.round(this.$ui.height());
 
 		if(!(w&&h)) {
 			thumbCV.attr({ // also clear the content
@@ -170,7 +170,7 @@ class CanvasNode extends ContentNode {
 			return;
 		}
 
-		// plave in canvas
+		// position in canvas
 		let kw=uW/w,kh=uH/h;
 		if(kw<=kh) { // left/right overflow
 			let nW=Math.round(w*kh); // new width
@@ -183,7 +183,6 @@ class CanvasNode extends ContentNode {
 			thumbCV.css({
 				"transform": "translateX("+((uW-nW)/2)+"px)"
 			});
-			this._drawThumb();
 		}
 		else { // top/bottom overflow
 			let nH=Math.round(h*kw); // new height
@@ -196,8 +195,10 @@ class CanvasNode extends ContentNode {
 			thumbCV.css({
 				"transform": "translateY("+((uH-nH)/2)+"px)"
 			});
-			this._drawThumb();
 		}
+
+		// put contents
+		this._drawThumb();
 	}
 
 	_drawThumb() { // Use 2d context operation

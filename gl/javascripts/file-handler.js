@@ -327,6 +327,7 @@ FILES.saveAsPSD=function(psdJSON) { // @TODO: change to async function
 
 FILES.saveAsPNG=function() {
 	const imgData=LAYERS.layerTree.imageData;
+	// Must be a context2d canvas for Blob
 	const canvas=CANVAS.renderer.getContext2DCanvasFromImageData(
 		imgData,CANVAS.renderer.viewport);
 	canvas.toBlob(blob => { // Only Context2D can be safely changed into blob

@@ -9,9 +9,7 @@
 	background-color: #000;
 	box-shadow: 0em 0em 1.5em #444;
 	margin: 1em 0em 0em 0em;
-}
-#file-selector-container>:first-child{
-	box-shadow: 0em 0em 1em #888;
+	overflow: hidden;
 }
 
 .file-ui-canvas-container, .file-ui-mask{
@@ -19,9 +17,19 @@
 	width: 100%;
 	height: 100%;
 }
+.file-ui-canvas{
+	transition: transform 0.25s ease-out;
+	position: absolute;
+}
+
 .file-ui-mask{
 	background-color: #00000088;
+	transition: background-color 0.5s;
 }
+#file-selector-container>:first-child > .file-ui-mask{
+	background-color: #00000044;
+}
+
 .file-ui-name-label{
 	position: absolute;
 	bottom: 0em;
@@ -36,6 +44,9 @@
 	transition: opacity 0.5s;
 }
 .file-ui:hover > .file-ui-name-label{
+	opacity: 1;
+}
+#file-selector-container>:first-child > .file-ui-name-label{
 	opacity: 1;
 }
 
@@ -67,4 +78,7 @@
 }
 .file-ui-delete-button:hover > img{
 	opacity: 1;
+}
+#file-selector-container>:first-child .file-ui-delete-button{
+	display: none;
 }

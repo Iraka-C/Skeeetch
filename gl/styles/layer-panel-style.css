@@ -166,7 +166,7 @@
 .layer-panel-button{
 	flex: auto;
 	text-align: center;
-	transition: background 0.5s, box-shadow 0.2s;
+	transition: background-color 0.5s, box-shadow 0.2s;
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
@@ -212,6 +212,7 @@
 	right: 0em;
 	top: 0em;
 	margin: 0.2em;
+	transition: filter 0.3s;
 }
 .layer-buttons td{
 	position: relative;

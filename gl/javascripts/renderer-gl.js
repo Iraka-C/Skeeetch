@@ -799,8 +799,11 @@ class GLRenderer extends BasicRenderer {
 				canvas.height=img.height;
 				const ctx2d=canvas.getContext("2d"); // Use Context2D mode @TODO: may cause context lost on large data!
 				// @TODO: using texImage2D-ArrayBuffer as input
+				// @TODO: at present has nothing to do with the position (left/top) of img!!
 				const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
 				imgData2D.data.set(img.data);
+				canvas.width=0; // release canvas resource
+				canvas.height=0;
 				this.loadToImageData(target,imgData2D);
 			}
 		}
