@@ -42,9 +42,12 @@ EVENTS.init=function() {
 		//isUnloadTriggered=true;
 		// see STORAGE.SETTING.saveAllSettings
 		STORAGE.saveOnExit();
-		if(STORAGE.FILES.isUnsaved()) { // there are unsaved contents
+		const isUnsavedExist=STORAGE.FILES.isUnsaved();
+		if(ENV.taskCounter.isWorking()||isUnsavedExist) { // there are works to do
+			if(isUnsavedExist){ // there are unsaved (and modified) files
+				isNotSavedOnExit=true;
+			}
 			// show promp window
-			isNotSavedOnExit=true;
 			e.preventDefault();
 			return "";
 		}

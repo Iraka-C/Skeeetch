@@ -151,7 +151,12 @@ STORAGE.FILES.init=function() {
 	STORAGE.FILES.loadFilesStore();
 	STORAGE.FILES.brushtipStore=localforage.createInstance({name: "brush"});
 }
-STORAGE.FILES.initLayerStorage=function(fileID) {
+
+/**
+ * switch the current instance of STORAGE.FILES.layerStore to the given ID
+ * also update the fileName (so the filename must be set in advance) and lastOpenedDate
+ */
+STORAGE.FILES.initLayerStorage=function(fileID) { // This is a synced function
 	// if not in fileStore, blabla
 	STORAGE.FILES.layerStore=localforage.createInstance({
 		name: "img",
@@ -325,13 +330,13 @@ STORAGE.FILES.removeContent=function(layerStore_,id,startChunk) {
 }
 
 STORAGE.FILES.clearLayerTree=function() {
-	localStorage.setItem("layer-tree","");
+	localStorage.removeItem("layer-tree");
 }
 
 // return a string of layer tree JSON
 STORAGE.FILES.saveLayerTree=function() {
-	const storageJSON=JSON.stringify(LAYERS.getStorageJSON());
-	localStorage.setItem("layer-tree",storageJSON);
+	const storageJSON=LAYERS.getStorageJSON();
+	localStorage.setItem("layer-tree",JSON.stringify(storageJSON));
 	return storageJSON;
 }
 
@@ -344,11 +349,13 @@ STORAGE.FILES.saveLayerTree=function() {
  * When reading layer tree from localStorage (sync with localStorage)
  */
 STORAGE.FILES.saveLayerTreeInDatabase=function(json) {
-	const storageJSON=typeof (json)=="string"? json:JSON.stringify(json);
 	ENV.taskCounter.startTask(); // start saving layer tree task
-	STORAGE.FILES.layerStore.setItem("layer-tree",storageJSON).finally(() => {
+	STORAGE.FILES.layerStore.setItem("layer-tree",json).finally(() => {
 		ENV.taskCounter.finishTask();
 	});
+}
+STORAGE.FILES.getLayerTreeFromDatabase=function(){ // returns a Promise
+	return STORAGE.FILES.layerStore.getItem("layer-tree");
 }
 
 STORAGE.FILES.getLayerTree=function() {
@@ -449,7 +456,7 @@ STORAGE.FILES.loadLayerTree=function(node) {
 			if(child.elem) { // valid node
 				this.elem.insertNode(child.elem,0);
 				this.elem.insertNode$UI(child.elem.$ui,0);
-				child.elem.setRawImageDataInvalid();
+				child.elem.setImageDataInvalid(); // clip order may change
 			}
 
 			this.loadedChildrenCnt++;
@@ -544,7 +551,7 @@ STORAGE.FILES.loadFilesStore=function(){
 	 *       id1: fileItem1,
 	 *       ...
 	 *    },
-	 *    undroppedList: {id1:true, ...} // containing all files that are not dropped yet
+	 *    undroppedList: {id1:true, ...} // containing all files that are in database
 	 * }
 	 * 
 	 * Each item in fileList is a fileID - fileContent pair
@@ -578,10 +585,11 @@ STORAGE.FILES.saveFilesStore=function(){ // must be sync
 	localStorage.setItem("files",JSON.stringify(STORAGE.FILES.filesStore)); // save
 }
 
-STORAGE.FILES.removeFileID=function(fileID){
+STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monitoring
 	delete STORAGE.FILES.filesStore.fileList[fileID];
 	console.log("Trying to drop store "+fileID);
-	localforage.dropInstance({
+	ENV.taskCounter.startTask(); // start drop task
+	return localforage.dropInstance({ // clear database
 		name: "img",
 		storeName: fileID
 	})
@@ -589,6 +597,26 @@ STORAGE.FILES.removeFileID=function(fileID){
 		delete STORAGE.FILES.filesStore.undroppedList[fileID];
 	})
 	.catch(err=>{
-		console.trace("Something happened",err);
-	});
+		console.log("Something happened",err);
+	})
+	.finally(()=>{
+		ENV.taskCounter.finishTask(); // end drop task
+	})
+}
+
+/**
+ * Remove stores from database that are deleted in fileList
+ * but still remain in database (due to failed deletion, etc)
+ * 
+ * Check through database everytime when Skeeetch starts
+ */
+STORAGE.FILES.organizeDatabase=function(){
+	for(const id in STORAGE.FILES.filesStore.undroppedList){
+		if(!STORAGE.FILES.filesStore.fileList.hasOwnProperty(id)){
+			// id only in undropped list
+			PERFORMANCE.idleTaskManager.addTask(()=>{
+				STORAGE.FILES.removeFileID(id); // try to remove again
+			});
+		}
+	}
 }

@@ -172,7 +172,7 @@ FILES.loadPSDNodes=function(node) {
 			if(child.elem) { // valid node
 				this.elem.insertNode(child.elem,0);
 				this.elem.insertNode$UI(child.elem.$ui,0);
-				child.elem.setRawImageDataInvalid();
+				child.elem.setImageDataInvalid(); // clip order may change
 			}
 			this.loadedChildrenCnt++;
 			if(this.loadedChildrenCnt==this.N) { // all children loaded

@@ -39,6 +39,7 @@ STORAGE.SETTING.init=function(){ // synced
 
 	if(windowParams.query["clear"]){ // requested contents clear
 		STORAGE.FILES.clearLayerTree();
+		localStorage.removeItem("files");
 	}
 	if(windowParams.query["reset"]){
 		// Empty

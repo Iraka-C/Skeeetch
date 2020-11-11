@@ -156,8 +156,10 @@ LANG_ZH={
 	"Save as PNG":"导出为PNG图片",
 	"Save as PSD":"导出为PSD文档",
 	"Auto Save":"自动保存",
-	"Save in browser":"在浏览器中保存",
-	"layer-mask":"蒙版"
+	"Save in browser":"在库中保存",
+	"layer-mask":"蒙版",
+
+	"Repository":"库"
 };
 LANG_ZH._id={
 	"filename-input":"Skeeetch",

@@ -90,6 +90,10 @@ ENV.init=function() { // When the page is loaded
 
 		// prevent pen-dragging in Firefox causing window freezing
 		EVENTS.disableInputSelection($("#filename-input"));
+
+		// clean up the unremoved database store
+		// maybe because of failed deletion
+		STORAGE.FILES.organizeDatabase();
 	});
 };
 
@@ -303,6 +307,10 @@ ENV.setTransformAnimation=function(isAnimate) {
 
 ENV.setFileTitle=function(title) {
 	$("#filename-input").val(title);
+	/**
+	 * onChange event of $("#filename-input") is handled at
+	 * SettingHandler.initTitle()
+	 */
 }
 
 ENV.getFileTitle=function() {

@@ -253,7 +253,7 @@ ENV.taskCounter.finishTask=function(taskKind){ // 0: background, else: foregroun
 }
 
 ENV.taskCounter.isWorking=function(){
-	return !!(tc.foregroundTaskCnt||tc.backgroundTaskCnt);
+	return !!(ENV.taskCounter.foregroundTaskCnt||ENV.taskCounter.backgroundTaskCnt);
 }
 
 ENV.debug=function() {

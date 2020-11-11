@@ -1,0 +1,70 @@
+#file-selector-container{
+	display: flex;
+	flex-direction: column;
+}
+
+.file-ui{
+	height: 5em;
+	position: relative;
+	background-color: #000;
+	box-shadow: 0em 0em 1em #00000066;
+	margin: 1em 0em 0em 0em;
+}
+
+.file-ui-canvas-container, .file-ui-mask{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+.file-ui-mask{
+	background-color: #00000088;
+}
+.file-ui-active > .file-ui-mask{
+	background-color: #00000044;
+}
+.file-ui-name-label{
+	position: absolute;
+	bottom: 0em;
+	width: 100%;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box; /* for filling padding */
+	padding: 0.2em;
+	opacity: 0.5;
+	transition: opacity 0.5s;
+}
+.file-ui:hover > .file-ui-name-label{
+	opacity: 1;
+}
+
+.file-ui-buttons{
+	display: flex;
+	flex-direction: row;
+	position: absolute;
+	top: 0em;
+	right: 0em;
+	opacity: 0; /* visible when hover */
+	transition: opacity 0.5s;
+}
+.file-ui:hover > .file-ui-buttons{
+	opacity: 1;
+}
+
+.setting-table .file-ui-buttons tr td{
+	padding: 0em;
+	margin: 0em;
+}
+
+.file-ui-delete-button > img{
+	width: 1.4em;
+	height: 1.4em;
+	margin: 0.2em;
+	display: block;
+	opacity: 0.5;
+	transition: opacity 0.3s;
+}
+.file-ui-delete-button:hover > img{
+	opacity: 1;
+}

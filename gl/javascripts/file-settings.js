@@ -67,7 +67,6 @@ FILES.initFileMenu=function() {
 		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
 		STORAGE.FILES.saveAllContents().then(()=>{
 			// init a new storage space
-			const oldID=ENV.fileID;
 			ENV.fileID=STORAGE.FILES.generateFileID();
 			ENV.setFileTitle("Skeeetch");
 			STORAGE.FILES.initLayerStorage(ENV.fileID); // record new title and create storage
@@ -75,6 +74,7 @@ FILES.initFileMenu=function() {
 			ENV.setPaperSize(FILES.tempPaperSize.width,FILES.tempPaperSize.height);
 			sizeChangeHint(false);
 			LAYERS.initFirstLayer(); // also store the initial layer contents
+			FILES.fileSelector.addNewFileUIToSelector(ENV.fileID); // add the icon in selector
 			fileManager.toggleExpand();
 
 			// Only for debug: remove everything about oldID
@@ -122,6 +122,10 @@ FILES.initFileMenu=function() {
 	EventDistributer.footbarHint(autoSaveButtonFunc(),() => Lang("Save in browser")+" (Ctrl+S)");
 	autoSaveButtonFunc(!ENV.displaySettings.isAutoSave); // init when loading
 
+	fileManager.addButton(Lang("Save as new file"),e => {
+		
+	});
+
 	const psdButtonFunc=fileManager.addButton(Lang("Save as PSD"),e => {
 		EventDistributer.footbarHint.showInfo("Rendering ...");
 		fileManager.toggleExpand();
@@ -136,7 +140,8 @@ FILES.initFileMenu=function() {
 		ENV.taskCounter.startTask(1); // save PNG task
 		setTimeout(FILES.saveAsPNG,1000);
 	});
-
+	
+	fileManager.addSectionTitle(Lang("Repository"));
 	FILES.fileSelector.init(fileManager);
 
 	// ============== open action ===============

@@ -17,7 +17,9 @@ SettingHandler.init=function(sysParams) {
 SettingHandler.initTitle=function() {
 	const $titleInput=$("#filename-input");
 	$titleInput.on("change",event => { // Input
-		$("title").text($titleInput.val());
+		const newName=$titleInput.val();
+		$("title").text(newName);
+		FILES.fileSelector.changeFileNameByFileID(ENV.fileID,newName); // set fileList and selector
 	});
 }
 
