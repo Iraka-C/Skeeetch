@@ -28,8 +28,9 @@ EVENTS.initHotKeys=function(){
 	EventDistributer.key.addListener("ctrl+s",e=>{ // Save in browser
 		EventDistributer.footbarHint.showInfo("Saving all contents ...");
 		const layerTreeStr=STORAGE.FILES.saveLayerTree();
-		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
-		STORAGE.FILES.saveAllContents();
+		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr); // update structure in database
+		STORAGE.FILES.saveAllContents(); // update contents in database
+		STORAGE.FILES.updateCurrentThumb(); // update thumb in database
 	});
 	EventDistributer.key.addListener("ctrl+shift+s",e=>{ // Save as psd
 		EventDistributer.footbarHint.showInfo("Rendering ...");

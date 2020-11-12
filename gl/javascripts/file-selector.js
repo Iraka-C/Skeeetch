@@ -16,8 +16,9 @@ FILES.fileSelector.$newUI=function() {
 
 	// thumb container
 	let $cvContainer=$("<div class='file-ui-canvas-container'>");
+	let $cvBackground=$("<div class='file-ui-canvas-background'>");
 	let $cv=$("<canvas class='file-ui-canvas' width='0' height='0'>");
-	$cvContainer.append($cv);
+	$cvContainer.append($cvBackground,$cv);
 
 	let $mask=$("<div class='file-ui-mask'>");
 
@@ -25,15 +26,22 @@ FILES.fileSelector.$newUI=function() {
 	let $nameLabel=$("<div class='file-ui-name-label'>");
 	let $buttons=$("<div class='file-ui-buttons'>");
 	let infoBlock=$("<div class='file-ui-info'>");
+	let deleteButtonOuter=$("<div class='file-ui-delete-button-outer'>"); // for reconfirm the deletion
 	let deleteButton=$("<div class='file-ui-delete-button'>").append(
 		$("<img src='./resources/file-delete.svg'/>") // delete button svg
 	);
+	deleteButtonOuter.append(deleteButton);
+	EventDistributer.footbarHint(deleteButtonOuter,() => Lang("delete-file"));
 	$buttons.append($("<table>").append( // file ui button table 2x1
 		$("<tr>").append(
-			$("<td>").append(infoBlock),
-			$("<td>").append(deleteButton)
+			//$("<td>").append(infoBlock),
+			$("<td>").append(deleteButtonOuter)
 		)
 	));
+	$buttons.on("click",event=>{
+		// only click on button panel, not the ui
+		event.stopPropagation(); // do not send click event to $ui (open file)
+	});
 
 	// all add to $ui
 	$ui.append($cvContainer,$mask,$nameLabel,$buttons);
@@ -100,7 +108,10 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 	// $ui.find(".file-ui-info").text(lastOpen.toLocaleDateString());
 	FILES.fileSelector.$container.prepend($ui);
 
-	EventDistributer.footbarHint($ui,() => fileID);
+	EventDistributer.footbarHint($ui,() => EVENTS.key.shift?fileID: // press shift for fileID
+		fileID==ENV.fileID?"": // Already opened
+		Lang("selector-open-prefix")+fileItem.fileName
+	);
 	$ui.on("click",event => { // open this file
 		if(fileID==ENV.fileID) return; // same file, no need to open
 		if(ENV.taskCounter.isWorking()) return; // there's operation on the present file
@@ -111,7 +122,8 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 		$ui.detach();
 		FILES.fileSelector.$container.prepend($ui);
 	});
-	$ui.find(".file-ui-delete-button").on("click",event=>{ // try to delete this
+	const deleteButton=$ui.find(".file-ui-delete-button");
+	deleteButton.on("click",event=>{ // try to delete this
 		event.stopPropagation(); // do not click on $ui
 		if(fileID!=ENV.fileID){ // current not opening
 			const fileName=STORAGE.FILES.filesStore.fileList[fileID].fileName;
@@ -122,8 +134,16 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 			STORAGE.FILES.removeFileID(fileID).then(()=>{
 				EventDistributer.footbarHint.showInfo(fileName+" removed from database.");
 			});
+
+			// The thumb image of this file will be deleted at the next startup.
+			// in STORAGE.FILES.loadAllFileThumbs()
 		}
 	});
+	EventDistributer.footbarHint(deleteButton,() =>
+		Lang("delete-file-confirm-prefix")
+		+fileItem.fileName
+		+Lang("delete-file-confirm-suffix")
+	);
 }
 
 FILES.fileSelector.openFileWithID=function(fileID) {

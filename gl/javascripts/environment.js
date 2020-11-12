@@ -91,8 +91,10 @@ ENV.init=function() { // When the page is loaded
 		// prevent pen-dragging in Firefox causing window freezing
 		EVENTS.disableInputSelection($("#filename-input"));
 
+		// Load all thumbs from 
 		// clean up the unremoved database store
 		// maybe because of failed deletion
+		STORAGE.FILES.loadAllFileThumbs();
 		STORAGE.FILES.organizeDatabase();
 	});
 };

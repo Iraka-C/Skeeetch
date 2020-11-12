@@ -54,10 +54,6 @@ FILES.initFileMenu=function() {
 			sizeChangeHint(true);
 		}
 	);
-	EventDistributer.setClick($("#file-button"),event => { // refresh when open
-		FILES.tempPaperSize.width=ENV.paperSize.width;
-		FILES.tempPaperSize.height=ENV.paperSize.height;
-	});
 	const sizeChangeHint=fileManager.addHint(Lang("workspace-hint-1"));
 	sizeChangeHint(false);
 
@@ -121,6 +117,7 @@ FILES.initFileMenu=function() {
 		EventDistributer.footbarHint.showInfo("Saving all contents ...");
 		STORAGE.FILES.saveLayerTree();
 		STORAGE.FILES.saveAllContents();
+		STORAGE.FILES.updateCurrentThumb();
 	});
 	EventDistributer.footbarHint(autoSaveButtonFunc(),() => Lang("Save in browser")+" (Ctrl+S)");
 	autoSaveButtonFunc(!ENV.displaySettings.isAutoSave); // init when loading
@@ -146,7 +143,8 @@ FILES.initFileMenu=function() {
 				toSaveAsNew();
 			});
 		}
-		else{ // directly save as new
+		else{ // directly save as new, discard changes to the old one
+			STORAGE.FILES.updateThumbFromDatabase(ENV.fileID); // reload saved thumb
 			toSaveAsNew();
 		}
 		
@@ -172,6 +170,18 @@ FILES.initFileMenu=function() {
 
 	// ============== open action ===============
 	fileManager.setOpenButton($("#file-button"));
+
+	// ================== Refreshing the file panel and selector ===================
+	
+	EventDistributer.setClick($("#file-button"),event => { // refresh when open
+		// reset temp size number to paper size
+		FILES.tempPaperSize.width=ENV.paperSize.width;
+		FILES.tempPaperSize.height=ENV.paperSize.height;
+		if(!fileManager.isExpanded()){ // if is closed at first
+			// update thumb image
+			STORAGE.FILES.updateCurrentThumb();
+		}
+	});
 }
 
 // =================== Import operations =====================

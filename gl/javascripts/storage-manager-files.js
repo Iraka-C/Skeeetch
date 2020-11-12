@@ -161,6 +161,7 @@ class FileWorker { // Work on canvas layer content, not files in repository!
 STORAGE.FILES.init=function() {
 	STORAGE.FILES.loadFilesStore();
 	STORAGE.FILES.brushtipStore=localforage.createInstance({name: "brush"});
+	STORAGE.FILES.initThumbStore(); // load storage for file thumbs
 }
 
 /**
@@ -529,13 +530,26 @@ STORAGE.FILES.onLayerTreeLoad=function(activeNode) {
 	COMPOSITOR.updateLayerTreeStructure(); // async!
 	LAYERS.setActive(activeNode);
 	LAYERS.scrollTo(activeNode,true);
-	LAYERS.updateAllThumbs();
+	/**
+	 * Note: even if there's "reading file thumb from storage" for the opened file
+	 * the thumb in storage might not be the latest
+	 * because it was not updated before last closeing Skeeetch
+	 * 
+	 * Update it after loading (and write it again to the storage) allow
+	 * the storage to contain the latest thumb image
+	 */
+
 	if(STORAGE.FILES.isFailedLayer) {
 		EventDistributer.footbarHint.showInfo("ERROR: Loaded with corrupted layers",2000);
 	}
 	else {
 		EventDistributer.footbarHint.showInfo("Loaded");
 	}
+
+	PERFORMANCE.idleTaskManager.addTask(e=>{ // update all layer thumbs when idle
+		LAYERS.updateAllThumbs(); // update thumbs of every layer
+		STORAGE.FILES.updateCurrentThumb(); // update the thumb of this psd file
+	});
 }
 
 // clear buf/chunk unused by any layer
@@ -658,7 +672,10 @@ STORAGE.FILES.saveCurrentOpenedFileAs=function(){
 		}
 	}
 	Promise.all(taskList);
+	PERFORMANCE.idleTaskManager.addTask(()=>{
+		STORAGE.FILES.updateCurrentThumb(); // update thumb when lazy
+	});
 	//STORAGE.FILES.savingList.
 
-	FILES.fileSelector.addNewFileUIToSelector(newID); // add the icon in selector
+	FILES.fileSelector.addNewFileUIToSelector(newID); // add the icon in selector, sync
 }

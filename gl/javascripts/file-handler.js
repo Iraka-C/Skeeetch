@@ -274,6 +274,7 @@ FILES.onPSDLoaded=function() {
 	LAYERS.scrollTo(toActive,true);
 	PERFORMANCE.idleTaskManager.addTask(e=>{ // update all layer thumbs when idle
 		LAYERS.updateAllThumbs();
+		STORAGE.FILES.updateCurrentThumb(); // update the thumb of this psd file
 	});
 
 	// Layer tree construction completed. Save layer tree info

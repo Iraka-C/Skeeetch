@@ -158,6 +158,10 @@ LANG_ZH={
 	"Save as PSD":"导出为PSD文档",
 	"Auto Save":"自动保存",
 	"Save in browser":"在库中保存",
+	"delete-file":"从库中删除文件",
+	"delete-file-confirm-prefix":"确定要从库中",
+	"delete-file-confirm-suffix":"吗？",
+	"selector-open-prefix":"打开",
 	"layer-mask":"蒙版",
 
 	"Repository":"库"

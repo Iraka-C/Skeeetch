@@ -10,12 +10,28 @@
 	box-shadow: 0em 0em 1.5em #444;
 	margin: 1em 0em 0em 0em;
 	overflow: hidden;
+	transition: box-shadow 0.5s;
+}
+#file-selector-container>:first-child{
+	box-shadow: 0em 0em 1.5em #000;
 }
 
 .file-ui-canvas-container, .file-ui-mask{
 	position: absolute;
 	width: 100%;
 	height: 100%;
+}
+.file-ui-canvas-background{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-image: url("../resources/transparent.svg");
+	background-size: 1em;
+	opacity: 0.5;
+	transition: opacity 0.5s;
+}
+#file-selector-container>:first-child .file-ui-canvas-background{
+	opacity: 1;
 }
 .file-ui-canvas{
 	transition: transform 0.25s ease-out;
@@ -52,7 +68,7 @@
 
 .file-ui-buttons{
 	display: flex;
-	flex-direction: row;
+	flex-direction: row-reverse;
 	position: absolute;
 	top: 0em;
 	right: 0em;
@@ -67,18 +83,38 @@
 	padding: 0em;
 	margin: 0em;
 }
-
+.file-ui-delete-button{
+	opacity: 0.5;
+	transition: opacity 0.3s;
+}
+.file-ui-delete-button:hover{
+	opacity: 1;
+}
 .file-ui-delete-button > img{
 	width: 1.4em;
 	height: 1.4em;
 	margin: 0.2em;
 	display: block;
-	opacity: 0.5;
-	transition: opacity 0.3s;
+	transition: filter 0.5s;
 }
-.file-ui-delete-button:hover > img{
-	opacity: 1;
+.file-ui-delete-button-outer{
+	padding: 0em;
+	transition: padding 0.5s;
 }
+.file-ui-delete-button-outer:hover{
+	/* file-ui height minus delete button image width */
+	/* 2em is img.width+2*img.margin+2*td(repo container).padding */
+	padding-right: calc(var(--menu-width) - 2 * var(--menu-margin) - 2em);
+}
+.file-ui-delete-button-outer:hover img{ /* change the white image into red */
+	/*
+		The good thing is that transition on this filter
+		creates a "yellow-orange-red" gradient animation
+	*/
+	filter: invert(80%) sepia(100%) saturate(4000%);
+}
+
 #file-selector-container>:first-child .file-ui-delete-button{
+	/* Cannot delete the opened (first) file */
 	display: none;
 }

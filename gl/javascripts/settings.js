@@ -26,6 +26,9 @@ class SettingManager{
 		// set a button to control the expansion
 		$outerFrame.append($frame);
 		$outerFrame.addClass("setting-panel");
+		this.isExpanded=()=>{ // is this setting panel expanded?
+			return $outerFrame.hasClass("setting-panel-collapsed");
+		}
 		this.toggleExpand=()=>{
 			if($outerFrame.hasClass("setting-panel-collapsed")){ // not opened
 				this.update();
