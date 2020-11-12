@@ -99,6 +99,7 @@ LANG_ZH={
 	"Lock pixel / opacity":"锁定图层/像素透明度",
 	"Switch blend mode":"混合模式",
 	"Set this layer as a clipping mask":"剪贴蒙版",
+	"Set this group as a clipping mask":"剪贴蒙版",
 	"Background":"背景",
 	"Add a new layer":"新建图层",
 	"Add a new layer group":"新建图层组",
@@ -164,7 +165,17 @@ LANG_ZH={
 	"selector-open-prefix":"打开",
 	"layer-mask":"蒙版",
 
-	"Repository":"库"
+	"Repository":"库",
+
+	// Info
+	"About Skeeetch":"关于Skeeetch",
+	"about-skeeetch":`
+		Skeeetch是<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C'>Iraka-C</a>的个人作品，基于<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>发布。<br>
+		在GitHub上Star这个项目，或者提出一些反馈和建议吧！
+		<br><hr>
+		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch" data-size="large" data-show-count="true" aria-label="Star Iraka-C/Skeeetch on GitHub">Star</a>
+		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch/issues" data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue Iraka-C/Skeeetch on GitHub">Issue</a>
+	`
 };
 LANG_ZH._id={
 	"filename-input":"Skeeetch",

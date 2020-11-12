@@ -172,12 +172,6 @@ table{
 	text-align: center;
 	transition: background 0.3s, box-shadow 0.2s;
 }
-.setting-table .setting-button:hover{
-	background: #00000055;
-}
-.setting-table .setting-button:active{
-	box-shadow: 0px 0px 10px #ffffff88;
-}
 
 /* File Menu */
 #file-menu-panel{

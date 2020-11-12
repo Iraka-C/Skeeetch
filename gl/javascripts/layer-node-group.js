@@ -26,6 +26,11 @@ LAYERS.$newLayerGroupUI=function(id) {
 	groupButton.append(opacityLabel,lockButton,blendModeButton,clipMaskButton,sourceButton);
 	layerGroupUI.append(groupButton);
 
+	// Blend label hint in initButtons
+	EventDistributer.footbarHint(lockButton,() => Lang("Lock pixel / opacity"));
+	EventDistributer.footbarHint(clipMaskButton,() => Lang("Set this group as a clipping mask"));
+	//EventDistributer.footbarHint(sourceButton,() => Lang("Activate the selection source"));
+
 	// Layer clip mask hint
 	let clipHint=$("<img class='group-clip-mask-hint' src='./resources/clip-mask-hint.svg'>");
 	layerGroupUI.append(clipHint);
@@ -355,7 +360,7 @@ class LayerGroupNode extends ContentNode {
 				nowStatus: {name: this.getName()}
 			});
 		});
-		EventDistributer.footbarHint($nameInput,() =>this.id);
+		EventDistributer.footbarHint($nameInput,() => EVENTS.key.shift?this.id:"");
 	}
 	// =========== Properties =============
 	getProperties() {

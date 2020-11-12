@@ -27,7 +27,7 @@ class SettingManager{
 		$outerFrame.append($frame);
 		$outerFrame.addClass("setting-panel");
 		this.isExpanded=()=>{ // is this setting panel expanded?
-			return $outerFrame.hasClass("setting-panel-collapsed");
+			return !$outerFrame.hasClass("setting-panel-collapsed");
 		}
 		this.toggleExpand=()=>{
 			if($outerFrame.hasClass("setting-panel-collapsed")){ // not opened
@@ -47,7 +47,9 @@ class SettingManager{
 	}
 	// Assign a button to expand / collapse this setting panel
 	setOpenButton($div){
-		EventDistributer.setClick($div,this.toggleExpand);
+		EventDistributer.setClick($div,e=>{
+			this.toggleExpand();
+		});
 	}
 // ====================== UI Management ========================
 	// Add a section with the name title

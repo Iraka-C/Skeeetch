@@ -15,7 +15,7 @@ EVENTS.init=function() {
 	 * @TODO: touch event / multitouch support
 	 */
 
-	// disable pen long press => context menu
+	// also disable pen long press => context menu
 	if(!LOGGING){
 		$(window).on("contextmenu",e => false);
 	}

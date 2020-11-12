@@ -109,3 +109,10 @@ input:disabled {
 #bottom-info-box input{
 	color: #cc6735;
 }
+
+.setting-table .setting-button:hover{
+	background: #00000055;
+}
+.setting-table .setting-button:active{
+	box-shadow: 0px 0px 10px #ffffff88;
+}

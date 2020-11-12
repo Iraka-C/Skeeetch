@@ -285,17 +285,8 @@ SettingHandler.initSystemSetting=function(sysParams) {
 	sys.addSectionTitle(Lang("About Skeeetch"));
 	sys.addInfo(Lang("Version"),null,() => ENV.version);
 	const $infoDiv=sys.addDiv();
-	const aTag="a target='_blank' rel='noopener noreferrer'";
 	$infoDiv.css("font-size","80%");
-	$infoDiv.html(`
-		This web app is designed and programmed by
-		<${aTag} href='https://github.com/Iraka-C'>Iraka-C</a>.<br>
-		Distributed under <${aTag} href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>.<br>
-		Star this project or give me some feedback!
-		<br><hr>
-		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch" data-size="large" data-show-count="true" aria-label="Star Iraka-C/Skeeetch on GitHub">Star</a>
-		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch/issues" data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue Iraka-C/Skeeetch on GitHub">Issue</a>
-	`);
+	$infoDiv.html(Lang("about-skeeetch"));
 
 	sys.setOpenButton($("#system-button"));
 	return sys;

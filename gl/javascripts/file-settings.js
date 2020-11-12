@@ -169,11 +169,8 @@ FILES.initFileMenu=function() {
 	FILES.fileSelector.init(fileManager);
 
 	// ============== open action ===============
-	fileManager.setOpenButton($("#file-button"));
-
-	// ================== Refreshing the file panel and selector ===================
-	
-	EventDistributer.setClick($("#file-button"),event => { // refresh when open
+	// Refreshing the file panel and selector
+	EventDistributer.setClick($("#file-button"),event => { // update temp data when clicked
 		// reset temp size number to paper size
 		FILES.tempPaperSize.width=ENV.paperSize.width;
 		FILES.tempPaperSize.height=ENV.paperSize.height;
@@ -182,6 +179,8 @@ FILES.initFileMenu=function() {
 			STORAGE.FILES.updateCurrentThumb();
 		}
 	});
+	// then, refresh UI when expanded
+	fileManager.setOpenButton($("#file-button"));
 }
 
 // =================== Import operations =====================

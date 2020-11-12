@@ -87,6 +87,17 @@ LANG_EN={
 	"delete-file":"Delete ",
 	"delete-file-confirm-prefix":"Delete ",
 	"delete-file-confirm-suffix":" from repository?",
+
+	// Info
+	"about-skeeetch":`
+		This web app is designed and programmed by
+		<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C'>Iraka-C</a>.<br>
+		Distributed under <a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>.<br>
+		Star this project or give me some feedback!
+		<br><hr>
+		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch" data-size="large" data-show-count="true" aria-label="Star Iraka-C/Skeeetch on GitHub">Star</a>
+		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch/issues" data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue Iraka-C/Skeeetch on GitHub">Issue</a>
+	`
 }
 LANG_EN._id={
 	"filename-input":"Skeeetch",

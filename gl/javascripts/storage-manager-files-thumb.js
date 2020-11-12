@@ -96,7 +96,7 @@ STORAGE.FILES.updateThumb=function(fileID,imgSrc,isToSaveInDatabase){
 
 	// imgSrc is always a canvas now
 	// draw contents
-	console.log("Drawing",imgSrc,"in",cvW,cvH);
+	//console.log("Drawing",imgSrc,"in",cvW,cvH);
 	
 	const cv=$cv[0];
 	const ctx=cv.getContext("2d");
@@ -121,12 +121,9 @@ STORAGE.FILES.updateThumbFromDatabase=function(fileID){
 	return STORAGE.FILES.thumbStore.getItem(fileID).then(imgSrc => {
 		if(imgSrc){ // fetched, type=="RAMBuf8"
 			imgSrc.data=Compressor.decode(imgSrc.data); // decode
-			console.log("Thumb fetched",imgSrc);
-			
 			STORAGE.FILES.updateThumb(fileID,imgSrc);
 		}
 		else{
-			console.log("Thumb failed");
 			STORAGE.FILES.updateThumb(fileID,null); // failed
 		}
 	});

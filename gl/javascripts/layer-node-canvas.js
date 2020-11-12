@@ -35,7 +35,7 @@ LAYERS.$newCanvasLayerUI=function(id) {
 	// Blend label hint in initButtons
 	EventDistributer.footbarHint(lockButton,() => Lang("Lock pixel / opacity"));
 	EventDistributer.footbarHint(clipMaskButton,() => Lang("Set this layer as a clipping mask"));
-	EventDistributer.footbarHint(sourceButton,() => Lang("Activate the selection source"));
+	//EventDistributer.footbarHint(sourceButton,() => Lang("Activate the selection source"));
 
 	// Layer name label
 	let nameLabel=$("<input class='layer-name-label'>");
@@ -454,7 +454,7 @@ class CanvasNode extends ContentNode {
 				nowStatus: {name: this.getName()}
 			});
 		});
-		EventDistributer.footbarHint($nameInput,() => this.id);
+		EventDistributer.footbarHint($nameInput,() => EVENTS.key.shift?this.id:"");
 	}
 	// ======================= Property control =========================
 	getProperties() {
