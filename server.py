@@ -1,7 +1,5 @@
-import serial
 import math
 import time
-import webbrowser
 import threading
 import logging
 from flask import Flask, jsonify, send_from_directory
@@ -16,7 +14,7 @@ app = None
 
 ## ================ Web server =======================
 def main():
-	global app, ser, serRunning
+	global app
 	app = Flask(__name__, static_url_path="/gl")
 	#log = logging.getLogger('werkzeug') # Disable logger
 	#log.setLevel(logging.ERROR)

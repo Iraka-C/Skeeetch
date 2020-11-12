@@ -183,14 +183,28 @@ SettingHandler.initSystemSetting=function(sysParams) {
 		}
 	},() => ENV.displaySettings.uiTheme=="dark"? 1:0);
 	sys.addButton(Lang("toggle-fullscreen"),() => {
-		if(!document.fullscreenElement) {
-			document.documentElement.requestFullscreen();
-		}
-		else {
-			if(document.exitFullscreen) {
-				document.exitFullscreen();
+		if(document.fullscreenEnabled){ // For Chrome/Firefox/Edge
+			if(!document.fullscreenElement) {
+				document.documentElement.requestFullscreen();
+			}
+			else {
+				if(document.exitFullscreen) {
+					document.exitFullscreen();
+				}
 			}
 		}
+		else if(document.webkitFullscreenEnabled){ // For Safari
+			if(!document.webkitFullscreenElement) {
+				document.documentElement.webkitRequestFullscreen();
+			}
+			else {
+				if(document.webkitExitFullscreen) {
+					document.webkitExitFullscreen();
+				}
+			}
+		}
+
+		
 		sys.toggleExpand();
 	});
 

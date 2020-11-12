@@ -42,9 +42,9 @@ class FileWorker { // Work on canvas layer content, not files in repository!
 
 			const chunkN=Math.max(Math.ceil(data.length/CHUNK_SIZE),1); // at lease 1 chunk
 
-			ENV.taskCounter.startTask(); // start node imagedata structure task
+			ENV.taskCounter.startTask(0,"nodeChunkN"); // start node imagedata structure task
 			const bufPromise=this.layerStore.setItem(node.id,chunkN).finally(() => {
-				ENV.taskCounter.finishTask();
+				ENV.taskCounter.finishTask(0,"nodeChunkN");
 			});
 
 			const chunkPromises=[bufPromise];
@@ -52,9 +52,9 @@ class FileWorker { // Work on canvas layer content, not files in repository!
 				const key=node.id+"#"+i;
 				const chunk=data.slice(i*CHUNK_SIZE,(i+1)*CHUNK_SIZE);
 				const kPromise=this.layerStore.setItem(key,chunk);
-				ENV.taskCounter.startTask(); // start save chunk i task
+				ENV.taskCounter.startTask(0,"Chunk"+i); // start save chunk i task
 				chunkPromises.push(kPromise.finally(() => {
-					ENV.taskCounter.finishTask(); // end save chunk i task
+					ENV.taskCounter.finishTask(0,"Chunk"+i); // end save chunk i task
 				}));
 			}
 			// Remove all chunks after (including) chunkN
