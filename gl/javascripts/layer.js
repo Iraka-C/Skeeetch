@@ -212,8 +212,16 @@ LAYERS.initFirstLayer=function() {
 	// 3. Set Properties, and refresh canvas, save present status
 	layerBG.setProperties({name: Lang("Background"),pixelOpacityLocked: true});
 	LAYERS.setActive(layer1);
-	STORAGE.FILES.saveContentChanges(layerBG);
-	STORAGE.FILES.saveContentChanges(layer1);
+	STORAGE.FILES.saveContentChanges(layerBG,true);
+	STORAGE.FILES.saveContentChanges(layer1,true);
+
+	// 4. Save layer structure in database
+	/**
+	 * NOTICE: don't know why, but only after step 4
+	 * will step 3 saveContentChanges() end.
+	 */
+	const layerTreeStr=STORAGE.FILES.saveLayerTree();
+	STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr); // update structure in database
 }
 
 /**

@@ -74,10 +74,7 @@ FILES.initFileMenu=function() {
 			sizeChangeHint(false);
 			LAYERS.initFirstLayer(); // also store the initial layer contents
 			FILES.fileSelector.addNewFileUIToSelector(ENV.fileID); // add the icon in selector
-			fileManager.toggleExpand();
-
-			// Only for debug: remove everything about oldID
-			//STORAGE.FILES.removeFileID(oldID);
+			fileManager.toggleExpand(); // close the file menu
 		});
 	});
 	fileManager.addButton(Lang("Change Paper Size"),() => {

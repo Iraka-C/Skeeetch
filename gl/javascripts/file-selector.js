@@ -98,6 +98,7 @@ FILES.fileSelector.initSelectorUI=function() {
 
 // insert a fileItem UI in FILES.fileSelector.$container (at the front aka. prepend)
 // the fileID must be in the STORAGE.FILES.filesStore.fileList
+// This function does not care about the thumb canvas update
 FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 	const fileItem=STORAGE.FILES.filesStore.fileList[fileID];
 	const $ui=FILES.fileSelector.$newUI();
