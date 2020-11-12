@@ -3,6 +3,16 @@ STORAGE.FILES={
 };
 
  // ================================== Tools ================================
+ /**
+  * FIXME: do not use dropInstance. use page management by yourself
+  * There is a big issue on localForage.dropInstance
+  * If you try to drop many instances concurrently, there's a chance that all of them may fail
+  * in Chrome 86, the result it dropInstance().then still works but actually not dropped
+  * in Firefox 74, the result is an error in .catch(), but this store will be inaccessable
+  * 
+  * This happens when the user trying to delete a file from repo
+  * when another deletion is under processing.
+  */
 
 STORAGE.FILES.generateFileID=function(){
 	let tag="";
@@ -207,7 +217,7 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 		return Promise.resolve();
 	}
 	if(node) { // @TODO: operating on a CanvasNode
-		console.trace("Saving contents ...");
+		//console.trace("Saving contents ...");
 
 		STORAGE.FILES.savingList.set(node.id,node);
 		//$("#icon").attr("href","./resources/favicon-working.png");
@@ -600,10 +610,11 @@ STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monito
 		storeName: fileID
 	})
 	.then(()=>{ // successfully dropped, remove from undropped
+		console.log(fileID+" Dropped");
 		delete STORAGE.FILES.filesStore.undroppedList[fileID];
 	})
 	.catch(err=>{
-		console.log("Something happened",err);
+		console.warn("Something happened when dropping "+fileID,err);
 	})
 	.finally(()=>{
 		ENV.taskCounter.finishTask(); // end drop task
@@ -617,6 +628,7 @@ STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monito
  * Check through database everytime when Skeeetch starts
  */
 STORAGE.FILES.organizeDatabase=function(){
+	// TODO: change into sequencial operation?
 	for(const id in STORAGE.FILES.filesStore.undroppedList){
 		if(!STORAGE.FILES.filesStore.fileList.hasOwnProperty(id)){
 			// id only in undropped list

@@ -33,14 +33,10 @@ sysSettingParams={
 
 STORAGE.SETTING={};
 
-STORAGE.SETTING.init=function(){ // synced
+STORAGE.SETTING.init=function(){ // async! returns a Promise
 	let v={};
 	const windowParams=STORAGE.SETTING.initWindowParams();
 
-	if(windowParams.query["clear"]){ // requested contents clear
-		STORAGE.FILES.clearLayerTree();
-		localStorage.removeItem("files");
-	}
 	if(windowParams.query["reset"]){
 		// Empty
 	}
@@ -62,7 +58,33 @@ STORAGE.SETTING.init=function(){ // synced
 	v.preference.debugger=v.preference.debugger||{};
 	v.nowFileID=v.nowFileID||"deadbeef"; // init ID
 	v.windowParams=windowParams;
-	return v;
+
+	if(windowParams.query["clear"]){ // requested contents clear
+		STORAGE.FILES.clearLayerTree(); // clear opened file layerTree in localStorage
+		//const filesStore=JSON.parse(localStorage.getItem("files"));
+		//filesStore.fileList={}; // clear all saved file info
+		// unused image data will be cleared during loading
+		// previous files will be saved in filesStore.undroppedList and cleared during loading
+		return localforage.dropInstance({ // clear database
+			name: "img" // delete all img contents
+		})
+		.then(()=>{ // successfully dropped, remove from undropped
+			console.log("Image Database Dropped");
+		})
+		.catch(err=>{
+			console.warn("Something happened when dropping "+fileID,err);
+		})
+		.finally(()=>{ // set the fileStore to empty. Use JSON.stringify for compatibility
+			localStorage.setItem("files",JSON.stringify({fileList:{},undroppedList:{}}));
+		})
+		.then(()=>{
+			// TODO: add url param jump afterwards?
+			return v; // v as param
+		});
+	}
+	else{
+		return Promise.resolve(v);
+	}
 }
 STORAGE.SETTING.initWindowParams=function(){
 	const query=window.location.search;

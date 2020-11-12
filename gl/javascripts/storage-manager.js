@@ -11,10 +11,10 @@ STORAGE={};
  * and the file part
  */
 STORAGE.init=function(callback){
-	const sysSettings=STORAGE.SETTING.init(); // sync
-	STORAGE.FILES.init(); // sync: creating localForage instance
-	
-	callback(sysSettings);
+	STORAGE.SETTING.init().then(sysSettings=>{
+		STORAGE.FILES.init(); // sync: creating localForage instance
+		callback(sysSettings);
+	})
 };
 
 STORAGE.saveOnExit=function(){ // This must be synced function

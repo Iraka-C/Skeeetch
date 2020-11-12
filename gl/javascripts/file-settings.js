@@ -62,6 +62,7 @@ FILES.initFileMenu=function() {
 	sizeChangeHint(false);
 
 	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
+		//if(ENV.taskCounter.isWorking()) return; // cannot create new when busy
 		// Save current layerTree and contents in files
 		const layerTreeStr=STORAGE.FILES.saveLayerTree();
 		Promise.all([

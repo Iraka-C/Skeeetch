@@ -37,11 +37,12 @@ FILES.fileSelector.$newUI=function() {
 
 	// all add to $ui
 	$ui.append($cvContainer,$mask,$nameLabel,$buttons);
-	$ui.on("pointerdown",event => {
-		if(event.originalEvent.pointerType=="pen") { // "drag" doesn't support pointer type
-			event.stopPropagation(); // cancel the following "drag" event on pen
-		}
-	});
+	/** file seletor pen down won't influence dragging (there's no dragging) */
+	// $ui.on("pointerdown",event => {
+	// 	if(event.originalEvent.pointerType=="pen") { // "drag" doesn't support pointer type
+	// 		event.stopPropagation(); // cancel the following "drag" event on pen
+	// 	}
+	// });
 
 	// preview thumb moving effect
 	const setThumbTransform=str => $cv.css("transform",str);

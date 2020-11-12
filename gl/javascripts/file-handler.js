@@ -22,12 +22,25 @@ FILES.loadAsPSD=function(data,filename) {
 		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.maxPaperSize+"px",2000);
 		return;
 	}
-	ENV.setPaperSize(psdFile.width,psdFile.height); // change paper size to fit the file, clear all contents and histories
-	ENV.setFileTitle(filename);
+	//if(ENV.taskCounter.isWorking()) return; // Cannot load when busy
 
-	FILES.loadPSDNodes.isUnsupportedLayerFound=false;
-	FILES.loadPSDNodes.lastLoadingElement=null;
-	FILES.loadPSDNodes(psdFile);
+	const layerTreeStr=STORAGE.FILES.saveLayerTree();
+	Promise.all([ // save current first TODO: auto saving control?
+		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
+		STORAGE.FILES.saveAllContents()
+	]).then(() => {
+		// init a new storage space
+		ENV.fileID=STORAGE.FILES.generateFileID();
+		ENV.setFileTitle(filename); // set new title
+		STORAGE.FILES.initLayerStorage(ENV.fileID); // create storage
+
+		ENV.setPaperSize(psdFile.width,psdFile.height); // change paper size to fit the file, clear all contents and histories
+		FILES.fileSelector.addNewFileUIToSelector(ENV.fileID); // add the icon in selector
+	
+		FILES.loadPSDNodes.isUnsupportedLayerFound=false;
+		FILES.loadPSDNodes.lastLoadingElement=null;
+		FILES.loadPSDNodes(psdFile); // Start loading file contents
+	});
 }
 
 /**
@@ -262,6 +275,10 @@ FILES.onPSDLoaded=function() {
 	PERFORMANCE.idleTaskManager.addTask(e=>{ // update all layer thumbs when idle
 		LAYERS.updateAllThumbs();
 	});
+
+	// Layer tree construction completed. Save layer tree info
+	const layerTreeStr=STORAGE.FILES.saveLayerTree();
+	STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
 }
 
 // Image Handlers
