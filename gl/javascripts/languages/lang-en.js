@@ -12,8 +12,8 @@ LANG_EN={
 	"brush-pressure-hint-1":"Invalid when pressure is disabled",
 	"layer-opacity-label-shown":"Change opacity. Right click to hide this layer.",
 	"layer-opacity-label-hidden":"Right click to show this layer.",
-	"Pressure Controlled Size":"Pen-Pressure Size",
-	"Pressure Controlled Opacity":"Pen-Pressure Opacity",
+	"Pressure Controlled Size":"Pen Pressure",
+	"Pressure Controlled Opacity":"Pen Pressure",
 	"new-brush-prefix":"New ",
 
 	// Settings part
@@ -36,11 +36,42 @@ LANG_EN={
 	"sys-unlimited":"---",
 	"sys-max-fps":"FPS Limit",
 	"UI Theme":"Color Theme",
+	"UI Orientation":"UI Layout",
 	"ui-dark":"Dark",
 	"ui-light":"Light",
 
 	// Layer
 	"node-copy-suffix":" copy",
+
+	// Blend Modes
+	"blend-mode-hint":"Blend Mode - ",
+	"blend-normal":"Normal",
+	"blend-multiply":"Multiply",
+	"blend-screen":"Screen",
+	"blend-overlay":"Overlay",
+	"blend-hard-light":"Hard Light",
+	"blend-soft-light":"Soft Light",
+	"blend-darken":"Darken",
+	"blend-lighten":"Lighten",
+	"blend-color-dodge":"Color Dodge",
+	"blend-color-burn":"Color Burn",
+	"blend-linear-dodge":"Linear Dodge",
+	"blend-linear-burn":"Linear Burn",
+	"blend-linear-light":"Linear Light",
+	"blend-vivid-light":"Vivid Light",
+	"blend-pin-light":"Pin Light",
+	"blend-darker-color":"Darker Color",
+	"blend-lighter-color":"Lighter Color",
+	"blend-hard-mix":"Hard Mix",
+	"blend-difference":"Difference",
+	"blend-exclusion":"Exclusion",
+	"blend-subtract":"Subtract",
+	"blend-divide":"Divide",
+	"blend-hue":"Hue",
+	"blend-saturation":"Saturation",
+	"blend-color":"Color",
+	"blend-luminosity":"Luminosity",
+	"blend-mask":"Mask",
 
 	// Palette part
 	"palette-hue-sign":"Hue",
@@ -49,6 +80,13 @@ LANG_EN={
 
 	// Workspace
 	"Change Paper Size":"Change Size",
+
+	// Files
+	"Save in browser":"Save in Repository",
+	"selector-open-prefix":"Open ",
+	"delete-file":"Delete ",
+	"delete-file-confirm-prefix":"Delete ",
+	"delete-file-confirm-suffix":" from repository?",
 }
 LANG_EN._id={
 	"filename-input":"Skeeetch",

@@ -89,7 +89,7 @@ STORAGE.SETTING.init=function(){ // async! returns a Promise
 STORAGE.SETTING.initWindowParams=function(){
 	const query=window.location.search;
 	const hash=window.location.hash.substring(1); // remove #
-	const lang=window.navigator.language; // in RFC standard
+	const lang=window.navigator.language||window.navigator.browserLanguage; // in RFC standard
 
 	const urlParamsToObject=s=>{
 		usp=new URLSearchParams(s);

@@ -49,6 +49,8 @@ ENV.fileID=""; // present working file ID
 ENV.init=function() { // When the page is loaded
 	STORAGE.init(sysSettingParams => { // after loading all settings
 		ENV.fileID=sysSettingParams.nowFileID; // get file ID
+		ENV.browserInfo=ENV.detectBrowser();
+
 		LANG.init(sysSettingParams); // set all doms after load?
 		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
 		
@@ -98,6 +100,25 @@ ENV.init=function() { // When the page is loaded
 		STORAGE.FILES.organizeDatabase();
 	});
 };
+
+ENV.detectBrowser=function(){
+	const u=window.navigator.userAgent;
+	return{
+		app: window.navigator.appVersion,
+		trident: u.indexOf('Trident') > -1,                           // IE core
+		presto:  u.indexOf('Presto') > -1,                            // opera core
+		webKit:  u.indexOf('AppleWebKit') > -1,                       // apple/google core
+		gecko:   u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, // firefox core
+		mobile:  !!u.match(/AppleWebKit.*Mobile.*/),                  // mobile device
+		ios:     !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/),          // ios device
+		android: u.indexOf('Android') > -1 || u.indexOf('Adr') > -1,  // android device
+		iPhone:  u.indexOf('iPhone') > -1 ,                           // iPhone or QQHD browser
+		iPad:    u.indexOf('iPad') > -1,                              // iPad
+		webApp:  u.indexOf('Safari') == -1,                           // web app
+		weixin:  u.indexOf('MicroMessenger') > -1,                    // msg (WeChat)
+		qq:      u.match(/\sQQ/i) == " qq"                            // qq
+	};
+}
 
 // ====================== Settings ========================
 /**
