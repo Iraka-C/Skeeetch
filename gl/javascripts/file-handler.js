@@ -282,36 +282,45 @@ FILES.onPSDLoaded=function() {
 	STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
 }
 
-// Image Handlers
-FILES.loadAsImage=function(img) {
-	const layer=LAYERS.addNewCanvasNode();
+// Image Handlers. If !layerToLoad, then create a new layer
+FILES.loadAsImage=function(img,layerToLoad) {
+	const layer=layerToLoad||LAYERS.addNewCanvasNode();
 	const oldActiveID=LAYERS.active.id;
-	LAYERS.setActive(layer); // also setup lastRawImageData (as empty here)
+	LAYERS.setActive(layer); // also setup lastRawImageData for history
 	CANVAS.renderer.loadToImageData(layer.rawImageData,img);
 	layer.setRawImageDataInvalid();
 	layer.updateThumb();
 	COMPOSITOR.updateLayerTreeStructure();
-	HISTORY.addHistory({ // combine two steps
-		type: "bundle",
-		children: [
-			{
-				type: "node-structure",
-				id: layer.id,
-				from: null,
-				to: layer.parent.id,
-				oldIndex: null,
-				newIndex: layer.getIndex(),
-				oldActive: oldActiveID,
-				newActive: layer.id
-			},
-			{
-				type: "image-data",
-				id: CANVAS.nowLayer.id,
-				area: {...layer.rawImageData.validArea}
-			}
-
-		]
-	});
+	if(layerToLoad){
+		HISTORY.addHistory({ // only content change
+			type: "image-data",
+			id: layerToLoad.id,
+			area: {...layerToLoad.rawImageData.validArea}
+		});
+	}
+	else{
+		HISTORY.addHistory({ // combine two steps
+			type: "bundle",
+			children: [
+				{
+					type: "node-structure",
+					id: layer.id,
+					from: null,
+					to: layer.parent.id,
+					oldIndex: null,
+					newIndex: layer.getIndex(),
+					oldActive: oldActiveID,
+					newActive: layer.id
+				},
+				{
+					type: "image-data",
+					id: CANVAS.nowLayer.id,
+					area: {...layer.rawImageData.validArea}
+				}
+			]
+		});
+	}
+	
 	STORAGE.FILES.saveContentChanges(layer);
 }
 

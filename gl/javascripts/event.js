@@ -7,7 +7,8 @@ EVENTS={};
 EVENTS.key={
 	ctrl: false,
 	shift: false,
-	alt: false
+	alt: false,
+	space: false
 };
 
 EVENTS.isCursorInHysteresis=false; // hysteresis sign for canvas drawing
@@ -132,6 +133,15 @@ EVENTS.init=function() {
 			8 : 4th button (typically the "Browser Back" button)
 			16: 5th button (typically the "Browser Forward" button)
 		 */
+		if(event.originalEvent.buttons&0x8){ // 4th button
+			HISTORY.undo(); // perform as undo
+			return;
+		}
+		if(event.originalEvent.buttons&0x10){ // 5th button
+			HISTORY.redo(); // perform as redo
+			return;
+		}
+
 		if(cntAfterUp==0){ // not in hysteresis state, init canvas
 			CANVAS.setCanvasEnvironment(); // init canvas here
 			eachMenuPanelFunc($el => $el.css("pointer-events","none")); // do not enable menu operation
@@ -226,6 +236,10 @@ EVENTS.keyDown=function(event) {
 		event.preventDefault(); // prevent browser menu
 	}
 
+	if(event.originalEvent.key==" "&&!EVENTS.key.space){ // space
+		EVENTS.key.space=true;
+	}
+
 	if(functionKeyChanged) { // shift|ctrl|alt pressed
 		// more actions related to key changed?
 		EventDistributer.footbarHint.update();
@@ -255,6 +269,10 @@ EVENTS.keyUp=function(event) {
 		CURSOR.updateAction();
 		$("#palette-selector").css("cursor","default");
 		event.preventDefault(); // prevent browser menu
+	}
+
+	if(event.originalEvent.key==" "&&EVENTS.key.space){ // space
+		EVENTS.key.space=false;
 	}
 
 	if(functionKeyChanged) { // shift|ctrl|alt leave

@@ -45,6 +45,17 @@ EVENTS.initHotKeys=function() {
 	// },true);
 	// ============================ Ctrl+X/C/V ================================
 	$(window).on("paste",event=>{
+		function pasteAction(img){
+			if(EVENTS.key.space){ // Ctrl+Space+V
+				if((LAYERS.active instanceof CanvasNode)&&CANVAS.clearAll()){ // successfully cleared
+					FILES.loadAsImage(img,LAYERS.active);
+				}
+			}
+			else{ // directly load to new
+				FILES.loadAsImage(img);
+			}
+		}
+
 		const items=(event.clipboardData||event.originalEvent.clipboardData).items;
 		// TODO: same as file, deal with multiple files
 		for(const v in items){
@@ -56,8 +67,8 @@ EVENTS.initHotKeys=function() {
 					const img=new Image();
 					img.src=window.URL.createObjectURL(file);
 					img.filename="";
-					img.onload=function(e) {
-						FILES.loadAsImage(this);
+					img.onload=function() {
+						pasteAction(this);
 					}
 					break; // only deal with one
 				}
@@ -65,8 +76,11 @@ EVENTS.initHotKeys=function() {
 		}
 	});
 
-	$(window).on("copy",event=>{
+	function copyToClipboard(){
 		const imgData=LAYERS.active.rawImageData; // copy only this node
+		if(!imgData.validArea.width||!imgData.validArea.height){ // no contents
+			return false;
+		}
 		// Must be a context2d canvas for Blob
 		// copy only valid area
 		const canvas=CANVAS.renderer.getContext2DCanvasFromImageData(imgData,imgData.validArea);
@@ -74,20 +88,18 @@ EVENTS.initHotKeys=function() {
 			const item=new ClipboardItem({"image/png":blob});
 			navigator.clipboard.write([item]);
 		});
+		return true;
+	}
+	$(window).on("copy",event=>{
+		copyToClipboard();
 	});
-
-	$(window).on("cut",event=>{
-		const imgData=LAYERS.active.rawImageData;
-		const canvas=CANVAS.renderer.getContext2DCanvasFromImageData(imgData,imgData.validArea);
-		canvas.toBlob(blob => { // Only Context2D can be safely changed into blob
-			const item=new ClipboardItem({"image/png":blob});
-			navigator.clipboard.write([item]);
-		});
-
-		// at the mean time... clear this layer, if it has contents
-		if(LAYERS.active instanceof CanvasNode){
-			if(CANVAS.clearAll()){ // successfully cleared
-				STORAGE.FILES.saveContentChanges(CANVAS.nowLayer);
+	$(window).on("cut",event=>{ // Ctrl+X or Shift+Delete
+		if(copyToClipboard()){ // successfully copied
+			// at the mean time... clear this layer, if it has contents
+			if(LAYERS.active instanceof CanvasNode){
+				if(CANVAS.clearAll()){ // successfully cleared
+					STORAGE.FILES.saveContentChanges(CANVAS.nowLayer);
+				}
 			}
 		}
 	});
