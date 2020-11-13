@@ -7,7 +7,8 @@ FILES.exportOptions={ // do not save this: init every time
 }
 
 FILES.initFileMenu=function() {
-	let fileManager=new SettingManager($("#file-menu-panel"),Lang("Files"));
+	const fileManager=new SettingManager($("#file-menu-panel"),Lang("Files"));
+	FILES.fileManager=fileManager;
 
 	// ================ Import Action ================
 	fileManager.addSectionTitle(Lang("Add Content"));
@@ -58,24 +59,9 @@ FILES.initFileMenu=function() {
 	sizeChangeHint(false);
 
 	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
-		//if(ENV.taskCounter.isWorking()) return; // cannot create new when busy
-		// Save current layerTree and contents in files
-		const layerTreeStr=STORAGE.FILES.saveLayerTree();
-		Promise.all([
-			STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
-			STORAGE.FILES.saveAllContents()
-		]).then(()=>{
-			// init a new storage space
-			ENV.fileID=STORAGE.FILES.generateFileID();
-			ENV.setFileTitle("Skeeetch");
-			STORAGE.FILES.initLayerStorage(ENV.fileID); // record new title and create storage
-			// Some works on new file
-			ENV.setPaperSize(FILES.tempPaperSize.width,FILES.tempPaperSize.height);
-			sizeChangeHint(false);
-			LAYERS.initFirstLayer(); // also store the initial layer contents
-			FILES.fileSelector.addNewFileUIToSelector(ENV.fileID); // add the icon in selector
-			fileManager.toggleExpand(); // close the file menu
-		});
+		FILES.newPaperAction();
+		sizeChangeHint(false); // reset size change hint (resize)
+		fileManager.toggleExpand(); // close the file menu
 	});
 	fileManager.addButton(Lang("Change Paper Size"),() => {
 		if(FILES.tempPaperSize.width!=ENV.paperSize.width
@@ -111,10 +97,7 @@ FILES.initFileMenu=function() {
 		autoSaveButtonFunc(!ENV.displaySettings.isAutoSave);
 	},() => ENV.displaySettings.isAutoSave? 0:1);
 	const autoSaveButtonFunc=fileManager.addButton(Lang("Save in browser"),e => {
-		EventDistributer.footbarHint.showInfo("Saving all contents ...");
-		STORAGE.FILES.saveLayerTree();
-		STORAGE.FILES.saveAllContents();
-		STORAGE.FILES.updateCurrentThumb();
+		FILES.savePaperAction();
 	});
 	EventDistributer.footbarHint(autoSaveButtonFunc(),() => Lang("Save in browser")+" (Ctrl+S)");
 	autoSaveButtonFunc(!ENV.displaySettings.isAutoSave); // init when loading
@@ -179,6 +162,40 @@ FILES.initFileMenu=function() {
 	});
 	// then, refresh UI when expanded
 	fileManager.setOpenButton($("#file-button"));
+}
+
+// ==================== Actions in setting ======================
+FILES.newPaperAction=function(){
+	//if(ENV.taskCounter.isWorking()) return; // cannot create new when busy
+	// Save current layerTree and contents in files
+	// @TODO: save old one depending on isAutoSave
+	const layerTreeStr=STORAGE.FILES.saveLayerTree();
+	Promise.all([
+		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
+		STORAGE.FILES.saveAllContents()
+	]).then(()=>{
+		// init a new storage space
+		ENV.fileID=STORAGE.FILES.generateFileID();
+		ENV.setFileTitle("Skeeetch");
+		STORAGE.FILES.initLayerStorage(ENV.fileID); // record new title and create storage
+		// Some works on new file
+		ENV.setPaperSize(FILES.tempPaperSize.width,FILES.tempPaperSize.height);
+		LAYERS.initFirstLayer(); // also store the initial layer contents
+		FILES.fileSelector.addNewFileUIToSelector(ENV.fileID); // add the icon in selector
+
+		const $titleInput=$("#filename-input");
+		const ti=$titleInput[0];
+		$titleInput.focus(); // prompt the user to input the title
+		ti.selectionStart=ti.selectionEnd="Skeeetch".length;
+	});
+}
+
+FILES.savePaperAction=function(){ // saving in repository
+	EventDistributer.footbarHint.showInfo("Saving all contents ...");
+	const layerTreeStr=STORAGE.FILES.saveLayerTree();
+	STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr); // update structure in database
+	STORAGE.FILES.saveAllContents(); // update contents in database
+	STORAGE.FILES.updateCurrentThumb(); // update thumb in database
 }
 
 // =================== Import operations =====================

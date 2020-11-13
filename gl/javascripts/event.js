@@ -143,8 +143,10 @@ EVENTS.init=function() {
 		cntAfterUp=0; // reset count
 	});
 	$(window).on("pointerup",event => {
-		if(event.target==$canvasWindow[0]) { // !!! useless when adding hysteresis?
-			// on canvas
+		if(event.target==$canvasWindow[0]&&event.originalEvent.which==1) { // on canvas
+			// Although event.originalEvent.which is not recommended
+			// is it always 1 when left clicked
+			// left pointer up on canvas
 			EVENTS.isCursorInHysteresis=true; // start count moves after up
 			//CURSOR.moveCursor(event);
 		}

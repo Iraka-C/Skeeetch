@@ -619,11 +619,15 @@ STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monito
 	delete STORAGE.FILES.filesStore.fileList[fileID];
 	console.log("Trying to drop store "+fileID);
 	ENV.taskCounter.startTask(); // start drop task
-	return localforage.dropInstance({ // clear database
+
+	const db=localforage.createInstance({name: "img",storeName: fileID});
+	// remove db contents first so it won't take up space even when drop failed
+	return db.keys().then(keys =>
+		Promise.all(keys.map(k=>db.removeItem(k))) // remove all items from db
+	).then(localforage.dropInstance({ // clear database
 		name: "img",
 		storeName: fileID
-	})
-	.then(()=>{ // successfully dropped, remove from undropped
+	}).then(()=>{ // successfully dropped, remove from undropped
 		console.log(fileID+" Dropped");
 		delete STORAGE.FILES.filesStore.undroppedList[fileID];
 	})
@@ -632,7 +636,7 @@ STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monito
 	})
 	.finally(()=>{
 		ENV.taskCounter.finishTask(); // end drop task
-	})
+	}));
 }
 
 /**
@@ -642,7 +646,8 @@ STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monito
  * Check through database everytime when Skeeetch starts
  */
 STORAGE.FILES.organizeDatabase=function(){
-	// TODO: change into sequencial operation?
+	// T-ODO: change into sequencial operation?
+	// It's Okay...
 	for(const id in STORAGE.FILES.filesStore.undroppedList){
 		if(!STORAGE.FILES.filesStore.fileList.hasOwnProperty(id)){
 			// id only in undropped list

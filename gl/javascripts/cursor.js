@@ -101,12 +101,17 @@ CURSOR.moveCursor=function(event) {
 			// PALETTE.drawPalette();
 			// PALETTE.setCursor();
 		}
-		else { // is drawing
+		else if(CURSOR.nowActivity=="stroke"){ // is drawing
 			CANVAS.stroke();
 		}
+		// else... for future extension
 	}
 	else if(EVENTS.isCursorInHysteresis){ // hysteresis drawing after pen up
-		CANVAS.stroke();
+		if(CURSOR.nowActivity=="stroke"){
+			CANVAS.stroke();
+		}
+		// else... just don't care them.
+		// Other operations don't require hysteresis
 	}
 
 	/**

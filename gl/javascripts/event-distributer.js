@@ -76,8 +76,8 @@ EventDistributer.button={
 			if(downFunc)downFunc();
 		});
 		$element.on("pointermove",event=>{ // call callback when down
-			if(!isDown||(event.originalEvent.buttons&0x2)){
-				// pointer isn't down or is right button
+			if(!isDown||!(event.originalEvent.buttons&0x1)){
+				// pointer isn't down or isn't left button
 				return;
 			}
 			const e=event.originalEvent;
@@ -230,6 +230,8 @@ EventDistributer.footbarHint.showInfo=function(text,time){
  * isPreventDefault: if there is a default action of the browser, prevent it
  * 
  * //@TODO: simplify "keydown" binding
+ * At present, there are listeners as much as the number of hotkeys
+ * Simplify them to one for each element?
  */
 EventDistributer.key={
 	_init:function(){
