@@ -131,6 +131,7 @@ FILES.initFileMenu=function() {
 			ENV.setFileTitle(newName);
 			STORAGE.FILES.saveCurrentOpenedFileAs();
 		}
+		EventDistributer.footbarHint.showInfo("Saving ...",3000);
 		if(ENV.displaySettings.isAutoSave){ // shall save present before switching to a new file
 			const layerTreeStr=STORAGE.FILES.saveLayerTree();
 			Promise.all([
