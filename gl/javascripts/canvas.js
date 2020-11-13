@@ -165,8 +165,8 @@ CANVAS.updateCursor=function(point,isPointerDown) {
 			pT.push([pC[0],pC[1],point[2]]);
 		}
 	}
-	else{ // keep tracking the first two points
-		CANVAS.points=CANVAS.points.slice(-1); // if [] then => []
+	else{ // keep tracking the first several points
+		CANVAS.points=CANVAS.points.slice(-3); // if [] then => []
 		CANVAS.points.push([pC[0],pC[1],point[2]]);
 	}
 }

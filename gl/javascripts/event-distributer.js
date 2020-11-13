@@ -75,8 +75,11 @@ EventDistributer.button={
 			isDown=true;
 			if(downFunc)downFunc();
 		});
-		$element.on("pointermove",event=>{
-			if(!isDown)return; // call callback when down
+		$element.on("pointermove",event=>{ // call callback when down
+			if(!isDown||(event.originalEvent.buttons&0x2)){
+				// pointer isn't down or is right button
+				return;
+			}
 			const e=event.originalEvent;
 			const dx=e.clientX-origin.x;
 			const dy=e.clientY-origin.y;
