@@ -10,6 +10,8 @@ EVENTS.key={
 	alt: false
 };
 
+EVENTS.isCursorInHysteresis=false; // hysteresis sign for canvas drawing
+
 EVENTS.init=function() {
 	/**
 	 * @TODO: touch event / multitouch support
@@ -90,13 +92,26 @@ EVENTS.init=function() {
 		CURSOR.setIsShown(true);
 		CURSOR.updateAction(event); // provide an action
 	});
+	
+	let cntAfterUp=0; // Hysteresis of pointer up
 	$canvasWindow.on("pointermove",event => {
 		CURSOR.setIsShown(true); // pen->mouse switching
 		CURSOR.updateAction(event); // still registering right button: change to movecursor?
 		CURSOR.moveCursor(event); // may be stroke or pan
+		if(EVENTS.isCursorInHysteresis){ // add a count
+			cntAfterUp++;
+			if(cntAfterUp==3){ // hysteresis ends, 3 is a good value for radius attenuation.
+				EVENTS.isCursorInHysteresis=false; // cancel hysteresis count
+				cntAfterUp=0;
+				CANVAS.strokeEnd();
+				eachMenuPanelFunc($el => $el.css("pointer-events","all")); // after stroke, enable menus
+			}
+		}
 	});
 	$canvasWindow.on("pointerout",event => {
 		CURSOR.setIsShown(false); // pen away, disable cursor
+		EVENTS.isCursorInHysteresis=false; // cancel the count
+		cntAfterUp=0;
 	});
 
 	// do sth to each menu panel
@@ -117,24 +132,29 @@ EVENTS.init=function() {
 			8 : 4th button (typically the "Browser Back" button)
 			16: 5th button (typically the "Browser Forward" button)
 		 */
-		CANVAS.setCanvasEnvironment(); // init canvas here
+		if(cntAfterUp==0){ // not in hysteresis state, init canvas
+			CANVAS.setCanvasEnvironment(); // init canvas here
+			eachMenuPanelFunc($el => $el.css("pointer-events","none")); // do not enable menu operation
+		}
 		CURSOR.down(event);
 		CURSOR.updateAction(event); // doesn't change the action
 		CURSOR.moveCursor(event);
-		eachMenuPanelFunc($el => $el.css("pointer-events","none")); // do not enable menu operation
+		EVENTS.isCursorInHysteresis=false;
+		cntAfterUp=0; // reset count
 	});
 	$(window).on("pointerup",event => {
-		if(event.target==$canvasWindow[0]) {
+		if(event.target==$canvasWindow[0]) { // !!! useless when adding hysteresis?
 			// on canvas
-			CURSOR.moveCursor(event);
+			EVENTS.isCursorInHysteresis=true; // start count moves after up
+			//CURSOR.moveCursor(event);
 		}
 		CURSOR.up(event);
 		// if(event.originalEvent.pointerType=="touch"){ // on touch up, at the same time, out
 		// 	CURSOR.hideCursor();
 		// }
-		CANVAS.strokeEnd();
+
+		//CANVAS.strokeEnd(); // handled by hysteresis
 		CURSOR.updateAction(event);
-		eachMenuPanelFunc($el => $el.css("pointer-events","all")); // after stroke, enable menus
 	});
 	// When menus enabled, disable canvas operation
 	// This also disables drawing on canvas when the cursor moves out of the menu part

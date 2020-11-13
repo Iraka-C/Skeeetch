@@ -105,6 +105,9 @@ CURSOR.moveCursor=function(event) {
 			CANVAS.stroke();
 		}
 	}
+	else if(EVENTS.isCursorInHysteresis){ // hysteresis drawing after pen up
+		CANVAS.stroke();
+	}
 
 	/**
 	 * Pan a layer with its clip masks

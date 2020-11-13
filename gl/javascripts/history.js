@@ -169,7 +169,7 @@ HISTORY.addHistory=function(param){ // see HistoryItem constructor for info stru
 		
 		HISTORY.clearAllHistoryAfter(); // delete all item after HISTORY.nowId
 		const item=new HistoryItem(param);
-		console.log("Add History",item);
+		LOGGING&&console.log("Add History",item);
 		HISTORY.list.push(item);
 		HISTORY.nowId++; // point to tail
 		HISTORY.nowRAMUsage+=item.getRAMSize();

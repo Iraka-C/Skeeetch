@@ -159,7 +159,7 @@ class CanvasNode extends ContentNode {
 	 */
 	updateThumb() {
 		let thumbCV=this.$thumb;
-		let w=this.rawImageData.width,h=this.rawImageData.height;
+		let w=this.rawImageData.validArea.width,h=this.rawImageData.validArea.height;
 		let uW=Math.round(this.$ui.width()),uH=Math.round(this.$ui.height());
 
 		if(!(w&&h)) {
@@ -211,7 +211,7 @@ class CanvasNode extends ContentNode {
 		const imgData2d=ctx.createImageData(w,h);
 
 		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(
-			this.rawImageData,null,[w,h]); // get data
+			this.rawImageData,this.rawImageData.validArea,[w,h]); // get data
 
 		imgData2d.data.set(pixels); // copy pixel data
 		ctx.putImageData(imgData2d,0,0);
