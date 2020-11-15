@@ -32,7 +32,9 @@ CANVAS.init=function() {
 		canvas: CANVAS.targetCanvas,
 		onRefresh: CANVAS.onRefresh,
 		bitDepth: CANVAS.rendererBitDepth,
-		maxVRAMSize: PERFORMANCE.maxMem.gpu/2 // Experimental value
+		maxVRAMSize: PERFORMANCE.maxMem.gpu
+		// In fact, there are compression strategies for VRAM
+		// The actual usage will be less than estimated
 	});
 	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
 }

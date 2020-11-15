@@ -21,16 +21,15 @@ class GLVRAMManager {
 		}
 
 		if(this.lastVerified==imgData) { // needn't move to rear
-			const prevSize=this.lastVerifiedSize;
-			if(prevSize>=size) {
-				this.vRAMUsage+=size-prevSize;
-				this.lastVerifiedSize=size;
-				return;
-			}
+			// update size only
+			this.vRAMUsage+=size-this.lastVerifiedSize;
+			this.lastVerifiedSize=size;
+			return;
 		}
 
 		if(this.activeTextures.has(imgData)) { // already active, should be normal
 			const prevSize=this.activeTextures.get(imgData);
+			// @TODO: if remaining size is enough, do not delete (causes Map reorganize)
 			this.activeTextures.delete(imgData); // anyway take it out first
 			this.vRAMUsage-=prevSize;
 		}
@@ -124,6 +123,9 @@ class GLVRAMManager {
 				const prevSize=this.activeTextures.get(imgData);
 				this.vRAMUsage-=prevSize;
 				this.activeTextures.delete(imgData);
+			}
+			else{
+				// not recorded, do not change this.vRAMUsage
 			}
 		}
 	}
