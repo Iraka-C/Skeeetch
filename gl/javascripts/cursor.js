@@ -10,6 +10,7 @@ CURSOR.p0=[NaN,NaN,NaN]; // latest point
 CURSOR.p1=[NaN,NaN,NaN]; // last point
 CURSOR.isShown=false; // is the pointer visible
 CURSOR.isDown=false; //is the pointer pressed on screen
+CURSOR.isPressure=false;
 CURSOR.type=null; // NOTICE: the "type" here is in fact pointerId
 CURSOR.eventIdList=["","",""]; // a list to record now id
 
@@ -59,13 +60,18 @@ CURSOR.moveCursor=function(event) {
 	if(CURSOR.type!=type) { // not the present id, no moving
 		return;
 	}
-	//console.log(event.originalEvent.pointerType);
 
+	if(event.originalEvent.pressure!=0.5&&event.originalEvent.pressure!=0){
+		// if no pressure, the value is always 0.5 or 0
+		// 0.5 can be precisely represented with float
+		CURSOR.isPressure=true;
+	}
 	CURSOR.p1=CURSOR.p0; // hand to the last event
 	CURSOR.p0=[ // new movement
 		event.originalEvent.offsetX,
 		event.originalEvent.offsetY,
-		event.originalEvent.pointerType=="pen"? event.originalEvent.pressure:1 // 1 as default: how about touch?
+		CURSOR.isPressure?event.originalEvent.pressure:
+		event.originalEvent.pressure?1:0 // 1/0 as default
 	];
 	// set cursor size
 	CURSOR.updateXYR();
@@ -107,7 +113,7 @@ CURSOR.moveCursor=function(event) {
 		// else... for future extension
 	}
 	else if(EVENTS.isCursorInHysteresis){ // hysteresis drawing after pen up
-		if(CURSOR.nowActivity=="stroke"){
+		if(CURSOR.nowActivity=="stroke"&&CURSOR.isPressure){
 			CANVAS.stroke();
 		}
 		// else... just don't care them.
@@ -299,6 +305,7 @@ CURSOR.down=function(event) {
 		return;
 	}
 	CURSOR.isDown=true;
+	CURSOR.isPressure=false; // set as false first, wait for pressure value
 	CURSOR.panRecord.isPanned=false;
 	//CURSOR.type=event.originalEvent.pointerId;
 }
