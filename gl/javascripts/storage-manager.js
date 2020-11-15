@@ -13,7 +13,18 @@ STORAGE={};
 STORAGE.init=function(callback){
 	STORAGE.SETTING.init().then(sysSettings=>{
 		STORAGE.FILES.init(); // sync: creating localForage instance
-		callback(sysSettings);
+		STORAGE.FILES.organizeDatabase().then(v=>{ // organize database at startup
+			if(v){
+				console.log("cleared",v);
+				localStorage.setItem("files",JSON.stringify(STORAGE.FILES.filesStore));
+				window.location.reload(false); // do not pull again
+				// !! will refresh page and won't reach finally
+			}
+		}).catch(err=>{
+			console.warn("Error when organizing database.");
+		}).finally(()=>{
+			callback(sysSettings);
+		});
 	})
 };
 

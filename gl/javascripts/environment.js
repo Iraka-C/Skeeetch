@@ -97,7 +97,6 @@ ENV.init=function() { // When the page is loaded
 		// clean up the unremoved database store
 		// maybe because of failed deletion
 		STORAGE.FILES.loadAllFileThumbs();
-		STORAGE.FILES.organizeDatabase();
 	});
 };
 

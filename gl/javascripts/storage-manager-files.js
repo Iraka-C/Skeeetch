@@ -611,7 +611,6 @@ STORAGE.FILES.saveFilesStore=function(){ // must be sync
 	const nowFileItem=STORAGE.FILES.filesStore.fileList[ENV.fileID];
 	nowFileItem.fileName=ENV.getFileTitle();
 	nowFileItem.lastOpenedDate=Date.now();
-	
 	localStorage.setItem("files",JSON.stringify(STORAGE.FILES.filesStore)); // save
 }
 
@@ -620,11 +619,11 @@ STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monito
 	console.log("Trying to drop store "+fileID);
 	ENV.taskCounter.startTask(); // start drop task
 
+	//remove db contents first so it won't take up space even when drop failed
 	const db=localforage.createInstance({name: "img",storeName: fileID});
-	// remove db contents first so it won't take up space even when drop failed
 	return db.keys().then(keys =>
 		Promise.all(keys.map(k=>db.removeItem(k))) // remove all items from db
-	).then(localforage.dropInstance({ // clear database
+	).then(()=>localforage.dropInstance({ // clear database
 		name: "img",
 		storeName: fileID
 	}).then(()=>{ // successfully dropped, remove from undropped
@@ -648,14 +647,18 @@ STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monito
 STORAGE.FILES.organizeDatabase=function(){
 	// T-ODO: change into sequencial operation?
 	// It's Okay...
+	const taskList=[];
 	for(const id in STORAGE.FILES.filesStore.undroppedList){
 		if(!STORAGE.FILES.filesStore.fileList.hasOwnProperty(id)){
 			// id only in undropped list
-			PERFORMANCE.idleTaskManager.addTask(()=>{
-				STORAGE.FILES.removeFileID(id); // try to remove again
-			});
+			// PERFORMANCE.idleTaskManager.addTask(()=>{
+			// 	STORAGE.FILES.removeFileID(id); // try to remove again
+			// });
+			taskList.push(STORAGE.FILES.removeFileID(id));
 		}
 	}
+
+	return Promise.all(taskList).then(()=>taskList.length);
 }
 
 /**
