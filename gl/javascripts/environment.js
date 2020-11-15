@@ -377,6 +377,19 @@ ENV.hash=function(prefix){
 	const randArr=new Uint32Array(1);
 	window.crypto.getRandomValues(randArr);
 	const hash=randArr[0]%PRIME;
-
 	return typeof(prefix)=="string"?prefix+hash:hash;
+}
+
+ENV.getSHA256Promise=function(item){ // item is a File or Blob, returns a promise
+	return new Promise((resolve,reject)=>{
+		const reader=new FileReader();
+		reader.readAsArrayBuffer(item);
+		reader.onload=function(){
+			crypto.subtle.digest("SHA-256",this.result).then(v=>{
+				resolve(new Uint8Array(v)); // v is an ArrayBuffer
+			}).catch(err=>{
+				reject(err);
+			});
+		};
+	});
 }

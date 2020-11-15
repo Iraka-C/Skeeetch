@@ -388,13 +388,13 @@ CANVAS.clearAll=function() {
 		return false;
 	}
 
-	const validArea={...CANVAS.nowLayer.rawImageData.validArea}; // the valid area doesn't change or turns 0
+	//const validArea={...CANVAS.nowLayer.rawImageData.validArea}; // the valid area doesn't change or turns 0
 	CANVAS.renderer.clearImageData(CANVAS.nowLayer.rawImageData,null,CANVAS.targetLayerOpacityLocked);
-	HISTORY.addHistory({ // add raw image data changed history
-		type:"image-data",
-		id:CANVAS.nowLayer.id,
-		area:validArea // whole image
-	});
+	// HISTORY.addHistory({ // add raw image data changed history
+	// 	type:"image-data",
+	// 	id:CANVAS.nowLayer.id,
+	// 	area:validArea // whole image
+	// });
 	CANVAS.nowLayer.updateThumb();
 	CANVAS.nowLayer.setRawImageDataInvalid(); // the data is invalid now
 	CANVAS.requestRefresh(); // refresh display

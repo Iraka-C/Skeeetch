@@ -336,8 +336,14 @@ LAYERS.initLayerPanelButtons=function() {
 			LAYERS.replaceGroupWithLayer(LAYERS.active);
 		}
 		else { // canvas: clear image data
+			const validArea={...LAYERS.active.rawImageData.validArea};
 			if(CANVAS.clearAll()){ // successfully cleared
-				STORAGE.FILES.saveContentChanges(CANVAS.nowLayer);
+				HISTORY.addHistory({ // add raw image data changed history
+					type:"image-data",
+					id:LAYERS.active.id,
+					area:validArea // whole image
+				});
+				STORAGE.FILES.saveContentChanges(LAYERS.active);
 			}
 		}
 	});

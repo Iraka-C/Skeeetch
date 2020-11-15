@@ -283,43 +283,84 @@ FILES.onPSDLoaded=function() {
 }
 
 // Image Handlers. If !layerToLoad, then create a new layer
-FILES.loadAsImage=function(img,layerToLoad) {
+// layerToLoad must be a CanvasNode!
+// will change contents of prop!! If necessary, make a deep copy before
+FILES.loadAsImage=function(img,layerToLoad,prop) {
 	const layer=layerToLoad||LAYERS.addNewCanvasNode();
-	const oldActiveID=LAYERS.active.id;
+	const oldActiveID=LAYERS.active.id; // if layer's the same, then nothing happens
 	LAYERS.setActive(layer); // also setup lastRawImageData for history
 	CANVAS.renderer.loadToImageData(layer.rawImageData,img);
-	layer.setRawImageDataInvalid();
-	layer.updateThumb();
-	COMPOSITOR.updateLayerTreeStructure();
-	if(layerToLoad){
-		HISTORY.addHistory({ // only content change
+
+	const historyItems=[];
+	if(!layerToLoad){ // new layer created
+		historyItems.push({
+			type: "node-structure",
+			id: layer.id,
+			from: null,
+			to: layer.parent.id,
+			oldIndex: null,
+			newIndex: layer.getIndex(),
+			oldActive: oldActiveID,
+			newActive: layer.id
+		});
+	}
+	if(prop&&!isNaN(prop.left)&&!isNaN(prop.top)){ // add additional position info
+		const vArea=layer.rawImageData.validArea;
+		const prevL=vArea.left;
+		const prevT=vArea.top;
+		const dL=prop.left-prevL;
+		const dT=prop.top-prevT;
+		layer.rawImageData.left+=dL; // pan contents
+		layer.rawImageData.top+=dT;
+		vArea.left+=dL;
+		vArea.top+=dT;
+		// Shouldn't record history
+		// the changes of all imagedata will be recorded in "image-data" history
+		// historyItems.push({
+		// 	type: "node-pan",
+		// 	id: layer.id,
+		// 	dx: dL,
+		// 	dy: dT
+		// });
+	}
+
+	if(prop&&prop.changedArea){ // previous area before loading img provided
+		historyItems.push({ // image data change, after panning
 			type: "image-data",
-			id: layerToLoad.id,
-			area: {...layerToLoad.rawImageData.validArea}
+			id: layer.id,
+			area: GLProgram.extendBorderSize(layer.rawImageData.validArea,prop.changedArea)
 		});
 	}
-	else{
-		HISTORY.addHistory({ // combine two steps
-			type: "bundle",
-			children: [
-				{
-					type: "node-structure",
-					id: layer.id,
-					from: null,
-					to: layer.parent.id,
-					oldIndex: null,
-					newIndex: layer.getIndex(),
-					oldActive: oldActiveID,
-					newActive: layer.id
-				},
-				{
-					type: "image-data",
-					id: CANVAS.nowLayer.id,
-					area: {...layer.rawImageData.validArea}
-				}
-			]
+	else{ // use the valid area of layer.rawImageData itself
+		historyItems.push({ // image data change, after panning
+			type: "image-data",
+			id: layer.id,
+			area: layer.rawImageData.validArea
 		});
 	}
+	
+	if(prop&&!$.isEmptyObject(prop)){ // set property and add history
+		const prev=layer.getProperties();
+		layer.setProperties(prop); // BTW refresh
+		historyItems.push({
+			type: "node-property",
+			id: layer.id,
+			prevStatus: prev,
+			nowStatus: prop
+		});
+		// According to the mechanism of HISTORY,
+		// If there's no change in layer properties, won't be recorded
+	}
+
+	// refresh display
+	layer.setRawImageDataInvalid();
+	COMPOSITOR.updateLayerTreeStructure();
+	layer.updateThumb();
+
+	HISTORY.addHistory({ // combine all steps
+		type: "bundle",
+		children: historyItems
+	});
 	
 	STORAGE.FILES.saveContentChanges(layer);
 }
