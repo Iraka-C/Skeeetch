@@ -13,6 +13,13 @@ STORAGE={};
 STORAGE.init=function(callback){
 	STORAGE.SETTING.init().then(sysSettings=>{
 		STORAGE.FILES.init(); // sync: creating localForage instance
+		/**
+		 * NOTICE!!
+		 * Shall organize database before any other data is read
+		 * this makes dropping database more robust.
+		 * 
+		 * organizeDatabase() won't be called if clear=1 url param is set
+		 */
 		STORAGE.FILES.organizeDatabase().then(v=>{ // organize database at startup
 			if(v){
 				console.log("cleared",v);
@@ -23,6 +30,7 @@ STORAGE.init=function(callback){
 		}).catch(err=>{
 			console.warn("Error when organizing database.");
 		}).finally(()=>{
+			$("#body-mask-panel").css("display","none"); // databse organized
 			callback(sysSettings);
 		});
 	})

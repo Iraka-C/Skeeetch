@@ -8,6 +8,7 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 		<link rel="stylesheet" type="text/css" href="./styles/main-style.css" />
+		<link rel="stylesheet" type="text/css" href="./styles/mask-style.css" />
 		<link rel="stylesheet" type="text/css" href="./styles/top-menu-style.css" />
 		<link rel="stylesheet" type="text/css" href="./styles/layer-panel-style.css" />
 		<link rel="stylesheet" type="text/css" href="./styles/layer-panel-style-expanded.css" />
@@ -275,7 +276,7 @@
 
 					<!-- show a mask before menus -->
 					<div id="mask-panel">
-						<canvas id="debug-canvas" width="100" height="100"></canvas>
+						<!--div id="mask-startup-info"></div-->
 					</div>
 
 					<!-- show info/button over setting menus -->
@@ -298,8 +299,10 @@
 			</div>
 		</div>
 
-		<div id="mask">
+		<div id="body-mask-panel">
 			<div id="mask-item">
+				Loading database<br>
+				Please wait ...
 			</div>
 		</div>
 	</body>

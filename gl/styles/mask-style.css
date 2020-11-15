@@ -1,0 +1,12 @@
+#body-mask-panel{
+	background-color: #000000cc;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+
+#mask-item{
+	color: #888;
+	font-size: calc(1rem + 3vw); /* window width related */
+}

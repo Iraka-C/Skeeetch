@@ -38,16 +38,14 @@ body{
 	touch-action: none;
 }
 
-#mask{
+#body-mask-panel{
 	position: absolute;
 	left: 0px;
 	top: 0px;
 	right: 0px;
 	bottom: 0px;
-	background-color: #000;
-	opacity: 0.5;
-	pointer-events: none;
-	display: none;
+	/* pointer-events: none; */
+	z-index: 3;
 }
 
 #ui-panel{
@@ -58,6 +56,7 @@ body{
 	bottom: 0px;
 	display: flex;
 	flex-direction: column;
+	/* invisible at first */
 }
 
 #top-menu-panel{
