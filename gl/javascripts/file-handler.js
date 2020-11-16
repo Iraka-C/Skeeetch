@@ -197,7 +197,7 @@ FILES.loadPSDNodes=function(node) {
 			ENV.taskCounter.finishTask(1); // register load node
 			if(this.parent) {
 				this.parent.append(this);
-				if(this.parent.elem.id=="root"&&this.elem) { // parent is root
+				if(this.parent.elem==LAYERS.layerTree&&this.elem) { // parent is root
 					FILES.loadPSDNodes.lastLoadingElement=this.elem;
 				}
 			}
@@ -209,9 +209,9 @@ FILES.loadPSDNodes=function(node) {
 
 	// Construct loading queue using DFS
 	// 1 exception: root stack node doesn't belong to queue: already in layerTree
+
 	const rootStackNode=new StackNode(node,null);
 	rootStackNode.elem=LAYERS.layerTree; // set (regarded as already loaded) root element
-	rootStackNode.N=node.children.length;
 
 	const traverse=function(jsonNode,parentStackNode) {
 		const stackNode=new StackNode(jsonNode,parentStackNode);
@@ -240,8 +240,22 @@ FILES.loadPSDNodes=function(node) {
 			loadQueue.push(stackNodeM);
 		}
 	};
-	for(let i=0;i<node.children.length;i++) { // traverse root
-		traverse(node.children[i],rootStackNode);
+
+	if(node.children){ // pushing children into queue
+		rootStackNode.N=node.children.length;
+		for(let i=0;i<rootStackNode.N;i++) { // traverse root
+			traverse(node.children[i],rootStackNode);
+		}
+	}
+	else{ // only root itself. This happens when psd only contains a bg
+		rootStackNode.N=1;
+		const stackNode=new StackNode(Object.assign(node,{ // necessary additional info
+			left: 0,
+			top: 0,
+			opacity: 255
+		}),rootStackNode);
+		stackNode.index=0;
+		loadQueue.push(stackNode);
 	}
 
 	// Load all children async

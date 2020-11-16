@@ -132,13 +132,19 @@ STORAGE.SETTING.saveAllSettings=function(){
 	STORAGE.FILES.saveFilesStore();
 }
 
-STORAGE.SETTING.saveBrushes=function(){
-	const defaultBrushJSON=BrushManager.brushes;
+STORAGE.SETTING.saveBrushes=function(){ // save on exit
+	const M=BrushManager.brushes.length;
+	const defaultBrushJSON=new Array(M); // deep copy
+	for(let i=0;i<M;i++){
+		defaultBrushJSON[i]=Object.assign({},BrushManager.brushes[i]);
+		delete defaultBrushJSON[i].$row; // do not record ui
+	}
 
 	const N=BrushManager.customBrushes.length;
 	const customBrushJSON=new Array(N); // deep copy
 	for(let i=0;i<N;i++){
 		customBrushJSON[i]=Object.assign({},BrushManager.customBrushes[i]);
+		delete customBrushJSON[i].$row; // do not record ui
 		if(customBrushJSON[i].brushtip){
 			customBrushJSON[i].brushtip=Object.assign({},BrushManager.customBrushes[i].brushtip);
 			Object.assign(customBrushJSON[i].brushtip,{
@@ -148,6 +154,7 @@ STORAGE.SETTING.saveBrushes=function(){
 			});
 		}
 	}
+
 	const activeJSON=BrushManager.activeBrush.isCustom?{
 		isCustom: true,
 		id: BrushManager.activeBrush.id

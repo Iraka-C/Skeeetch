@@ -246,8 +246,9 @@ class Compressor{
 				const elem=dict[code];
 
 				decoded[pDD++]=elem.symbol;
-				buf<<=elem.len; // throw highest elem.len bits
-				pBit-=elem.len;
+				const l=elem.len;
+				buf<<=l; // throw highest elem.len bits
+				pBit-=l;
 			}
 		}
 		return decoded;

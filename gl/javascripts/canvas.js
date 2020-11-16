@@ -322,6 +322,11 @@ CANVAS.onRefresh=function() {
  * unless you know what you're doing!
  * 
  * The antialiasing parameter 0.7 is a balance of sharpness and crispiness.
+ * TODO: everytime when calls
+	if(ENV.displaySettings.antiAlias){
+		CANVAS.requestRefresh(); // update canvas anti-aliasing
+	}
+ * refresh in viewport only
  */
 CANVAS.refreshScreen=function() {
 	if(!LAYERS.layerTree)return; // not valid layerTree

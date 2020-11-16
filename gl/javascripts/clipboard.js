@@ -13,6 +13,7 @@ CLIPBOARD.paste=function(items){
 		if(!(lastCopiedInfo.width==img.width&&lastCopiedInfo.height==img.height)){
 			// certainly not the same image
 			lastCopiedInfo={}; // discard
+			localStorage.removeItem("clipboard"); // clipboard no such data now @TODO: new win clipboard?
 		}
 		if(EVENTS.key.space){ // Ctrl+Space+V
 			const validArea={...LAYERS.active.rawImageData.validArea};

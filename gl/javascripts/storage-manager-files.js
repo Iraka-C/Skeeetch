@@ -12,6 +12,8 @@ STORAGE.FILES={
   * 
   * This happens when the user trying to delete a file from repo
   * when another deletion is under processing.
+  * 
+  * FIXME: only one layer in psd causes bugs
   */
 
 STORAGE.FILES.generateFileID=function(){

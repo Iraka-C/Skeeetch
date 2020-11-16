@@ -132,7 +132,7 @@ HISTORY.addHistory=function(param){ // see HistoryItem constructor for info stru
 		HISTORY.popHead(); // pop the oldest history and release related resources
 	}
 
-	console.trace("Add History",param);
+	//console.trace("Add History",param);
 	
 	/**
 	 * special treatment for imagedata change / node property:
