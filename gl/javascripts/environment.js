@@ -371,8 +371,8 @@ ENV.loadTextFile=function(url,callback) {
 
 ENV.escapeHTML=str => str.replace(/[&<>'"]/g,tag => ({"&": "&amp;","<": "&lt;",">": "&gt;","'": "&#39;",'"': "&#34;"}[tag]||tag));
 
-ENV.hash=function(prefix){
-	const PRIME=2147483647;
+ENV.hash=function(prefix,limit){
+	const PRIME=limit||2147483647;
 	const randArr=new Uint32Array(1);
 	window.crypto.getRandomValues(randArr);
 	const hash=randArr[0]%PRIME;

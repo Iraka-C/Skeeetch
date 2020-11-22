@@ -2,28 +2,34 @@
  * Web worker for file saving at storage-manager-files.js
  * 
  * Part of the Skeeetch project.
+ * 
+ * FIXME: new MyForage(...) causes confliction of storage.storeKeys
  */
 
 importScripts("./compressor.js");
 importScripts("./localforage.min.js");
+importScripts("./my-forage.js");
 
 let storage=null;
 
 onmessage=e => { // to global scope
 	console.log("Create Instance "+e.data.fileID);
 	
-	storage=localforage.createInstance({ // working on the instance
-		name: "img",
-		storeName: e.data.fileID
+	storage=new MyForage("img",e.data.fileID);
+	storage.init().then(()=>{
+		if(e.data.save){ // save file
+			saveData(e.data.id,e.data.rawData);
+		}
+		else if(e.data.get){ // get file
+			getData(e.data.id);
+		}
 	});
-	if(e.data.save){
-		saveData(e.data.id,e.data.rawData);
-	}
-	else if(e.data.get){
-		getData(e.data.id);
-	}
+	
 }
 
+/**
+ * This method isn't thread-safe!
+ */
 function saveData(nodeID,rawData){
 	// Initialization
 	function decodeFloat16(bin) {

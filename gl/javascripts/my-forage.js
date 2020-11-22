@@ -3,7 +3,7 @@
  * Manage the stores by yourself!
  * dropInstance in localForage may be buggy! (stuck/not always successful)
  * 
- * NOTICE: no "::" in keywords! either storename or key
+ * NOTICE: no ":" in keywords! either storename or key
  */
 
 class MyForage{
@@ -11,12 +11,12 @@ class MyForage{
 	 * Using name to create a new database
 	 * Simulate Store operation in database using your own manager
 	 * @param String name
-	 * @param String storeName, cannot include "::" !
+	 * @param String storeName, cannot include ":" !
 	 */
 	constructor(name,storeName){
 		//this.name=name;
 		this.storeName=storeName||"";
-		this.keys={}; // the keys of this store
+		this.storeKeys={}; // the keys of this store
 		this.storage=localforage.createInstance({
 			name: name,
 			storeName: "storage"
@@ -28,13 +28,13 @@ class MyForage{
 	}
 
 	init(){ // async!
-		if(this.storeName.indexOf("::")>=0){
+		if(this.storeName.indexOf(":")>=0){
 			this.storeName=""; // init
-			return new Promise.reject("Illegal identifier :: in store name",this.storeName);
+			return new Promise.reject("Illegal identifier : in store name",this.storeName);
 		}
 		return this.storeList.getItem(this.storeName).then(val=>{
 			if(val){ // already existing, read it
-				this.keys=val;
+				this.storeKeys=val;
 				// promise fulfilled
 			}
 			else{ // create storeList, write it
@@ -44,51 +44,51 @@ class MyForage{
 	}
 
 	setItem(key,value){
-		if(key.indexOf("::")>=0){
-			return new Promise.reject("Illegal identifier :: in key",key);
+		if(key.indexOf(":")>=0){
+			return new Promise.reject("Illegal identifier : in key",key);
 		}
-		const itemName=this.storeName+"::"+key;
+		const itemName=this.storeName+":"+key;
 		return this.storage.setItem(itemName,value).then(()=>{
 			// set item successful, write keys to storage
-			return this.storeList.setItem(this.storeName,this.keys);
+			this.storeKeys[key]=1;
+			return this.storeList.setItem(this.storeName,this.storeKeys);
 		}).then(()=>{ // set key valid
-			this.keys[key]=1;
+			return value; // compatible to localForage method
 		});
 	}
 
 	getItem(key){
-		const itemName=this.storeName+"::"+key;
+		const itemName=this.storeName+":"+key;
 		return this.storage.getItem(itemName);
 	}
 
 	removeItem(key){
-		const itemName=this.storeName+"::"+key;
+		const itemName=this.storeName+":"+key;
 		return this.storage.removeItem(itemName).then(()=>{
 			// Successfully removed item
-			return this.storeList.setItem(this.storeName,this.keys);
-		}).then(()=>{
-			// update old keys, only after successfully deleted from db
-			delete this.keys[key];
+			delete this.storeKeys[key];
+			return this.storeList.setItem(this.storeName,this.storeKeys);
 		});
 	}
 
 	clear(){
 		const taskList=[];
-		for(const key in this.storeList){
-			const itemName=this.storeName+"::"+key;
+		for(const key in this.storeKeys){
+			const itemName=this.storeName+":"+key;
+			console.log("Trying to remove "+itemName);
+			
 			taskList.push(this.storage.removeItem(itemName));
 		}
 		return Promise.all(taskList).then(()=>{
 			// Successfully removed item
 			// update old keys
+			this.storeKeys={};
 			return this.storeList.setItem(this.storeName,{});
-		}).then(()=>{ // updated
-			this.keys={};
 		});
 	}
 
-	keys(){ // return an array of keys, sync!
-		return Object.keys(this.keys);
+	keys(){ // return an array of keys, with promise
+		return Promise.resolve(Object.keys(this.storeKeys));
 	}
 
 	stores(){
@@ -96,12 +96,16 @@ class MyForage{
 	}
 
 	drop(){
-		this.clear().then(()=>{
-			// Successfully removed all item
-			// delete oldKeys
-			return this.storeList.removeItem(this.storeName);
-		}).then(()=>{ // updated
-			this.keys={}; // in fact invalid
+		const taskList=[];
+		for(const key in this.storeKeys){
+			const itemName=this.storeName+":"+key;
+			console.log("Trying to remove "+itemName);
+			
+			taskList.push(this.storage.removeItem(itemName));
+		}
+		taskList.push(this.storeList.removeItem(this.storeName));
+		return Promise.all(taskList).then(()=>{ // updated
+			this.storeKeys={}; // in fact invalid
 		});
 	}
 }

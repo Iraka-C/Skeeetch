@@ -16,7 +16,7 @@ LAYERS.active=null;
 LAYERS.generateHash=function() {
 	let tag="";
 	do {
-		tag=ENV.hash("i");
+		tag=ENV.hash("i",99991); // Should be enough...
 	} while(LAYERS.layerHash.hasOwnProperty(tag));
 	return tag;
 }

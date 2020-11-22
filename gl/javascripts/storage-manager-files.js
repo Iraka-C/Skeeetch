@@ -33,8 +33,9 @@ class FileWorker { // Work on canvas layer content, not files in repository!
 		const imgData=node.rawImageData;
 		const vArea=imgData.validArea;
 
-		if(!window.Worker||document.location.protocol=="file:") { // no worker available
-
+		//if(!window.Worker||document.location.protocol=="file:") { // no worker available
+		if(true){ // always use local to save now.
+			// before we can work with thread-safe worker
 			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea);
 
 			console.log("Local Save");
@@ -174,10 +175,9 @@ STORAGE.FILES.initLayerStorage=function(fileID) { // This is a synced function
 	console.log("Change layer store to "+fileID);
 	
 	// if not in fileStore, blabla
-	STORAGE.FILES.layerStore=localforage.createInstance({
-		name: "img",
-		storeName: fileID
-	});
+	const layerStore=new MyForage("img",fileID);
+	layerStore.init();
+	STORAGE.FILES.layerStore=layerStore;
 
 	// update the contents in fileList and filesStore
 	const oldContent=STORAGE.FILES.filesStore.fileList[fileID]||{};
@@ -225,7 +225,7 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 		STORAGE.FILES.savingList.set(node.id,node);
 		//$("#icon").attr("href","./resources/favicon-working.png");
 
-		const storage=STORAGE.FILES.layerStore; // note here in case of layerStore changing
+		const layerStore=STORAGE.FILES.layerStore; // note here in case of layerStore changing
 		const fileID=ENV.fileID; // same as above
 		// There shouldn't be several save requests of 1 node in 1 frame...
 		return new Promise((resolve,reject)=>{
@@ -234,7 +234,7 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 	
 				// Start Saving, try saver first
 				// FileWorker will try Worker first, then async saving
-				const fileSaver=new FileWorker(storage,fileID);
+				const fileSaver=new FileWorker(layerStore,fileID);
 				ENV.taskCounter.startTask();
 				fileSaver.saveFile(node).then(() => {
 					STORAGE.FILES.savingList.delete(node.id); // delete first
@@ -388,7 +388,9 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	STORAGE.FILES.isFailedLayer=false;
 
 	const loadQueue=[]; // A queue of StackNodes
-	const storage=STORAGE.FILES.layerStore; // do not change storage here
+	const layerStore=STORAGE.FILES.layerStore; // do not change storage here
+	console.log("Now store",layerStore);
+	
 
 	class StackNode {
 		constructor(json,parent) {
@@ -446,7 +448,7 @@ STORAGE.FILES.loadLayerTree=function(node) {
 						newElement.isContentChanged=false; // saved contents
 					}
 					else { // failed to get content, delete broken chunk
-						STORAGE.FILES.removeContent(storage,sNode.id);
+						STORAGE.FILES.removeContent(layerStore,sNode.id);
 						STORAGE.FILES.isFailedLayer=true;
 					}
 					newElement.setProperties(sNode); // also request refresh. This might be a potential bottleneck
@@ -618,26 +620,23 @@ STORAGE.FILES.saveFilesStore=function(){ // must be sync
 
 STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monitoring
 	delete STORAGE.FILES.filesStore.fileList[fileID];
-	console.log("Trying to drop store "+fileID);
 	ENV.taskCounter.startTask(); // start drop task
 
 	//remove db contents first so it won't take up space even when drop failed
-	const db=localforage.createInstance({name: "img",storeName: fileID});
-	return db.keys().then(keys =>
-		Promise.all(keys.map(k=>db.removeItem(k))) // remove all items from db
-	).then(()=>localforage.dropInstance({ // clear database
-		name: "img",
-		storeName: fileID
-	}).then(()=>{ // successfully dropped, remove from undropped
-		console.log(fileID+" Dropped");
+	const db=new MyForage("img",fileID);
+	return db.init().then(()=>{
+		console.log("inited in STORAGE.FILES");
+		return db.drop();
+	}).then(()=>{ // dropped successfully
+		console.log("Deleted in STORAGE.FILES");
+		
 		delete STORAGE.FILES.filesStore.undroppedList[fileID];
-	})
-	.catch(err=>{
+	}).catch(err=>{
 		console.warn("Something happened when dropping "+fileID,err);
-	})
-	.finally(()=>{
+	}).finally(()=>{
 		ENV.taskCounter.finishTask(); // end drop task
-	}));
+	});
+	
 }
 
 /**
