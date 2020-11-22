@@ -10,57 +10,98 @@ class MyForage{
 	/**
 	 * Using name to create a new database
 	 * Simulate Store operation in database using your own manager
-	 * @param String name 
+	 * @param String name
+	 * @param String storeName, cannot include "::" !
 	 */
-	constructor(name){
-		this.name=name;
+	constructor(name,storeName){
+		//this.name=name;
+		this.storeName=storeName||"";
+		this.keys={}; // the keys of this store
 		this.storage=localforage.createInstance({
 			name: name,
 			storeName: "storage"
 		});
-		this.keyList=localforage.createInstance({
+		this.storeList=localforage.createInstance({ // the db instance of all stores
 			name: name,
-			storeName: "keys"
+			storeName: "store"
 		});
 	}
 
-	createStore(storeName){
-		if(storeName.indexOf("::")>=0){
-			return new Promise.reject("Illegal identifier :: in store name");
+	init(){ // async!
+		if(this.storeName.indexOf("::")>=0){
+			this.storeName=""; // init
+			return new Promise.reject("Illegal identifier :: in store name",this.storeName);
 		}
-		this.keyList.getItem(storeName).then(val=>{
-			if(val===null){ // no such store, create one
-				return this.keyList.setItem(storeName,{}).then(()=>true);
+		return this.storeList.getItem(this.storeName).then(val=>{
+			if(val){ // already existing, read it
+				this.keys=val;
+				// promise fulfilled
 			}
-			return false; // already existing
+			else{ // create storeList, write it
+				return this.storeList.setItem(this.storeName,{});
+			}
 		});
 	}
 
-	setItem(storeName,key,value){
-		if(storeName.indexOf("::")>=0){
-			return new Promise.reject("Illegal identifier :: in store name");
-		}
+	setItem(key,value){
 		if(key.indexOf("::")>=0){
-			return new Promise.reject("Illegal identifier :: in key");
+			return new Promise.reject("Illegal identifier :: in key",key);
 		}
-		return this.keyList.getItem(storeName).then(oldKeys=>{
-			if(oldKeys===null){ // no such store
-				return new Promise.reject("Store "+storeName+" not found");
-			}
-			const itemName=storeName+"::"+key;
-			return this.storage.setItem(itemName,value).then(()=>oldKeys);
-		}).then(oldKeys=>{
-			
-		});
-
-
-		this.storage.setItem(itemName,value).then(()=>{
-			
-
+		const itemName=this.storeName+"::"+key;
+		return this.storage.setItem(itemName,value).then(()=>{
+			// set item successful, write keys to storage
+			return this.storeList.setItem(this.storeName,this.keys);
+		}).then(()=>{ // set key valid
+			this.keys[key]=1;
 		});
 	}
 
-	dropStore(storeName){
-		
+	getItem(key){
+		const itemName=this.storeName+"::"+key;
+		return this.storage.getItem(itemName);
+	}
+
+	removeItem(key){
+		const itemName=this.storeName+"::"+key;
+		return this.storage.removeItem(itemName).then(()=>{
+			// Successfully removed item
+			return this.storeList.setItem(this.storeName,this.keys);
+		}).then(()=>{
+			// update old keys, only after successfully deleted from db
+			delete this.keys[key];
+		});
+	}
+
+	clear(){
+		const taskList=[];
+		for(const key in this.storeList){
+			const itemName=this.storeName+"::"+key;
+			taskList.push(this.storage.removeItem(itemName));
+		}
+		return Promise.all(taskList).then(()=>{
+			// Successfully removed item
+			// update old keys
+			return this.storeList.setItem(this.storeName,{});
+		}).then(()=>{ // updated
+			this.keys={};
+		});
+	}
+
+	keys(){ // return an array of keys, sync!
+		return Object.keys(this.keys);
+	}
+
+	stores(){
+		// To be continued...
+	}
+
+	drop(){
+		this.clear().then(()=>{
+			// Successfully removed all item
+			// delete oldKeys
+			return this.storeList.removeItem(this.storeName);
+		}).then(()=>{ // updated
+			this.keys={}; // in fact invalid
+		});
 	}
 }
