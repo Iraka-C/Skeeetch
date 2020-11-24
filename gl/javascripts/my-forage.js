@@ -32,6 +32,7 @@ class MyForage{
 			this.storeName=""; // init
 			return new Promise.reject("Illegal identifier : in store name",this.storeName);
 		}
+		this.storePrefix=this.storeName+":";
 		return this.storeList.getItem(this.storeName).then(val=>{
 			if(val){ // already existing, read it
 				this.storeKeys=val;
@@ -47,23 +48,26 @@ class MyForage{
 		if(key.indexOf(":")>=0){
 			return new Promise.reject("Illegal identifier : in key",key);
 		}
-		const itemName=this.storeName+":"+key;
+		const itemName=this.storePrefix+key;
 		return this.storage.setItem(itemName,value).then(()=>{
 			// set item successful, write keys to storage
-			this.storeKeys[key]=1;
-			return this.storeList.setItem(this.storeName,this.storeKeys);
+			if(!this.storeKeys[key]){
+				this.storeKeys[key]=1;
+				return this.storeList.setItem(this.storeName,this.storeKeys);
+			}
+			// else: fulfilled
 		}).then(()=>{ // set key valid
 			return value; // compatible to localForage method
 		});
 	}
 
 	getItem(key){
-		const itemName=this.storeName+":"+key;
+		const itemName=this.storePrefix+key;
 		return this.storage.getItem(itemName);
 	}
 
 	removeItem(key){ // Dangerous: not thread-safe!
-		const itemName=this.storeName+":"+key;
+		const itemName=this.storePrefix+key;
 		return this.storage.removeItem(itemName).then(()=>{
 			// Successfully removed item
 			delete this.storeKeys[key];
@@ -74,7 +78,7 @@ class MyForage{
 	clear(){
 		const taskList=[];
 		for(const key in this.storeKeys){
-			const itemName=this.storeName+":"+key;
+			const itemName=this.storePrefix+key;
 			console.log("Trying to remove "+itemName);
 			
 			taskList.push(this.storage.removeItem(itemName));
@@ -98,9 +102,7 @@ class MyForage{
 	drop(){
 		const taskList=[];
 		for(const key in this.storeKeys){
-			const itemName=this.storeName+":"+key;
-			console.log("Trying to remove "+itemName);
-			
+			const itemName=this.storePrefix+key;
 			taskList.push(this.storage.removeItem(itemName));
 		}
 		taskList.push(this.storeList.removeItem(this.storeName));

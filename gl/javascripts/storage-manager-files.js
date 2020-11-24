@@ -171,7 +171,7 @@ STORAGE.FILES.init=function() {
  * switch the current instance of STORAGE.FILES.layerStore to the given ID
  * also update the fileName (so the filename must be set in advance) and lastOpenedDate
  */
-STORAGE.FILES.initLayerStorage=function(fileID) { // This is a synced function
+STORAGE.FILES.initLayerStorage=function(fileID) { // This is an async function (layerStore.init())
 	console.log("Change layer store to "+fileID);
 	
 	// if not in fileStore, blabla
