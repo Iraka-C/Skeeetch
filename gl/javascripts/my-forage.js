@@ -43,7 +43,7 @@ class MyForage{
 		});
 	}
 
-	setItem(key,value){
+	setItem(key,value){ // Dangerous: not thread-safe!
 		if(key.indexOf(":")>=0){
 			return new Promise.reject("Illegal identifier : in key",key);
 		}
@@ -62,7 +62,7 @@ class MyForage{
 		return this.storage.getItem(itemName);
 	}
 
-	removeItem(key){
+	removeItem(key){ // Dangerous: not thread-safe!
 		const itemName=this.storeName+":"+key;
 		return this.storage.removeItem(itemName).then(()=>{
 			// Successfully removed item

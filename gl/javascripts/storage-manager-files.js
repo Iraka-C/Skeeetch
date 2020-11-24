@@ -12,8 +12,6 @@ STORAGE.FILES={
   * 
   * This happens when the user trying to delete a file from repo
   * when another deletion is under processing.
-  * 
-  * FIXME: only one layer in psd causes bugs
   */
 
 STORAGE.FILES.generateFileID=function(){
@@ -30,71 +28,77 @@ class FileWorker { // Work on canvas layer content, not files in repository!
 		this.fileID=fileID;
 	}
 	saveFile(node) {
+		const CHUNK_SIZE=1024*1024*64; // 64MB, largest single item browser may store in IDB
+		const layerStore=this.layerStore;
 		const imgData=node.rawImageData;
 		const vArea=imgData.validArea;
 
-		//if(!window.Worker||document.location.protocol=="file:") { // no worker available
-		if(true){ // always use local to save now.
-			// before we can work with thread-safe worker
-			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea);
-
-			console.log("Local Save");
-			const CHUNK_SIZE=1024*1024*64; // 64MB, largest chunk browser may store in IDB
-			const data=Compressor.encode(rawData); // encode first!
-			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
-
+		function saveChunks(data){ // data is encoded (compressed) texture contents
 			const chunkN=Math.max(Math.ceil(data.length/CHUNK_SIZE),1); // at lease 1 chunk
 
 			ENV.taskCounter.startTask(0,"nodeChunkN"); // start node imagedata structure task
-			const bufPromise=this.layerStore.setItem(node.id,chunkN).finally(() => {
+			const bufPromise=layerStore.setItem(node.id,chunkN).finally(() => {
 				ENV.taskCounter.finishTask(0,"nodeChunkN");
 			});
 
 			const chunkPromises=[bufPromise];
-			for(let i=0;i<chunkN;i++) { // save a slice of data
-				const key=node.id+"#"+i;
-				const chunk=data.slice(i*CHUNK_SIZE,(i+1)*CHUNK_SIZE);
-				const kPromise=this.layerStore.setItem(key,chunk);
-				ENV.taskCounter.startTask(0,"Chunk"+i); // start save chunk i task
+			if(chunkN==1){ // 1 slice step saved
+				const key=node.id+"#0";
+				const kPromise=layerStore.setItem(key,data); // don't need to slice
+				ENV.taskCounter.startTask(); // start save chunk i task
 				chunkPromises.push(kPromise.finally(() => {
-					ENV.taskCounter.finishTask(0,"Chunk"+i); // end save chunk i task
+					ENV.taskCounter.finishTask(); // end save chunk i task
 				}));
 			}
+			else{ // need slice
+				for(let i=0;i<chunkN;i++) { // save a slice of data
+					const key=node.id+"#"+i;
+					const chunk=data.slice(i*CHUNK_SIZE,(i+1)*CHUNK_SIZE);
+					const kPromise=layerStore.setItem(key,chunk);
+					ENV.taskCounter.startTask(0,"Chunk"+i); // start save chunk i task
+					chunkPromises.push(kPromise.finally(() => {
+						ENV.taskCounter.finishTask(0,"Chunk"+i); // end save chunk i task
+					}));
+				}
+			}
 			// Remove all chunks after (including) chunkN
-			STORAGE.FILES.removeContent(this.layerStore,node.id,chunkN); // do separately
-
+			STORAGE.FILES.removeContent(layerStore,node.id,chunkN); // do separately, not in promise
 			return Promise.all(chunkPromises);
 		}
-		else return new Promise((resolve,reject) => {
-			const worker=new Worker("./javascripts/storage-manager-files-worker.js");
-			worker.onmessage=result => { // file saved
-				worker.terminate();
+		if(!window.Worker||document.location.protocol=="file:") { // no worker available
+			// before we can work with thread-safe worker
+			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea);
 
-				const message=result.data;
-				if(message.isError) { // error in worker
-					reject();
-					return;
+			console.log("Local Save");
+			const data=Compressor.encode(rawData); // encode first!
+			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
+
+			return saveChunks(data);
+		}
+		else{
+			return new Promise((resolve,reject) => {
+				console.log("Save in Worker");
+				const worker=new Worker("./javascripts/workers/compressor-worker.js");
+				worker.onmessage=result => { // file saved
+					worker.terminate();
+					resolve(result.data);
+				};
+				worker.onerror=err => {
+					worker.terminate();
+					reject(err);
 				}
 
-				const chunkN=message.chunkN;
-				STORAGE.FILES.removeContent(this.layerStore,node.id,chunkN); // do separately
-				resolve(chunkN);
-			};
-			worker.onerror=err => {
-				worker.terminate();
-				reject(err);
-			}
-
-			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea,null,{
-				isPreserveArrayType: true
+				const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea,null,{
+					isPreserveArrayType: true
+				});
+				worker.postMessage({
+					id: node.id,
+					rawData: rawData,
+				});
+			}).then(msg=>{ // save file promises. msg is the object containing all data
+				return saveChunks(msg.data);
 			});
-			worker.postMessage({
-				fileID: this.fileID,
-				id: node.id,
-				rawData: rawData,
-				save: true
-			});
-		});
+		}
 	}
 	getFile(nodeID) {
 		if(!window.Worker||document.location.protocol=="file:") { // no worker available
@@ -127,17 +131,15 @@ class FileWorker { // Work on canvas layer content, not files in repository!
 				});
 			});
 		}
-		else return new Promise((resolve,reject) => {
-			const worker=new Worker("./javascripts/storage-manager-files-worker.js");
-			worker.onmessage=result => { // file saved
+		else return new Promise((resolve,reject) => { // read with worker
+			const worker=new Worker("./javascripts/workers/storage-manager-files-reader.js");
+			worker.onmessage=result => { // file get
 				worker.terminate();
-
 				const message=result.data;
-				if(message.isError) { // error in worker
-					reject();
+				if(message.error) { // error in worker
+					reject(error);
 					return;
 				}
-
 				const data=message.data;
 				resolve(data);
 			};
@@ -147,13 +149,11 @@ class FileWorker { // Work on canvas layer content, not files in repository!
 			}
 			worker.postMessage({
 				fileID: this.fileID,
-				id: nodeID,
-				get: true
+				id: nodeID
 			});
 		});
 	}
 }
-
 
  // ================================== STORAGE.FILES ================================
 
@@ -236,6 +236,7 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 				// FileWorker will try Worker first, then async saving
 				const fileSaver=new FileWorker(layerStore,fileID);
 				ENV.taskCounter.startTask();
+				
 				fileSaver.saveFile(node).then(() => {
 					STORAGE.FILES.savingList.delete(node.id); // delete first
 					node.isContentChanged=false;
