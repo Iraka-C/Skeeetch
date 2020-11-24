@@ -127,7 +127,9 @@ HISTORY.addHistory=function(param){ // see HistoryItem constructor for info stru
 	// if(HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
 	// 	HISTORY.popHead(); // pop the oldest history and release related resources
 	// }
-	while(HISTORY.nowRAMUsage>PERFORMANCE.maxMem.ram){ // exceed max memory
+	while(HISTORY.nowRAMUsage>PERFORMANCE.maxMem.gpu/2){ // exceed max memory
+		// Should be PERFORMANCE.maxMem.ram
+		// but saving half of VRAM equivalent memory for history should be enough
 		console.log("Pop");
 		HISTORY.popHead(); // pop the oldest history and release related resources
 	}

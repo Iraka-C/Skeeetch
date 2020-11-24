@@ -659,6 +659,16 @@ class GLImageDataFactory {
 		// Setup temp texture for extracting data
 		const tmpTexture=GLProgram.createAndSetupTexture(gl);
 		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,this.dataFormat,null);
+		/**
+		 * FIXME:
+		 * DANGER!! this texture isn't monitored by VRAMManager: may cause VRAM overflow.
+		 * Well... as the VRAMManager always tend to overestimate the usage of textures
+		 * this texture at most takes... 480MB of VRAM (???)
+		 * TODO:
+		 * Use renderer.tmpImageData as the buffer, and give WARNING when size exceeds
+		 * TODO:
+		 * oncontextlost: give UI warnings and try to restore
+		 */
 
 		// Run program to get a zoomed texture
 		program.setSourceTexture("u_image",src.data);
@@ -672,7 +682,6 @@ class GLImageDataFactory {
 			case gl.FLOAT: // map 0.0~1.0 to 0~255., avoid rounding (slow)
 				program.setUniform("u_range",255.999);
 				break;
-			case gl.UNSIGNED_SHORT_4_4_4_4: // @TODO: support these formats
 			case gl.UNSIGNED_BYTE:
 				program.setUniform("u_range",1);
 				break;
@@ -682,11 +691,10 @@ class GLImageDataFactory {
 		program.run();
 
 		// allocate proper buffer
-		const SIZE=W*H*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4? 1:4);
+		const SIZE=W*H*4;
 		let pixelsF;
 		switch(this.dataFormat) {
 			case gl.FLOAT: pixelsF=new Float32Array(SIZE); break;
-			case gl.UNSIGNED_SHORT_4_4_4_4:
 			case gl.HALF_FLOAT: pixelsF=new Uint16Array(SIZE); break;
 			case gl.UNSIGNED_BYTE: pixelsF=new Uint8Array(SIZE); break;
 		}
@@ -720,7 +728,6 @@ class GLImageDataFactory {
 					res[i]=decodeFloat16(pixelsF[i]);
 				}
 				return res;
-			case gl.UNSIGNED_SHORT_4_4_4_4: // @TODO: unsupported yet, well maybe never.
 			default:
 				return null;
 		}
@@ -737,7 +744,6 @@ class GLImageDataFactory {
 		if(!(src.width&&src.height)) { // empty
 			switch(this.dataFormat) {
 				case gl.FLOAT: return new Float32Array(0);
-				case gl.UNSIGNED_SHORT_4_4_4_4:
 				case gl.HALF_FLOAT: return new Uint16Array(0);
 				case gl.UNSIGNED_BYTE: return new Uint8Array(0);
 			}
@@ -748,11 +754,10 @@ class GLImageDataFactory {
 		program.setTargetTexture(src.data,src.width,src.height);
 		gl.viewport(0,0,src.width,src.height); // set size to src
 
-		const SIZE=src.width*src.height*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4? 1:4);
+		const SIZE=src.width*src.height*4;
 		let pixels;
 		switch(this.dataFormat) {
 			case gl.FLOAT: pixels=new Float32Array(SIZE); break;
-			case gl.UNSIGNED_SHORT_4_4_4_4:
 			case gl.HALF_FLOAT: pixels=new Uint16Array(SIZE); break;
 			case gl.UNSIGNED_BYTE: pixels=new Uint8Array(SIZE); break;
 		}
@@ -782,10 +787,9 @@ class GLImageDataFactory {
 		if(area.height<0) area.height=0;
 
 		let data;
-		const SIZE=area.width*area.height*(this.dataFormat==gl.UNSIGNED_SHORT_4_4_4_4? 1:4);
+		const SIZE=area.width*area.height*4;
 		switch(this.dataFormat) {
 			case gl.FLOAT: data=new Float32Array(SIZE); break;
-			case gl.UNSIGNED_SHORT_4_4_4_4:
 			case gl.HALF_FLOAT: data=new Uint16Array(SIZE); break;
 			case gl.UNSIGNED_BYTE: data=new Uint8Array(SIZE); break;
 		}
