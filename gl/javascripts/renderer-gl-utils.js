@@ -708,15 +708,12 @@ class GLImageDataFactory {
 		// if bin represents a subnormal value (<0.000060976), returns 0
 		// if exp<15, the represented float must be <1: returns 0
 		// If you REALLY want it to be even faster, try lookup tables ...
+
+		// ((bin&0x3FF|0x400)<<exp)/0x400 equals
+		// (1<<exp)*(1+(bin&0x3FF)/0x400), but the prior is faster
 		function decodeFloat16(bin) {
-			const exp=(bin>>>10)-15; // exp>0
-			return exp>=0? (1<<exp)*(1+(bin&0x3FF)/0x400):0;
-		};
-		// Same. This is even faster than new Uint8ClampedArray(Float32Array)
-		// at most 5 times faster !! Shame on native constructor
-		function decodeFloat32(bin) {
-			const exp=(bin>>>23)-127; // exp>0
-			return exp>=0? (1<<exp)*(1+(bin&0x7FFFFF)/0x800000):0;
+			const exp=(bin>>>10)-15; // bin must represent a positive/0 float
+			return exp>=0? ((bin&0x3FF|0x400)<<exp)/0x400:0;
 		};
 
 		// format transform
@@ -726,10 +723,10 @@ class GLImageDataFactory {
 		switch(this.dataFormat) {
 			case gl.FLOAT:
 				// avoid directly using new Uint8ClampedArray(pixelsF)
-				const buffer=new Uint32Array(pixelsF.buffer); // only create a new view, no data copy
 				const res32=new Uint8ClampedArray(SIZE);
-				for(let i=0;i<SIZE;i++) {
-					res32[i]=decodeFloat32(buffer[i]);
+				// res32.set(pixelsF); // Don't use this either. Also slow
+				for(let i=0;i<SIZE;i++) { // copy directly: fast
+					res32[i]=pixelsF[i];
 				}
 				return res32;
 			case gl.UNSIGNED_BYTE: // same

@@ -185,8 +185,7 @@ class Compressor{
 			buf|=vCode<<(32-pBit); // put into buffer, left aligned
 
 			while(pBit>=8){ // combined to 1 byte
-				const code=buf>>>24;
-				encoded[pED++]=code; // copy value
+				encoded[pED++]=buf>>>24; // copy value
 				buf<<=8; // move buffer
 				pBit-=8;
 			}
@@ -271,7 +270,6 @@ class Compressor{
 		
 		const CHUNK_LEN=1048576;
 		let res=new Uint8Array(CHUNK_LEN); // 1MB
-		//let res=new Uint8Array(1048576); // 1MB
 		const resList=[res];
 		let resPos=0; // length in last chunk
 
@@ -283,9 +281,6 @@ class Compressor{
 		let repeatCnt=0;
 
 		function extendResult(){ // extend the length of res for 1MB
-			//const newRes=new Uint8Array(res.length+1048576);
-			//newRes.set(res,0);
-			//res=newRes;
 			res=new Uint8Array(CHUNK_LEN);
 			resList.push(res);
 			resPos=0;

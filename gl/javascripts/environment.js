@@ -38,7 +38,7 @@ ENV.displaySettings={
 	uiOrientationLeft: true, // UI flows from left->right: true
 	uiTheme: "light", // UI is the "light"/"dark" theme
 	isAutoSave: true, // Auto save files when modified in browser
-	maxFps: Infinity // 30, 60, Infinity
+	maxFps: Infinity // 12, 30, 60, Infinity
 };
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
 
