@@ -268,38 +268,54 @@ class Compressor{
 			res[1]=data[0];
 			return res;
 		}
+		
+		const CHUNK_LEN=1048576;
+		let res=new Uint8Array(CHUNK_LEN); // 1MB
+		//let res=new Uint8Array(1048576); // 1MB
+		const resList=[res];
+		let resPos=0; // length in last chunk
 
-		let res=new Uint8Array(1048576); // 1MB
-		let resPos=0; // length
+		const buf=new Uint8Array(128); // buffer for raw part
+		let bufPos=0; // next pos in buffer
 
-		let buf=[];
 		let pos=0; // which data to add
 		let isRLE=false; // state: raw or rle
 		let repeatCnt=0;
 
 		function extendResult(){ // extend the length of res for 1MB
-			const newRes=new Uint8Array(res.length+1048576);
-			newRes.set(res,0);
-			res=newRes;
+			//const newRes=new Uint8Array(res.length+1048576);
+			//newRes.set(res,0);
+			//res=newRes;
+			res=new Uint8Array(CHUNK_LEN);
+			resList.push(res);
+			resPos=0;
 		}
 		function pushVal(val){ // number
-			if(resPos==res.length){
+			if(resPos==CHUNK_LEN){
 				extendResult();
 			}
 			res[resPos++]=val;
 		};
 		function pushBuf(){ // buffer
-			if(resPos+buf.length>res.length){
+			const newResPos=resPos+bufPos;
+			if(newResPos>CHUNK_LEN){
+				const remainLen=CHUNK_LEN-resPos;
+				res.set(buf.subarray(0,remainLen),resPos);
 				extendResult();
+				res.set(buf.subarray(remainLen,bufPos),0);
+				resPos=bufPos-remainLen;
+				bufPos=0;
 			}
-			res.set(buf,resPos);
-			resPos+=buf.length;
-			buf=[];
+			else{ // enough length
+				res.set(buf.subarray(0,bufPos),resPos);
+				resPos+=bufPos;
+				bufPos=0;
+			}
 		}
 
-		function finishRaw(){ // push the buffer
-			if(!buf.length)return;
-			pushVal(buf.length-1);
+		function finishRaw(){ // push the buffer into result
+			if(!bufPos)return;
+			pushVal(bufPos-1);
 			pushBuf();
 		}
 
@@ -308,10 +324,12 @@ class Compressor{
 			pushVal(data[pos]);
 		}
 
+		let nextD=data[0];
 		while(pos<data.length-1){
-			const d=data[pos];
+			const d=nextD;
+			nextD=data[pos+1];
 
-			if(d==data[pos+1]){ // same
+			if(d==nextD){ // same
 				if(isRLE){ // still RLE
 					if(repeatCnt==127){ // restart RLE
 						finishRLE();
@@ -333,10 +351,10 @@ class Compressor{
 					repeatCnt=0;
 				}
 				else{
-					if(buf.length==127){ // restart raw
+					if(bufPos==127){ // restart raw
 						finishRaw();
 					}
-					buf.push(d);
+					buf[bufPos++]=d;
 				}
 			}
 			pos++;
@@ -348,11 +366,21 @@ class Compressor{
 			finishRLE();
 		}
 		else{
-			buf.push(data[pos]);
+			buf[bufPos++]=data[pos];
 			finishRaw();
 		}
 
-		return res.slice(0,resPos);
+
+		//return res.slice(0,resPos);
+		const totalLen=(resList.length-1)*CHUNK_LEN+resPos;
+		const finalRes=new Uint8Array(totalLen);
+		let offset=0;
+		for(let i=0;i<resList.length-1;i++){ // set whole chunks
+			finalRes.set(resList[i],offset);
+			offset+=CHUNK_LEN;
+		}
+		finalRes.set(res.subarray(0,resPos),offset); // copy the last chunk
+		return finalRes;
 	}
 
 	/**
@@ -374,7 +402,7 @@ class Compressor{
 		}
 		function pushVal(val,cnt){ // push several same numbers
 			const newResPos=resPos+cnt;
-			if(newResPos>res.length){ // longer
+			if(newResPos>CHUNK_LEN){ // longer
 				res.fill(val,resPos,CHUNK_LEN);
 				extendResult();
 				resPos=newResPos-CHUNK_LEN;
@@ -387,7 +415,7 @@ class Compressor{
 		};
 		function pushData(start,cnt){ // push several numbers from data
 			const newResPos=resPos+cnt;
-			if(newResPos>res.length){ // need to extend
+			if(newResPos>CHUNK_LEN){ // need to extend
 				const remainLen=CHUNK_LEN-resPos;
 				const newStart=start+remainLen;
 				res.set(data.subarray(start,newStart),resPos);

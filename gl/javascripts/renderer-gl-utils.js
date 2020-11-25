@@ -709,8 +709,14 @@ class GLImageDataFactory {
 		// if exp<15, the represented float must be <1: returns 0
 		// If you REALLY want it to be even faster, try lookup tables ...
 		function decodeFloat16(bin) {
-			const exp=((bin>>>10)&0x1F)-15; // exp>0
-			return exp>=0? (1<<exp)*(1+(bin&0x03FF)/0x400):0;
+			const exp=(bin>>>10)-15; // exp>0
+			return exp>=0? (1<<exp)*(1+(bin&0x3FF)/0x400):0;
+		};
+		// Same. This is even faster than new Uint8ClampedArray(Float32Array)
+		// at most 5 times faster !! Shame on native constructor
+		function decodeFloat32(bin) {
+			const exp=(bin>>>23)-127; // exp>0
+			return exp>=0? (1<<exp)*(1+(bin&0x7FFFFF)/0x800000):0;
 		};
 
 		// format transform
@@ -719,15 +725,21 @@ class GLImageDataFactory {
 		}
 		switch(this.dataFormat) {
 			case gl.FLOAT:
-				return new Uint8ClampedArray(pixelsF); // This takes even longer time than readPixels!
+				// avoid directly using new Uint8ClampedArray(pixelsF)
+				const buffer=new Uint32Array(pixelsF.buffer); // only create a new view, no data copy
+				const res32=new Uint8ClampedArray(SIZE);
+				for(let i=0;i<SIZE;i++) {
+					res32[i]=decodeFloat32(buffer[i]);
+				}
+				return res32;
 			case gl.UNSIGNED_BYTE: // same
 				return pixelsF;
 			case gl.HALF_FLOAT: // decode half float
-				const res=new Uint8ClampedArray(SIZE);
+				const res16=new Uint8ClampedArray(SIZE);
 				for(let i=0;i<SIZE;i++) {
-					res[i]=decodeFloat16(pixelsF[i]);
+					res16[i]=decodeFloat16(pixelsF[i]);
 				}
-				return res;
+				return res16;
 			default:
 				return null;
 		}
