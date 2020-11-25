@@ -233,6 +233,7 @@ class Compressor{
 		const decoded=new Uint8Array(dLen); // with huffmanCnt
 		let pDD=0; // now tail position in decoded
 
+		// NOTE: According to JS specs, bitwise operators only accept 32bit Ints.
 		let buf=0; // 32bit buf for decoding
 		let pED=0; // encoded element pos
 		let pBit=0; // tail position in buf (after lowest valid bit)
@@ -363,28 +364,43 @@ class Compressor{
 			return data;
 		}
 
-		let res=new Uint8Array(1048576); // 1MB
-		let resPos=0; // length
+		const CHUNK_LEN=1048576;
+		let res=new Uint8Array(CHUNK_LEN); // 1MB
+		let resList=[res];
+		let resPos=0; // length in the last chunk
 		function extendResult(){ // extend the length of res for 1MB
-			const newRes=new Uint8Array(res.length+1048576);
-			newRes.set(res,0);
-			res=newRes;
+			res=new Uint8Array(CHUNK_LEN);
+			resList.push(res);
 		}
 		function pushVal(val,cnt){ // push several same numbers
 			const newResPos=resPos+cnt;
-			if(newResPos>res.length){
+			if(newResPos>res.length){ // longer
+				res.fill(val,resPos,CHUNK_LEN);
 				extendResult();
+				resPos=newResPos-CHUNK_LEN;
+				res.fill(val,0,resPos);
 			}
-			res.fill(val,resPos,newResPos);
-			resPos=newResPos;
+			else{ // able to contain
+				res.fill(val,resPos,newResPos);
+				resPos=newResPos;
+			}
 		};
 		function pushData(start,cnt){ // push several numbers from data
-			if(resPos+cnt>res.length){
+			const newResPos=resPos+cnt;
+			if(newResPos>res.length){ // need to extend
+				const remainLen=CHUNK_LEN-resPos;
+				const newStart=start+remainLen;
+				res.set(data.subarray(start,newStart),resPos);
 				extendResult();
+				const newLen=newResPos-CHUNK_LEN;
+				res.set(data.subarray(newStart,newStart+newLen),0);
+				resPos=newLen;
 			}
-			for(let i=0;i<cnt;i++){
-				res[resPos++]=data[start+i];
+			else{ // able to contain
+				res.set(data.subarray(start,start+cnt),resPos);
+				resPos+=cnt;
 			}
+			
 		};
 
 		let pos=0;
@@ -399,7 +415,16 @@ class Compressor{
 			}
 			// 128 is ignored
 		}
-		return res.slice(0,resPos);
+
+		const totalLen=(resList.length-1)*CHUNK_LEN+resPos;
+		const finalRes=new Uint8Array(totalLen);
+		let offset=0;
+		for(let i=0;i<resList.length-1;i++){ // set whole chunks
+			finalRes.set(resList[i],offset);
+			offset+=CHUNK_LEN;
+		}
+		finalRes.set(res.subarray(0,resPos),offset); // copy the last chunk
+		return finalRes;
 	}
 }
 
