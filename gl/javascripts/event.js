@@ -76,10 +76,7 @@ EVENTS.init=function() {
 		ENV.window.SIZE.width=$canvasWindow.width();
 		ENV.window.SIZE.height=$canvasWindow.height();
 		ENV.refreshTransform();
-		$("#brush-cursor-layer").attr({
-			width: ENV.window.SIZE.width,
-			height: ENV.window.SIZE.height
-		});
+		PALETTE.refreshUIParam(); // for palette selector
 	});
 
 	// Tidy the logic here: better if only use over/move/out. Do not use down/up
@@ -95,17 +92,26 @@ EVENTS.init=function() {
 	});
 	
 	let cntAfterUp=0; // Hysteresis of pointer up
+	let isStrokeEnded=true;
+	function endStroke(){ // end a down-move-up sequence
+		EVENTS.isCursorInHysteresis=false; // cancel hysteresis count
+		isStrokeEnded=true;
+		cntAfterUp=0;
+		CANVAS.strokeEnd();
+		eachMenuPanelFunc($el => $el.css("pointer-events","all")); // after stroke, enable menus
+	}
+
 	$canvasWindow.on("pointermove",event => {
 		CURSOR.setIsShown(true); // pen->mouse switching
 		CURSOR.updateAction(event); // still registering right button: change to movecursor?
 		CURSOR.moveCursor(event); // may be stroke or pan
+
 		if(EVENTS.isCursorInHysteresis){ // add a count
 			cntAfterUp++;
-			if(cntAfterUp==3){ // hysteresis ends, 3 is a good value for radius attenuation.
-				EVENTS.isCursorInHysteresis=false; // cancel hysteresis count
-				cntAfterUp=0;
-				CANVAS.strokeEnd();
-				eachMenuPanelFunc($el => $el.css("pointer-events","all")); // after stroke, enable menus
+			if(cntAfterUp==3){
+				// hysteresis ends, 3 is a good value for pen radius attenuation.
+				//console.log("End hyst");
+				endStroke(); // end after hysteresis
 			}
 		}
 	});
@@ -146,6 +152,7 @@ EVENTS.init=function() {
 			CANVAS.setCanvasEnvironment(); // init canvas here
 			eachMenuPanelFunc($el => $el.css("pointer-events","none")); // do not enable menu operation
 		}
+		isStrokeEnded=false; // one down-move-up sequence not ended
 		CURSOR.down(event);
 		CURSOR.updateAction(event); // doesn't change the action
 		CURSOR.moveCursor(event);
@@ -153,13 +160,21 @@ EVENTS.init=function() {
 		cntAfterUp=0; // reset count
 	});
 	$(window).on("pointerup",event => {
-		if(event.target==$canvasWindow[0]&&event.originalEvent.which==1) { // on canvas
+		if(event.originalEvent.which==1){
 			// Although event.originalEvent.which is not recommended
 			// is it always 1 when left clicked
-			// left pointer up on canvas
-			EVENTS.isCursorInHysteresis=true; // start count moves after up
-			//CURSOR.moveCursor(event);
+			if(event.target==$canvasWindow[0]) { // left pointer up on canvas
+				EVENTS.isCursorInHysteresis=true; // start count moves after up
+				//CURSOR.moveCursor(event);
+			}
+			else{ // outside canvas, end this stroke
+				if(!isStrokeEnded){ // stroking
+					//console.log("End outside canvas");
+					endStroke();
+				}
+			}
 		}
+		
 		CURSOR.up(event);
 		// if(event.originalEvent.pointerType=="touch"){ // on touch up, at the same time, out
 		// 	CURSOR.hideCursor();
@@ -167,8 +182,10 @@ EVENTS.init=function() {
 
 		//CANVAS.strokeEnd(); // handled by hysteresis
 		CURSOR.updateAction(event);
+
 	});
 	// When menus enabled, disable canvas operation
+	// block all event only to this menu level
 	// This also disables drawing on canvas when the cursor moves out of the menu part
 	eachMenuPanelFunc($el => $el.on("pointerdown",e => e.stopPropagation()));
 

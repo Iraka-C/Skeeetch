@@ -259,6 +259,8 @@ CANVAS.stroke=function() {
  * On the end of stroke (Notice: not certainly canvas refreshed!)
  */
 CANVAS.strokeEnd=function() {
+	console.log("Stroke end");
+	
 	PERFORMANCE.idleTaskManager.startIdle();
 	/**
 	 * @TODO: more precise isChanged detection

@@ -103,7 +103,10 @@ LAYERS.scrollTo=function(node,isAnimate) {
 	const $scroll=$("#layer-panel-scroll");
 	const $panel=$("#layer-panel-inner");
 	const pTop=$panel.offset().top;
-	const sTop=nTop-pTop; // scroll top
+
+	const sH=$scroll.height();
+	const sTop=nTop-pTop-sH*0.3; // scroll top
+	// 0.3 for putting the node kind-of center
 
 	if(isAnimate) {
 		$scroll.animate({scrollTop: sTop},isNaN(isAnimate)? 300:isAnimate);
@@ -141,6 +144,7 @@ LAYERS.shrinkUI=function() {
 		ENV.refreshTransform();
 
 		LAYERS.updateAllThumbs();
+		LAYERS.scrollTo(LAYERS.active,true);
 	};
 
 	requestAnimationFrame(mutate); // Kick!
@@ -170,6 +174,7 @@ LAYERS.expandUI=function() {
 		ENV.refreshTransform();
 
 		LAYERS.updateAllThumbs();
+		LAYERS.scrollTo(LAYERS.active,true);
 	};
 
 	requestAnimationFrame(mutate); // Kick!
