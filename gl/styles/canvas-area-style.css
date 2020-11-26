@@ -225,11 +225,14 @@ table{
 	opacity: 1;
 }
 /* ==================== Canvas panels ==================== */
-#brush-cursor-layer{ /* svg layer for cursor */
+#brush-cursor-layer, #drag-selection-layer{ /* svg layer for cursor */
 	position: absolute;
 	pointer-events: none;
 	width: 100%;
 	height: 100%;
+}
+#drag-selection-layer{
+	display: none;
 }
 #canvas-window{
 	position: absolute;

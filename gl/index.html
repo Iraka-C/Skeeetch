@@ -233,6 +233,21 @@
 								<circle id="brush-cursor-center-outer" cx="-10" cy="-10" r="2" stroke="none" fill="#00000000"/>
 							</g>
 						</svg>
+
+						<svg id="drag-selection-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
+							<g id="drag-points" stroke-width="2" stroke="none" fill="ffff00">
+								<circle id="c1" cx="100" cy="100" r="2"/>
+								<circle id="c2" cx="100" cy="200" r="2"/>
+								<circle id="c3" cx="200" cy="200" r="2"/>
+								<circle id="c4" cx="200" cy="100" r="2"/>
+							</g>
+							<g id="drag-lines" stroke-width="2" stroke="#ff0000" fill="none">
+								<line id="l12" x1="100" y1="100" x2="100" y2="200"/>
+								<line id="l23" x1="100" y1="200" x2="200" y2="200"/>
+								<line id="l34" x1="200" y1="200" x2="200" y2="100"/>
+								<line id="l41" x1="200" y1="100" x2="100" y2="100"/>
+							</g>
+						</svg>
 					</div>
 
 					<!-- show info/button over canvas -->

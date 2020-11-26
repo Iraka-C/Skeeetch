@@ -228,7 +228,8 @@ FILES.loadPSDNodes=function(node) {
 			}
 		}
 
-		// Some layers, such as adjustment layers, has a mask without canvas
+		// Some layers, such as adjustment layers without initialized mask, has a mask without canvas
+		// TODO: adjustment layer isn't loaded while its mask is
 		if(jsonNode.mask&&jsonNode.mask.canvas) { // load mask json
 			const stackNodeM=new StackNode(Object.assign(jsonNode.mask,{
 				isMask: true, // Note that this is a mask layer
