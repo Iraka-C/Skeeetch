@@ -5,321 +5,349 @@
 	2019.12.27
 -->
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-		<link rel="stylesheet" type="text/css" href="./styles/main-style.css" />
-		<link rel="stylesheet" type="text/css" href="./styles/mask-style.css" />
-		<link rel="stylesheet" type="text/css" href="./styles/top-menu-style.css" />
-		<link rel="stylesheet" type="text/css" href="./styles/layer-panel-style.css" />
-		<link rel="stylesheet" type="text/css" href="./styles/layer-panel-style-expanded.css" />
-		<link rel="alternate stylesheet" type="text/css" id="layer-panel-style-collapsed" href="./styles/layer-panel-style-collapsed.css" /> <!-- Additional stylesheet to collapse the layer panel -->
-		<link rel="stylesheet" type="text/css" href="./styles/canvas-area-style.css" />
-		<link rel="stylesheet" type="text/css" href="./styles/file-selector-style.css" />
-		<link id="css-theme" rel="stylesheet" type="text/css" href="./styles/color-theme-light.css" /> <!-- UI color theme -->
 
-		<link id="icon" rel="icon" type="image/png" href="./resources/favicon.png">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="./styles/main-style.css" />
+	<link rel="stylesheet" type="text/css" href="./styles/mask-style.css" />
+	<link rel="stylesheet" type="text/css" href="./styles/top-menu-style.css" />
+	<link rel="stylesheet" type="text/css" href="./styles/layer-panel-style.css" />
+	<link rel="stylesheet" type="text/css" href="./styles/layer-panel-style-expanded.css" />
+	<link rel="alternate stylesheet" type="text/css" id="layer-panel-style-collapsed" href="./styles/layer-panel-style-collapsed.css" />
+	<!-- Additional stylesheet to collapse the layer panel -->
+	<link rel="stylesheet" type="text/css" href="./styles/canvas-area-style.css" />
+	<link rel="stylesheet" type="text/css" href="./styles/file-selector-style.css" />
+	<link id="css-theme" rel="stylesheet" type="text/css" href="./styles/color-theme-light.css" /> <!-- UI color theme -->
 
-		<script src="./javascripts/jquery-3.4.1.min.js"></script>
-		<script type="text/javascript">
-			const glsl=s=>s; // string conversion, for glsl tag linting.
-			const LOGGING=false; // logging switch & optimize unused console object
-			$(e=>ENV.init()); // Main program entrance
-		</script>
+	<link id="icon" rel="icon" type="image/png" href="./resources/favicon.png">
 
-		<!-- load static libraries -->
-		<script src="./javascripts/Sortable.min.js"></script>
-		<script async defer src="./javascripts/ag-psd.js"></script>
-		<script src="./javascripts/localforage.min.js"></script>
-		<script src="./javascripts/base32k.min.js"></script>
-		<script async defer src="https://buttons.github.io/buttons.js"></script>
+	<script src="./javascripts/library/jquery-3.4.1.min.js"></script>
+	<script type="text/javascript">
+		const glsl=s => s; // string conversion, for glsl tag linting.
+		const LOGGING=true; // logging switch & optimize unused console object
+		$(e => ENV.init()); // Main program entrance
+	</script>
+
+	<!-- load static libraries -->
+	<script src="./javascripts/library/Sortable.min.js"></script>
+	<script async defer src="./javascripts/library/ag-psd.js"></script>
+	<script src="./javascripts/library/localforage.min.js"></script>
+	<script src="./javascripts/library/base32k.min.js"></script>
+	<script async defer src="https://buttons.github.io/buttons.js"></script>
 
 
-		<script src="./javascripts/math.js"></script>
-		<script src="./javascripts/q-bezier.js"></script>
-		<script src="./javascripts/compressor.js"></script>
-		<script src="./javascripts/my-forage.js"></script>
+	<script src="./javascripts/my-library/math.js"></script>
+	<script src="./javascripts/my-library/q-bezier.js"></script>
+	<script src="./javascripts/my-library/compressor.js"></script>
+	<script src="./javascripts/my-library/my-forage.js"></script>
 
-		<!-- load storages -->
-		<script src="./javascripts/storage-manager.js"></script>
-		<script src="./javascripts/storage-manager-setting.js"></script>
-		<script src="./javascripts/storage-manager-files.js"></script>
-		<script src="./javascripts/storage-manager-files-brush.js"></script>
-		<script src="./javascripts/storage-manager-files-thumb.js"></script>
-		<!--script src="./javascripts/storage-manager-files-worker.js"></script-->
+	<!-- load storages -->
+	<script src="./javascripts/storage/storage-manager.js"></script>
+	<script src="./javascripts/storage/storage-manager-setting.js"></script>
+	<script src="./javascripts/storage/storage-manager-files.js"></script>
+	<script src="./javascripts/storage/storage-manager-files-brush.js"></script>
+	<script src="./javascripts/storage/storage-manager-files-thumb.js"></script>
 
-		<!-- load languages -->
-		<script src="./javascripts/languages/lang-zh.js"></script>
-		<script src="./javascripts/languages/lang-en.js"></script>
-		<script src="./javascripts/lang.js"></script>
+	<!-- load languages -->
+	<script src="./javascripts/languages/lang-zh.js"></script>
+	<script src="./javascripts/languages/lang-en.js"></script>
+	<script src="./javascripts/languages/lang.js"></script>
 
-		<!-- load page handlers -->
-		<script src="./javascripts/event-distributer.js"></script>
-		<script src="./javascripts/event.js"></script>
-		<script src="./javascripts/event-hotkey.js"></script>
-		<script src="./javascripts/clipboard.js"></script>
-		<script src="./javascripts/brush.js"></script>
-		<script src="./javascripts/brush-settings.js"></script>
-		<script src="./javascripts/brush-selector.js"></script>
-		<script src="./javascripts/cursor.js"></script>
+	<!-- load page handlers -->
+	<script src="./javascripts/event/event-distributer.js"></script>
+	<script src="./javascripts/event/event.js"></script>
+	<script src="./javascripts/event/event-hotkey.js"></script>
+	<script src="./javascripts/clipboard.js"></script>
+	<script src="./javascripts/brush/brush.js"></script>
+	<script src="./javascripts/brush/brush-settings.js"></script>
+	<script src="./javascripts/brush/brush-selector.js"></script>
+	<script src="./javascripts/cursor.js"></script>
 
-		<!-- Layer managements -->
-		<script src="./javascripts/layer.js"></script>
-		<script src="./javascripts/layer-node-content.js"></script>
-		<script src="./javascripts/layer-node-canvas.js"></script>
-		<script src="./javascripts/layer-node-group.js"></script>
-		<script src="./javascripts/layer-node-root.js"></script>
-		<script src="./javascripts/layer-ui.js"></script>
+	<!-- Layer managements -->
+	<script src="./javascripts/layer/layer.js"></script>
+	<script src="./javascripts/layer/layer-node-content.js"></script>
+	<script src="./javascripts/layer/layer-node-canvas.js"></script>
+	<script src="./javascripts/layer/layer-node-group.js"></script>
+	<script src="./javascripts/layer/layer-node-root.js"></script>
+	<script src="./javascripts/layer/layer-ui.js"></script>
 
-		<!-- Settings -->
-		<script src="./javascripts/palette.js"></script>
-		<script src="./javascripts/palette-color.js"></script>
-		<script src="./javascripts/palette-color-list.js"></script>
-		<script src="./javascripts/palette-selector-hsv.js"></script>
-		<script src="./javascripts/palette-selector-vhs.js"></script>
-		<script src="./javascripts/settings.js"></script>
-		<script src="./javascripts/setting-handler.js"></script>
-		<script src="./javascripts/environment.js"></script>
-		<script src="./javascripts/environment-effects.js"></script>
-		<script src="./javascripts/environment-ui.js"></script>
-		
-		<!--script src="./javascripts/render.js"></script>
+	<!-- Settings -->
+	<script src="./javascripts/palette/palette.js"></script>
+	<script src="./javascripts/palette/palette-color.js"></script>
+	<script src="./javascripts/palette/palette-color-list.js"></script>
+	<script src="./javascripts/palette/palette-selector-hsv.js"></script>
+	<script src="./javascripts/palette/palette-selector-vhs.js"></script>
+	<script src="./javascripts/settings.js"></script>
+	<script src="./javascripts/setting-handler.js"></script>
+	<script src="./javascripts/environment/environment.js"></script>
+	<script src="./javascripts/environment/environment-effects.js"></script>
+	<script src="./javascripts/environment/environment-ui.js"></script>
+
+	<!--script src="./javascripts/render.js"></script>
 		<script src="./javascripts/render16.js"></script-->
-		<script src="./javascripts/gl-utils.js"></script>
-		<script src="./javascripts/renderer.js"></script>
-		<script src="./javascripts/renderer-gl-vram-manager.js"></script>
-		<script src="./javascripts/renderer-gl-utils.js"></script>
-		<script src="./javascripts/renderer-gl-brush.js"></script>
-		<script src="./javascripts/renderer-gl.js"></script>
-		<script src="./javascripts/layer-compositor.js"></script>
-		<script src="./javascripts/canvas.js"></script>
-		<script src="./javascripts/history.js"></script>
-		<script src="./javascripts/file-handler.js"></script>
-		<script src="./javascripts/file-settings.js"></script>
-		<script src="./javascripts/file-selector.js"></script>
-		<script src="./javascripts/performance.js"></script>
-		
-		<title>Skeeetch</title>
-	</head>
+	<script src="./javascripts/renderer/gl-utils.js"></script>
+	<script src="./javascripts/renderer/renderer.js"></script>
+	<script src="./javascripts/renderer/renderer-gl-vram-manager.js"></script>
+	<script src="./javascripts/renderer/renderer-gl-utils.js"></script>
+	<script src="./javascripts/renderer/renderer-gl-brush.js"></script>
+	<script src="./javascripts/renderer/renderer-gl.js"></script>
+	<script src="./javascripts/layer/layer-compositor.js"></script>
 
-	<body class="noselect">
-		<div id="ui-panel">
-			<div id="top-menu-panel"> <!-- Header banner -->
-				<div id="top-menu-left-center-panel">
-					<div id="top-menu-left-panel">
-						<div id="palette-button" class="top-block">
-							<div id="palette-button-text">
-								Palette
-							</div>
-						</div>
-						<div id="brush-selector-panel">
-							<div id="brush-button" class="top-block">
-								<div id="brush-name">Pencil</div>
-								<div>&middot;</div>
-								<input id="brush-size" value="0" type="text" maxLength="3" size="3"/>
-							</div>
-							<div id="brush-selector-menu">
-								<div id="brush-selector-default">
-								</div>
-								<div id="brush-selector-buttons">
-									<div id="brush-selector-new">+</div>
-									<div id="brush-selector-delete">-</div>
-									<div id="brush-selector-set">&#9679;</div>
-									<div id="brush-selector-clear">&#9675;</div>
-								</div>
-								<div id="brush-selector-custom">
-								</div>
-							</div>
+	<script src="./javascripts/canvas.js"></script>
+	<script src="./javascripts/history.js"></script>
+	<script src="./javascripts/file/file-handler.js"></script>
+	<script src="./javascripts/file/file-settings.js"></script>
+	<script src="./javascripts/file/file-selector.js"></script>
+	<script src="./javascripts/performance.js"></script>
+
+	<title>Skeeetch</title>
+</head>
+
+<body class="noselect">
+	<div id="ui-panel">
+		<div id="top-menu-panel">
+			<!-- Header banner -->
+			<div id="top-menu-left-center-panel">
+				<div id="top-menu-left-panel">
+					<div id="palette-button" class="top-block">
+						<div id="palette-button-text">
+							Palette
 						</div>
 					</div>
-					<div id="top-menu-center-panel">
-						<input class="top-block" id="filename-input" value="Skeeetch" type="text" maxLength="256" size="20"/>
+					<div id="brush-selector-panel">
+						<div id="brush-button" class="top-block">
+							<div id="brush-name">Pencil</div>
+							<div>&middot;</div>
+							<input id="brush-size" value="0" type="text" maxLength="3" size="3" />
+						</div>
+						<div id="brush-selector-menu">
+							<div id="brush-selector-default">
+							</div>
+							<div id="brush-selector-buttons">
+								<div id="brush-selector-new">+</div>
+								<div id="brush-selector-delete">-</div>
+								<div id="brush-selector-set">&#9679;</div>
+								<div id="brush-selector-clear">&#9675;</div>
+							</div>
+							<div id="brush-selector-custom">
+							</div>
+						</div>
 					</div>
 				</div>
-				<div id="top-menu-right-panel">
-					<div id="system-button" class="top-block">Settings</div>
-					<div id="file-button" class="top-block">Files</div>
+				<div id="top-menu-center-panel">
+					<input class="top-block" id="filename-input" value="Skeeetch" type="text" maxLength="256" size="20" />
 				</div>
 			</div>
+			<div id="top-menu-right-panel">
+				<div id="system-button" class="top-block">Settings</div>
+				<div id="file-button" class="top-block">Files</div>
+			</div>
+		</div>
 
-			<div id="column-panel"> <!-- Column panels -->
-				<div id="layer-area-panel"> <!-- palette's also here -->
-					<div id="layer-area-width-panel" class="layer-panel-block"></div>
-					<div id="palette-panel">
-						<div id="palette-title">
-							<div id="palette-hue-selector">
-								<canvas id="palette-hue-selector-canvas" width="180" height="60"></canvas>
-							</div>
-							<div id="palette-hue-info">
-								<div id="palette-hue-sign">Hue</div>
-								<div id="palette-hue-symbol">&middot;</div>
-								<div id="palette-hue-value">200</div>
-							</div>
+		<div id="column-panel">
+			<!-- Column panels -->
+			<div id="layer-area-panel">
+				<!-- palette's also here -->
+				<div id="layer-area-width-panel" class="layer-panel-block"></div>
+				<div id="palette-panel">
+					<div id="palette-title">
+						<div id="palette-hue-selector">
+							<canvas id="palette-hue-selector-canvas" width="180" height="60"></canvas>
 						</div>
-						<div id="palette-selector">
-							<svg id="palette-svg" class="layer-panel-block" width="256" height="256" xmlns="http://www.w3.org/2000/svg" version="1.1">
-								<circle id="palette-cursor" cx="0" cy="0" r="3" stroke="#000000" stroke-width="2" fill="none" />
-							</svg>
-							<canvas id="palette-canvas" class="layer-panel-block" width="256" height="256"></canvas>
-							
+						<div id="palette-hue-info">
+							<div id="palette-hue-sign">Hue</div>
+							<div id="palette-hue-symbol">&middot;</div>
+							<div id="palette-hue-value">200</div>
 						</div>
 					</div>
-					<div id="layer-panel">
-						<div id="layer-panel-title">
-							<div id="layer-panel-name">
-								Layers
-							</div>
-							<div id="layer-panel-right-menu">
-								&lt;
-							</div>
+					<div id="palette-selector">
+						<svg id="palette-svg" class="layer-panel-block" width="256" height="256" xmlns="http://www.w3.org/2000/svg"
+						 version="1.1">
+							<circle id="palette-cursor" cx="0" cy="0" r="3" stroke="#000000" stroke-width="2" fill="none" />
+						</svg>
+						<canvas id="palette-canvas" class="layer-panel-block" width="256" height="256"></canvas>
+
+					</div>
+				</div>
+				<div id="layer-panel">
+					<div id="layer-panel-title">
+						<div id="layer-panel-name">
+							Layers
 						</div>
-						<div id="layer-panel-button-panel">
-							<div id="new-layer-button" class="layer-panel-button">
-								<img src="./resources/new-layer.svg"/>
-							</div>
-							<div id="new-group-button" class="layer-panel-button layer-panel-button-to-collapse">
-								<img src="./resources/new-group.svg"/>
-							</div>
-							<div id="delete-button" class="layer-panel-button">
-								<img src="./resources/delete.svg"/>
-							</div>
-							<div id="clear-button" class="layer-panel-button layer-panel-button-to-collapse">
-								<img src="./resources/clear-layer.svg"/>
-							</div>
-							<div id="copy-button" class="layer-panel-button layer-panel-button-to-collapse">
-								<img src="./resources/copy-layer.svg"/>
-							</div>
+						<div id="layer-panel-right-menu">
+							&lt;
 						</div>
-						<div id="layer-panel-container">
-							<div id="layer-panel-scroll-outer">
-								<div id="layer-panel-scroll">
-									<div id="layer-panel-inner" class="layer-panel-block layer-group-container" data-layer-id="root">
-										<!-- Here are the layers & layer groups -->
-									</div>
-									
+					</div>
+					<div id="layer-panel-button-panel">
+						<div id="new-layer-button" class="layer-panel-button">
+							<img src="./resources/new-layer.svg" />
+						</div>
+						<div id="new-group-button" class="layer-panel-button layer-panel-button-to-collapse">
+							<img src="./resources/new-group.svg" />
+						</div>
+						<div id="delete-button" class="layer-panel-button">
+							<img src="./resources/delete.svg" />
+						</div>
+						<div id="clear-button" class="layer-panel-button layer-panel-button-to-collapse">
+							<img src="./resources/clear-layer.svg" />
+						</div>
+						<div id="copy-button" class="layer-panel-button layer-panel-button-to-collapse">
+							<img src="./resources/copy-layer.svg" />
+						</div>
+					</div>
+					<div id="layer-panel-container">
+						<div id="layer-panel-scroll-outer">
+							<div id="layer-panel-scroll">
+								<div id="layer-panel-inner" class="layer-panel-block layer-group-container" data-layer-id="root">
+									<!-- Here are the layers & layer groups -->
 								</div>
+
 							</div>
-							<!-- Dragging control -->
-							<div id="layer-panel-drag-up">
-							</div>
-							<div id="layer-panel-drag-down">
-							</div>
-							<div id="layer-panel-scrollbar">
-								<svg id="layer-panel-scrollbar-svg" width="16" height="16" xmlns="http://www.w3.org/2000/svg" version="1.1">
-									<circle id="layer-panel-scrollbar-cursor" cx="8" cy="8" r="8" stroke="none" fill="#00000088" />
-								</svg>
-							</div>
+						</div>
+						<!-- Dragging control -->
+						<div id="layer-panel-drag-up">
+						</div>
+						<div id="layer-panel-drag-down">
+						</div>
+						<div id="layer-panel-scrollbar">
+							<svg id="layer-panel-scrollbar-svg" width="16" height="16" xmlns="http://www.w3.org/2000/svg" version="1.1">
+								<circle id="layer-panel-scrollbar-cursor" cx="8" cy="8" r="8" stroke="none" fill="#00000088" />
+							</svg>
 						</div>
 					</div>
 				</div>
-				<div id="canvas-area-panel">
-					<!-- contains canvas -->
-					<div id="canvas-layers-panel">
-						<div id="canvas-window">
-							<!-- Window won't move -->
-							<div id="canvas-container">
-								<!-- Container may transform -->
-								
-								<div id="main-canvas-background"></div>
-								<!-- Front div: at the bottom -->
-								<canvas id="main-canvas" width="0" height="0"></canvas>
-							</div>
+			</div>
+			<div id="canvas-area-panel">
+				<!-- contains canvas -->
+				<div id="canvas-layers-panel">
+					<div id="canvas-window">
+						<!-- Window won't move -->
+						<div id="canvas-container">
+							<!-- Container may transform -->
+
+							<div id="main-canvas-background"></div>
+							<!-- Front div: at the bottom -->
+							<canvas id="main-canvas" width="0" height="0"></canvas>
 						</div>
-						<!-- SVG doesn't transform -->
-						<svg id="brush-cursor-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
-							<g id="brush-cursor" stroke-width="2">
-								<circle id="brush-cursor-outer" cx="-10" cy="-10" r="2" stroke="#00000000" fill="none"/>
-								<circle id="brush-cursor-round" cx="-10" cy="-10" r="2" stroke="#00000000" fill="none"/>
-								<circle id="brush-cursor-center" cx="-10" cy="-10" r="1" stroke="none" fill="#00000000"/>
-								<circle id="brush-cursor-center-outer" cx="-10" cy="-10" r="2" stroke="none" fill="#00000000"/>
+					</div>
+					<!-- SVG doesn't transform -->
+					<svg id="brush-cursor-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
+						<g id="brush-cursor" stroke-width="2">
+							<circle id="brush-cursor-outer" cx="-10" cy="-10" r="2" stroke="#00000000" fill="none" />
+							<circle id="brush-cursor-round" cx="-10" cy="-10" r="2" stroke="#00000000" fill="none" />
+							<circle id="brush-cursor-center" cx="-10" cy="-10" r="1" stroke="none" fill="#00000000" />
+							<circle id="brush-cursor-center-outer" cx="-10" cy="-10" r="2" stroke="none" fill="#00000000" />
+						</g>
+					</svg>
+
+					<svg id="drag-selection-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
+						<defs>
+							<filter id="line-shadow">
+								<feGaussianBlur stdDeviation="2"/>
+							</filter>
+							<filter id="drag-shadow">
+								<feGaussianBlur stdDeviation="4"/>
+							</filter>
+						</defs>
+						<g id="drag-lines-shadow" stroke-width="2" stroke="#000000" fill="none" style="filter:url('#line-shadow')">
+							<line id="l12s" x1="100" y1="100" x2="100" y2="200"/>
+							<line id="l23s" x1="100" y1="200" x2="200" y2="200"/>
+							<line id="l34s" x1="200" y1="200" x2="200" y2="100"/>
+							<line id="l41s" x1="200" y1="100" x2="100" y2="100"/>
+						</g>
+						<g id="drag-lines" stroke-width="2" stroke="#ff8888" fill="none">
+							<line id="l12" x1="100" y1="100" x2="100" y2="200"/>
+							<line id="l23" x1="100" y1="200" x2="200" y2="200"/>
+							<line id="l34" x1="200" y1="200" x2="200" y2="100"/>
+							<line id="l41" x1="200" y1="100" x2="100" y2="100"/>
+						</g>
+						<g id="drag-points-shadow" stroke="none" fill="#000000" style="filter:url('#drag-shadow')">
+							<circle id="c1" cx="100" cy="100" r="5"/>
+							<circle id="c2" cx="100" cy="200" r="5"/>
+							<circle id="c3" cx="200" cy="200" r="5"/>
+							<circle id="c4" cx="200" cy="100" r="5"/>
+						</g>
+						<g id="drag-points" stroke-width="1" stroke="#ff000066" fill="#ff6666">
+							<circle id="c1" cx="100" cy="100" r="5"/>
+							<circle id="c2" cx="100" cy="200" r="5"/>
+							<circle id="c3" cx="200" cy="200" r="5"/>
+							<circle id="c4" cx="200" cy="100" r="5"/>
+						</g>
+					</svg>
+				</div>
+
+				<!-- show info/button over canvas -->
+				<div id="bottom-info-panel">
+					<div id="bottom-info-box">
+						<div id="undo-info" class="bottom-info-block">
+							&lt;&lt;
+						</div>
+						<div id="redo-info" class="bottom-info-block">
+							&gt;&gt;
+						</div>
+						<div id="flip-info" class="bottom-info-block">
+							&lrarr;
+						</div>
+						<div id="reset-info" class="bottom-info-block">
+							[&bull;]
+						</div>
+						<div id="scale-info">
+							<input id="scale-info-input" value="" type="text" maxLength="4" size="4" />
+							<div>%</div>
+						</div>
+						<div id="rotate-info">
+							<input id="rotate-info-input" value="0" type="text" maxLength="4" size="4" />
+							<div>&deg;</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- show setting menus -->
+				<div id="menu-panel">
+					<div id="left-menu-panels">
+						<div id="brush-menu-panel" class="setting-panel setting-panel-collapsed">
+						</div>
+					</div>
+					<div id="right-menu-panels">
+						<div id="settings-menu-panel" class="setting-panel setting-panel-collapsed">
+						</div>
+						<div id="file-menu-panel" class="setting-panel setting-panel-collapsed">
+						</div>
+					</div>
+				</div>
+
+				<!-- show a mask before menus -->
+				<div id="mask-panel">
+					<!--div id="mask-startup-info"></div-->
+				</div>
+
+				<!-- show info/button over setting menus -->
+				<div id="front-info-panel">
+					<div id="front-info-indicator">
+						<svg width="1.8em" height="1.8em" viewBox="0 0 100 100" shape-rendering="geometricPrecision" id="indicator-svg"
+						 xmlns="http://www.w3.org/2000/svg" version="1.1">
+							<circle id="work-indicator-arc-background" cx="50" cy="50" r="40" stroke="#000000" fill="none" stroke-width="10" />
+							<path id="work-indicator-arc" stroke="#000000" fill="none" stroke-width="10" stroke-linecap="round" />
+							<g id="work-indicator-abort-button" stroke="#000000" fill="none" stroke-width="8" stroke-linecap="round" opacity="1">
+								<line x1="40" y1="40" x2="60" y2="60" />
+								<line x1="40" y1="60" x2="60" y2="40" />
 							</g>
 						</svg>
-
-						<svg id="drag-selection-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
-							<g id="drag-points" stroke-width="2" stroke="none" fill="ffff00">
-								<circle id="c1" cx="100" cy="100" r="2"/>
-								<circle id="c2" cx="100" cy="200" r="2"/>
-								<circle id="c3" cx="200" cy="200" r="2"/>
-								<circle id="c4" cx="200" cy="100" r="2"/>
-							</g>
-							<g id="drag-lines" stroke-width="2" stroke="#ff0000" fill="none">
-								<line id="l12" x1="100" y1="100" x2="100" y2="200"/>
-								<line id="l23" x1="100" y1="200" x2="200" y2="200"/>
-								<line id="l34" x1="200" y1="200" x2="200" y2="100"/>
-								<line id="l41" x1="200" y1="100" x2="100" y2="100"/>
-							</g>
-						</svg>
 					</div>
-
-					<!-- show info/button over canvas -->
-					<div id="bottom-info-panel">
-						<div id="bottom-info-box">
-							<div id="undo-info" class="bottom-info-block">
-								&lt;&lt;
-							</div>
-							<div id="redo-info" class="bottom-info-block">
-								&gt;&gt;
-							</div>
-							<div id="flip-info" class="bottom-info-block">
-								&lrarr;
-							</div>
-							<div id="reset-info" class="bottom-info-block">
-								[&bull;]
-							</div>
-							<div id="scale-info">
-								<input id="scale-info-input" value="" type="text" maxLength="4" size="4"/>
-								<div>%</div>
-							</div>
-							<div id="rotate-info">
-								<input id="rotate-info-input" value="0" type="text" maxLength="4" size="4"/>
-								<div>&deg;</div>
-							</div>
-						</div>
-					</div>
-
-					<!-- show setting menus -->
-					<div id="menu-panel">
-						<div id="left-menu-panels">
-							<div id="brush-menu-panel" class="setting-panel setting-panel-collapsed">
-							</div>
-						</div>
-						<div id="right-menu-panels">
-							<div id="settings-menu-panel" class="setting-panel setting-panel-collapsed">
-							</div>
-							<div id="file-menu-panel" class="setting-panel setting-panel-collapsed">
-							</div>
-						</div>
-					</div>
-
-					<!-- show a mask before menus -->
-					<div id="mask-panel">
-						<!--div id="mask-startup-info"></div-->
-					</div>
-
-					<!-- show info/button over setting menus -->
-					<div id="front-info-panel">
-						<div id="front-info-indicator">
-							<svg width="1.8em" height="1.8em" viewBox="0 0 100 100" shape-rendering="geometricPrecision" id="indicator-svg" xmlns="http://www.w3.org/2000/svg" version="1.1">
-								<circle id="work-indicator-arc-background" cx="50" cy="50" r="40" stroke="#000000" fill="none" stroke-width="10"/>
-								<path id="work-indicator-arc" stroke="#000000" fill="none" stroke-width="10" stroke-linecap="round"/>
-								<g id="work-indicator-abort-button" stroke="#000000" fill="none" stroke-width="8" stroke-linecap="round" opacity="1">
-									<line x1="40" y1="40" x2="60" y2="60"/>
-									<line x1="40" y1="60" x2="60" y2="40"/>
-								</g>
-							</svg>
-						</div>
-						<div id="front-info-box">
-							DEBUG
-						</div>
+					<div id="front-info-box">
+						DEBUG
 					</div>
 				</div>
 			</div>
 		</div>
+	</div>
 
-		<div id="body-mask-panel">
-			<div id="mask-item">
-				Loading database<br>
-				Please wait ...
-			</div>
+	<div id="body-mask-panel">
+		<div id="mask-item">
+			Loading database<br>
+			Please wait ...
 		</div>
-	</body>
+	</div>
+</body>
+
 </html>

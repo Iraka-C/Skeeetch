@@ -6,9 +6,9 @@
  * read from file won't cause key confliction (no key modification)
  */
 
-importScripts("../compressor.js");
-importScripts("../localforage.min.js");
-importScripts("../my-forage.js");
+importScripts("../my-library/compressor.js");
+importScripts("../library/localforage.min.js");
+importScripts("../my-library/my-forage.js");
 
 let storage=null;
 

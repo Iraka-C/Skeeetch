@@ -3,7 +3,7 @@
  * Only for compression
  */
 
-importScripts("../compressor.js");
+importScripts("../my-library/compressor.js");
 
 /**
  * e.data={
