@@ -62,7 +62,8 @@ STORAGE.FILES.updateThumb=function(fileID,imgSrc,isToSaveInDatabase){
 
 	// Changing imgSrc into a canvas
 	// TODO: make the logic of this part clearer
-	if(imgSrc.type=="GLTexture"){ // convert into ctx2d canvas first
+	
+	if(imgSrc.type=="GLTexture"||imgSrc.type=="GLRAMBuf"){ // convert into ctx2d canvas first
 		const pixels=CANVAS.renderer.getUint8ArrayFromImageData(imgSrc,null,[cvW,cvH]); // get data
 		const canvas=document.createElement("canvas");
 		canvas.width=cvW;
@@ -96,7 +97,6 @@ STORAGE.FILES.updateThumb=function(fileID,imgSrc,isToSaveInDatabase){
 
 	// imgSrc is always a canvas now
 	// draw contents
-	//console.log("Drawing",imgSrc,"in",cvW,cvH);
 	
 	const cv=$cv[0];
 	const ctx=cv.getContext("2d");
