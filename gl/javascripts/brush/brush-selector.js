@@ -202,6 +202,7 @@ BrushManager.initCustomizedBrushPanel=function(){
 		}
 	});
 	$("#brush-selector-set").click(e=>{
+		return; // not now!!!
 		// get brushtip image data from THIS layer
 		const nowImg=LAYERS.active.rawImageData;
 		const bImg=CANVAS.renderer.getBrushtipImageData(nowImg);

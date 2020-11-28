@@ -17,6 +17,7 @@
 	<!-- Additional stylesheet to collapse the layer panel -->
 	<link rel="stylesheet" type="text/css" href="./styles/canvas-area-style.css" />
 	<link rel="stylesheet" type="text/css" href="./styles/file-selector-style.css" />
+	<link rel="stylesheet" type="text/css" href="./styles/drag-selector-style.css" />
 	<link id="css-theme" rel="stylesheet" type="text/css" href="./styles/color-theme-light.css" /> <!-- UI color theme -->
 
 	<link id="icon" rel="icon" type="image/png" href="./resources/favicon.png">
@@ -99,6 +100,9 @@
 	<script src="./javascripts/file/file-settings.js"></script>
 	<script src="./javascripts/file/file-selector.js"></script>
 	<script src="./javascripts/performance.js"></script>
+
+	<!-- Drag selector -->
+	<script src="./javascripts/drag-selection/drag-selector.js"></script>
 
 	<title>Skeeetch</title>
 </head>
@@ -262,10 +266,10 @@
 							<line id="l41" x1="200" y1="100" x2="100" y2="100"/>
 						</g>
 						<g id="drag-points-shadow" stroke="none" fill="#000000" style="filter:url('#drag-shadow')">
-							<circle id="c1" cx="100" cy="100" r="5"/>
-							<circle id="c2" cx="100" cy="200" r="5"/>
-							<circle id="c3" cx="200" cy="200" r="5"/>
-							<circle id="c4" cx="200" cy="100" r="5"/>
+							<circle id="c1s" cx="100" cy="100" r="5"/>
+							<circle id="c2s" cx="100" cy="200" r="5"/>
+							<circle id="c3s" cx="200" cy="200" r="5"/>
+							<circle id="c4s" cx="200" cy="100" r="5"/>
 						</g>
 						<g id="drag-points" stroke-width="1" stroke="#ff000066" fill="#ff6666">
 							<circle id="c1" cx="100" cy="100" r="5"/>

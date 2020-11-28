@@ -85,6 +85,7 @@ ENV.init=function() { // When the page is loaded
 		BrushManager.init(sysSettingParams);
 		HISTORY.init();
 		FILES.init();
+		DRAG.init();
 
 		ENV.setUIOrientation(ENV.displaySettings.uiOrientationLeft); // set UI orientation at init, after settings
 		ENV.setUITheme(ENV.displaySettings.uiTheme); // set color theme
