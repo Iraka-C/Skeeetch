@@ -14,23 +14,23 @@ Skeeetch支持图层和图层组的管理。图层的操作界面位于主界面
 
 默认打开Skeeetch时的第一个图层是一个白色的背景图层。
 
-点击图层面板<img src="../../resources/new-layer.svg" height="24"/>按钮**新建**一个图层。你可以在图层名处输入来给新图层**重命名**。
+点击图层面板<img src="../../../resources/new-layer.svg" height="24"/>按钮**新建**一个图层。你可以在图层名处输入来给新图层**重命名**。
 
 点击某个图层的图标，图层图标会**点亮**指示当前绘制的对象是这个图层。
 
-点击图层面板<img src="../../resources/delete.svg" height="24"/>按钮将当前活动的图层**删除**。
+点击图层面板<img src="../../../resources/delete.svg" height="24"/>按钮将当前活动的图层**删除**。
 
 在图层列表内图标过多时右侧会出现滚动条，可以拖动滚动条或在图层列表上滚动来上下浏览所有图层。
 
 ## 增删图层组
 
-点击图层面板<img src="../../resources/new-group.svg" height="24"/>按钮**新建**一个图层组。图层组自身上不可绘制任何内容，但可以包含其他图层或图层组。你可以在图层组名处输入来给新图层组**重命名**。
+点击图层面板<img src="../../../resources/new-group.svg" height="24"/>按钮**新建**一个图层组。图层组自身上不可绘制任何内容，但可以包含其他图层或图层组。你可以在图层组名处输入来给新图层组**重命名**。
 
 点击某个图层组的图标，图层组的展开按钮`>`会**点亮**指示当前操作的对象是这个图层组。
 
 点击图层组的展开按钮`>`可以在**展开/折叠**显示图层组内容之间切换。
 
-点击图层面板<img src="../../resources/delete.svg" height="24"/>按钮将当前活动的图层组**删除**。
+点击图层面板<img src="../../../resources/delete.svg" height="24"/>按钮将当前活动的图层组**删除**。
 
 ## 改变图层顺序
 
@@ -40,42 +40,40 @@ Skeeetch支持图层和图层组的管理。图层的操作界面位于主界面
 
 在图层标志左上角的不透明度百分比处输入数值/光标左右拖动/滚动可以调节图层的**不透明度**。从0%到100%的值对应完全透明到完全显示。在数值上右键单击或按住Shift键单击可以**隐藏/显示**图层。隐藏的图层不透明度将显示为`----`。隐藏的图层将无法绘制，也无法移动。
 
-图层标志的右上角有几个按钮。最右上的是**锁定**按钮。点击它可以在解锁<img src="../../resources/unlock.svg" height="16"/>、锁定不透明度<img src="../../resources/opacity-lock.svg" height="16"/>、锁定<img src="../../resources/all-lock.svg" height="16"/>之间切换。锁定不透明度后图层像素的不透明度将不会改变，也无法移动。锁定后图层的任何像素将无法改变，只能改变隐藏/显示状态、剪贴蒙版、和编辑图层名。
+图层标志的右上角有几个按钮。最右上的是**锁定**按钮。点击它可以在解锁<img src="../../../resources/unlock.svg" height="16"/>、锁定不透明度<img src="../../../resources/opacity-lock.svg" height="16"/>、锁定<img src="../../../resources/all-lock.svg" height="16"/>之间切换。锁定不透明度后图层像素的不透明度将不会改变，也无法移动。锁定后图层的任何像素将无法改变，只能改变隐藏/显示状态、剪贴蒙版、和编辑图层名。
 
 图层按钮中靠左上的是**混合模式**按钮。点击以打开混合模式选择菜单。详见[混合模式](#混合模式)章节。
 
-左下角的<img src="../../resources/clip-mask.svg" height="16"/>按钮是**剪贴蒙版**按钮，点击以切换剪贴蒙版状态。剪贴蒙板图层或图层组的右下角将显示一个灰色的三角标志。剪贴蒙版图层只显示其下方普通图层的不透明部分对应的内容。图层列表/图层组最下方的内容如果是剪贴蒙版，则视为普通内容（因为没有蒙版在任何内容上）。
-
-（蒙版未完善）
+左下角的<img src="../../../resources/clip-mask.svg" height="16"/>按钮是**剪贴蒙版**按钮，点击以切换剪贴蒙版状态。剪贴蒙板图层或图层组的右下角将显示一个灰色的三角标志。剪贴蒙版图层只显示其下方普通图层的不透明部分对应的内容。图层列表/图层组最下方的内容如果是剪贴蒙版，则视为普通内容（因为没有蒙版在任何内容上）。
 
 图层组也有类似的属性，可以在图层组面板中点击对应的按钮来调整。注意：图层组的锁定按钮状态对其下属的所有图层/图层组均有效。
 
 ## 清空图层
 
-当某个图层被选定时，图层面板中将出现<img src="../../resources/clear-layer.svg" height="24"/>按钮。点击此按钮将这个图层所有内容清空。注意已锁定（显示<img src="../../resources/all-lock.svg" height="16"/>）的图层是无法清空的。对于透明度锁定（显示<img src="../../resources/opacity-lock.svg" height="16"/>）的图层，清空操作将为所有像素填充白色而不改变其透明度。
+当某个图层被选定时，图层面板中将出现<img src="../../../resources/clear-layer.svg" height="24"/>按钮。点击此按钮将这个图层所有内容清空。注意已锁定（显示<img src="../../../resources/all-lock.svg" height="16"/>）的图层是无法清空的。对于透明度锁定（显示<img src="../../../resources/opacity-lock.svg" height="16"/>）的图层，清空操作将为所有像素填充白色而不改变其透明度。
 
 ## 合并图层组
 
-当某个图层组被选定时，图层面板中将出现<img src="../../resources/merge-group.svg" height="24"/>按钮。点击此按钮将这个图层组所有内容合并为一个图层，并取代原图层组的位置。
+当某个图层组被选定时，图层面板中将出现<img src="../../../resources/merge-group.svg" height="24"/>按钮。点击此按钮将这个图层组所有内容合并为一个图层，并取代原图层组的位置。
 
 ## 复制图层/图层组
 
-（功能完善中）
+当某个图层或图层组被选定时，点击<img src="../../../resources/copy-layer.svg" height="24"/>按钮可以制作当前选定内容的副本。副本中将保留原图层/图层组所有的图层结构，内容和设置。
 
 ## 混合模式
 
-Skeeetch支持常见的26种混合模式（已实现22种）。默认情况下图层或图层组都是正常<img src="../../resources/blend-mode/normal.svg" height="16"/>混合模式，并在图标上显示这个按钮。点击图层或图层组的混合模式按钮可以打开混合模式选择菜单：
+Skeeetch支持常见的26种混合模式（已实现22种），以及一个额外的<img src="../../../resources/blend-mode/mask.svg" height="16"/>蒙版模式。默认情况下图层或图层组都是正常<img src="../../../resources/blend-mode/normal.svg" height="16"/>混合模式，并在图标上显示这个按钮。点击图层或图层组的混合模式按钮可以打开混合模式选择菜单：
 
 <img src="./images/layer-blend-modes.png" width="300"/>
 
 菜单中每个图标对应一种混合模式，可以将光标移动到相应的图标上查看文字信息，点击以切换到该混合模式。图标与Photoshop标准的混合模式的对应列表如下：
 
-| <img src="../../resources/blend-mode/normal.svg" height="16"/>正常 | <img src="../../resources/blend-mode/screen.svg" height="16"/>滤色 | <img src="../../resources/blend-mode/multiply.svg" height="16"/>正片叠底 | <img src="../../resources/blend-mode/overlay.svg" height="16"/>叠加 | <img src="../../resources/blend-mode/soft-light.svg" height="16"/>柔光 | <img src="../../resources/blend-mode/hard-light.svg" height="16"/>强光 |
+| <img src="../../../resources/blend-mode/normal.svg" height="16"/>正常 | <img src="../../../resources/blend-mode/screen.svg" height="16"/>滤色 | <img src="../../../resources/blend-mode/multiply.svg" height="16"/>正片叠底 | <img src="../../../resources/blend-mode/overlay.svg" height="16"/>叠加 | <img src="../../../resources/blend-mode/soft-light.svg" height="16"/>柔光 | <img src="../../../resources/blend-mode/hard-light.svg" height="16"/>强光 |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| <img src="../../resources/blend-mode/linear-dodge.svg" height="16"/>线性减淡 | <img src="../../resources/blend-mode/linear-burn.svg" height="16"/>线性加深 | <img src="../../resources/blend-mode/linear-light.svg" height="16"/>线性光 | <img src="../../resources/blend-mode/color-dodge.svg" height="16"/>颜色减淡 | <img src="../../resources/blend-mode/color-burn.svg" height="16"/>颜色加深 | <img src="../../resources/blend-mode/vivid-light.svg" height="16"/>亮光 |
-| <img src="../../resources/blend-mode/lighten.svg" height="16"/>变亮 | <img src="../../resources/blend-mode/darken.svg" height="16"/>变暗 | <img src="../../resources/blend-mode/lighter-color.svg" height="16"/>浅色 | <img src="../../resources/blend-mode/darker-color.svg" height="16"/>深色 | <img src="../../resources/blend-mode/pin-light.svg" height="16"/>点光 | <img src="../../resources/blend-mode/hard-mix.svg" height="16"/>实色混合 |
-| <img src="../../resources/blend-mode/difference.svg" height="16"/>差值 | <img src="../../resources/blend-mode/exclusion.svg" height="16"/>排除 | <img src="../../resources/blend-mode/subtract.svg" height="16"/>减去 | <img src="../../resources/blend-mode/divide.svg" height="16"/>划分 |                                                              |                                                              |
-| <img src="../../resources/blend-mode/hue.svg" height="16"/>色相° | <img src="../../resources/blend-mode/saturation.svg" height="16"/>饱和度° | <img src="../../resources/blend-mode/color.svg" height="16"/>颜色° | <img src="../../resources/blend-mode/luminosity.svg" height="16"/>明度° |                                                              |                                                              |
+| <img src="../../../resources/blend-mode/linear-dodge.svg" height="16"/>线性减淡 | <img src="../../../resources/blend-mode/linear-burn.svg" height="16"/>线性加深 | <img src="../../../resources/blend-mode/linear-light.svg" height="16"/>线性光 | <img src="../../../resources/blend-mode/color-dodge.svg" height="16"/>颜色减淡 | <img src="../../../resources/blend-mode/color-burn.svg" height="16"/>颜色加深 | <img src="../../../resources/blend-mode/vivid-light.svg" height="16"/>亮光 |
+| <img src="../../../resources/blend-mode/lighten.svg" height="16"/>变亮 | <img src="../../../resources/blend-mode/darken.svg" height="16"/>变暗 | <img src="../../../resources/blend-mode/lighter-color.svg" height="16"/>浅色 | <img src="../../../resources/blend-mode/darker-color.svg" height="16"/>深色 | <img src="../../../resources/blend-mode/pin-light.svg" height="16"/>点光 | <img src="../../../resources/blend-mode/hard-mix.svg" height="16"/>实色混合 |
+| <img src="../../../resources/blend-mode/difference.svg" height="16"/>差值 | <img src="../../../resources/blend-mode/exclusion.svg" height="16"/>排除 | <img src="../../../resources/blend-mode/subtract.svg" height="16"/>减去 | <img src="../../../resources/blend-mode/divide.svg" height="16"/>划分 |                                                              |                                                              |
+| <img src="../../../resources/blend-mode/hue.svg" height="16"/>色相° | <img src="../../../resources/blend-mode/saturation.svg" height="16"/>饱和度° | <img src="../../../resources/blend-mode/color.svg" height="16"/>颜色° | <img src="../../../resources/blend-mode/luminosity.svg" height="16"/>明度° |                                                              | <img src="../../../resources/blend-mode/mask.svg" height="16"/>图层蒙版 |
 
 > °：功能未完善
 
@@ -89,7 +87,21 @@ Skeeetch支持常见的26种混合模式（已实现22种）。默认情况下�
 
 在Skeeetch中可以设置全局的透明度混合模式：在 *设置* > *渲染器* > *透明度混合* 开关中可以选择**混合强度**（强度模式）或**中性色填充**（填充模式）。注意：对大文件，切换这个选项可能会比较耗时。
 
-Skeeetch中支持填充模式的混合模式有线性减淡<img src="../../resources/blend-mode/linear-dodge.svg" height="16"/>、线性加深<img src="../../resources/blend-mode/linear-burn.svg" height="16"/>、线性光<img src="../../resources/blend-mode/linear-light.svg" height="16"/>、颜色减淡<img src="../../resources/blend-mode/color-dodge.svg" height="16"/>、颜色加深<img src="../../resources/blend-mode/color-burn.svg" height="16"/>、亮光<img src="../../resources/blend-mode/vivid-light.svg" height="16"/>、差值<img src="../../resources/blend-mode/difference.svg" height="16"/>共七种。（Photoshop的“实色混合”模式<img src="../../resources/blend-mode/hard-mix.svg" height="16"/>由于没有中性色，并不属于Skeeetch中性色填充的作用范围）
+Skeeetch中支持填充模式的混合模式有线性减淡<img src="../../../resources/blend-mode/linear-dodge.svg" height="16"/>、线性加深<img src="../../../resources/blend-mode/linear-burn.svg" height="16"/>、线性光<img src="../../../resources/blend-mode/linear-light.svg" height="16"/>、颜色减淡<img src="../../../resources/blend-mode/color-dodge.svg" height="16"/>、颜色加深<img src="../../../resources/blend-mode/color-burn.svg" height="16"/>、亮光<img src="../../../resources/blend-mode/vivid-light.svg" height="16"/>、差值<img src="../../../resources/blend-mode/difference.svg" height="16"/>共七种。（Photoshop的“实色混合”模式<img src="../../../resources/blend-mode/hard-mix.svg" height="16"/>由于没有中性色，并不属于Skeeetch中性色填充的作用范围）
+
+**关于图层组特殊模式：蒙版**
+
+Skeeetch中没有为图层设置单独的蒙版图层。取而代之的是一个蒙版混合模式。当一个图层放在另一个图层上方，该图层的混合模式为<img src="../../../resources/blend-mode/mask.svg" height="16"/>蒙版，且开启了<img src="../../../resources/clip-mask.svg" height="16"/>剪贴蒙版属性时，这个图层就表现得像一般的蒙版图层一样。
+
+<img src="./images/layer-blend-mode-mask.png" width="400"/>
+
+> 蒙版图层中的深灰色圆形将下方的蓝色圆形的一部分变得半透明了。
+
+在混合模式菜单中选择蒙版，会同时自动添加剪贴蒙版。
+
+蒙版是通过一个图层的亮度改变另一个图层的透明度的方式。蒙版图层中一个地方颜色越深，相应被蒙版图层的区域就会变得越透明。
+
+Skeeetch支持从`.psd`文件中加载蒙版，但因一些文件兼容性问题，保存蒙版功能还不是十分完善。目前需要在Photoshop中的手动重新设置。将来的更新中会[试图解决这一问题](https://github.com/Iraka-C/Skeeetch/issues/4#issue-752618268)。
 
 **关于图层组特殊模式：穿透**
 
