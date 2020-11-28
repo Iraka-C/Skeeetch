@@ -4,7 +4,7 @@
 */
 
 ENV={}; // Environment
-ENV.version="20201111";
+ENV.version="20201128";
 
 //===================== Settings =====================
 
@@ -31,14 +31,15 @@ ENV.window={
 	}
 };
 
-ENV.displaySettings={
+ENV.displaySettings={ // These settings will be saved in localStorage
 	antiAlias: true,
 	enableTransformAnimation: true, // smooth animation when moving paper
 	blendWithNeutralColor: true, // blend layers with neutral color filling under certain blend modes
 	uiOrientationLeft: true, // UI flows from left->right: true
 	uiTheme: "light", // UI is the "light"/"dark" theme
 	isAutoSave: true, // Auto save files when modified in browser
-	maxFps: Infinity // 12, 30, 60, Infinity
+	maxFps: Infinity, // 12, 30, 60, Infinity
+	maxVRAM: 4*1024*1024*1024 // 4GB VRAM init
 };
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
 
@@ -48,6 +49,7 @@ ENV.fileID=""; // present working file ID
 // ========================= Functions ============================
 ENV.init=function() { // When the page is loaded
 	STORAGE.init(sysSettingParams => { // after loading all settings
+		// Init language / browser environment
 		ENV.fileID=sysSettingParams.nowFileID; // get file ID
 		ENV.browserInfo=ENV.detectBrowser();
 
@@ -59,7 +61,19 @@ ENV.init=function() { // When the page is loaded
 		ENV.setAntiAliasing(ENV.displaySettings.antiAlias); // set canvas css param
 		ENV.taskCounter.init();
 
+		// init event handlers
+		EVENTS.init();
+		EventDistributer.init();
+		PALETTE.init(sysSettingParams);
+		CURSOR.init();
+
+		// init storage managers
+		PERFORMANCE.init(ENV.displaySettings.maxVRAM);
 		const lastLayerTreeJSON=STORAGE.FILES.getLayerTree();
+		STORAGE.FILES.initLayerStorage(ENV.fileID); // load the layer database, file title already set BEFORE (ENV.setFileTitle)
+		STORAGE.FILES.saveLayerTreeInDatabase(lastLayerTreeJSON); // update layer tree in database
+
+		// init layers
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
 		if(lastLayerTreeJSON){ // there is a saved file structure in local storage
@@ -70,18 +84,9 @@ ENV.init=function() { // When the page is loaded
 		else{ // no layer yet, init CANVAS
 			ENV.setPaperSize(window.screen.width,window.screen.height);
 		}
-
-		EVENTS.init();
-		EventDistributer.init();
-		PALETTE.init(sysSettingParams);
-
-		CURSOR.init();
-		PERFORMANCE.init();
-
-		STORAGE.FILES.initLayerStorage(ENV.fileID); // load the layer database, file title already set BEFORE (ENV.setFileTitle)
-		STORAGE.FILES.saveLayerTreeInDatabase(lastLayerTreeJSON); // update layer tree in database
 		LAYERS.init(lastLayerTreeJSON); // load all layers
 
+		// init accessories
 		BrushManager.init(sysSettingParams);
 		HISTORY.init();
 		FILES.init();

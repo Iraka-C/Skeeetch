@@ -2,7 +2,7 @@ class GLVRAMManager {
 	constructor(renderer,maxSize) {
 		this.renderer=renderer;
 		this.bitDepth=renderer.bitDepth;
-		this.maxVRAMSize=maxSize||(1024*1024*1024*4); // const, 4G at most @TODO: add settings
+		this.maxVRAMSize=maxSize||(1024*1024*1024*4); // const, 4G at most
 		this.vRAMUsage=0; // total vram usage verified by manager
 		this.ramUsage=0;
 		this.activeTextures=new Map(); // recently active textures -> size, all GLTexture
@@ -22,6 +22,7 @@ class GLVRAMManager {
 
 		if(this.lastVerified==imgData) { // needn't move to rear
 			// update size only
+			// @TODO: what if this.vRAMUsage surpassed limit?
 			this.vRAMUsage+=size-this.lastVerifiedSize;
 			this.lastVerifiedSize=size;
 			return;

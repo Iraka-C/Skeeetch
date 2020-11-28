@@ -25,6 +25,8 @@ LANG_EN={
 	"workspace-title":"Paper",
 	"display-hint-1":"These settings does not affect rendering results.",
 	"toggle-fullscreen":"Toggle Fullscreen",
+	"render-bitdepth-hint":"Bit depth setting will be applied after the webpage restarts.",
+	"vram-limit-hint":"VRAM limit setting will be applied after the webpage restarts.",
 
 	"palette-title":"Palette",
 	"Color Information":"Color Info",

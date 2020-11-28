@@ -1,6 +1,11 @@
 /**
  * 32-bit webgl renderer
  * On common browsers, the maximum size of a texture should be 16384^2
+ * 
+ * @FIXME: when consecutively verifying two textures, e.g.
+		this.vramManager.verify(src);
+		this.vramManager.verify(tgt);
+ * there are chances that verifying tgt causes src to be compressed again
  */
 class GLRenderer extends BasicRenderer {
 	/**

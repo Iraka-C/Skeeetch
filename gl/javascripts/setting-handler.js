@@ -239,20 +239,25 @@ SettingHandler.initSystemSetting=function(sysParams) {
 	});
 	// ===================== System Limits =======================
 	sys.addSectionTitle(Lang("sys-lim"));
-	let tmpMaxVRAM=PERFORMANCE.maxMem.gpu;
 	sys.addInstantNumberItem(Lang("sys-max-vram"),() => {
-		const mVRAM=tmpMaxVRAM/1024/1024;
-		return mVRAM.toFixed(mVRAM>2000? 0:1);
-	},"MB",
+		const mVRAM=ENV.displaySettings.maxVRAM/1073741824; // 1024^3
+		return mVRAM.toFixed(1);
+	},"GB",
 		newVal => { // set on input
-			if(newVal) {
+			const newMem=newVal-0;
+			if(newMem>=1&&newMem<=32) { // at least 1GB, at most 32GB
+				ENV.displaySettings.maxVRAM=newMem*1073741824;
+				vramLimitUpdateFunc(true);
 			}
 		},
-		(dW,oldVal) => { // set on scroll
+		(dW,oldVal) => { // set on scroll, nothing
 		},
-		(dx,oldVal) => { // set on drag-x
+		(dx,oldVal) => { // set on drag-x, nothing
 		}
 	);
+	const vramLimitUpdateFunc=sys.addHint(Lang("vram-limit-hint"));
+	vramLimitUpdateFunc(false); // invisible at start
+
 	// fps limiter. It it impossible to measure rendering time in WebGL1.0 due to safety reasons
 	// see https://www.vusec.net/projects/glitch/
 	sys.addSwitch(Lang("sys-max-fps"),[Lang("sys-unlimited"),"60","30","12"],Lang("fps"),val => {

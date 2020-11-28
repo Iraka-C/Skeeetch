@@ -6,6 +6,7 @@ PERFORMANCE={
 		isDrawingLayerBorder: false
 	},
 	maxMem:{ // maximum memory available in Bytes
+		// Will be overwritten by sysSettingParams
 		ram: 4*1024*1024*1024, // init 4G for history (vram manager doesn't care about this limit)
 		gpu: 8*1024*1024*1024 // init 8G (my card)
 	},
@@ -44,7 +45,7 @@ class FPSCounter{
 /**
  * init
  */
-PERFORMANCE.init=function(){
+PERFORMANCE.init=function(maxVRAMSetting){
 	/**
 	 * PERFORMANCE.strokeFpsCounter is just a debugging object
 	 * At present, no method is provided to get WebGL1.0 render time
@@ -52,9 +53,16 @@ PERFORMANCE.init=function(){
 	PERFORMANCE.strokeFpsCounter=new FPSCounter(); // not useful at this moment
 	PERFORMANCE.animationFpsCounter=new FPSCounter();
 	PERFORMANCE.idleTaskManager=new IdleTaskManager();
+	if(maxVRAMSetting){
+		PERFORMANCE.maxMem.gpu=maxVRAMSetting; // saved info
+	}
 	if(navigator.deviceMemory){
 		// the value could only be 0.25, 0.5, 1, 2, 4, 8
+		// at most 4GB
 		PERFORMANCE.maxMem.ram=navigator.deviceMemory/2*1024*1024*1024; // able to conserve half for history
+	}
+	else{
+		PERFORMANCE.maxMem.ram=PERFORMANCE.maxMem.gpu/2; // half-vram equivalent ram for history
 	}
 }
 

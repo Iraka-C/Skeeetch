@@ -42,14 +42,14 @@ input:disabled {
 /* layer panel */
 
 #palette-panel{
-	background: #444;
+	background: #3a3a3a;
 }
 #palette-selector{
 	box-shadow: 0px 0px 20px #222;
 }
 
 #layer-panel{
-	background: #3a3a3a;
+	background: #444;
 }
 
 .layer-item{
@@ -130,4 +130,7 @@ input:disabled {
 }
 .setting-table .setting-button:active{
 	box-shadow: 0px 0px 10px #ffffff88;
+}
+.setting-table .setting-hint{
+	background: #ffffff33;
 }

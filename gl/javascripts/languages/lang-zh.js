@@ -145,8 +145,9 @@ LANG_ZH={
 	"Paper Width":"宽度",
 	"Paper Height":"高度",
 	"Change Paper Size":"改变尺寸",
-	"workspace-hint-1":"改变纸张尺寸时会丢弃超出范围的像素",
+	"workspace-hint-1":"改变纸张尺寸时可能会丢弃超出范围的像素",
 	"render-bitdepth-hint":"位深度设置将在网页刷新后生效",
+	"vram-limit-hint":"显存设置将在网页刷新后生效",
 
 	// Files
 	"Files":"文件",
@@ -171,7 +172,7 @@ LANG_ZH={
 	"About Skeeetch":"关于Skeeetch",
 	"about-skeeetch":`
 		Skeeetch是<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C'>Iraka-C</a>的个人作品，基于<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>发布。<br>
-		在GitHub上Star这个项目，或者提出一些反馈和建议吧！
+		在GitHub上Star这个项目，或者在Issue中提出一些反馈和建议吧！
 		<br><hr>
 		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch" data-size="large" data-show-count="true" aria-label="Star Iraka-C/Skeeetch on GitHub">Star</a>
 		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch/issues" data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue Iraka-C/Skeeetch on GitHub">Issue</a>

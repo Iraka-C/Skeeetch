@@ -23,7 +23,8 @@ sysSettingParams={
 		channelBitDepth, // bit per channel
 		displaySettings:{ // see ENV.displaySettings
 			antiAlias,
-			enableTransformAnimation
+			enableTransformAnimation,
+			... ...
 		}
 	},
 	nowFileID, // the present fileID
