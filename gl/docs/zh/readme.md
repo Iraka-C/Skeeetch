@@ -29,7 +29,7 @@ Skeeetch支持许多常见的绘画软件操作，包括：
 
 ## 首次打开界面
 
-![ui](./images/ui.png)
+![ui](./manual/images/ui.png)
 
 打开画板，可以看到界面分为三个部分：标题栏、图层侧边栏、和画布窗口。
 
@@ -47,7 +47,7 @@ Skeeetch支持许多常见的绘画软件操作，包括：
 
 ### 绘制线条
 
-<img src="./images/stroke.png" width="200"/>
+<img src="./manual/images/stroke.png" width="200"/>
 
 > 用软边画笔绘制一条S形曲线
 
@@ -99,7 +99,7 @@ Skeeetch支持之前操作的撤销和在撤销之后的重做。在右下角的
 
 Skeeetch支持图像文件或`.psd`文件的导入，只需将文件拖入窗口即可。也可以在**文件**菜单中点击“打开文件”以导入。**注意**：导入PSD文件时，所有之前Skeeetch中的内容将被清空。
 
-> 如果Skeeetch在加载文件时出现长时间无反应/网页崩溃等情况，可能是因为文件过大而耗尽浏览器资源。（[!!点此清除所有保存的内容和设置!!](https://iraka-c.github.io/Skeeetch/index.html?clear=1&reset=1)）。我们将不断优化Skeeetch以争取支持打开更大的文件，但一般而言，Skeeetch支持的文件大小和计算机配置、系统设置、浏览器都有关系。
+> 如果Skeeetch在加载文件时出现长时间无反应/网页崩溃等情况，可能是因为文件过大而耗尽浏览器资源。（[**!!点此清除所有保存的内容和设置!!**](https://iraka-c.github.io/Skeeetch/index.html?clear=1&reset=1)）。我们将不断优化Skeeetch以争取支持打开更大的文件，但一般而言，Skeeetch支持的文件大小和计算机配置、系统设置、浏览器都有关系。
 
 ### 导出文件
 
@@ -114,13 +114,13 @@ Skeeetch支持将当前的画布保存为`.png`图片或`.psd`文件。点击“
 
 
 ## 常见问题
-* [使用了数位板/压感屏幕，笔刷却对压力无反应](./manual/QA.md#使用了数位板/压感屏幕，笔刷却对压力无反应)
-* [Skeeetch在绘制时出现色差/杂色](./manual/QA.md#Skeeetch在绘制时出现色差/杂色)
-* [我的Skeeetch在运行的时候很卡顿](./manual/QA.md#我的Skeeetch在运行的时候很卡顿)
-* [为什么Skeeetch占用的内存和显存这么多](./manual/QA.md#为什么Skeeetch占用的内存和显存这么多)
-* [Skeeetch相比Photoshop、CSP、SketchBook、SAI、Krita等绘画软件有什么优势吗](./manual/QA.md#Skeeetch相比Photoshop、CSP、SketchBook、SAI、Krita等绘画软件有什么优势吗)
-* [我可以多开Skeeetch标签页或者窗口吗](./manual/QA.md#我可以多开Skeeetch标签页或者窗口吗)
-* [我觉得这个破应用某个地方会出Bug，或者要是有某某功能就好了](./manual/QA.md#我觉得这个破应用某个地方会出Bug，或者要是有某某功能就好了)
+* [使用了数位板/压感屏幕，笔刷却对压力无反应](./manual/QA.md#使用了数位板压感屏幕笔刷却对压力无反应)
+* [Skeeetch在绘制时出现色差/杂色](./manual/QA.md#skeeetch在绘制时出现色差杂色)
+* [我的Skeeetch在运行的时候很卡顿](./manual/QA.md#我的skeeetch在运行的时候很卡顿)
+* [为什么Skeeetch占用的内存和显存这么多](./manual/QA.md#为什么skeeetch占用的内存和显存这么多)
+* [Skeeetch相比Photoshop、CSP、SketchBook、SAI、Krita等绘画软件有什么优势吗](./manual/QA.md#skeeetch相比photoshopcspsketchbooksaikrita等绘画软件有什么优势吗)
+* [我可以多开Skeeetch标签页或者窗口吗](./manual/QA.md#我可以多开skeeetch标签页或者窗口吗)
+* [我觉得这个破应用某个地方会出Bug，或者要是有某某功能就好了](./manual/QA.md#我觉得这个破应用某个地方会出bug或者要是有某某功能就好了)
 
 
 ## TODOs
