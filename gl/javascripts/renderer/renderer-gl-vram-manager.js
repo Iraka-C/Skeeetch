@@ -38,30 +38,8 @@ class GLVRAMManager {
 		const remainingSize=this.maxVRAMSize-this.vRAMUsage;
 		let sizeToRelease=size-remainingSize; // how many space needed to release from VRAM
 
-		// Deleted reported in this.remove(imgData)
-		// if(sizeToRelease>0) { // need to release this much VRAM space into RAM
-		// 	for(const [oldData,oldSize] of this.activeTextures) { // Delete first
-		// 		// Even if oldData size has changed, use stored oldSize to update usage
-		// 		// The more you expanded, the more you will be frozen
-		// 		if(oldData.isDeleted) { // already deleted/released
-		// 			if(oldData.type=="GLTexture") {
-		// 				this.vRAMUsage-=oldSize;
-		// 				sizeToRelease-=oldSize;
-		// 				//console.log("Deleted Texture "+oldData.id+" release "+(oldSize/1048576).toFixed(2)+"MB");
-		// 			}
-		// 			else { // GLRAMBuf
-		// 				this.ramUsage-=oldSize;
-		// 			}
-		// 			this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
-		// 		}
-		// 		if(sizeToRelease<=0) { // get enough space
-		// 			break;
-		// 		}
-		// 	}
-		// }
-		// @TODO: remove deleted texture from whitelist
 		if(sizeToRelease>0) { // still need to release
-			for(const [oldData,oldSize] of this.activeTextures) {
+			for(const [oldData,oldSize] of this.activeTextures){ // release old first
 				this.renderer.freezeImageData(oldData); // move VRAM to RAM
 				this.ramUsage+=size;
 				console.log("Compressed VRAM"+(oldSize/1048576).toFixed(2)+"MB");

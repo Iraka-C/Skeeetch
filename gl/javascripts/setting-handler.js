@@ -42,7 +42,13 @@ SettingHandler.initTransformHandler=function() {
 			ENV.rotateTo(newA);
 		},
 		(dw,oldVal) => { // scroll update
-			let newA=ENV.window.rot+dw;
+			let newA=ENV.window.rot;
+			if(EVENTS.key.shift){ // shift: round to 15 deg
+				newA=Math.round(newA/15)*15+dw*15;
+			}
+			else{
+				newA+=dw;
+			}
 			// mod to -180~180
 			if(newA>180) newA-=360;
 			if(newA<=-180) newA+=360;
@@ -50,7 +56,10 @@ SettingHandler.initTransformHandler=function() {
 			ENV.rotateTo(newA);
 		},
 		(dx,oldVal) => { // drag update
-			let newA=(oldVal-0)+dx; // string to number
+			let newA=(oldVal-0)+dx;// string to number
+			if(EVENTS.key.shift){ // shift: round to 15 deg
+				newA=Math.round(newA/15)*15;
+			}
 			// mod to -180~180
 			if(newA>180) newA-=360;
 			if(newA<=-180) newA+=360;
@@ -77,11 +86,26 @@ SettingHandler.initTransformHandler=function() {
 			ENV.scaleTo(newS/100);
 		},
 		(dw,oldVal) => { // scroll update
-			let newS=SettingHandler.updateScale(dw,ENV.window.scale);
+			let newS;
+			if(EVENTS.key.shift){ // round to power 2
+				const b2=Math.log2(ENV.window.scale);
+				newS=Math.pow(2,Math.round(b2)+dw).clamp(0.125,8.0);
+			}
+			else{
+				newS=SettingHandler.updateScale(dw,ENV.window.scale);
+			}
+
 			ENV.scaleTo(newS);
 		},
 		(dx,oldVal) => { // drag update
-			let newS=SettingHandler.updateScale(dx/2,(oldVal-0)/100); // string to number
+			let newS=oldVal-0;
+			if(EVENTS.key.shift){ // round to power 2
+				const b2=Math.log2(newS/100);
+				newS=Math.pow(2,Math.round(b2+dx/15)).clamp(0.125,8.0);
+			}
+			else{
+				newS=SettingHandler.updateScale(dx/2,newS/100); // string to number
+			}
 			ENV.scaleTo(newS);
 		},
 		() => $scale.val(Math.round(ENV.window.scale*100))
