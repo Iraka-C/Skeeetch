@@ -13,15 +13,45 @@ FILES.initFileMenu=function() {
 	// ================ Import Action ================
 	fileManager.addSectionTitle(Lang("Add Content"));
 	
-	fileManager.addInstantNumberItem(
+	const STANDARD_SIZE_MM={
+		"A0":[841,1189],  "A1":[594,841],  "A2":[420,594],
+		"A3":[297,420],   "A4":[210,297],  "A5":[148,210],
+		"A6":[105,148],
+		"B0":[1000,1414], "B1":[707,1000], "B2":[500,707],
+		"B3":[353,500],   "B4":[250,353],  "B5":[176,250],
+		"B6":[125,176],
+		"C0":[917,1297],  "C1":[648,917],  "C2":[458,648],
+		"C3":[324,458],   "C4":[229,324],  "C5":[162,229],
+		"C6":[114,162],
+		"1K":[787,1092],  "2K":[540,740],  "4K":[370,540],
+		"8K":[260,370],  "12K":[250,260],
+		"16K":[185,260], "24K":[170,180],
+		"32K":[130,184], "36K":[115,170], "48K":[85,260],
+		"64K":[85,125]
+	};
+	const STD_PPMM=300/25.4; // pixel per mm
+
+	const widthUpdateFunc=fileManager.addInstantNumberItem(
 		Lang("Paper Width"),() => FILES.tempPaperSize.width,Lang("px"),
 		newVal => { // set on input
-			if(newVal) {
-				newVal-=0;
-				newVal=newVal.clamp(16,ENV.maxPaperSize);
-				FILES.tempPaperSize.width=newVal;
-				sizeChangeHint(true);
+			if(!newVal)return;
+			const stdPaper=STANDARD_SIZE_MM[newVal.toUpperCase()];
+			if(stdPaper){ // std paper, horizontal
+				const tWidth=Math.round(stdPaper[1]*STD_PPMM);
+				const tHeight=Math.round(stdPaper[0]*STD_PPMM);
+				if(tWidth>ENV.maxPaperSize||tHeight>ENV.maxPaperSize){
+					EventDistributer.footbarHint.showInfo(Lang("Specified paper too large"));
+					return; // too large
+				}
+				FILES.tempPaperSize.width=tWidth;
+				FILES.tempPaperSize.height=tHeight;
+				heightUpdateFunc();
 			}
+			else { // pixel number
+				newVal=(newVal-0).clamp(16,ENV.maxPaperSize);
+				FILES.tempPaperSize.width=newVal;
+			}
+			sizeChangeHint(true);
 		},
 		(dW,oldVal) => { // set on scroll
 			let newVal=(FILES.tempPaperSize.width+dW*20).clamp(16,ENV.maxPaperSize);
@@ -34,15 +64,27 @@ FILES.initFileMenu=function() {
 			sizeChangeHint(true);
 		}
 	);
-	fileManager.addInstantNumberItem(
+	const heightUpdateFunc=fileManager.addInstantNumberItem(
 		Lang("Paper Height"),() => FILES.tempPaperSize.height,Lang("px"),
 		newVal => { // set on input
-			if(newVal) {
-				newVal-=0;
-				newVal=newVal.clamp(16,ENV.maxPaperSize);
-				FILES.tempPaperSize.height=newVal;
-				sizeChangeHint(true);
+			if(!newVal)return;
+			const stdPaper=STANDARD_SIZE_MM[newVal.toUpperCase()];
+			if(stdPaper){ // std paper, vertical
+				const tWidth=Math.round(stdPaper[0]*STD_PPMM);
+				const tHeight=Math.round(stdPaper[1]*STD_PPMM);
+				if(tWidth>ENV.maxPaperSize||tHeight>ENV.maxPaperSize){
+					EventDistributer.footbarHint.showInfo(Lang("Specified paper too large"));
+					return; // too large
+				}
+				FILES.tempPaperSize.width=tWidth;
+				FILES.tempPaperSize.height=tHeight;
+				widthUpdateFunc();
 			}
+			else { // pixel number
+				newVal=(newVal-0).clamp(16,ENV.maxPaperSize);
+				FILES.tempPaperSize.height=newVal;
+			}
+			sizeChangeHint(true);
 		},
 		(dW,oldVal) => { // set on scroll
 			let newVal=(FILES.tempPaperSize.height+dW*20).clamp(16,ENV.maxPaperSize);

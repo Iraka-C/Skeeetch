@@ -170,6 +170,7 @@ LANG_ZH={
 	"layer-mask":"蒙版",
 
 	"Repository":"库",
+	"Specified paper too large":"指定的纸张尺寸过大",
 
 	// Info
 	"About Skeeetch":"关于Skeeetch",
