@@ -16,6 +16,8 @@ LANG_EN={
 	"Pressure Controlled Opacity":"Pen Pressure",
 	"new-brush-prefix":"New ",
 
+	"color-to-opacity":"Color > Opa",
+
 	// Settings part
 	"sys-info":"Information",
 	"sys-mem":"RAM Usage",

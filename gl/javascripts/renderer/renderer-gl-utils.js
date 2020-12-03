@@ -547,10 +547,14 @@ class GLImageDataFactory {
 	 * These functions are all time consuming! Reduce the use.
 	 */
 	constructor(renderer) {
+		this.renderer=renderer;
 		this.gl=renderer.gl;
 		this.dataFormat=renderer.dataFormat;
 
 		this._initConverterProgram();
+
+		// in utils-effects.js
+		this._initEffectProgram();
 	}
 
 	_initConverterProgram(){

@@ -628,6 +628,11 @@ class GLRenderer extends BasicRenderer {
 		this.textureBlender.blendTexture(src,tgt,param);
 	}
 
+	colorToOpacity(src){
+		this.vramManager.verify(src);
+		this.imageDataFactory.color2Opacity(src);
+	}
+
 	// debug: add wire frame
 	// draw a border wire frame of the source.color on the target
 	drawEdge(src,tgt,optArea) {

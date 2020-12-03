@@ -93,6 +93,9 @@ LANG_ZH={
 	"circ":"圈",
 	"Auto":"自动",
 
+	"color-to-opacity":"颜色转透明度",
+	"Replace white component with transparency.":"将白色成分转换为透明度",
+
 	// Layer
 	"layer-opacity-label-shown":"调节图层不透明度。右键隐藏图层",
 	"layer-opacity-label-hidden":"右键显示图层",

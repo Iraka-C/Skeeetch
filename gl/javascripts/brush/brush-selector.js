@@ -12,6 +12,8 @@ BrushManager.initBrushSelector=function(customBrushes) {
 		});
 		$defTable.append($row);
 	}
+
+	BrushManager.initBrushAccessories($defTable);
 	$("#brush-selector-default").append($defTable);
 
 	if(customBrushes){ // customBrushes only contain RAMBuf8 now

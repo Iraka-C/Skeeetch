@@ -448,6 +448,27 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 	return SMath.blendNormal([...PALETTE.colorSelector.getRGB(),1],pSum); //pSum
 }
 
+CANVAS.color2Opacity=function(){
+	if(!CANVAS.renderer||!CANVAS.settings.enabled) {
+		// No canvas, can't draw on it
+		return false;
+	}
+	// get params of this layer in a tree
+	CANVAS.targetLayerVisible=CANVAS.nowLayer.isVisible();
+	CANVAS.targetLayerLocked=CANVAS.nowLayer.isLocked();
+	CANVAS.targetLayerOpacityLocked=CANVAS.nowLayer.isOpacityLocked();
+	if(!CANVAS.targetLayerVisible||CANVAS.targetLayerLocked) { // locked
+		return false;
+	}
+	CANVAS.renderer.colorToOpacity(CANVAS.nowLayer.rawImageData);
+
+	// update UI
+	CANVAS.nowLayer.updateThumb();
+	CANVAS.nowLayer.setRawImageDataInvalid(); // the data is invalid now
+	CANVAS.requestRefresh(); // refresh display
+	return true;
+}
+
 // ========= Panning translation on imageData =========
 // @TODO: move this to a new class?
 

@@ -116,7 +116,7 @@
 	transition: background-color 0.25s;
 }
 #brush-selector-menu .brush-selector-tr-selected{
-	background-color: #00000088; /* For seeing brushtip clear */
+	background-color: #000000; /* For seeing brushtip clear */
 }
 .brush-selector-canvas-container{
 	position: relative;
