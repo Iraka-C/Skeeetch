@@ -71,6 +71,7 @@ FILES.initFileMenu=function() {
 	);
 	widthUpdateFunc("input").on("focus",e=>{ // add on focus drag start
 		cropDraggerUpdater(true);
+		sizeChangeHint(true);
 	});
 
 	const heightUpdateFunc=fileManager.addInstantNumberItem(
@@ -111,6 +112,7 @@ FILES.initFileMenu=function() {
 	);
 	heightUpdateFunc("input").on("focus",e=>{ // add on focus drag start
 		cropDraggerUpdater(true);
+		sizeChangeHint(true);
 	});
 	const sizeChangeHint=fileManager.addHint(Lang("workspace-hint-1"));
 	sizeChangeHint(false);
@@ -150,10 +152,10 @@ FILES.initFileMenu=function() {
 			histItem.children.push({
 				type: "paper-size",
 				prevSize: [ENV.paperSize.width,ENV.paperSize.height],
-				nowSize: [FILES.tempPaperSize.width,FILES.tempPaperSize.height]
+				nowSize: [w,h]
 			});
 			HISTORY.addHistory(histItem); // submit history
-			ENV.setPaperSize(FILES.tempPaperSize.width,FILES.tempPaperSize.height,true);
+			ENV.setPaperSize(w,h,true);
 		}
 		sizeChangeHint(false);
 		fileManager.toggleExpand();

@@ -8,7 +8,7 @@
 	pointer-events: none;
 }
 
-#drag-lines, #drag-points{ /* accept event only at this level */
+#drag-lines-padding, #drag-points{ /* accept event only at this level */
 	cursor: cell;
 	pointer-events: all;
 }

@@ -25,7 +25,7 @@
 	<script src="./javascripts/library/jquery-3.4.1.min.js"></script>
 	<script type="text/javascript">
 		const glsl=s => s; // string conversion, for glsl tag linting.
-		const LOGGING=false; // logging switch & optimize unused console object
+		const LOGGING=true; // logging switch & optimize unused console object
 		$(e => ENV.init()); // Main program entrance
 	</script>
 
@@ -248,13 +248,19 @@
 					</svg>
 
 					<svg id="drag-selection-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
+						<g id="drag-lines-padding" stroke-width="12" stroke="#00000000" fill="none">
+							<line id="l12p" x1="100" y1="100" x2="100" y2="200"/>
+							<line id="l23p" x1="100" y1="200" x2="200" y2="200"/>
+							<line id="l34p" x1="200" y1="200" x2="200" y2="100"/>
+							<line id="l41p" x1="200" y1="100" x2="100" y2="100"/>
+						</g>
 						<g id="drag-lines-shadow" stroke-width="4" stroke="#666666" fill="none">
 							<line id="l12s" x1="100" y1="100" x2="100" y2="200"/>
 							<line id="l23s" x1="100" y1="200" x2="200" y2="200"/>
 							<line id="l34s" x1="200" y1="200" x2="200" y2="100"/>
 							<line id="l41s" x1="200" y1="100" x2="100" y2="100"/>
 						</g>
-						<g id="drag-lines" stroke-width="2" stroke="#ff6666" fill="none">
+						<g id="drag-lines" stroke-width="2" stroke="#ff0000" fill="none">
 							<line id="l12" x1="100" y1="100" x2="100" y2="200"/>
 							<line id="l23" x1="100" y1="200" x2="200" y2="200"/>
 							<line id="l34" x1="200" y1="200" x2="200" y2="100"/>

@@ -60,7 +60,7 @@ function dis(p1,p2){
  * Circle c centers at (x0,y0) with radius r
  * return the intersection part length of l & c
  */
-function getLineCircleIntersectionLength(x1,y1,x2,y2,x0,y0,r){
+SMath.getLineCircleIntersectionLength=function(x1,y1,x2,y2,x0,y0,r){
 	let dx=x2-x1,dy=y2-y1;
 	let dis=Math.sqrt(dx*dx+dy*dy);
 	let tx=x1-x0,ty=y1-y0;
@@ -86,12 +86,12 @@ function getLineCircleIntersectionLength(x1,y1,x2,y2,x0,y0,r){
  * Line l does through (x1,y1) & (x2,y2)
  * return the distance from l to (x0,y0)
  */
-function getPointToLineDis(x1,y1,x2,y2,x0,y0){
+SMath.getPointToLineDis=function(x1,y1,x2,y2,x0,y0){
 	let dx=x2-x1,dy=y2-y1;
 	let dis2_=dx*dx+dy*dy;
-	if(dis2_<1E-6){
-		return dis2(x0,y0,x1,y1);
-	}
+	// if(dis2_<1E-6){ // can be recognized as 1 point
+	// 	return dis2(x0,y0,x1,y1);
+	// }
 	return Math.abs(dx*y0-dy*x0+x1*y2-x2*y1)/Math.sqrt(dis2_);
 }
 
