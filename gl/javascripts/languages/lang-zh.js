@@ -148,7 +148,7 @@ LANG_ZH={
 	"Paper Width":"宽度",
 	"Paper Height":"高度",
 	"Change Paper Size":"改变尺寸",
-	"workspace-hint-1":"改变纸张尺寸时可能会丢弃超出范围的像素",
+	"workspace-hint-1":"改变纸张尺寸时可能会丢弃超出范围的内容",
 	"render-bitdepth-hint":"位深度设置将在网页刷新后生效",
 	"vram-limit-hint":"显存设置将在网页刷新后生效",
 

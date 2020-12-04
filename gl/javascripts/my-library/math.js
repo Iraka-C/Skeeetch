@@ -6,17 +6,26 @@ Number.prototype.clamp=function(min,max){
 	return Math.min(Math.max(this,min),max);
 };
 
-function parseNumber(){
-	
-}
-
 /*
-	Check if line segment p1~p2 intersect with q1~q2
-	If true, return the intersection
-	{x:xCoord, y:yCoord, t:position of the int.point,
-		dir:+1 for q1~q2 crosses from the right, -1 elsewise}
-	Line segment includes p1,q1, excludes p2,q2
+	return the intersection point of two lines
+	line p starts with point p with direction gp (ends at p+gp)
+	line q starts with point q with direction gq (ends at q+gq)
+	return [x,y,tp,tq]
+	(x,y) is the coordinate of intersection point
+	tp, tq are the position (ratio from start point relative to length)
+	of intersection point on the line
  */
+
+SMath.lineIntersectionPV=function(p,gp,q,gq){
+	const g0=SMath.vector(p,q);
+	const t1=SMath.cross(gq,g0);
+	const t2=SMath.cross(gq,gp);
+	const tn=SMath.cross(gp,g0);
+
+	const tp=t1/t2; // t is the position of pS on p1~p2
+	const tq=tn/t2;
+	return [p[0]+tp*gp[0],p[1]+tp*gp[1],tp,tq];
+}
 
 SMath.lineIntersection=function(p1,p2,q1,q2){
 	// Cross Rect
@@ -27,20 +36,10 @@ SMath.lineIntersection=function(p1,p2,q1,q2){
 		return null;
 	}*/
 
-	// Intersection Point
-	let g1=[p2[0]-p1[0],p2[1]-p1[1]];
-	let g2=[q2[0]-q1[0],q2[1]-q1[1]];
-	let g0=[q1[0]-p1[0],q1[1]-p1[1]];
-	let t1=SMath.cross(g2,g0);
-	let t2=SMath.cross(g2,g1);
-	let tn=SMath.cross(g1,g0);
-	//let d=SMath.dot(g2,g1);
-	let tp=t1/t2; // t is the position of pS on p1~p2
-	let tq=tn/t2;
-	let pS=[p1[0]+tp*g1[0],p1[1]+tp*g1[1],tp,tq];
-	return pS;
+	return SMath.lineIntersectionPV(p1,SMath.vector(p1,p2),q1,SMath.vector(q1,q2));
 }
 
+SMath.vector=(v1,v2)=>[v2[0]-v1[0],v2[1]-v1[1]];
 SMath.cross=(v1,v2)=>v1[0]*v2[1]-v1[1]*v2[0];
 SMath.dot=(v1,v2)=>v1[0]*v2[0]+v1[1]*v2[1];
 

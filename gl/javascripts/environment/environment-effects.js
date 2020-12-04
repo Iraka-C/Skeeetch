@@ -38,8 +38,15 @@ ENV.getTransformMatrix=function(pArr) {
  * Update transform animation control
  */
 ENV.fireTransformAnimation=function(pArr) {
-	let anim=ENV.window._transAnimation;
+	this._animationEndResolve=null;
+	const animationEndPromise=new Promise(res=>{
+		ENV.fireTransformAnimation._animationEndResolve=res;
+	});
+	// If previous animation not ended (Promise not resolved)
+	// discard directly, won't cause memory leak (with browser GC)
 
+
+	let anim=ENV.window._transAnimation;
 	if(!ENV.displaySettings.enableTransformAnimation) { // no animation
 		let mat=ENV.getTransformMatrix(pArr)
 		let matrixStr="matrix("+mat[0]+","+mat[1]+","+mat[2]+","+mat[3]+","+mat[4]+","+mat[5]+")";
@@ -47,7 +54,7 @@ ENV.fireTransformAnimation=function(pArr) {
 		anim.start=pArr;
 		anim.now=pArr;
 		anim.process=1;
-		if(ENV.browserInfo.gecko){
+		if(ENV.browserInfo.gecko){ // box-shadow limit for firefox
 			$("#canvas-container").css({
 				"transform": matrixStr, // transform
 				"box-shadow": "0px 0px "
@@ -64,8 +71,9 @@ ENV.fireTransformAnimation=function(pArr) {
 					+"px #00000088" // shadow size
 			});
 		}
-		CANVAS.requestRefresh(); // upßdate canvas anti-aliasing
-		return;
+		ENV.fireTransformAnimation._animationEndResolve();
+		ENV.fireTransformAnimation._animationEndResolve=null; // release
+		return animationEndPromise;
 	}
 	anim.target=pArr;
 	anim.start=anim.now;
@@ -74,7 +82,9 @@ ENV.fireTransformAnimation=function(pArr) {
 		anim.isAnimationFired=true;
 		requestAnimationFrame(ENV._transformAnimation);
 	}
+	return animationEndPromise;
 }
+
 ENV._transformAnimation=function(timestamp) { // timestamp in ms
 	let anim=ENV.window._transAnimation;
 	let p=anim.process; // deal with animation effect
@@ -120,12 +130,10 @@ ENV._transformAnimation=function(timestamp) { // timestamp in ms
 					+"px #00000088" // shadow size
 			});
 		}
-
-		if(ENV.displaySettings.antiAlias){
-			CANVAS.requestRefresh(); // update canvas anti-aliasing
-		}
-
 		//console.log(matrixStr);
+		if(DRAG.setNewPaperPoints&&DRAG.mode!="none"){ // update dragger layer
+			DRAG.updateUI(anim.now);
+		}
 
 		if(p<0.999999) { // request new frame
 			requestAnimationFrame(ENV._transformAnimation);
@@ -133,6 +141,8 @@ ENV._transformAnimation=function(timestamp) { // timestamp in ms
 		else {
 			anim.lastTime=0; // cancel timer
 			anim.isAnimationFired=false; // cancel animation
+			ENV.fireTransformAnimation._animationEndResolve(); // end
+			ENV.fireTransformAnimation._animationEndResolve=null; // release
 		}
 	}
 }

@@ -204,6 +204,8 @@ EVENTS.init=function() {
 		else { // no key: zoom
 			// Alt menu cannot be prevented in Firefox
 			// zooming center is the cursor
+			if(isNaN(CURSOR.p0[0]))return; // disabled
+			
 			let newS=SettingHandler.updateScale(dy,ENV.window.scale); // 0.1~8.0 clamped
 			const cursorX=CURSOR.p0[0];
 			const cursorY=CURSOR.p0[1];
@@ -216,7 +218,6 @@ EVENTS.init=function() {
 			const newY=cursorY+dY*k-ENV.window.SIZE.height/2;
 			ENV.transformTo(newX,newY,ENV.window.rot,newS);
 			$("#scale-info-input").val(Math.round(newS*100));
-
 		}
 	});
 

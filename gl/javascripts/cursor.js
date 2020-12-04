@@ -73,6 +73,7 @@ CURSOR.moveCursor=function(event) {
 		CURSOR.isPressure?event.originalEvent.pressure:
 		event.originalEvent.pressure?1:0 // 1/0 as default
 	];
+	
 	// set cursor size
 	CURSOR.updateXYR();
 

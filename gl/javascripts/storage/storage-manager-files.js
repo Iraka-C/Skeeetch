@@ -183,7 +183,7 @@ STORAGE.FILES.initLayerStorage=function(fileID) { // This is an async function (
 	const oldContent=STORAGE.FILES.filesStore.fileList[fileID]||{};
 	const time=Date.now();
 	const fileContent={
-		fileName: ENV.getFileTitle()||oldContent.fileName,
+		fileName: oldContent.fileName||ENV.getFileTitle(),
 		createdDate: oldContent.createdDate||time,
 		lastOpenedDate: time // now
 		//...

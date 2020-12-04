@@ -22,7 +22,16 @@ FILES.loadAsPSD=function(data,filename) {
 		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.maxPaperSize+"px",2000);
 		return;
 	}
+
 	//if(ENV.taskCounter.isWorking()) return; // Cannot load when busy
+	// reset tempPaperSize
+	FILES.tempPaperSize={
+		width: psdFile.width,
+		height: psdFile.height,
+		left: 0,
+		top: 0
+	};
+	FILES.fileManager.update();
 
 	const layerTreeStr=STORAGE.FILES.saveLayerTree();
 	Promise.all([ // save current first TODO: auto saving control?

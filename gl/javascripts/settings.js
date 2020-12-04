@@ -75,7 +75,13 @@ class SettingManager{
 		);
 
 		this.$frame.find("tbody").append($row);
-		let _updateFunc=function(){
+		let _updateFunc=function(param){
+			if(param=="input"){
+				return $input;
+			}
+			if(param=="row"){
+				return $row;
+			}
 			if(valFunc){
 				const val=valFunc();
 				if(typeof(val)!="string"&&isNaN(val)){ // invalid: hide

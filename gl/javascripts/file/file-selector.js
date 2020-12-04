@@ -163,6 +163,14 @@ FILES.fileSelector.openFileWithID=function(fileID) {
 		// Some works on new file
 		STORAGE.FILES.getLayerTreeFromDatabase().then(layerTree => { // after getting
 			localStorage.setItem("layer-tree",JSON.stringify(layerTree)); // save in local storage (same as manually save)
+			// reset tempPaperSize
+			FILES.tempPaperSize={
+				width: layerTree.paperSize[0],
+				height: layerTree.paperSize[1],
+				left: 0,
+				top: 0
+			};
+			FILES.fileManager.update();
 			ENV.setPaperSize(...layerTree.paperSize); // set paper size and clear all contents
 			STORAGE.FILES.loadLayerTree(layerTree); // load contents
 		});

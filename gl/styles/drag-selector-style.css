@@ -3,13 +3,12 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
+	/* cursor: move; */
+	box-shadow: inset 0px 0px 64px #000000;
+	pointer-events: none;
+}
+
+#drag-lines, #drag-points{ /* accept event only at this level */
 	cursor: cell;
-}
-
-#drag-lines *{
-	cursor: pointer;
-}
-
-#drag-points *{
-	cursor: move;
+	pointer-events: all;
 }

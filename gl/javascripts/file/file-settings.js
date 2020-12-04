@@ -1,6 +1,8 @@
 FILES.tempPaperSize={
 	width: 0,
-	height: 0
+	height: 0,
+	left: 0, // for cropping
+	top: 0
 };
 FILES.exportOptions={ // do not save this: init every time
 	jpegQuality: 100
@@ -52,18 +54,25 @@ FILES.initFileMenu=function() {
 				FILES.tempPaperSize.width=newVal;
 			}
 			sizeChangeHint(true);
+			cropDraggerUpdater(true);
 		},
 		(dW,oldVal) => { // set on scroll
 			let newVal=(FILES.tempPaperSize.width+dW*20).clamp(16,ENV.maxPaperSize);
 			FILES.tempPaperSize.width=newVal;
 			sizeChangeHint(true);
+			cropDraggerUpdater(true);
 		},
 		(dx,oldVal) => { // set on drag-x
 			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.maxPaperSize);
 			FILES.tempPaperSize.width=newVal;
 			sizeChangeHint(true);
+			cropDraggerUpdater(true);
 		}
 	);
+	widthUpdateFunc("input").on("focus",e=>{ // add on focus drag start
+		cropDraggerUpdater(true);
+	});
+
 	const heightUpdateFunc=fileManager.addInstantNumberItem(
 		Lang("Paper Height"),() => FILES.tempPaperSize.height,Lang("px"),
 		newVal => { // set on input
@@ -85,20 +94,29 @@ FILES.initFileMenu=function() {
 				FILES.tempPaperSize.height=newVal;
 			}
 			sizeChangeHint(true);
+			cropDraggerUpdater(true);
 		},
 		(dW,oldVal) => { // set on scroll
 			let newVal=(FILES.tempPaperSize.height+dW*20).clamp(16,ENV.maxPaperSize);
 			FILES.tempPaperSize.height=newVal;
 			sizeChangeHint(true);
+			cropDraggerUpdater(true);
 		},
 		(dx,oldVal) => { // set on drag-x
 			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.maxPaperSize);
 			FILES.tempPaperSize.height=newVal;
 			sizeChangeHint(true);
+			cropDraggerUpdater(true);
 		}
 	);
+	heightUpdateFunc("input").on("focus",e=>{ // add on focus drag start
+		cropDraggerUpdater(true);
+	});
 	const sizeChangeHint=fileManager.addHint(Lang("workspace-hint-1"));
 	sizeChangeHint(false);
+
+	// The function used to update the dragger interface
+	const cropDraggerUpdater=FILES.initCropDragger(widthUpdateFunc,heightUpdateFunc);
 
 	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
 		FILES.newPaperAction();
@@ -106,14 +124,35 @@ FILES.initFileMenu=function() {
 		fileManager.toggleExpand(); // close the file menu
 	});
 	fileManager.addButton(Lang("Change Paper Size"),() => {
-		if(FILES.tempPaperSize.width!=ENV.paperSize.width
-			||FILES.tempPaperSize.height!=ENV.paperSize.height) { // size changed
+		const [w,h,l,t]=[
+			FILES.tempPaperSize.width,
+			FILES.tempPaperSize.height,
+			FILES.tempPaperSize.left,
+			FILES.tempPaperSize.top
+		];
+		if(w!=ENV.paperSize.width||h!=ENV.paperSize.height||l||t) { // size changed
 			// preserve contents
-			HISTORY.addHistory({
+			const histItem={ // Remember History
+				type: "bundle",
+				children: []
+			}
+			if(l||t){ // cropped, needs panning
+				for(const item of LAYERS.layerTree.children){ // all root nodes
+					CANVAS.panLayer(item,-l,-t,false);
+					histItem.children.push({
+						type: "node-pan",
+						id: item.id,
+						dx: -l,
+						dy: -t
+					});
+				}
+			}
+			histItem.children.push({
 				type: "paper-size",
 				prevSize: [ENV.paperSize.width,ENV.paperSize.height],
 				nowSize: [FILES.tempPaperSize.width,FILES.tempPaperSize.height]
 			});
+			HISTORY.addHistory(histItem); // submit history
 			ENV.setPaperSize(FILES.tempPaperSize.width,FILES.tempPaperSize.height,true);
 		}
 		sizeChangeHint(false);
@@ -195,11 +234,18 @@ FILES.initFileMenu=function() {
 	// Refreshing the file panel and selector
 	EventDistributer.setClick($("#file-button"),event => { // update temp data when clicked
 		// reset temp size number to paper size
-		FILES.tempPaperSize.width=ENV.paperSize.width;
-		FILES.tempPaperSize.height=ENV.paperSize.height;
+		FILES.tempPaperSize={
+			width: ENV.paperSize.width,
+			height: ENV.paperSize.height,
+			left: 0,
+			top: 0
+		};
 		if(!fileManager.isExpanded()){ // if is closed at first
 			// update thumb image
 			STORAGE.FILES.updateCurrentThumb();
+		}
+		else{ // open to close, turn off dragging
+			cropDraggerUpdater(false);
 		}
 	});
 	// then, refresh UI when expanded

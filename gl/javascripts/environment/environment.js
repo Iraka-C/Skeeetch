@@ -135,7 +135,17 @@ ENV.refreshTransform=function() {
 		ENV.window.trans.y,
 		ENV.window.rot,
 		ENV.window.scale
-	]);
+	]).then(()=>{ // after animation: setup drag points
+		// If this promise is discarded before resolved
+		// this will never be reached.
+		if(DRAG.setNewPaperPoints&&DRAG.mode!="none"){ // update dragger layer
+			DRAG.setNewPaperPoints(DRAG.paperP);
+		}
+	});
+	if(ENV.displaySettings.antiAlias){ // update canvas anti-aliasing
+		CANVAS.requestRefresh();
+	}
+	
 	CURSOR.updateXYR();
 };
 
@@ -214,8 +224,8 @@ ENV.transformTo=function(x,y,r,s) { // four values, with hint
 
 	ENV.refreshTransform();
 
-	$("#scale_info").html(Math.round(s*100)+"%");
-	$("#rotate_info").html(Math.round(r)+"&deg;");
+	// $("#scale_info").html(Math.round(s*100)+"%");
+	// $("#rotate_info").html(Math.round(r)+"&deg;");
 }
 
 /**
@@ -229,6 +239,10 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	if(!(w&&h)) { // w or h invalid or is 0
 		return;
 	}
+	// Anyway, clear dragging layer first
+	FILES.isCropping=false;
+	DRAG.setMode("none");
+
 	let isAnim=ENV.displaySettings.enableTransformAnimation; // store animation
 	ENV.displaySettings.enableTransformAnimation=false; // disable animation when changing size
 	if(!isPreservingContents){
@@ -241,8 +255,7 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	CANVAS.init(); // re-initialize CANVAS (and create new renderer, viewport)
 
 	if(isPreservingContents){ // save all contents
-		// @TODO: copy position error
-		for(const k in LAYERS.layerHash) { // @TODO: copy image data, mask image data
+		for(const k in LAYERS.layerHash) {
 			const layer=LAYERS.layerHash[k];
 			if(layer instanceof CanvasNode) {
 				// Do not change raw data
@@ -283,7 +296,9 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	let k2=ENV.window.SIZE.height/h;
 	let k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
 	ENV.transformTo(0,0,0,k);
+	// set transform info by force
 	$("#scale-info-input").val(Math.round(k*100));
+	$("#rotate-info-input").val(Math.round(0));
 
 	ENV.displaySettings.enableTransformAnimation=isAnim; // restore animation setting
 	$("#main-canvas-background").css("background-size",Math.sqrt(Math.max(w,h))*2+"px"); // set transparent block size
@@ -292,25 +307,63 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 /**
  * (x,y) is the coordinate under canvas window
  * transform it to the coordinate of paper
- * return [x,y] in paper
+ * return [xc,yc] in paper
  */
 
-ENV.toPaperXY=function(x,y) {
-	var xp=x-ENV.window.SIZE.width/2-ENV.window.trans.x;
-	var yp=y-ENV.window.SIZE.height/2-ENV.window.trans.y;
+ENV.toPaperXY=function(x,y,animArr) {
+	animArr=animArr||[
+		ENV.window.trans.x,
+		ENV.window.trans.y,
+		ENV.window.rot,
+		ENV.window.scale
+	];
+	const xp=x-ENV.window.SIZE.width/2-animArr[0];
+	const yp=y-ENV.window.SIZE.height/2-animArr[1];
 
-	var rot=ENV.window.rot/180*Math.PI;
-	var rotS=Math.sin(rot);
-	var rotC=Math.cos(rot);
-	var xr=rotC*xp+rotS*yp;
-	var yr=rotC*yp-rotS*xp;
+	const rot=animArr[2]/180*Math.PI;
+	const rotS=Math.sin(rot);
+	const rotC=Math.cos(rot);
+	const xr=rotC*xp+rotS*yp;
+	const yr=rotC*yp-rotS*xp;
 
-	var scale=ENV.window.scale;
-	var flip=ENV.window.flip? -1:1;
-	var xc=xr*flip/scale+ENV.paperSize.width/2;
-	var yc=yr/scale+ENV.paperSize.height/2;
+	const scale=animArr[3];
+	const flip=ENV.window.flip? -1:1;
+	const xc=xr*flip/scale+ENV.paperSize.width/2;
+	const yc=yr/scale+ENV.paperSize.height/2;
 
 	return [xc,yc];
+};
+
+/**
+ * (xc,yc) is the coordinate under paper
+ * transform it to the coordinate of canvas window
+ * return [x,y] in canvas window
+ * 
+ * The reverse function of ENV.toPaperXY
+ */
+
+ENV.toWindowXY=function(xc,yc,animArr) {
+	animArr=animArr||[
+		ENV.window.trans.x,
+		ENV.window.trans.y,
+		ENV.window.rot,
+		ENV.window.scale
+	];
+	const scale=animArr[3];
+	const flip=ENV.window.flip? -1:1;
+	const xr=(xc-ENV.paperSize.width/2)*flip*scale;
+	const yr=(yc-ENV.paperSize.height/2)*scale;
+
+	const rot=-animArr[2]/180*Math.PI;
+	const rotS=Math.sin(rot);
+	const rotC=Math.cos(rot);
+	const xp=rotC*xr+rotS*yr;
+	const yp=rotC*yr-rotS*xr;
+
+	const x=xp+ENV.window.SIZE.width/2+animArr[0];
+	const y=yp+ENV.window.SIZE.height/2+animArr[1];
+
+	return [x,y];
 };
 
 // ===================== Other setting functions ==========================

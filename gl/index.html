@@ -25,7 +25,7 @@
 	<script src="./javascripts/library/jquery-3.4.1.min.js"></script>
 	<script type="text/javascript">
 		const glsl=s => s; // string conversion, for glsl tag linting.
-		const LOGGING=false; // logging switch & optimize unused console object
+		const LOGGING=true; // logging switch & optimize unused console object
 		$(e => ENV.init()); // Main program entrance
 	</script>
 
@@ -100,6 +100,7 @@
 	<script src="./javascripts/history.js"></script>
 	<script src="./javascripts/file/file-handler.js"></script>
 	<script src="./javascripts/file/file-settings.js"></script>
+	<script src="./javascripts/file/file-settings-crop.js"></script>
 	<script src="./javascripts/file/file-selector.js"></script>
 	<script src="./javascripts/performance.js"></script>
 
@@ -247,37 +248,23 @@
 					</svg>
 
 					<svg id="drag-selection-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
-						<defs>
-							<filter id="line-shadow">
-								<feGaussianBlur stdDeviation="2"/>
-							</filter>
-							<filter id="drag-shadow">
-								<feGaussianBlur stdDeviation="4"/>
-							</filter>
-						</defs>
-						<g id="drag-lines-shadow" stroke-width="2" stroke="#000000" fill="none" style="filter:url('#line-shadow')">
+						<g id="drag-lines-shadow" stroke-width="4" stroke="#666666" fill="none">
 							<line id="l12s" x1="100" y1="100" x2="100" y2="200"/>
 							<line id="l23s" x1="100" y1="200" x2="200" y2="200"/>
 							<line id="l34s" x1="200" y1="200" x2="200" y2="100"/>
 							<line id="l41s" x1="200" y1="100" x2="100" y2="100"/>
 						</g>
-						<g id="drag-lines" stroke-width="2" stroke="#ff8888" fill="none">
+						<g id="drag-lines" stroke-width="2" stroke="#ff6666" fill="none">
 							<line id="l12" x1="100" y1="100" x2="100" y2="200"/>
 							<line id="l23" x1="100" y1="200" x2="200" y2="200"/>
 							<line id="l34" x1="200" y1="200" x2="200" y2="100"/>
 							<line id="l41" x1="200" y1="100" x2="100" y2="100"/>
 						</g>
-						<g id="drag-points-shadow" stroke="none" fill="#000000" style="filter:url('#drag-shadow')">
-							<circle id="c1s" cx="100" cy="100" r="5"/>
-							<circle id="c2s" cx="100" cy="200" r="5"/>
-							<circle id="c3s" cx="200" cy="200" r="5"/>
-							<circle id="c4s" cx="200" cy="100" r="5"/>
-						</g>
-						<g id="drag-points" stroke-width="1" stroke="#ff000066" fill="#ff6666">
-							<circle id="c1" cx="100" cy="100" r="5"/>
-							<circle id="c2" cx="100" cy="200" r="5"/>
-							<circle id="c3" cx="200" cy="200" r="5"/>
-							<circle id="c4" cx="200" cy="100" r="5"/>
+						<g id="drag-points" stroke-width="8" stroke="#00000044" fill="#ff0000">
+							<circle id="c1" cx="100" cy="100" r="6"/>
+							<circle id="c2" cx="100" cy="200" r="6"/>
+							<circle id="c3" cx="200" cy="200" r="6"/>
+							<circle id="c4" cx="200" cy="100" r="6"/>
 						</g>
 					</svg>
 				</div>

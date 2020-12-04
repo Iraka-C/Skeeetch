@@ -89,7 +89,7 @@ SettingHandler.initTransformHandler=function() {
 			let newS;
 			if(EVENTS.key.shift){ // round to power 2
 				const b2=Math.log2(ENV.window.scale);
-				newS=Math.pow(2,Math.round(b2)+dw).clamp(0.125,8.0);
+				newS=Math.pow(2,Math.round(b2+dw)).clamp(0.125,8.0);
 			}
 			else{
 				newS=SettingHandler.updateScale(dw,ENV.window.scale);
