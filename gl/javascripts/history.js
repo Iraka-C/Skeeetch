@@ -57,6 +57,13 @@ class HistoryItem{
 				this.newIndex=param.newIndex; // new index in the "to" group
 				this.oldActive=param.oldActive; // old active node, may be null
 				this.newActive=param.newActive; // new active node, may be null
+
+				if(!param.to){ // delete operation
+					const node=LAYERS.layerHash[param.id];
+					if(node instanceof LayerGroupNode){ // clear all unused intermediate image data
+						node.discardNonLeafImageData();
+					}
+				}
 				break;
 			case "node-property":
 				this.prevStatus=param.prevStatus;
@@ -407,6 +414,9 @@ HISTORY.redoStructureChange=function(item){
 	else{ // else: no new group, this is a delete-layer action
 		obj.$ui.detach(); // detach $ui from DOM
 		obj.detach(); // detach node from layerTree
+		if(obj instanceof LayerGroupNode){ // clear all unused intermediate image data
+			obj.discardNonLeafImageData();
+		}
 		LAYERS.setActive(item.newActive);
 		COMPOSITOR.updateLayerTreeStructure();
 	}
@@ -470,7 +480,8 @@ HISTORY.popHead=function(){
 		if(item.type=="node-structure"&&!item.to){ // delete node action
 			const node=LAYERS.layerHash[item.id];
 			node.delete(); // destroy imageData or hash number, this method is resursive for a group
-			// @TODO: If is a "delete canvas node" operation? consider managing the storage
+			// @TODO-: If is a "delete canvas node" operation? consider managing the storage
+			// needn't: auto clear on the next start
 		}
 		if(item.type=="bundle"){
 			for(const v of item.children){

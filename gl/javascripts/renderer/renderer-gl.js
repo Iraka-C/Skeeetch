@@ -443,11 +443,11 @@ class GLRenderer extends BasicRenderer {
 		this.vramManager.verify(src);
 		// copy to tmp
 		const tmp=this.tmpImageData;
-		if(src.width>tmp.width||src.height>tmp.height) {
-			LOGGING&&console.warn("Resize Imagedata: Tmp texture ("
-				+tmp.width+"x"+tmp.height+") smaller than target ("
-				+src.width+"x"+src.height+"), may be cropped");
-		}
+		// if(src.width>tmp.width||src.height>tmp.height) {
+		// 	LOGGING&&console.warn("Resize Imagedata: Tmp texture ("
+		// 		+tmp.width+"x"+tmp.height+") smaller than target ("
+		// 		+src.width+"x"+src.height+"), may be cropped");
+		// }
 		if(toCopy) { // Try the best to cover larger area
 			this.clearImageData(tmp,null,false);
 			const l1=src.validArea.left;

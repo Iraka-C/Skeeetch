@@ -457,12 +457,7 @@ LAYERS.replaceGroupWithLayer=function(group) {
 	STORAGE.FILES.saveContentChanges(layer); // save changes
 	// No need to set image data change history for newly created layer
 
-	// delete old imageData to save space. @TODO: clear all non-leaf imageData
-	group.assignNewRawImageData(0,0);
-	group.assignNewImageData(0,0);
-	group.setRawImageDataInvalid();
 	layer.setImageDataInvalid();
-
 	// remove group from ui
 	const groupId=group.id;
 	const fromId=group.parent.id;
@@ -686,4 +681,20 @@ LAYERS.debugRootStorage=function() {
 		}
 	}
 	console.log("Is same: "+(isSame?"true":"false"));
+}
+
+LAYERS.searchLayerByTextureID=function(tid){
+	for(const id in LAYERS.layerHash){
+		const node=LAYERS.layerHash[id];
+		if(node.rawImageData.id==tid){
+			return node;
+		}
+		if(node.imageData.id==tid){
+			return node;
+		}
+		if(node.lastRawImageData&&node.lastRawImageData.id==tid){
+			return node;
+		}
+	}
+	return null;
 }

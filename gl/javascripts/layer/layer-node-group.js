@@ -117,6 +117,16 @@ class LayerGroupNode extends ContentNode {
 		this.$ui.remove(); // remove all event handlers
 		super.delete();
 	}
+	discardNonLeafImageData(){ // preserve all leaves, discard intermediate image data
+		this.assignNewRawImageData(0,0);
+		this.assignNewImageData(0,0);
+		this.setRawImageDataInvalid();
+		for(const v of this.children){
+			if(v instanceof LayerGroupNode){
+				v.discardNonLeafImageData();
+			}
+		}
+	}
 	// ================= button =================
 	initButtons(){
 		const $buttons=this.$ui.children(".group-button-panel");
