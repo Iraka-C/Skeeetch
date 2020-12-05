@@ -796,6 +796,7 @@ class GLRenderer extends BasicRenderer {
 				}
 				this.textureBlender.blendTexture(tmpImageData,target,{mode: GLRenderer.SOURCE});
 				gl.deleteTexture(tmpTexture);
+				//this.deleteImageData(tmpImageData); // No need: directly called textureBlender, not verified
 			}
 			else if(img.type=="RAMBuf8") { // load a CTX2D ImageData, defined in Storage
 				if(!(target.width&&target.height)) { // the target is empty

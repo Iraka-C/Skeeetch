@@ -749,12 +749,16 @@ class GLImageDataFactory {
 	/**
 	 * src is a gl renderer img data
 	 * return premultiplied, Y-non-flipped (raw) result
+	 * the result is only a part of the src.validArea
 	 * the result is a typed array of this.dataFormat
 	 */
 	imageDataToBuffer(src) {
 		const gl=this.gl;
+		const VW=src.validArea.width;
+		const VH=src.validArea.hidth;
 
-		if(!(src.width&&src.height)) { // empty
+
+		if(!(VW&&VH)) { // empty
 			switch(this.dataFormat) {
 				case gl.FLOAT: return new Float32Array(0);
 				case gl.HALF_FLOAT: return new Uint16Array(0);
@@ -767,19 +771,22 @@ class GLImageDataFactory {
 		program.setTargetTexture(src.data,src.width,src.height);
 		gl.viewport(0,0,src.width,src.height); // set size to src
 
-		const SIZE=src.width*src.height*4;
+		const SIZE=VW*VH*4;
 		let pixels;
 		switch(this.dataFormat) {
 			case gl.FLOAT: pixels=new Float32Array(SIZE); break;
 			case gl.HALF_FLOAT: pixels=new Uint16Array(SIZE); break;
 			case gl.UNSIGNED_BYTE: pixels=new Uint8Array(SIZE); break;
 		}
-		gl.readPixels(0,0,src.width,src.height,gl.RGBA,this.dataFormat,pixels); // read from buffer
+		gl.readPixels(
+			src.validArea.left-src.left,
+			src.top+src.height-src.validArea.top-VH,
+			VW,VH,gl.RGBA,this.dataFormat,pixels); // read from buffer
 
 		return pixels;
 	}
 
-	// get a new GLRAMBuf (with similar ids) from texture
+	// get a NEW GLRAMBuf (with similar ids) from texture
 	/**
 	 * src is a gl renderer img data
 	 * return premultiplied, Y-non-flipped (raw) result (quite large!)
@@ -829,11 +836,14 @@ class GLImageDataFactory {
 	}
 
 	// Convert target into a GLRAMBuf type imagedata
+	// This function will trim the area outside target.validArea
+	// to get a smaller buffer
 	convertGLTextureToRAMBuf(target) {
 		const data2D=this.imageDataToBuffer(target);
 		const texture=target.data;
 		target.type="GLRAMBuf";
 		target.data=data2D;
+		Object.assign(target,target.validArea); // refresh dimensions as valid area only
 		this.gl.deleteTexture(texture);
 	}
 

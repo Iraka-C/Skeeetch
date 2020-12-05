@@ -54,8 +54,8 @@ class GLVRAMManager {
 
 			if(sizeToRelease>0) { // still not enough space
 				for(const [oldData,oldRecSize] of this.activeTextures){ // release old first
-					const oldLatSize=oldData.width*oldData.height*oldData.bitDepth/2; // in bytes
 					this.renderer.freezeImageData(oldData); // move VRAM to RAM
+					const oldLatSize=oldData.width*oldData.height*oldData.bitDepth/2; // in bytes
 					this.ramUsage+=oldLatSize;
 					console.log("Compressed VRAM"+(oldLatSize/1048576).toFixed(2)+"MB");
 					this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
