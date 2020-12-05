@@ -19,6 +19,7 @@ CURSOR.panRecord={ // recording the status of panning a layer/group
 	isPanned: false,
 	startPosition: [NaN,NaN] // the original position of rawImageData
 };
+CURSOR.rotateDown=NaN; // cursor rotation status
 /**
  * nowActivity:
  * <null>: nothing
@@ -89,8 +90,21 @@ CURSOR.moveCursor=function(event) {
 			ENV.translateTo(newTx,newTy);
 		}
 		else if(CURSOR.nowActivity=="rotate-paper"){
-			console.log("rotating");
-			
+			const center=[ENV.window.SIZE.width/2,ENV.window.SIZE.height/2];
+			const angle=-Math.atan2(CURSOR.p0[0]-center[0],CURSOR.p0[1]-center[1])/Math.PI*180; // in deg, CW
+			if(isNaN(CURSOR.rotateDown)){
+				CURSOR.rotateDown=angle-ENV.window.rot;
+			}
+			else{
+				let newRot=angle-CURSOR.rotateDown;
+				newRot=(newRot+540)%360-180; // at most -360-180 = -540
+				const diffTo90=Math.abs((newRot-45)%90)-45;
+				if(Math.abs(diffTo90)<10){ // within 10 degs, round to 90
+					newRot=Math.round(newRot/90)*90;
+				}
+				ENV.rotateTo(newRot);
+				$("#rotate-info-input").val(Math.round(newRot));
+			}
 		}
 		else if(CURSOR.nowActivity=="pan-layer"||CURSOR.nowActivity=="pan-disable") { // ctrl: pan canvas only
 			if(!LAYERS.active.isVisible()
@@ -116,13 +130,22 @@ CURSOR.moveCursor=function(event) {
 			CANVAS.stroke();
 		}
 		// else... for future extension
-	}
-	else if(EVENTS.isCursorInHysteresis){ // hysteresis drawing after pen up
-		if(CURSOR.nowActivity=="stroke"&&CURSOR.isPressure){
-			CANVAS.stroke();
+
+		// cancel cursor position status
+		if(CURSOR.nowActivity!="rotate-paper"){
+			CURSOR.rotateDown=NaN;
 		}
-		// else... just don't care them.
-		// Other operations don't require hysteresis
+	}
+	else{
+		CURSOR.rotateDown=NaN;
+
+		if(EVENTS.isCursorInHysteresis){ // hysteresis drawing after pen up
+			if(CURSOR.nowActivity=="stroke"&&CURSOR.isPressure){
+				CANVAS.stroke();
+			}
+			// else... just don't care them.
+			// Other operations don't require hysteresis
+		}
 	}
 
 	/**
@@ -294,7 +317,7 @@ CURSOR.setCursor=function() {
 			$("#brush-cursor").css("display","none");
 			break;
 		case "rotate-paper": // rotating paper
-			$("#canvas-area-panel").css("cursor","url('../gl/resources/rotate-arrow.cur'), cell");
+			$("#canvas-area-panel").css("cursor","url('../gl/resources/cursor/rotate-arrow.cur'), grabbing");
 			$("#brush-cursor").css("display","none");
 			break;
 		case "pan-layer": // dragging

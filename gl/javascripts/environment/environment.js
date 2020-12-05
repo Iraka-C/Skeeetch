@@ -172,6 +172,7 @@ ENV.scaleTo=function(ratio) {
 
 /**
  * Set the rotation to angle (degree CW)
+ * rotation center: window
  */
 ENV.rotateTo=function(angle) { // degree
 	let r=ENV.window.rot;

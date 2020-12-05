@@ -37,6 +37,7 @@ CANVAS.init=function() {
 		// The actual usage will be less than estimated
 	});
 	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
+	CANVAS.changedArea={width:0,height:0,left:0,top:0};
 }
 /**
  * Update the target canvas to draw
@@ -116,7 +117,7 @@ CANVAS.setCanvasEnvironment=function() {
 	});
 	// init changed area, put this first as isChanged sign init
 	// changed area for history
-	CANVAS.changedArea={width:0,height:0,left:0,top:0};
+	//CANVAS.changedArea={width:0,height:0,left:0,top:0};
 	//CANVAS.dirtyArea={width:0,height:0,left:0,top:0}; // set by refreshScreen
 };
 
@@ -259,8 +260,6 @@ CANVAS.stroke=function() {
  * On the end of stroke (Notice: not certainly canvas refreshed!)
  */
 CANVAS.strokeEnd=function() {
-	console.log("Stroke end");
-	
 	PERFORMANCE.idleTaskManager.startIdle();
 	/**
 	 * @TODO: more precise isChanged detection
@@ -272,6 +271,8 @@ CANVAS.strokeEnd=function() {
 	if(isChanged) { // the place that calls LAYER
 		CANVAS.onEndRefresh();
 	}
+	// reset changedArea here so that won't conflict with other keys
+	CANVAS.changedArea={width:0,height:0,left:0,top:0};
 }
 
 // ================= Canvas refresh control ===================

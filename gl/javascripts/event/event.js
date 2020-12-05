@@ -174,6 +174,9 @@ EVENTS.init=function() {
 				}
 			}
 		}
+		else{ // other buttons up, not stroking
+			endStroke();
+		}
 		
 		CURSOR.up(event);
 		// if(event.originalEvent.pointerType=="touch"){ // on touch up, at the same time, out
