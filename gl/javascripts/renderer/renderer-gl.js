@@ -782,6 +782,7 @@ class GLRenderer extends BasicRenderer {
 			if(img.type=="GLRAMBuf") { // load a buffer
 				// Here, suppose that the size of target will always contain img @TODO: Buggy?
 				// Setup temp texture for extracting data
+				// @TODO: use tmpImgData and texSubImage2D() for buf smaller than viewport
 				const tmpTexture=GLProgram.createAndSetupTexture(gl);
 				gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,img.width,img.height,0,gl.RGBA,this.dataFormat,img.data);
 				const tmpImageData={ // create a GLTexture copy of img

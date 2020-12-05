@@ -155,7 +155,7 @@ class CanvasNode extends ContentNode {
 	/**
 	 * Update the thumb image with this.rawImageData
 	 * sync
-	 * @TODO: clip to valid area
+	 * @TODO: clip to viewport
 	 */
 	updateThumb() {
 		let thumbCV=this.$thumb;

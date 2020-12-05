@@ -4,7 +4,7 @@ Skeeetch 是一个基于Web平台的绘图工具，小巧而功能强大，完�
 
 无需下载，在浏览器中即开即用！
 
-### [**打开Skeeetch**](https://iraka-c.github.io/Skeeetch/index.html?lang=zh)
+### [**> 打开Skeeetch <**](https://iraka-c.github.io/Skeeetch/index.html?lang=zh)
 
 你可以在浏览器中**收藏Skeeetch**以便日后再次使用。
 
@@ -121,11 +121,10 @@ Skeeetch支持之前操作的撤销和在撤销之后的重做。在右下角的
 * 文档内容以及开发者文档补全
 * 多语言支持
 * <del>多点触控支持，触摸板/触屏支持</del> <ins>（我觉得能先支持好单点就不错了）</ins>
-* 更多的画笔（模糊画笔、油漆桶画笔、自定义画笔等）
+* 更多的画笔（模糊画笔、油漆桶画笔、复制画笔、自定义画笔等）
 * 图层变形，<del>裁切</del>
 * 调整图层（曝光对比度，色偏饱和度等），直方图
 * 引导线和透视引导线
-* 全局缩略图
 
 计划路线：<del>颜色转透明度</del> => 重写快捷键系统 => 重写画笔(vertex shader texture)/涂抹画笔(path speed) => 模糊/油漆桶 => <del>画布裁切</del>(dragger layer) => 图层变形(homographic shader) => 自定义画笔 => 调整图层(Lab space) => 直方图 => 透视引导线
 

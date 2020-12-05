@@ -88,6 +88,10 @@ CURSOR.moveCursor=function(event) {
 			let newTy=ENV.window.trans.y+dy;
 			ENV.translateTo(newTx,newTy);
 		}
+		else if(CURSOR.nowActivity=="rotate-paper"){
+			console.log("rotating");
+			
+		}
 		else if(CURSOR.nowActivity=="pan-layer"||CURSOR.nowActivity=="pan-disable") { // ctrl: pan canvas only
 			if(!LAYERS.active.isVisible()
 				||LAYERS.active.isLocked()||LAYERS.active.isDescendantLocked()
@@ -204,7 +208,12 @@ CURSOR.updateAction=function(event) {
 		CURSOR.nowActivity="hidden";
 	}
 	else if((event instanceof Object)&&(event.originalEvent.buttons&0x2)) { // 2^1==2, right button
-		CURSOR.nowActivity="pick";
+		if(EVENTS.key.shift){
+			CURSOR.nowActivity="rotate-paper";
+		}
+		else{
+			CURSOR.nowActivity="pick";
+		}
 	}
 	else if(EVENTS.key.shift) {
 		CURSOR.nowActivity="pan-paper";
@@ -282,6 +291,10 @@ CURSOR.setCursor=function() {
 			break;
 		case "pan-paper": // moving
 			$("#canvas-area-panel").css("cursor","move");
+			$("#brush-cursor").css("display","none");
+			break;
+		case "rotate-paper": // rotating paper
+			$("#canvas-area-panel").css("cursor","url('../gl/resources/rotate-arrow.cur'), cell");
 			$("#brush-cursor").css("display","none");
 			break;
 		case "pan-layer": // dragging

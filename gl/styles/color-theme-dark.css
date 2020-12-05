@@ -68,17 +68,19 @@ input:disabled {
 	background: #00000066;
 }
 .layer-ui-mask2{
-	background: #ffffff22;
+	background: #ffffff66;
 }
 .layer-ui-mask-active{
 	opacity: 0.5;
 }
 .layer-name-label, .layer-opacity-label{
 	mix-blend-mode: screen;
-	color: #86c2e0;
 }
-.layer-ui-active > .layer-name-label,.layer-ui-active > .layer-opacity-label{
-	mix-blend-mode: color-dodge;
+.layer-name-label, .layer-opacity-input{
+	color: #3e9fcf;
+}
+.layer-ui-active > .layer-name-label, .layer-ui-active > .layer-opacity-label{
+	mix-blend-mode: multiply;
 }
 .layer-ui:hover .layer-buttons{
 	filter: invert(100%);
