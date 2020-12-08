@@ -1,0 +1,9 @@
+#guideline-layer{ /* svg layer for drag selection */
+	display: none;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	/* cursor: move; */
+	box-shadow: inset 0px 0px 64px #004466;
+	pointer-events: none;
+}

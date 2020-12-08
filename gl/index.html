@@ -18,6 +18,7 @@
 	<link rel="stylesheet" type="text/css" href="./styles/canvas-area-style.css" />
 	<link rel="stylesheet" type="text/css" href="./styles/file-selector-style.css" />
 	<link rel="stylesheet" type="text/css" href="./styles/drag-selector-style.css" />
+	<link rel="stylesheet" type="text/css" href="./styles/guideline-style.css" />
 	<link id="css-theme" rel="stylesheet" type="text/css" href="./styles/color-theme-light.css" /> <!-- UI color theme -->
 
 	<link id="icon" rel="icon" type="image/png" href="./resources/favicon.png">
@@ -107,6 +108,8 @@
 	<!-- Drag selector -->
 	<script src="./javascripts/drag-selection/drag-selector.js"></script>
 	<script src="./javascripts/drag-selection/crop-drag-handler.js"></script>
+	<!-- Guidelines -->
+	<script src="./javascripts/guideline/guideline.js"></script>
 
 	<title>Skeeetch</title>
 </head>
@@ -239,6 +242,19 @@
 						</div>
 					</div>
 					<!-- SVG doesn't transform -->
+					<svg id="guideline-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
+						<g id="guideline-container">
+							
+						</g>
+						<g id="guideline-controller">
+							<circle id="unit-sphere" cx="100" cy="100" r="50" stroke-width="2" stroke="#000000" fill="none"/>
+							<line id="axis-handle-x" x1="100" y1="100" x2="100" y2="50" stroke-width="2" stroke="#000000"/>
+							<line id="axis-handle-y" x1="100" y1="100" x2="50" y2="100" stroke-width="2" stroke="#000000"/>
+							<line id="axis-handle-z" x1="100" y1="100" x2="100" y2="150" stroke-width="2" stroke="#000000"/>
+							<circle id="unit-sphere-center" cx="100" cy="100" r="2" stroke-width="2" stroke="#000000" fill="none"/>
+						</g>
+					</svg>
+
 					<svg id="brush-cursor-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
 						<g id="brush-cursor" stroke-width="2">
 							<circle id="brush-cursor-outer" cx="-10" cy="-10" r="2" stroke="#00000000" fill="none" />

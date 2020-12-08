@@ -13,7 +13,7 @@ ENV.window={
 	SIZE: {width: 0,height: 0}, // window size, unit: window pixel *** NOW READ ONLY! ***
 	/**
 	 * Transform of the paper canvas center related to the canvas window center
-	 * all in window pixels
+	 * all in window pixels (origin: canvas window center, x: left, y: down)
 	 * order: trans -> rot CW(paper center) -> scale(paper center)
 	 */
 	trans: {x: 0,y: 0}, // paper center translate from the window center. unit: window pixel (y)v >(x)coordinate
