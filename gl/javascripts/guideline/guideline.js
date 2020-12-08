@@ -18,6 +18,7 @@ GUIDELINE={
  * 
  * To get a projection of the ball with radius R, the radius r should obey:
  *    r = f * R / sqrt(f^2 + R^2)
+ *      = R / hypot(1, R/f) <== use 1/f to express size
  */
 GUIDELINE.r=NaN; // not available at first
 
