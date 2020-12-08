@@ -337,9 +337,21 @@ class LayerGroupNode extends ContentNode {
 			},
 			() => $opacityInput.val(opacityString())
 		);
+
+		let lastClickT=0; // check for double click
+		let lastClickIsDoubleClick=false; // prevent triple click recognized as two double clicks
 		$opacityInput.on("pointerdown",event => {
 			const oE=event.originalEvent;
-			if((oE.buttons>>1)&1||(oE.buttons&1)&&(EVENTS.key.ctrl||EVENTS.key.shift)) { // right or left-with-ctrl/shift
+			// double click
+			const nowClickT=Date.now();
+			const isDoubleClickedFired=(oE.buttons&1)&&EventDistributer.isDoubleClicked(nowClickT-lastClickT);
+			lastClickT=nowClickT;
+
+			const isDoubleClicked=(isDoubleClickedFired&&!lastClickIsDoubleClick);
+			lastClickIsDoubleClick=isDoubleClicked;
+
+			if(isDoubleClicked||(oE.buttons>>1)&1||(oE.buttons&1)&&(EVENTS.key.ctrl||EVENTS.key.shift)) {
+				// double or right or left-with-ctrl/shift
 				const newVisibility=!this.properties.visible;
 				this.properties.visible=newVisibility
 				$opacityInput.val(opacityString());
