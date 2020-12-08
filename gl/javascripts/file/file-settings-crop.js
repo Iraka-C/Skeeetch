@@ -1,6 +1,6 @@
 FILES.initCropDragger=function(widthUpdateFunc,heightUpdateFunc){
-
-	function cropDragHandler(){ // the handler for dragging when cropping
+	// the handler for dragging when cropping
+	const cropDragHandler=new CropDragHandler(()=>{
 		// two orthogonal points
 		const p=DRAG.paperP[0];
 		const q=DRAG.paperP[2];
@@ -13,16 +13,16 @@ FILES.initCropDragger=function(widthUpdateFunc,heightUpdateFunc){
 		// update input boxes
 		widthUpdateFunc();
 		heightUpdateFunc();
-	};
+	});
 
 	FILES.isCropping=false; // flag for dragger occupying
 	return function(isShow){ // dragger updater
 		if(isShow){
 			if(!FILES.isCropping){ // setup crop mode
 				FILES.isCropping=true;
-				DRAG.setMode("xy",cropDragHandler,"crop");
+				DRAG.setDragHandler(cropDragHandler);
 			}
-			// update here
+			// update current temp size to UI
 			const [w,h,l,t]=[
 				FILES.tempPaperSize.width,
 				FILES.tempPaperSize.height,
@@ -33,7 +33,7 @@ FILES.initCropDragger=function(widthUpdateFunc,heightUpdateFunc){
 		}
 		else{ // hide dragger, detach handler
 			FILES.isCropping=false;
-			DRAG.setMode("none");
+			DRAG.setDragHandler(null);
 		}
 	};
 }

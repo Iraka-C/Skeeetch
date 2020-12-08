@@ -323,14 +323,16 @@ HISTORY.redo=function(){ // redo 1 step
  */
 HISTORY.undoImageDataChange=function(item){
 	const node=LAYERS.layerHash[item.id];
-	LAYERS.setActive(node); // also refresh and set lastRawImageData
+	// LAYERS.setActive(node); // also refresh and set lastRawImageData
 	const oldValidArea=item.oldValidArea;
+	console.log("Old Valid Before Undo",oldValidArea);
 	CANVAS.renderer.resizeImageData(node.rawImageData,oldValidArea,true);
 
 	const oldData=item.oldData;
 	const newData=item.newData;
 	CANVAS.renderer.clearScissoredImageData(node.rawImageData,newData);
 	CANVAS.renderer.loadToImageData(node.rawImageData,oldData);
+	console.log("valid after Undo",node.rawImageData.validArea); // <== Not aligned with old!
 
 	CANVAS.updateLastImageData(node);
 	if(CURSOR.isShown){ // save later
@@ -341,12 +343,13 @@ HISTORY.undoImageDataChange=function(item){
 	}
 	node.setRawImageDataInvalid();
 	node.updateThumb();
+	LAYERS.setActive(node); // also refresh and set lastRawImageData
 	CANVAS.requestRefresh(); // setActive does not guarantee refresh
 }
 
 HISTORY.redoImageDataChange=function(item){
 	const node=LAYERS.layerHash[item.id];
-	LAYERS.setActive(node); // also refresh and set lastRawImageData
+	// LAYERS.setActive(node); // also refresh and set lastRawImageData
 	const newValidArea=item.newValidArea;
 	CANVAS.renderer.resizeImageData(node.rawImageData,newValidArea,true);
 	
@@ -364,6 +367,7 @@ HISTORY.redoImageDataChange=function(item){
 	}
 	node.setRawImageDataInvalid();
 	node.updateThumb();
+	LAYERS.setActive(node); // also refresh and set lastRawImageData
 	CANVAS.requestRefresh(); // setActive does not guarantee refresh
 }
 

@@ -242,7 +242,7 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	}
 	// Anyway, clear dragging layer first
 	FILES.isCropping=false;
-	DRAG.setMode("none");
+	DRAG.setDragHandler(null);
 
 	let isAnim=ENV.displaySettings.enableTransformAnimation; // store animation
 	ENV.displaySettings.enableTransformAnimation=false; // disable animation when changing size

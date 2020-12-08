@@ -108,6 +108,7 @@ EVENTS.init=function() {
 
 		if(EVENTS.isCursorInHysteresis){ // add a count
 			cntAfterUp++;
+			console.log("Cnt="+cntAfterUp);
 			if(cntAfterUp==3){
 				// hysteresis ends, 3 is a good value for pen radius attenuation.
 				//console.log("End hyst");
@@ -164,7 +165,12 @@ EVENTS.init=function() {
 			// Although event.originalEvent.which is not recommended
 			// is it always 1 when left clicked
 			if(event.target==$canvasWindow[0]) { // left pointer up on canvas
-				EVENTS.isCursorInHysteresis=true; // start count moves after up
+				if(CURSOR.isPressure){ // pressure stroke detected
+					EVENTS.isCursorInHysteresis=true; // start count moves after up
+				}
+				else{
+					endStroke();
+				}
 				//CURSOR.moveCursor(event);
 			}
 			else{ // outside canvas, end this stroke

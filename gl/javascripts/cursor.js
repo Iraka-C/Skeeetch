@@ -65,14 +65,18 @@ CURSOR.moveCursor=function(event) {
 	if(event.originalEvent.pressure!=0.5&&event.originalEvent.pressure!=0){
 		// if no pressure, the value is always 0.5 or 0
 		// 0.5 can be precisely represented with float
+		// It is extremely rare (probably never till the solar system dies)
+		// that a pressured pen stroke only contains 0 or 0.5 pressure value
 		CURSOR.isPressure=true;
 	}
 	CURSOR.p1=CURSOR.p0; // hand to the last event
 	CURSOR.p0=[ // new movement
 		event.originalEvent.offsetX,
 		event.originalEvent.offsetY,
-		CURSOR.isPressure?event.originalEvent.pressure:
-		event.originalEvent.pressure?1:0 // 1/0 as default
+		CURSOR.isPressure?
+			event.originalEvent.pressure:
+			event.originalEvent.pressure||CURSOR.isDown?1:0 // 1/0 as default
+		// Note: Safari doesn't provide event.pressure
 	];
 	
 	// set cursor size
