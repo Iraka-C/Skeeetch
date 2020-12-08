@@ -20,7 +20,8 @@
 }
 
 .layer-opacity-label{
-	display: none;
+	/* display: none; */
+	font-size: 100%;
 }
 .layer-buttons{
 	display: none;

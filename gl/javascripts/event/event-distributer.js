@@ -263,3 +263,6 @@ EventDistributer.key={
 		});
 	}
 }
+
+// =================== Tool Functions =====================
+EventDistributer.isDoubleClicked=(ms)=>(ms>40 && ms<300);
