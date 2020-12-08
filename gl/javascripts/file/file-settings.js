@@ -248,6 +248,7 @@ FILES.initFileMenu=function() {
 		}
 		else{ // open to close, turn off dragging
 			cropDraggerUpdater(false);
+			sizeChangeHint(false);
 		}
 	});
 	// then, refresh UI when expanded

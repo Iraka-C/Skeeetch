@@ -22,9 +22,15 @@ class CropDragHandler extends DragHandler{
 
 			const g02=SMath.vector(p0,p2); // orthogonal line
 			const h02=[-g02[1],g02[0]]; // perpendicular to g02
-			offset=SMath.lineIntersectionPV(p0,g02,offset,h02);
+			const g02Flip=[g02[0],-g02[1]]; // y-flipped
+			const h02Flip=[-g02Flip[1],g02Flip[0]]; // perpendicular to g02Flip
+
+			const offset1=SMath.lineIntersectionPV(p2,g02,offset,h02);
+			const offset2=SMath.lineIntersectionPV(p2,g02Flip,offset,h02Flip);
+			offset=dis(offset,offset1)<dis(offset,offset2)?offset1:offset2; // choose the nearest
 
 			const newP0=CropDragHandler._verifyCropPointZoom(id,...offset);
+			if(isNaN(newP0[0])||isNaN(newP0[1]))return; // invalid (may be div by 0)
 			
 			// old points
 			const gp1=SMath.vector(p2,p1);
