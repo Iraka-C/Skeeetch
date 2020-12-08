@@ -53,7 +53,7 @@ function dis2(x0,y0,x1,y1){
 function dis(p1,p2){
 	let dx=p1[0]-p2[0];
 	let dy=p1[1]-p2[1];
-	return Math.sqrt(dx*dx+dy*dy);
+	return Math.hypot(dx,dy);
 }
 /**
  * Line l does through (x1,y1) & (x2,y2)

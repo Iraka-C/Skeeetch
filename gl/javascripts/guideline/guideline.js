@@ -3,8 +3,9 @@
  */
 GUIDELINE={
 	handlerPoint: [[1,0,0],[0,1,0],[0,0,1]], // the coordinate of three handler directions, in 3D space coordinate
-	f: 1, // focal length relative to canvas paper diagonal length.
-	// suppose the diagonal length is 43.2mm, f=1.1574 gives 50mm (135 format) FOV
+	fRel: 1, // focal length relative to canvas paper diagonal length.
+	fPix: NaN, // focal length in pixel
+	// suppose the diagonal length is 43.2mm, fRel=1.1574 gives 50mm (135 format) FOV
 	pan: [0,0] // panning from the paper center, in paper coordinate (pixel unit, vY,X>)
 };
 
@@ -28,8 +29,57 @@ GUIDELINE.init=function(){
 	 */
 	const handlers={};
 	function initHandlerElements(){
-		handlers.$x;
-	}
+		handlers.$x=$("#axis-handle-x");
+		handlers.$y=$("#axis-handle-y");
+		handlers.$z=$("#axis-handle-z");
+		handlers.$circle=$("#unit-sphere");
+		handlers.$center=$("#unit-sphere-center");
+	};
+
+	function renderHandlerElements(){
+		// FIXME: Buggy calculation!
+		const R=100;
+		
+		GUIDELINE.r=R/Math.hypot(1,R/GUIDELINE.f);
+		const hx=DMath.stretch(GUIDELINE.handlerPoint[0],GUIDELINE.r);
+		const hy=DMath.stretch(GUIDELINE.handlerPoint[1],GUIDELINE.r);
+		const hz=DMath.stretch(GUIDELINE.handlerPoint[2],GUIDELINE.r);
+
+		const centerP=GUIDELINE.spaceToPaper([0,0,0]);
+		const centerW=ENV.toWindowXY(...centerP);
+
+		const hXP=GUIDELINE.spaceToPaper(hx);
+		const hYP=GUIDELINE.spaceToPaper(hy);
+		const hZP=GUIDELINE.spaceToPaper(hz);
+
+		const hXW=ENV.toWindowXY(...hXP);
+		const hYW=ENV.toWindowXY(...hYP);
+		const hZW=ENV.toWindowXY(...hZP);
+
+		handlers.$circle.attr({cx:centerW[0],cy:centerW[1]});
+		handlers.$center.attr({cx:centerW[0],cy:centerW[1]});
+		handlers.$x.attr({
+			x1: centerW[0],
+			y1: centerW[1],
+			x2: hXW[0],
+			y2: hXW[1]
+		});
+		handlers.$y.attr({
+			x1: centerW[0],
+			y1: centerW[1],
+			x2: hYW[0],
+			y2: hYW[1]
+		});
+		handlers.$z.attr({
+			x1: centerW[0],
+			y1: centerW[1],
+			x2: hZW[0],
+			y2: hZW[1]
+		});
+	};
+	
+	initHandlerElements();
+	renderHandlerElements();
 }
 
 // ============== Tool functions ================
@@ -48,6 +98,8 @@ GUIDELINE.spaceToPaper=function(p){
 
 	const panZ=p[2]+f;
 	const newX=f*p[0]+GUIDELINE.pan[0]*panZ;
-	const newY=f*p[1]+GUIDELINE.pan[1]*panZ;
-	return [newX/panZ,newY/panZ];
+	const newY=-f*p[1]+GUIDELINE.pan[1]*panZ;
+	const xH=newX/panZ
+	const yH=newY/panZ;
+	return [xH+ENV.paperSize.width/2,yH+ENV.paperSize.height/2];
 }
