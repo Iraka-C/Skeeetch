@@ -320,21 +320,35 @@ HISTORY.redo=function(){ // redo 1 step
  * "image-data" type
  * {type,id,oldData,newData} oldData,newData: GLRAMBuf imageData
  * ----------------------------------------------------
+ * 
+ * NOTICE: if the size of viewport is smaller than rawImageData.validArea
+ * resizeImageData(rawD,item.xxxValidArea,true) will only preserve the contents within viewport:
+ * can be problematic when undo after paper size change: only part within viewport is rendered
+ * 
+ * Use LAYERS.setActive(node) to act lastRawImageData as a buffer to store the contents
+ * anyway the lastRawImageData will be the same size as rawD.validArea
+ * 
+ * resize lastRawImageData first to buffer the present contents of rawD
+ * and then, update lastRawImageData again after putting contents.
+ * 
  */
 HISTORY.undoImageDataChange=function(item){
 	const node=LAYERS.layerHash[item.id];
-	// LAYERS.setActive(node); // also refresh and set lastRawImageData
-	const oldValidArea=item.oldValidArea;
-	console.log("Old Valid Before Undo",oldValidArea);
-	CANVAS.renderer.resizeImageData(node.rawImageData,oldValidArea,true);
+	LAYERS.setActive(node); // also refresh and set lastRawImageData to valid part
+	// at this point, node.lastRawImageData contains the contents of node.rawImageData
+
+	const rawD=node.rawImageData;
+	const lastD=node.lastRawImageData; // after setActive, node has lastRawImageData
+
+	CANVAS.renderer.resizeImageData(rawD,item.oldValidArea,false);
+	CANVAS.renderer.blendImageData(lastD,rawD,{mode:BasicRenderer.SOURCE});
 
 	const oldData=item.oldData;
 	const newData=item.newData;
-	CANVAS.renderer.clearScissoredImageData(node.rawImageData,newData);
-	CANVAS.renderer.loadToImageData(node.rawImageData,oldData);
-	console.log("valid after Undo",node.rawImageData.validArea); // <== Not aligned with old!
+	CANVAS.renderer.clearScissoredImageData(rawD,newData);
+	CANVAS.renderer.loadToImageData(rawD,oldData);
+	CANVAS.updateLastImageData(node); // update lastD again
 
-	CANVAS.updateLastImageData(node);
 	if(CURSOR.isShown){ // save later
 		STORAGE.FILES.reportUnsavedContentChanges();
 	}
@@ -343,22 +357,24 @@ HISTORY.undoImageDataChange=function(item){
 	}
 	node.setRawImageDataInvalid();
 	node.updateThumb();
-	LAYERS.setActive(node); // also refresh and set lastRawImageData
 	CANVAS.requestRefresh(); // setActive does not guarantee refresh
 }
 
 HISTORY.redoImageDataChange=function(item){
 	const node=LAYERS.layerHash[item.id];
-	// LAYERS.setActive(node); // also refresh and set lastRawImageData
-	const newValidArea=item.newValidArea;
-	CANVAS.renderer.resizeImageData(node.rawImageData,newValidArea,true);
+	LAYERS.setActive(node); // also refresh and set lastRawImageData
+	const rawD=node.rawImageData;
+	const lastD=node.lastRawImageData; // after setActive, node has lastRawImageData
+
+	CANVAS.renderer.resizeImageData(rawD,item.newValidArea,false);
+	CANVAS.renderer.blendImageData(lastD,rawD,{mode:BasicRenderer.SOURCE});
 	
 	const oldData=item.oldData;
 	const newData=item.newData;
-	CANVAS.renderer.clearScissoredImageData(node.rawImageData,oldData);
-	CANVAS.renderer.loadToImageData(node.rawImageData,newData);
-
-	CANVAS.updateLastImageData(node);
+	CANVAS.renderer.clearScissoredImageData(rawD,oldData);
+	CANVAS.renderer.loadToImageData(rawD,newData);
+	CANVAS.updateLastImageData(node); // update lastD again
+	
 	if(CURSOR.isShown){ // save later
 		STORAGE.FILES.reportUnsavedContentChanges();
 	}
@@ -367,7 +383,6 @@ HISTORY.redoImageDataChange=function(item){
 	}
 	node.setRawImageDataInvalid();
 	node.updateThumb();
-	LAYERS.setActive(node); // also refresh and set lastRawImageData
 	CANVAS.requestRefresh(); // setActive does not guarantee refresh
 }
 

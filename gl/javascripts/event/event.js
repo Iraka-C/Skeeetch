@@ -108,7 +108,7 @@ EVENTS.init=function() {
 
 		if(EVENTS.isCursorInHysteresis){ // add a count
 			cntAfterUp++;
-			console.log("Cnt="+cntAfterUp);
+			//console.log("Cnt="+cntAfterUp);
 			if(cntAfterUp==3){
 				// hysteresis ends, 3 is a good value for pen radius attenuation.
 				//console.log("End hyst");

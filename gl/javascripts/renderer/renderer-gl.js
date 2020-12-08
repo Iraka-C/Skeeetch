@@ -434,11 +434,23 @@ class GLRenderer extends BasicRenderer {
 	 * // @TODO: use new image data to replace, regardless of viewport size
 	 */
 	resizeImageData(src,newParam,toCopy) {
-		if(src.width==newParam.width
-			&&src.height==newParam.height
-			&&src.left==newParam.left
-			&&src.top==newParam.top) { // No need to change
-			return;
+		if(src.width==newParam.width&&src.height==newParam.height) {
+			if(toCopy){
+				if(src.left==newParam.left&&src.top==newParam.top){ // No need to change
+					return;
+				}
+			}
+			else{ // simply move
+				src.left=newParam.left;
+				src.top=newParam.top;
+				src.validArea={ // clear
+					width: 0,
+					height: 0,
+					left: 0,
+					top: 0
+				}
+				return;
+			}
 		}
 		this.vramManager.verify(src);
 		// copy to tmp
@@ -780,24 +792,57 @@ class GLRenderer extends BasicRenderer {
 		const gl=this.gl;
 		if(img.type) {
 			if(img.type=="GLRAMBuf") { // load a buffer
-				// Here, suppose that the size of target will always contain img @TODO: Buggy?
+				// Here, suppose that the size of target will always contain img
 				// Setup temp texture for extracting data
-				// @TODO: use tmpImgData and texSubImage2D() for buf smaller than viewport
-				const tmpTexture=GLProgram.createAndSetupTexture(gl);
-				gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,img.width,img.height,0,gl.RGBA,this.dataFormat,img.data);
-				const tmpImageData={ // create a GLTexture copy of img
-					type: "GLTexture",
-					bitDepth: img.bitDepth,
-					data: tmpTexture,
-					width: img.width,
-					height: img.height,
-					left: img.left,
-					top: img.top,
-					validArea: img.validArea // borrow values
+				const lOffset=img.left-target.left;
+				const dOffset=target.top+target.height-img.top-img.height;
+				const tOffset=img.top-target.top;
+				const rOffset=target.left+target.width-img.left-img.width;
+
+				const tmpD=this.tmpImageData;
+				if(lOffset>=0&&rOffset>=0&&tOffset>=0&&dOffset>=0){ //inside, may use texSub
+					gl.bindTexture(gl.TEXTURE_2D,target.data);
+					gl.texSubImage2D( // fill in part
+						gl.TEXTURE_2D,0,
+						lOffset,dOffset,img.width,img.height,
+						gl.RGBA,this.dataFormat,img.data
+					);
+					// border size
+					target.validArea=GLProgram.extendBorderSize(target.validArea,img.validArea);
 				}
-				this.textureBlender.blendTexture(tmpImageData,target,{mode: GLRenderer.SOURCE});
-				gl.deleteTexture(tmpTexture);
-				//this.deleteImageData(tmpImageData); // No need: directly called textureBlender, not verified
+				else if(img.width<=tmpD.width&&img.height<=tmpD.height){ // can be contained using tmpD
+					gl.bindTexture(gl.TEXTURE_2D,tmpD.data);
+					gl.texSubImage2D( // fill in part
+						gl.TEXTURE_2D,0,
+						0,tmpD.height-img.height, // Left-Top corner
+						img.width,img.height,
+						gl.RGBA,this.dataFormat,img.data
+					);
+					// set position
+					tmpD.left=img.left;
+					tmpD.top=img.top;
+					Object.assign(tmpD.validArea,img.validArea);
+					// copy
+					this.textureBlender.blendTexture(tmpD,target,{mode: GLRenderer.SOURCE});
+				}
+				else{ // outside, create new texture
+					const tmpTexture=GLProgram.createAndSetupTexture(gl);
+					gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,img.width,img.height,0,gl.RGBA,this.dataFormat,img.data);
+					const tmpImageData={ // create a GLTexture copy of img
+						type: "GLTexture",
+						bitDepth: img.bitDepth,
+						data: tmpTexture,
+						width: img.width,
+						height: img.height,
+						left: img.left,
+						top: img.top,
+						validArea: img.validArea // borrow values
+					}
+					this.textureBlender.blendTexture(tmpImageData,target,{mode: GLRenderer.SOURCE});
+					gl.deleteTexture(tmpTexture);
+					//this.deleteImageData(tmpImageData); // No need: directly called textureBlender, not verified
+				}
+				
 			}
 			else if(img.type=="RAMBuf8") { // load a CTX2D ImageData, defined in Storage
 				if(!(target.width&&target.height)) { // the target is empty

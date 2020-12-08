@@ -79,8 +79,6 @@ CANVAS.updateLastImageData=function(node){
 		lastD.top=rawD.validArea.top;
 	}
 	CANVAS.renderer.clearImageData(lastD);
-	
-	// only copy the changed part to save time?
 	CANVAS.renderer.blendImageData(rawD,lastD,{mode:BasicRenderer.SOURCE});
 }
 
