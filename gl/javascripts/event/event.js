@@ -205,10 +205,15 @@ EVENTS.init=function() {
 			let newTy=ENV.window.trans.y-dy*10;
 			ENV.translateTo(newTx,newTy);
 		}
-		else if(EVENTS.key.shift) { // Shift pressed, pan horizontally
-			let newTx=ENV.window.trans.x-dy*10;
-			let newTy=ENV.window.trans.y-dx*10;
-			ENV.translateTo(newTx,newTy);
+		else if(EVENTS.key.shift) { // Shift pressed, rotate
+			// let newTx=ENV.window.trans.x-dy*10;
+			// let newTy=ENV.window.trans.y-dx*10;
+			// ENV.translateTo(newTx,newTy);
+			let newRot=Math.round(ENV.window.rot/15)*15-dy*15; // same as SettingHandler.initTransformHandler
+			if(newRot<=-180)newRot+=360;
+			if(newRot>180)newRot-=360;
+			ENV.rotateTo(newRot);
+			$("#rotate-info-input").val(Math.round(newRot));
 		}
 		else { // no key: zoom
 			// Alt menu cannot be prevented in Firefox
