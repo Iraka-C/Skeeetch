@@ -381,6 +381,8 @@ class GLTextureBlender {
 			// program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,dst,!param.antiAlias),2);
 
 			// gl.viewport(0,0,dst.width,dst.height); // target area as dst
+
+			// FIXME: GLTextureBlender.MASK will clear all contents outside viewArea
 			const viewArea={ // round the target area
 				left: Math.floor(tA.left),
 				top: Math.floor(tA.top),
@@ -401,7 +403,9 @@ class GLTextureBlender {
 			program.run();
 		}
 
-		if(!param.alphaLock&&param.mode!=GLTextureBlender.ERASE) { // extend dst valid area, but not larger than dst size
+		if(!param.alphaLock&&param.mode!=GLTextureBlender.ERASE&&param.mode!=GLTextureBlender.MASK) {
+			// extend dst valid area, but not larger than dst size
+			// erase or mask won't extend valid area: they only delete things
 			const extArea=GLProgram.borderIntersection(src.validArea,tA); // part blended
 			const tmpArea=GLProgram.extendBorderSize(extArea,dst.validArea); // new valid area extended
 			dst.validArea=GLProgram.borderIntersection(tmpArea,dst); // trim in dst borders
