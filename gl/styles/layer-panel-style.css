@@ -206,7 +206,15 @@
 }
 .layer-opacity-input{
 	color: #86c2e0;
+	pointer-events: none;
 }
+.layer-opacity-input:disabled{
+	color: #86c2e0;
+}
+.layer-opacity-label-editing > .layer-opacity-input{
+	pointer-events: all;
+}
+
 .layer-buttons{
 	position: absolute;
 	right: 0em;
@@ -276,7 +284,15 @@
 }
 .group-opacity-input{
 	color: #4a89a8;
+	pointer-events: none;
 }
+.group-opacity-input:disabled{
+	color: #4a89a8;
+}
+.group-opacity-label-editing > .group-opacity-input{
+	pointer-events: all;
+}
+
 .group-name-label{
 	color: #000;
 	margin: 0.3em;
