@@ -386,24 +386,12 @@ class LayerGroupNode extends ContentNode {
 				});
 				this.setImageDataInvalid();
 				COMPOSITOR.updateLayerTreeStructure();
-				if(newVisibility){ // allow editing
-					setTimeout(()=>{
-						$opacityInput.prop("disabled",false);
-						$opacityLabel.addClass("group-opacity-label-editing");
-					},0);
-				}
 			}
 			// else should be misfire or dragging
 		});
 		$opacityInput.on("focusout",event=>{ // de-focus
 			$opacityInput.prop("disabled",true);
 			$opacityLabel.removeClass("group-opacity-label-editing");
-		});
-		$opacityLabel.on("pointerleave",event=>{ // reset status
-			if(!$opacityInput.is(":focus")){
-				$opacityInput.prop("disabled",true);
-				$opacityLabel.removeClass("group-opacity-label-editing");
-			}
 		});
 
 		EventDistributer.footbarHint($opacityLabel,() => Lang(

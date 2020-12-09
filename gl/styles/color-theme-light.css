@@ -73,8 +73,13 @@ input:disabled {
 	text-shadow: none;
 }
 .layer-opacity-label{
-	color: #86c2e0;
 	mix-blend-mode: multiply;
+}
+.layer-opacity-input{
+	color: #86c2e0;
+}
+.layer-opacity-input:disabled{
+	color: #86c2e0;
 }
 
 .layer-group-ui{ 

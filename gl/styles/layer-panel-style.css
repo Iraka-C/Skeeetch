@@ -205,12 +205,9 @@
 	margin: 0.2em;
 }
 .layer-opacity-input{
-	color: #86c2e0;
 	pointer-events: none;
 }
-.layer-opacity-input:disabled{
-	color: #86c2e0;
-}
+/* color defined in theme light/dark */
 .layer-opacity-label-editing > .layer-opacity-input{
 	pointer-events: all;
 }

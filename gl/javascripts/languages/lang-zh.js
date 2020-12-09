@@ -9,6 +9,7 @@ LANG_ZH={
 	"smudge brush":"涂抹画笔",
 	"New Layer":"新图层",
 	"New Group":"新组",
+	"button-tools":"工具",
 
 	// Palette
 	"palette-hue-sign":"色相",

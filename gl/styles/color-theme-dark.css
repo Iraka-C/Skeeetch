@@ -65,7 +65,7 @@ input:disabled {
 	box-shadow: 0em 0em 1em #ffffff88;
 }
 .layer-ui-mask{
-	background: #00000066;
+	background: #00000088;
 }
 .layer-ui-mask2{
 	background: #ffffff66;
@@ -77,13 +77,20 @@ input:disabled {
 	mix-blend-mode: screen;
 }
 .layer-name-label, .layer-opacity-input{
-	color: #3e9fcf;
+	color: #0d88c5;
 }
+.layer-opacity-input:disabled{
+	color: #0d88c5;
+}
+
 .layer-ui-active > .layer-name-label, .layer-ui-active > .layer-opacity-label{
 	mix-blend-mode: multiply;
 }
-.layer-ui:hover .layer-buttons{
+.layer-ui .layer-buttons{
 	filter: invert(100%);
+}
+.layer-ui-active .layer-buttons{
+	filter: none;
 }
 
 .layer-group-ui{ 

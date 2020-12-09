@@ -471,24 +471,12 @@ class CanvasNode extends ContentNode {
 				});
 				this.setImageDataInvalid();
 				COMPOSITOR.updateLayerTreeStructure();
-				if(newVisibility){ // allow editing
-					setTimeout(()=>{
-						$opacityInput.prop("disabled",false);
-						$opacityLabel.addClass("layer-opacity-label-editing");
-					},0);
-				}
 			}
 			// else should be misfire or dragging
 		});
 		$opacityInput.on("focusout",event=>{ // de-focus
 			$opacityInput.prop("disabled",true);
 			$opacityLabel.removeClass("layer-opacity-label-editing");
-		});
-		$opacityLabel.on("pointerleave",event=>{ // reset status
-			if(!$opacityInput.is(":focus")){
-				$opacityInput.prop("disabled",true);
-				$opacityLabel.removeClass("layer-opacity-label-editing");
-			}
 		});
 
 		// footbar hint
