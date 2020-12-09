@@ -314,6 +314,13 @@ class LayerGroupNode extends ContentNode {
 		const opacityString=() => { // show opacity input
 			return this.properties.visible? Math.round(this.properties.opacity*100)+"%":"----";
 		}
+
+		const wheelFunc=(dw,oldVal) => { // scroll update
+			if(!this.properties.visible) return;
+			let newOpa=(this.properties.opacity+dw/20).clamp(0,1);
+			setOpacity(newOpa);
+		};
+		wheelFunc.target=$opacityLabel; // set target
 		SettingManager.setInputInstantNumberInteraction(
 			$opacityInput,$opacityLabel,
 			newVal => { // input update
@@ -324,11 +331,7 @@ class LayerGroupNode extends ContentNode {
 				}
 				setOpacity(newVal/100);
 			},
-			(dw,oldVal) => { // scroll update
-				if(!this.properties.visible) return;
-				let newOpa=(this.properties.opacity+dw/20).clamp(0,1);
-				setOpacity(newOpa);
-			},
+			wheelFunc,
 			(dx,oldVal) => { // drag update, @TODO: why area restricted?
 				if(!this.properties.visible) return;
 				oldVal=parseFloat(oldVal);
@@ -338,22 +341,40 @@ class LayerGroupNode extends ContentNode {
 			() => $opacityInput.val(opacityString())
 		);
 
-		let lastClickT=0; // check for double click
-		let lastClickIsDoubleClick=false; // prevent triple click recognized as two double clicks
-		$opacityInput.on("pointerdown",event => {
+		let lastDownTime=0;
+		let opaBefore=0;
+		$opacityInput.prop("disabled",true);
+		$opacityLabel.on("pointerdown",event=>{ // record down time
 			const oE=event.originalEvent;
-			// double click
-			const nowClickT=Date.now();
-			const isDoubleClickedFired=(oE.buttons&1)&&EventDistributer.isDoubleClicked(nowClickT-lastClickT);
-			lastClickT=nowClickT;
+			if((oE.buttons>>1)&1||(oE.buttons&1)&&(EVENTS.key.ctrl||EVENTS.key.shift)){ // force focus
+				$opacityInput.prop("disabled",false);
+				$opacityLabel.addClass("group-opacity-label-editing");
+				setTimeout(()=>{
+					const input=$opacityInput[0];
+					$opacityInput.focus();
+					input.selectionStart=input.selectionEnd=$opacityInput.val().length-1;
+				},0); // allow css change and not firing focusout (Why?)
+				lastDownTime=0;
+			}
+			else{
+				lastDownTime=oE.timeStamp;
+				opaBefore=this.properties.opacity;
+			}
+		});
+		$opacityInput.on("pointerdown",event => {
+			if(this.properties.visible){ // allow editing input
+				event.stopPropagation();
+			}
+		});
+		$opacityLabel.on("pointerup",event=>{
+			const oE=event.originalEvent;
+			const dT=oE.timeStamp-lastDownTime;
+			lastDownTime=0;
 
-			const isDoubleClicked=(isDoubleClickedFired&&!lastClickIsDoubleClick);
-			lastClickIsDoubleClick=isDoubleClicked;
-
-			if(isDoubleClicked||(oE.buttons>>1)&1||(oE.buttons&1)&&(EVENTS.key.ctrl||EVENTS.key.shift)) {
-				// double or right or left-with-ctrl/shift
+			const isOpacityUnchanged=Math.abs(this.properties.opacity-opaBefore)<1E-6;
+			if(isOpacityUnchanged&&dT>10&&dT<1000&&!$opacityInput.is(":focus")){ // single click, not misfire
 				const newVisibility=!this.properties.visible;
-				this.properties.visible=newVisibility
+				this.properties.visible=newVisibility;
 				$opacityInput.val(opacityString());
 				HISTORY.addHistory({ // add a history
 					type: "node-property",
@@ -361,11 +382,28 @@ class LayerGroupNode extends ContentNode {
 					prevStatus: {visible: !newVisibility},
 					nowStatus: {visible: newVisibility}
 				});
-				this.setImageDataInvalid(); // In fact this is a little more: when this layer has clip layer children
-				// @TODO: modify here if it is a performance bottleneck, and the place above
+				this.setImageDataInvalid();
 				COMPOSITOR.updateLayerTreeStructure();
+				if(newVisibility){ // allow editing
+					setTimeout(()=>{
+						$opacityInput.prop("disabled",false);
+						$opacityLabel.addClass("group-opacity-label-editing");
+					},0);
+				}
+			}
+			// else should be misfire or dragging
+		});
+		$opacityInput.on("focusout",event=>{ // de-focus
+			$opacityInput.prop("disabled",true);
+			$opacityLabel.removeClass("group-opacity-label-editing");
+		});
+		$opacityLabel.on("pointerleave",event=>{ // reset status
+			if(!$opacityInput.is(":focus")){
+				$opacityInput.prop("disabled",true);
+				$opacityLabel.removeClass("group-opacity-label-editing");
 			}
 		});
+
 		EventDistributer.footbarHint($opacityLabel,() => Lang(
 			this.properties.visible? "layer-opacity-label-shown":"layer-opacity-label-hidden"));
 
