@@ -347,14 +347,16 @@ class LayerGroupNode extends ContentNode {
 		$opacityLabel.on("pointerdown",event=>{ // record down time
 			const oE=event.originalEvent;
 			if((oE.buttons>>1)&1||(oE.buttons&1)&&(EVENTS.key.ctrl||EVENTS.key.shift)){ // force focus
-				$opacityInput.prop("disabled",false);
-				$opacityLabel.addClass("group-opacity-label-editing");
-				setTimeout(()=>{
-					const input=$opacityInput[0];
-					$opacityInput.focus();
-					input.selectionStart=input.selectionEnd=$opacityInput.val().length-1;
-				},0); // allow css change and not firing focusout (Why?)
-				lastDownTime=0;
+				if(this.properties.visible){
+					$opacityInput.prop("disabled",false);
+					$opacityLabel.addClass("group-opacity-label-editing");
+					setTimeout(()=>{
+						const input=$opacityInput[0];
+						$opacityInput.focus();
+						input.selectionStart=input.selectionEnd=$opacityInput.val().length-1;
+					},0); // allow css change and not firing focusout (Why?)
+					lastDownTime=0;
+				}
 			}
 			else{
 				lastDownTime=oE.timeStamp;

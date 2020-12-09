@@ -64,6 +64,7 @@ EventDistributer.button={
 	addListener:function($element,callback,initFunc,downFunc,upFunc){ // $element is a jQuery Object
 		const el=$element[0];
 		let isDown=false;
+		let isDragTriggered=false;
 		let origin={};
 		let initVal={};
 		$element.css("touch-action","none"); // prevent touch action on dragging
@@ -73,6 +74,7 @@ EventDistributer.button={
 			origin={x:e.clientX,y:e.clientY};
 			el.setPointerCapture(e.pointerId); // fix pointer to this element
 			isDown=true;
+			isDragTriggered=false;
 			if(downFunc)downFunc();
 		});
 		$element.on("pointermove",event=>{ // call callback when down
@@ -83,7 +85,14 @@ EventDistributer.button={
 			const e=event.originalEvent;
 			const dx=e.clientX-origin.x;
 			const dy=e.clientY-origin.y;
-			callback({x:dx,y:dy,initVal:initVal});
+			if(dx*dx+dy*dy>20){ // moved far
+				isDragTriggered=true;
+			}
+
+			// trigger after moving from a certain range
+			if(isDragTriggered){
+				callback({x:dx,y:dy,initVal:initVal});
+			}
 		});
 		$element.on("pointerup pointercancel",event=>{
 			const e=event.originalEvent;
