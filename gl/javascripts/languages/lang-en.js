@@ -17,6 +17,7 @@ LANG_EN={
 	"new-brush-prefix":"New ",
 
 	"color-to-opacity":"Color > Opa",
+	"button-tools":"Tools",
 
 	// Settings part
 	"sys-info":"Information",

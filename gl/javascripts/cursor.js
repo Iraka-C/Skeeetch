@@ -44,6 +44,7 @@ CURSOR.init=function() {
 	// 	height: ENV.window.SIZE.height
 	// });
 	CURSOR.updateColor(PALETTE.colorSelector.getRGB());
+	CURSOR.window=$("#canvas-layers-panel");
 }
 
 CURSOR.moveCursor=function(event) {
@@ -70,9 +71,10 @@ CURSOR.moveCursor=function(event) {
 		CURSOR.isPressure=true;
 	}
 	CURSOR.p1=CURSOR.p0; // hand to the last event
+	const offsetWindow=CURSOR.window.offset(); // relative to document, same as pageX/Y
 	CURSOR.p0=[ // new movement
-		event.originalEvent.offsetX,
-		event.originalEvent.offsetY,
+		event.originalEvent.pageX-offsetWindow.left,
+		event.originalEvent.pageY-offsetWindow.top,
 		CURSOR.isPressure?
 			event.originalEvent.pressure:
 			event.originalEvent.pressure||CURSOR.isDown?1:0 // 1/0 as default
