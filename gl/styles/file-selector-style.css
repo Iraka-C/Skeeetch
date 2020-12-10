@@ -51,6 +51,7 @@
 	bottom: 0em;
 	width: 100%;
 	text-overflow: ellipsis;
+	white-space: nowrap;
 	overflow: hidden;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;

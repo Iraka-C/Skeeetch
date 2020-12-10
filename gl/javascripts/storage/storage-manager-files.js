@@ -570,6 +570,21 @@ STORAGE.FILES.onLayerTreeAborted=function(){
 	FILES.tempPaperSize.height=256;
 	FILES.newPaperAction(false,fileName+Lang("file-name-abort")); // DO NOT save, use a new paper instead
 	STORAGE.FILES.updateThumbFromDatabase(fileID);
+
+	// draw a sign in the new paper
+	const canvas=$("canvas")[0];
+	canvas.width=canvas.height=256;
+	const ctx2d=canvas.getContext("2d");
+	ctx2d.font="32px Consolas, Monaco, monospace, sans-serif";
+	ctx2d.fillStyle="#cccccc";
+	ctx2d.textAlign="center";
+	ctx2d.textBaseline="middle";
+	ctx2d.fillText("ERROR",128,128);
+
+	// load to image
+	CANVAS.renderer.loadToImageData(CANVAS.nowLayer.rawImageData,canvas);
+	CANVAS.nowLayer.setImageDataInvalid();
+	COMPOSITOR.updateLayerTreeStructure();
 }
 
 // clear buf/chunk unused by any layer
