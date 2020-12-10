@@ -210,7 +210,7 @@ EVENTS.init=function() {
 			// let newTx=ENV.window.trans.x-dy*10;
 			// let newTy=ENV.window.trans.y-dx*10;
 			// ENV.translateTo(newTx,newTy);
-			let newRot=Math.round(ENV.window.rot/15)*15-dy*15; // same as SettingHandler.initTransformHandler
+			let newRot=Math.round(ENV.window.rot/5)*5-dy*5; // same as SettingHandler.initTransformHandler
 			if(newRot<=-180)newRot+=360;
 			if(newRot>180)newRot-=360;
 			ENV.rotateTo(newRot);

@@ -44,7 +44,7 @@ SettingHandler.initTransformHandler=function() {
 		(dw,oldVal) => { // scroll update
 			let newA=ENV.window.rot;
 			if(EVENTS.key.shift){ // shift: round to 15 deg
-				newA=Math.round(newA/15)*15-dw*15;
+				newA=Math.round(newA/5)*5-dw*5;
 			}
 			else{
 				newA-=dw;
