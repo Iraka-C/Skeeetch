@@ -1,12 +1,20 @@
 class CropDragHandler extends DragHandler{
 	constructor(callback){
 		super(callback);
-		this.lineDragOffset=null;
+		this.dragOffset=null;
+		this.initYX=null;
 	}
 
+	startDraggingPoint(id,offset){
+		this.initYX=[DRAG.points[0][0]-DRAG.points[2][0],DRAG.points[0][1]-DRAG.points[2][1]];
+	}
 	startDraggingLine(id,offset){
 		const startP=DRAG.points[id];
-		this.lineDragOffset=[offset[0]-startP[0],offset[1]-startP[1]];
+		this.dragOffset=[offset[0]-startP[0],offset[1]-startP[1]];
+	}
+	startDraggingArea(offset){
+		const startP=DRAG.points[0]; // ref point
+		this.dragOffset=[offset[0]-startP[0],offset[1]-startP[1]];
 	}
 
 	draggingPoint(id,offset){
@@ -20,7 +28,7 @@ class CropDragHandler extends DragHandler{
 			const p2=DRAG.points[id2];
 			const p3=DRAG.points[id3];
 
-			const g02=SMath.vector(p0,p2); // orthogonal line
+			const g02=this.initYX; // initial diagonal line
 			const h02=[-g02[1],g02[0]]; // perpendicular to g02
 			const g02Flip=[g02[0],-g02[1]]; // y-flipped
 			const h02Flip=[-g02Flip[1],g02Flip[0]]; // perpendicular to g02Flip
@@ -86,7 +94,7 @@ class CropDragHandler extends DragHandler{
 
 	draggingLine(id,offset){
 		if(EVENTS.key.shift||EVENTS.key.ctrl){ // pan
-			const newP0=SMath.vector(this.lineDragOffset,offset);
+			const newP0=SMath.vector(this.dragOffset,offset);
 			const id1=(id+1)%4;
 			const id2=(id+2)%4;
 			const id3=(id+3)%4;
@@ -131,8 +139,28 @@ class CropDragHandler extends DragHandler{
 		}
 	}
 
+	draggingArea(offset){
+		const newP0=SMath.vector(this.dragOffset,offset);
+
+		// old points
+		const p0=DRAG.points[0];
+		const p1=DRAG.points[1];
+		const p2=DRAG.points[2];
+		const p3=DRAG.points[3];
+
+		// pan
+		const diff=SMath.vector(p0,newP0);
+		DRAG.points[0]=newP0;
+		DRAG.points[1]=[p1[0]+diff[0],p1[1]+diff[1]];
+		DRAG.points[2]=[p2[0]+diff[0],p2[1]+diff[1]];
+		DRAG.points[3]=[p3[0]+diff[0],p3[1]+diff[1]];
+	}
+
 	endDraggingLine(id,offset){
-		this.lineDragOffset=null;
+		this.dragOffset=null;
+	}
+	endDraggingArea(offset){
+		this.dragOffset=null;
 	}
 
 	// ===================== Verifications for size control =====================

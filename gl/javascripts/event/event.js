@@ -199,7 +199,8 @@ EVENTS.init=function() {
 	eachMenuPanelFunc($el => $el.on("pointerdown",e => e.stopPropagation()));
 
 	// Scroll on canvas
-	EventDistributer.wheel.addListener($("#canvas-layers-panel"),(dy,dx) => { // Scroll
+	// Expose this method to public so that other UI can also update canvas window by scrolling
+	const scrollOnCanvasWindowHandler=(dy,dx) => { // Scroll
 		if(EVENTS.key.alt||EVENTS.key.ctrl) { // normal pan
 			let newTx=ENV.window.trans.x-dx*10;
 			let newTy=ENV.window.trans.y-dy*10;
@@ -233,7 +234,9 @@ EVENTS.init=function() {
 			ENV.transformTo(newX,newY,ENV.window.rot,newS);
 			$("#scale-info-input").val(Math.round(newS*100));
 		}
-	});
+	};
+	EventDistributer.wheel.addListener($("#canvas-layers-panel"),scrollOnCanvasWindowHandler);
+	EVENTS.digestCanvasWindowScrollEvent=scrollOnCanvasWindowHandler;
 
 	$(window).on("keydown",EVENTS.keyDown);
 	$(window).on("keyup",EVENTS.keyUp);

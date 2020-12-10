@@ -25,13 +25,16 @@ class DragHandler{
 	 */
 	startDraggingPoint(id,offset){}
 	startDraggingLine(id,offset){}
+	startDraggingArea(offset){}
 
 	// These two functions shall modify the DRAG.points
 	draggingPoint(id,offset){}
 	draggingLine(id,offset){}
+	draggingArea(offset){}
 
 	endDraggingPoint(id,offset){}
 	endDraggingLine(id,offset){}
+	endDraggingArea(offset){}
 }
 
 // ========================= Drag global interface =========================
@@ -55,43 +58,58 @@ DRAG.init=function(){
 		"l12p": DRAG.$ui.find("#l12p"),
 		"l23p": DRAG.$ui.find("#l23p"),
 		"l34p": DRAG.$ui.find("#l34p"),
-		"l41p": DRAG.$ui.find("#l41p")
+		"l41p": DRAG.$ui.find("#l41p"),
+
+		"drag-area": DRAG.$ui.find("#drag-area")
 	};
 	_updatePaperP(); // init paper point
 
+	let pointerId=NaN;
 	DRAG.$ui.on("pointerdown",e=>{
 		const event=e.originalEvent;
 		if(!(event.buttons&1))return; // not left click
 		const target=event.target.id; // the id of target
-		idTable[target][0].setPointerCapture(event.pointerId);
+		pointerId=event.pointerId;
+		idTable[target][0].setPointerCapture(pointerId);
 
 		if(!DRAG.dragHandler)return; // no handler
 		const offsetSVG=DRAG.$ui.offset();
 		const offset=[event.pageX-offsetSVG.left,event.pageY-offsetSVG.top];
+		const typeC=target.charAt(0);
 		const id=target.charAt(1)-1; // present point id
-		if(target.startsWith("c")){
+		if(typeC=="c"){
 			DRAG.dragHandler.startDraggingPoint(id,offset);
 		}
-		else{
+		else if(typeC=="l"){
 			DRAG.dragHandler.startDraggingLine(id,offset);
+		}
+		else{
+			DRAG.dragHandler.startDraggingArea(offset);
+			idTable["drag-area"].css("cursor","grabbing");
 		}
 	});
 
 	DRAG.$ui.on("pointermove",e=>{
+		CURSOR.moveCursor(e); // also move the cursor (invisible, but for zooming on canvas window)
+
 		const event=e.originalEvent;
-		if(!(event.buttons&1))return; // not left click
+		if(!(event.buttons&1)||event.pointerId!=pointerId)return; // not left click
 		const target=event.target.id; // the id of target
 
-		if(!DRAG.dragHandler)return; // no handler
+		if(!DRAG.dragHandler||isNaN(pointerId))return; // no handler
 		const offsetSVG=DRAG.$ui.offset();
 		const offset=[event.pageX-offsetSVG.left,event.pageY-offsetSVG.top];
+		const typeC=target.charAt(0);
 		const id=target.charAt(1)-1; // present point id
 
-		if(target.startsWith("c")){
+		if(typeC=="c"){
 			DRAG.dragHandler.draggingPoint(id,offset);
 		}
-		else{
+		else if(typeC=="l"){
 			DRAG.dragHandler.draggingLine(id,offset);
+		}
+		else{
+			DRAG.dragHandler.draggingArea(offset);
 		}
 		_updatePaperP(); // update paper positions
 		_updateUI();// move all objects
@@ -102,21 +120,35 @@ DRAG.init=function(){
 
 	DRAG.$ui.on("pointerup",e=>{
 		const event=e.originalEvent;
-		if(!(event.buttons&1))return; // not left click
+		// Although this^ is not recommended, but pointerup doesn't have buttons property
 		const target=event.target.id; // the id of target
+		if(event.pointerId!=pointerId)return; // not the same pointer
+		pointerId=NaN;
 		idTable[target][0].releasePointerCapture(event.pointerId);
-
 
 		if(!DRAG.dragHandler)return; // no handler
 		const offsetSVG=DRAG.$ui.offset();
 		const offset=[event.pageX-offsetSVG.left,event.pageY-offsetSVG.top];
+		const typeC=target.charAt(0);
 		const id=target.charAt(1)-1; // present point id
 
-		if(target.startsWith("c")){
-			DRAG.dragHandler.draggingPoint(id,offset);
+		if(typeC=="c"){
+			DRAG.dragHandler.endDraggingPoint(id,offset);
+		}
+		else if(typeC=="l"){
+			DRAG.dragHandler.endDraggingLine(id,offset);
 		}
 		else{
-			DRAG.dragHandler.draggingLine(id,offset);
+			DRAG.dragHandler.endDraggingArea(offset);
+			idTable["drag-area"].css("cursor","grab");
+		}
+	});
+
+	// scroll on SVG also triggers canvas window transform
+	// pass on this event
+	EventDistributer.wheel.addListener(DRAG.$ui,pos=>{
+		if(isNaN(pointerId)){ // when not dragging
+			EVENTS.digestCanvasWindowScrollEvent(pos);
 		}
 	});
 
@@ -150,6 +182,13 @@ DRAG.init=function(){
 		idTable["l23"].attr(pl23); idTable["l23s"].attr(pl23); idTable["l23p"].attr(pl23);
 		idTable["l34"].attr(pl34); idTable["l34s"].attr(pl34); idTable["l34p"].attr(pl34);
 		idTable["l41"].attr(pl41); idTable["l41s"].attr(pl41); idTable["l41p"].attr(pl41);
+
+		const polygonStr=
+			 points[0][0]+","+points[0][1]+" "
+			+points[1][0]+","+points[1][1]+" "
+			+points[2][0]+","+points[2][1]+" "
+			+points[3][0]+","+points[3][1];
+		idTable["drag-area"].attr("points",polygonStr);
 	}
 	DRAG.updateUI=_updateUI;
 
