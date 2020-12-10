@@ -395,7 +395,7 @@ BasicRenderer.SATURATION=41;
 BasicRenderer.COLOR=42;
 BasicRenderer.LUMINOSITY=43;
 
-BasicRenderer.MASK=1000;
+BasicRenderer.MASK=50;
 
 BasicRenderer.blendModeNameList={ // name: PSD standard
 	"normal": BasicRenderer.NORMAL,

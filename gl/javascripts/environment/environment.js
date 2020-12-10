@@ -140,7 +140,7 @@ ENV.refreshTransform=function() {
 		// If this promise is discarded before resolved
 		// this will never be reached.
 		if(DRAG.setNewPaperPoints&&DRAG.mode!="none"){ // update dragger layer
-			DRAG.setNewPaperPoints(DRAG.paperP);
+			DRAG.updateUI();
 		}
 	});
 	if(ENV.displaySettings.antiAlias){ // update canvas anti-aliasing

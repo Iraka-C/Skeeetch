@@ -26,7 +26,7 @@
 	<script src="./javascripts/library/jquery-3.4.1.min.js"></script>
 	<script type="text/javascript">
 		const glsl=s => s; // string conversion, for glsl tag linting.
-		const LOGGING=true; // logging switch & optimize unused console object
+		const LOGGING=false; // logging switch & optimize unused console object
 		$(e => ENV.init()); // Main program entrance
 	</script>
 
@@ -267,7 +267,7 @@
 
 					<svg id="drag-selection-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
 						<mask id="drag-crop-mask">
-							<polygon id="drag-outer-area" points="" stroke="none" fill="#666666"/>
+							<polygon id="drag-outer-area" points="" stroke="none" fill="#888888"/>
 							<polygon id="drag-inner-area" points="" stroke="none" fill="#000000"/>
 						</mask>
 

@@ -4,7 +4,7 @@ STORAGE.FILES={
 
  // ================================== Tools ================================
  /**
-  * FIXME: do not use dropInstance. use page management by yourself
+  * Do not use dropInstance. use page management by yourself
   * There is a big issue on localForage.dropInstance
   * If you try to drop many instances concurrently, there's a chance that all of them may fail
   * in Chrome 86, the result it dropInstance().then still works but actually not dropped
@@ -22,6 +22,7 @@ STORAGE.FILES.generateFileID=function(){
 	return tag;
 }
 
+// Save || get file: when saving, save only valid area
 class FileWorker { // Work on canvas layer content, not files in repository!
 	constructor(layerStore,fileID) { // the layerStore and fileID this worker is working on
 		this.layerStore=layerStore;
@@ -385,7 +386,7 @@ STORAGE.FILES.getLayerTree=function() {
 
 STORAGE.FILES.loadLayerTree=function(node) {
 	// set busy status
-	EventDistributer.footbarHint.showInfo("Loading saved paper ...");
+	EventDistributer.footbarHint.showInfo(Lang("Loading saved paper")+" ...");
 	STORAGE.FILES.isFailedLayer=false;
 
 	const loadQueue=[]; // A queue of StackNodes
@@ -411,13 +412,13 @@ STORAGE.FILES.loadLayerTree=function(node) {
 				if(ENV.taskCounter.isTryingToAbort) { // User tries to abort the loading process
 					ENV.taskCounter.init(); // reset task indicator
 					STORAGE.FILES.isFailedLayer=true;
-					EventDistributer.footbarHint.showInfo("File loading aborted",2000);
+					EventDistributer.footbarHint.showInfo(Lang("File loading aborted"),2000);
 					return; // give up
 				}
 				if(this.nextNodeToLoad) { // prepare to load the next node
 					setTimeout(e => {
 						const percentage=(this.index/loadQueue.length*100).toFixed(1);
-						EventDistributer.footbarHint.showInfo("Loading "+percentage+"% ...",5000);
+						EventDistributer.footbarHint.showInfo(Lang("Loading")+" "+percentage+"% ...",5000);
 						this.nextNodeToLoad.load();
 					},0);
 				}
@@ -524,7 +525,7 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	}
 
 	// Load all children async
-	EventDistributer.footbarHint.showInfo("Loading 0.0% ...",5000);
+	EventDistributer.footbarHint.showInfo(Lang("Loading")+" 0.0% ...",5000);
 	if(loadQueue.length) {
 		loadQueue[0].load(); // kick
 	}
@@ -545,10 +546,10 @@ STORAGE.FILES.onLayerTreeLoad=function(activeNode) {
 	 */
 
 	if(STORAGE.FILES.isFailedLayer) {
-		EventDistributer.footbarHint.showInfo("ERROR: Loaded with corrupted layers",2000);
+		EventDistributer.footbarHint.showInfo(Lang("error-corrupted-layer"),2000);
 	}
 	else {
-		EventDistributer.footbarHint.showInfo("Loaded");
+		EventDistributer.footbarHint.showInfo(Lang("Loaded"));
 	}
 
 	PERFORMANCE.idleTaskManager.addTask(e=>{ // update all layer thumbs when idle

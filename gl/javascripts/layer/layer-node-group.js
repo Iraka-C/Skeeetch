@@ -30,6 +30,8 @@ LAYERS.$newLayerGroupUI=function(id) {
 	EventDistributer.footbarHint(lockButton,() => Lang("Lock pixel / opacity"));
 	EventDistributer.footbarHint(clipMaskButton,() => Lang("Set this group as a clipping mask"));
 	//EventDistributer.footbarHint(sourceButton,() => Lang("Activate the selection source"));
+	// show name when layers collapsed
+	EventDistributer.footbarHint(layerGroupUI,() => LAYERS.isUIExpanded? null:nameLabel.val());
 
 	// Layer clip mask hint
 	let clipHint=$("<img class='group-clip-mask-hint' src='./resources/clip-mask-hint.svg'>");
@@ -455,7 +457,25 @@ class LayerGroupNode extends ContentNode {
 		let childrenJson=[];
 		for(let v=this.children.length-1;v>=0;v--){ // reversed order
 			// Add the JSON source from children
-			childrenJson.push(this.children[v].getAgPSDCompatibleJSON());
+			const child=this.children[v];
+			const childJson=child.getAgPSDCompatibleJSON();
+			if(childJson.isMask){
+				if(childrenJson.length){ // a mask, append to the previous layer
+					Object.assign(childrenJson[childrenJson.length-1],{
+						mask: childJson
+					});
+				}
+				else{ // no previous: static layer invisible
+					Object.assign(childJson,{
+						"hidden": true,
+						"name": child.getName()
+					});
+					childrenJson.push(childJson);
+				}
+			}
+			else{ // directly add to children
+				childrenJson.push(childJson);
+			}
 		}
 
 		return Object.assign(json,{

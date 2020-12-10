@@ -30,9 +30,27 @@ class RootNode extends ContentNode { // only one root node
 	getAgPSDCompatibleJSON() {
 		// do not use ContentNode function, create properties on this. own
 		let childrenJson=[];
-		for(let v=this.children.length-1;v>=0;v--) { // reversed order
+		for(let v=this.children.length-1;v>=0;v--){ // reversed order
 			// Add the JSON source from children
-			childrenJson.push(this.children[v].getAgPSDCompatibleJSON());
+			const child=this.children[v];
+			const childJson=child.getAgPSDCompatibleJSON();
+			if(childJson.isMask){
+				if(childrenJson.length){ // a mask, append to the previous layer
+					Object.assign(childrenJson[childrenJson.length-1],{
+						mask: childJson
+					});
+				}
+				else{ // no previous: static layer invisible
+					Object.assign(childJson,{
+						"hidden": true,
+						"name": child.getName()
+					});
+					childrenJson.push(childJson);
+				}
+			}
+			else{ // directly add to children
+				childrenJson.push(childJson);
+			}
 		}
 
 		const imgData=this.rawImageData; // contents not saved here, only for dimensions

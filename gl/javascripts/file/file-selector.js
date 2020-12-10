@@ -128,12 +128,12 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 		event.stopPropagation(); // do not click on $ui
 		if(fileID!=ENV.fileID){ // current not opening
 			const fileName=STORAGE.FILES.filesStore.fileList[fileID].fileName;
-			EventDistributer.footbarHint.showInfo("Removing "+fileName+" from database ...");
+			EventDistributer.footbarHint.showInfo(Lang("file-delete-prefix")+fileName+Lang("file-delete-suffix")+" ...");
 			delete FILES.fileSelector.$uiList[fileID]; // remove from selector hash
 			$ui.remove(); // remove from selector panel
 			// remove from storage
 			STORAGE.FILES.removeFileID(fileID).then(()=>{
-				EventDistributer.footbarHint.showInfo(fileName+" deleted.");
+				EventDistributer.footbarHint.showInfo(fileName+" "+Lang("file-deleted"));
 			});
 
 			// The thumb image of this file will be deleted at the next startup.

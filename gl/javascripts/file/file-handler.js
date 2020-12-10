@@ -19,7 +19,7 @@ FILES.loadAsPSD=function(data,filename) {
 	LOGGING&&console.log(psdFile);
 	if(psdFile.width>ENV.maxPaperSize||psdFile.height>ENV.maxPaperSize) {
 		// larger than maximum paper size
-		EventDistributer.footbarHint.showInfo("Error: File dimensions larger than "+ENV.maxPaperSize+"px",2000);
+		EventDistributer.footbarHint.showInfo(Lang("error-oversize")+ENV.maxPaperSize+Lang("pix"),2000);
 		return;
 	}
 
@@ -98,7 +98,7 @@ FILES.loadPSDNodes=function(node) {
 					opacity: 1, // 1 by default, change the alpha with the same ratio
 					visible: !sNode.disabled,
 					clipMask: true, // only to the following one layer by default
-					name: sNode.masterName+" "+Lang("layer-mask"),
+					name: sNode.master.name+" "+Lang("layer-mask"),
 					blendMode: BasicRenderer.MASK // MASK blend mode
 				});
 
@@ -131,12 +131,17 @@ FILES.loadPSDNodes=function(node) {
 				});
 				this.elem=newElement;
 			}
-			else if(sNode.canvas) { // canvas node, load image data from canvas
+			else { // canvas node, load image data from canvas
 				const newElement=new CanvasNode();
-				CANVAS.renderer.loadToImageData(newElement.rawImageData,sNode.canvas); // load data
-				// Release canvas contents
-				sNode.canvas.width=0;
-				sNode.canvas.height=0;
+				if(sNode.canvas) {
+					CANVAS.renderer.loadToImageData(newElement.rawImageData,sNode.canvas); // load data
+					// Release canvas contents
+					sNode.canvas.width=0;
+					sNode.canvas.height=0;
+				}
+				else{ // Maybe unsupported
+					FILES.loadPSDNodes.isUnsupportedLayerFound=true;
+				}
 				// Set image data position
 				if(sNode.hasOwnProperty("left")) { // set both border and valid area
 					newElement.rawImageData.left=sNode.left;
@@ -159,7 +164,6 @@ FILES.loadPSDNodes=function(node) {
 					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode)
 				});
 
-
 				// store contents
 				STORAGE.FILES.saveContentChanges(newElement); // save loaded contents
 				this.elem=newElement;
@@ -169,19 +173,16 @@ FILES.loadPSDNodes=function(node) {
 					FILES.loadPSDNodes.isUnsupportedLayerFound=true;
 				}
 			}
-			else { // unsupported node (yet)
-				FILES.loadPSDNodes.isUnsupportedLayerFound=true;
-			}
 
 			if(this.nextNodeToLoad) { // prepare to load the next node
 				if(ENV.taskCounter.isTryingToAbort){ // User tries to abort the loading process
 					ENV.taskCounter.init(); // reset task indicator
-					EventDistributer.footbarHint.showInfo("File loading aborted",2000);
+					EventDistributer.footbarHint.showInfo(Lang("File loading aborted"),2000);
 					return; // give up
 				}
 				setTimeout(e => {
 					const percentage=(this.index/loadQueue.length*100).toFixed(1);
-					EventDistributer.footbarHint.showInfo("Loading "+percentage+"% ...",5000);
+					EventDistributer.footbarHint.showInfo(Lang("Loading")+" "+percentage+"% ...",5000);
 					this.nextNodeToLoad.load();
 				},0);
 			}
@@ -242,7 +243,7 @@ FILES.loadPSDNodes=function(node) {
 		if(jsonNode.mask&&jsonNode.mask.canvas) { // load mask json
 			const stackNodeM=new StackNode(Object.assign(jsonNode.mask,{
 				isMask: true, // Note that this is a mask layer
-				masterName: jsonNode.name
+				master: jsonNode
 			}),parentStackNode);
 			const M1=loadQueue.length;
 			stackNodeM.index=M1;
@@ -270,7 +271,7 @@ FILES.loadPSDNodes=function(node) {
 
 	// Load all children async
 	// @TODO: length==0?
-	EventDistributer.footbarHint.showInfo("Loading 0.0% ...",5000);
+	EventDistributer.footbarHint.showInfo(Lang("Loading")+" 0.0% ...",5000);
 	loadQueue[0].load(); // kick!
 }
 
@@ -286,10 +287,10 @@ FILES.loadPSDNodes=function(node) {
 FILES.onPSDLoaded=function() {
 	COMPOSITOR.updateLayerTreeStructure(); // async!
 	if(FILES.loadPSDNodes.isUnsupportedLayerFound) {
-		EventDistributer.footbarHint.showInfo("Unsupported layer or feature in this file is discarded",2000);
+		EventDistributer.footbarHint.showInfo(Lang("error-unsupported-layer"),2000);
 	}
 	else {
-		EventDistributer.footbarHint.showInfo("Loaded");
+		EventDistributer.footbarHint.showInfo(Lang("Loaded"));
 	}
 	ENV.taskCounter.finishTask(1); // finish file loading task
 	const toActive=FILES.loadPSDNodes.lastLoadingElement;
@@ -403,11 +404,11 @@ FILES.saveAsPSD=function(psdJSON) { // @TODO: change to async function
 	psdJSON=psdJSON||LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
 
 	ENV.taskCounter.startTask(1); // start PSD encoding task
-	EventDistributer.footbarHint.showInfo("Encoding ...");
+	EventDistributer.footbarHint.showInfo(Lang("Encoding")+" ...");
 	setTimeout(e => { // convert into binary stream
 		const buffer=agPsd.writePsd(psdJSON);
 		ENV.taskCounter.finishTask(1); // finish PSD encoding task
-		EventDistributer.footbarHint.showInfo("Exporting ...");
+		EventDistributer.footbarHint.showInfo(Lang("Exporting")+" ...");
 		setTimeout(e => { // Download
 			const blob=new Blob([buffer],{type: "application/octet-stream"});
 			const filename=ENV.getFileTitle();

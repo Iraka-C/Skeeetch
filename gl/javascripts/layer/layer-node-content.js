@@ -406,11 +406,20 @@ class ContentNode extends LayerNode {
 	getAgPSDCompatibleJSON(){
 		const imgData=this.rawImageData; // contents not saved here, only for dimensions
 		const prop=this.properties;
+		const vA=imgData.validArea;
+
+		if(prop.blendMode==BasicRenderer.MASK&&prop.clipMask&&!this.children.length) return { // a mask layer in PS
+			"isMask": true,
+			"top": vA.top,
+			"left": vA.left,
+			"positionRelativeToLayer": false,
+			"disabled": !prop.visible,
+			"defaultColor": 255 // White at present
+		};
+
 		return {
-			"top": imgData.top,
-			"left": imgData.left,
-			"bottom": ENV.paperSize.height-imgData.top-imgData.height,
-			"right": ENV.paperSize.width-imgData.left-imgData.width,
+			"top": vA.top,
+			"left": vA.left,
 			"blendMode": BasicRenderer.blendModeEnumToName(prop.blendMode),
 			"opacity": Math.round(prop.opacity*255),
 			"transparencyProtected": prop.locked,

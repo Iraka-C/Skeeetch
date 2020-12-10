@@ -575,9 +575,11 @@ class GLImageDataFactory {
 			uniform sampler2D u_image;
 			uniform float u_is_premult; // 1: premult->none alpha, 0: not change
 			uniform float u_range; // target range 0~u_range
+			uniform vec4 u_bg_color; // is there a bg color needed
 			varying highp vec2 v_position;
 			void main(){
 				vec4 pix=texture2D(u_image,v_position); // float operation
+				pix+=u_bg_color*(1.-pix.w); // normal blend
 				if(u_is_premult!=0.){
 					gl_FragColor=pix*u_range;
 				}
@@ -644,6 +646,8 @@ class GLImageDataFactory {
 	 * srcRange is {left,top,width,height}, the range to copy from source
 	 * Use nearest neighbor interpolation for zooming in/out
 	 * return non-premultiplied uint8 result, y-flipped from GL Texture as default
+	 * 
+	 * param.bgColor is a bg color [r,g,b,a] in alpha-premultiplied form, each channel 0~1
 	 */
 	imageDataToUint8(src,srcRange,targetSize,param) {
 		const gl=this.gl;
@@ -657,6 +661,7 @@ class GLImageDataFactory {
 		}
 
 		param=param||{};
+		param.bgColor=param.bgColor||[0,0,0,0]; // no bg color
 		param.isResultPremultAlpha=param.isResultPremultAlpha||false;
 		param.isPreserveArrayType=param.isPreserveArrayType||false;
 
@@ -678,6 +683,7 @@ class GLImageDataFactory {
 		program.setSourceTexture("u_image",src.data);
 		program.setTargetTexture(tmpTexture); // draw to canvas
 		program.setUniform("u_is_premult",param.isResultPremultAlpha? 1:0); // pre -> non-pre
+		program.setUniform("u_bg_color",param.bgColor);
 		const attrRect=GLProgram.getAttributeRect(srcRange,src);
 		program.setAttribute("a_src_position",attrRect,2);
 		switch(this.dataFormat) {
