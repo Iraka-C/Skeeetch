@@ -19,9 +19,9 @@ class DragHandler{
 	/**
 	 * When starting/acting/performing dragging,
 	 * record the target (document element id)
-	 * and offset from the canvas window
+	 * and offset from the paper
 	 * @param {Number} id order of target in document (0~3)
-	 * @param {[x,y]} offset x and y offsets in array
+	 * @param {[x,y]} offset x and y offsets in paper coordinate, left-top origin
 	 */
 	startDraggingPoint(id,offset){}
 	startDraggingLine(id,offset){}
@@ -60,7 +60,10 @@ DRAG.init=function(){
 		"l34p": DRAG.$ui.find("#l34p"),
 		"l41p": DRAG.$ui.find("#l41p"),
 
-		"drag-area": DRAG.$ui.find("#drag-area")
+		"drag-area": DRAG.$ui.find("#drag-area"),
+		"drag-paper-area": DRAG.$ui.find("#drag-paper-area"),
+		"drag-inner-area": DRAG.$ui.find("#drag-inner-area"), // for masking
+		"drag-outer-area": DRAG.$ui.find("#drag-outer-area") // for masking
 	};
 	_updatePaperP(); // init paper point
 
@@ -189,6 +192,22 @@ DRAG.init=function(){
 			+points[2][0]+","+points[2][1]+" "
 			+points[3][0]+","+points[3][1];
 		idTable["drag-area"].attr("points",polygonStr);
+		idTable["drag-inner-area"].attr("points",polygonStr);
+
+		const dPix=0.5/(p2wTransArr?p2wTransArr[3]:ENV.window.scale); // anti-alias over the gl canvas
+		const corners=[
+			ENV.toWindowXY(-dPix,-dPix,p2wTransArr),
+			ENV.toWindowXY(ENV.paperSize.width+dPix,-dPix,p2wTransArr),
+			ENV.toWindowXY(ENV.paperSize.width+dPix,ENV.paperSize.height+dPix,p2wTransArr),
+			ENV.toWindowXY(-dPix,ENV.paperSize.height+dPix,p2wTransArr),
+		];
+		const paperMaskStr=
+			 corners[0][0]+","+corners[0][1]+" "
+			+corners[1][0]+","+corners[1][1]+" "
+			+corners[2][0]+","+corners[2][1]+" "
+			+corners[3][0]+","+corners[3][1];
+		idTable["drag-paper-area"].attr("points",paperMaskStr);
+		idTable["drag-outer-area"].attr("points",paperMaskStr);
 	}
 	DRAG.updateUI=_updateUI;
 
@@ -215,10 +234,11 @@ DRAG.init=function(){
  * handler_ is the optional callback when dragging
  * verifier_ is the rule for restricting the points
  */
-DRAG.setDragHandler=function(handler){
+DRAG.setDragHandler=function(handler,isMask){
 	DRAG.dragHandler=handler||null;
 	if(DRAG.$ui){ // initialized
 		if(handler){
+			$("#drag-paper-area").css("display",isMask?"auto":"none");
 			DRAG.$ui.fadeIn(250);
 		}
 		else{
