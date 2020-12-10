@@ -203,6 +203,9 @@ table{
 #front-info-box, #bottom-info-box{
 	white-space: nowrap;
 }
+#front-info-box div, #bottom-info-box div{
+	cursor: default;
+}
 #bottom-info-panel{
 	padding: 0.5em;
 	right: 0px;

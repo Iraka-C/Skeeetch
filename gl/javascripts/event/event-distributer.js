@@ -11,8 +11,11 @@ EventDistributer.init=function(){
  * wheelchange: +1, 0, -1
  */
 EventDistributer.wheel={
+	isSlowDown:false,
 	_init:function(){
 		//window.addEventListener("wheel",EventDistributer.wheel._onwheel,false);
+		EventDistributer.wheel.threshold=ENV.browserInfo.macOS?5:1;
+		console.log(EventDistributer.wheel.threshold);
 	},
 	_nowListener:null, // a DOM Object
 	_nowFunction:()=>{}, // a function
@@ -26,6 +29,7 @@ EventDistributer.wheel={
 			//console.log("over",event.target);
 			EventDistributer.wheel._nowListener=el;
 			EventDistributer.wheel._nowFunction=callback;
+			EventDistributer.wheel.scrollCnt=[0,0];
 		},true);
 		// to deal with multiple pointers (e.g. mouse+pen) and when only one pointer's out
 		el.addEventListener("pointermove",event=>{
@@ -35,18 +39,33 @@ EventDistributer.wheel={
 		el.addEventListener("pointerout",event=>{ // pointerup pointercancel?
 			EventDistributer.wheel._nowListener=null;
 			//console.log("out",event.pointerType);
+			EventDistributer.wheel.scrollCnt=[0,0];
 		},true);
 		el.onwheel=EventDistributer.wheel._onwheel;
 	},
-	_onwheel:function(event){
+	scrollCnt:[0,0],
+	_onwheel:function(e){
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){
-			let e=event;//.originalEvent;
-			let dx=e.deltaX;
-			let dy=e.deltaY;
-			let wX=dx<0?1:dx>0?-1:0;
-			let wY=dy<0?1:dy>0?-1:0;
-			EventDistributer.wheel._nowFunction(wY,wX); // Y first
-			event.stopPropagation(); // prevent scrolling
+			const cnt=EventDistributer.wheel.scrollCnt;
+			if(ENV.browserInfo.macOS){
+				cnt[0]+=Math.sign(e.deltaX);
+				cnt[1]+=Math.sign(e.deltaY);
+			}
+			else{
+				cnt[0]-=Math.sign(e.deltaX);
+				cnt[1]-=Math.sign(e.deltaY);
+			}
+
+			const threshold=EventDistributer.wheel.threshold;
+			let wX=0,wY=0;
+			if(cnt[0]>= threshold){wX= 1;cnt[0]=0;}
+			if(cnt[0]<=-threshold){wX=-1;cnt[0]=0;}
+			if(cnt[1]>= threshold){wY= 1;cnt[1]=0;}
+			if(cnt[1]<=-threshold){wY=-1;cnt[1]=0;}
+			if(wX||wY){
+				EventDistributer.wheel._nowFunction(wY,wX); // Y first
+			}
+			e.stopPropagation(); // prevent scrolling on page
 		}
 		return false;
 	}

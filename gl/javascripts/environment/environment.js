@@ -109,8 +109,10 @@ ENV.init=function() { // When the page is loaded
 
 ENV.detectBrowser=function(){
 	const u=window.navigator.userAgent;
+	const platform=window.navigator.platform;
+	const app=window.navigator.appVersion;
 	return{
-		app: window.navigator.appVersion,
+		macOS:   app.indexOf('Mac') > -1,                             // MacOS system
 		trident: u.indexOf('Trident') > -1,                           // IE core
 		presto:  u.indexOf('Presto') > -1,                            // opera core
 		webKit:  u.indexOf('AppleWebKit') > -1,                       // apple/google core

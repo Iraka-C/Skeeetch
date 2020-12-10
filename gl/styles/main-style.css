@@ -134,3 +134,7 @@ hr{
 	border-top: none;
 	border-bottom: 0.05em solid #ffffffaa;
 }
+
+td{
+	cursor: default;
+}
