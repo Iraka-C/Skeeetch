@@ -1,5 +1,5 @@
 DRAG={
-	points: [[100,100],[100,200],[200,200],[200,100]], // 4 points, in canvas window coordinate
+	//points: [[100,100],[100,200],[200,200],[200,100]], // 4 points, in canvas window coordinate
 	paperP: [null,null,null,null], // 4 points, in paper coordinate
 	dragHandler: null, // handling the dragged result
 };
@@ -19,15 +19,16 @@ class DragHandler{
 	/**
 	 * When starting/acting/performing dragging,
 	 * record the target (document element id)
-	 * and offset from the canvas window
+	 * and offset from the paper
 	 * @param {Number} id order of target in document (0~3)
-	 * @param {[x,y]} offset x and y offsets in array
+	 * @param {[x,y]} offset x and y offsets in paper coordinate, left-top origin
+	 * 
+	 * These functions shall only change the DRAG.paperP
 	 */
 	startDraggingPoint(id,offset){}
 	startDraggingLine(id,offset){}
 	startDraggingArea(offset){}
 
-	// These two functions shall modify the DRAG.points
 	draggingPoint(id,offset){}
 	draggingLine(id,offset){}
 	draggingArea(offset){}
@@ -40,6 +41,7 @@ class DragHandler{
 // ========================= Drag global interface =========================
 DRAG.init=function(){
 	DRAG.$ui=$("#drag-selection-layer");
+	let points=[[100,100],[100,200],[200,200],[200,100]]; // containing svg coordinates in window, format same as paperP
 	const idTable={ // id-$item quick table
 		"c1": DRAG.$ui.find("#c1"),
 		"c2": DRAG.$ui.find("#c2"),
@@ -60,7 +62,10 @@ DRAG.init=function(){
 		"l34p": DRAG.$ui.find("#l34p"),
 		"l41p": DRAG.$ui.find("#l41p"),
 
-		"drag-area": DRAG.$ui.find("#drag-area")
+		"drag-area": DRAG.$ui.find("#drag-area"),
+		"drag-paper-area": DRAG.$ui.find("#drag-paper-area"),
+		"drag-inner-area": DRAG.$ui.find("#drag-inner-area"), // for masking
+		"drag-outer-area": DRAG.$ui.find("#drag-outer-area") // for masking
 	};
 	_updatePaperP(); // init paper point
 
@@ -74,7 +79,7 @@ DRAG.init=function(){
 
 		if(!DRAG.dragHandler)return; // no handler
 		const offsetSVG=DRAG.$ui.offset();
-		const offset=[event.pageX-offsetSVG.left,event.pageY-offsetSVG.top];
+		const offset=ENV.toPaperXY(event.pageX-offsetSVG.left,event.pageY-offsetSVG.top);
 		const typeC=target.charAt(0);
 		const id=target.charAt(1)-1; // present point id
 		if(typeC=="c"){
@@ -98,7 +103,7 @@ DRAG.init=function(){
 
 		if(!DRAG.dragHandler||isNaN(pointerId))return; // no handler
 		const offsetSVG=DRAG.$ui.offset();
-		const offset=[event.pageX-offsetSVG.left,event.pageY-offsetSVG.top];
+		const offset=ENV.toPaperXY(event.pageX-offsetSVG.left,event.pageY-offsetSVG.top);
 		const typeC=target.charAt(0);
 		const id=target.charAt(1)-1; // present point id
 
@@ -111,7 +116,6 @@ DRAG.init=function(){
 		else{
 			DRAG.dragHandler.draggingArea(offset);
 		}
-		_updatePaperP(); // update paper positions
 		_updateUI();// move all objects
 		if(DRAG.dragHandler.callback){ // callback every move
 			DRAG.dragHandler.callback();
@@ -128,7 +132,7 @@ DRAG.init=function(){
 
 		if(!DRAG.dragHandler)return; // no handler
 		const offsetSVG=DRAG.$ui.offset();
-		const offset=[event.pageX-offsetSVG.left,event.pageY-offsetSVG.top];
+		const offset=ENV.toPaperXY(event.pageX-offsetSVG.left,event.pageY-offsetSVG.top);
 		const typeC=target.charAt(0);
 		const id=target.charAt(1)-1; // present point id
 
@@ -154,16 +158,8 @@ DRAG.init=function(){
 
 	// ========================== Update contents ============================
 	function _updateUI(p2wTransArr){ // in a closure
-		let points;
-		if(p2wTransArr){ // decide with a certain transform array [x,y,r,s]
-			points=new Array(4);
-			for(let i=0;i<4;i++){
-				points[i]=ENV.toWindowXY(...DRAG.paperP[i],p2wTransArr);
-			}
-		}
-		else{
-			points=DRAG.points;
-		}
+		_updatePoints(p2wTransArr);
+
 		const pc1={"cx":points[0][0],"cy":points[0][1]};
 		const pc2={"cx":points[1][0],"cy":points[1][1]};
 		const pc3={"cx":points[2][0],"cy":points[2][1]};
@@ -189,22 +185,37 @@ DRAG.init=function(){
 			+points[2][0]+","+points[2][1]+" "
 			+points[3][0]+","+points[3][1];
 		idTable["drag-area"].attr("points",polygonStr);
+		idTable["drag-inner-area"].attr("points",polygonStr);
+
+		const dPix=0.5/(p2wTransArr?p2wTransArr[3]:ENV.window.scale); // anti-alias over the gl canvas
+		const corners=[
+			ENV.toWindowXY(-dPix,-dPix,p2wTransArr),
+			ENV.toWindowXY(ENV.paperSize.width+dPix,-dPix,p2wTransArr),
+			ENV.toWindowXY(ENV.paperSize.width+dPix,ENV.paperSize.height+dPix,p2wTransArr),
+			ENV.toWindowXY(-dPix,ENV.paperSize.height+dPix,p2wTransArr),
+		];
+		const paperMaskStr=
+			 corners[0][0]+","+corners[0][1]+" "
+			+corners[1][0]+","+corners[1][1]+" "
+			+corners[2][0]+","+corners[2][1]+" "
+			+corners[3][0]+","+corners[3][1];
+		idTable["drag-paper-area"].attr("points",paperMaskStr);
+		idTable["drag-outer-area"].attr("points",paperMaskStr);
 	}
 	DRAG.updateUI=_updateUI;
 
 	function _updatePaperP(){ // points -> paperP
 		for(let i=0;i<4;i++){
-			DRAG.paperP[i]=ENV.toPaperXY(...DRAG.points[i]);
+			DRAG.paperP[i]=ENV.toPaperXY(...points[i]);
 		}
 	}
-	function _updatePoints(){ // paperP -> points
+	function _updatePoints(p2wTransArr){ // paperP -> points
 		for(let i=0;i<4;i++){
-			DRAG.points[i]=ENV.toWindowXY(...DRAG.paperP[i]);
+			points[i]=ENV.toWindowXY(...DRAG.paperP[i],p2wTransArr);
 		}
 	}
 	DRAG.setNewPaperPoints=function(paperP){
 		DRAG.paperP=paperP;
-		_updatePoints();
 		_updateUI();
 	}
 }
@@ -215,10 +226,11 @@ DRAG.init=function(){
  * handler_ is the optional callback when dragging
  * verifier_ is the rule for restricting the points
  */
-DRAG.setDragHandler=function(handler){
+DRAG.setDragHandler=function(handler,isMask){
 	DRAG.dragHandler=handler||null;
 	if(DRAG.$ui){ // initialized
 		if(handler){
+			$("#drag-paper-area").css("display",isMask?"auto":"none");
 			DRAG.$ui.fadeIn(250);
 		}
 		else{

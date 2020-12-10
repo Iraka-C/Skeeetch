@@ -197,7 +197,7 @@ FILES.initFileMenu=function() {
 			ENV.setFileTitle(newName);
 			STORAGE.FILES.saveCurrentOpenedFileAs();
 		}
-		EventDistributer.footbarHint.showInfo("Saving ...",3000);
+		EventDistributer.footbarHint.showInfo(Lang("Saving")+" ...",3000);
 		if(ENV.displaySettings.isAutoSave){ // shall save present before switching to a new file
 			const layerTreeStr=STORAGE.FILES.saveLayerTree();
 			Promise.all([
@@ -215,7 +215,7 @@ FILES.initFileMenu=function() {
 	});
 
 	const psdButtonFunc=fileManager.addButton(Lang("Save as PSD"),e => {
-		EventDistributer.footbarHint.showInfo("Rendering ...");
+		EventDistributer.footbarHint.showInfo(Lang("Rendering")+" ...");
 		fileManager.toggleExpand();
 		ENV.taskCounter.startTask(1); // start PSD task
 		setTimeout(FILES.saveAsPSD,1000);
@@ -223,7 +223,7 @@ FILES.initFileMenu=function() {
 	EventDistributer.footbarHint(psdButtonFunc(),() => Lang("Save as PSD")+" (Ctrl+Shift+S)");
 
 	fileManager.addButton(Lang("Save as PNG"),e => {
-		EventDistributer.footbarHint.showInfo("Saving ...");
+		EventDistributer.footbarHint.showInfo(Lang("Saving")+" ...");
 		fileManager.toggleExpand();
 		ENV.taskCounter.startTask(1); // save PNG task
 		setTimeout(FILES.saveAsPNG,1000);
@@ -282,7 +282,7 @@ FILES.newPaperAction=function(){
 }
 
 FILES.savePaperAction=function(){ // saving in repository
-	EventDistributer.footbarHint.showInfo("Saving all contents ...");
+	EventDistributer.footbarHint.showInfo(Lang("Saving all contents")+" ...");
 	const layerTreeStr=STORAGE.FILES.saveLayerTree();
 	STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr); // update structure in database
 	STORAGE.FILES.saveAllContents(); // update contents in database
@@ -308,7 +308,7 @@ FILES.onFilesLoaded=function(files){
 
 	// Check file type
 	if(file.name.endsWith(".psd")) { // a Photoshop file
-		EventDistributer.footbarHint.showInfo("Reading file contents ...");
+		EventDistributer.footbarHint.showInfo(Lang("Reading file contents")+" ...");
 		ENV.taskCounter.startTask(1); // register load file task
 		let reader=new FileReader();
 		reader.readAsArrayBuffer(file);

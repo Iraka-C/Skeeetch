@@ -20,7 +20,7 @@ FILES.initCropDragger=function(widthUpdateFunc,heightUpdateFunc){
 		if(isShow){
 			if(!FILES.isCropping){ // setup crop mode
 				FILES.isCropping=true;
-				DRAG.setDragHandler(cropDragHandler);
+				DRAG.setDragHandler(cropDragHandler,true);
 			}
 			// update current temp size to UI
 			const [w,h,l,t]=[

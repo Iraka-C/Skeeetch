@@ -521,9 +521,10 @@ class CanvasNode extends ContentNode {
 	// =================== Export settings =====================
 	getAgPSDCompatibleJSON() {
 		let json=super.getAgPSDCompatibleJSON();
-		const imgData=this.rawImageData;
 		return Object.assign(json,{
-			"canvas": CANVAS.renderer.getContext2DCanvasFromImageData(imgData) // left & top info are handled by json
+			"canvas": CANVAS.renderer.getContext2DCanvasFromImageData(this.rawImageData,null,{
+				bgColor: json.isMask?[1,1,1,1]:[0,0,0,0] // if it is mask, fill with white
+			}) // left & top info are handled by json
 		});
 	}
 	getStorageJSON() {

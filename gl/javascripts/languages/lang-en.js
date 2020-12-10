@@ -10,13 +10,14 @@ LANG_EN={
 	"stroke-smoothness":"Smoothness",
 	"stylus-pressure-sensitivity":"Sensitivity",
 	"brush-pressure-hint-1":"Invalid when pressure is disabled",
-	"layer-opacity-label-shown":"Change opacity. Right click to hide this layer.",
-	"layer-opacity-label-hidden":"Right click to show this layer.",
+	"layer-opacity-label-shown":"Click to hide this layer. Scroll or drag to change opacity.",
+	"layer-opacity-label-hidden":"Click to show this layer.",
 	"Pressure Controlled Size":"Pen Pressure",
 	"Pressure Controlled Opacity":"Pen Pressure",
 	"new-brush-prefix":"New ",
 
 	"color-to-opacity":"Color > Opa",
+	"button-tools":"Tools",
 
 	// Settings part
 	"sys-info":"Information",
@@ -91,6 +92,11 @@ LANG_EN={
 	"delete-file":"Delete ",
 	"delete-file-confirm-prefix":"Delete ",
 	"delete-file-confirm-suffix":" from repository?",
+	"error-unsupported-layer":"Unsupported layer or feature in this file is discarded",
+	"error-corrupted-layer":"ERROR: Loaded with corrupted layers",
+	"file-deleted":"deleted from repository.",
+	"file-delete-prefix":"Removing ",
+	"file-delete-suffix":" from repository",
 
 	// Info
 	"about-skeeetch":`

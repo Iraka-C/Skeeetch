@@ -6,14 +6,14 @@ class CropDragHandler extends DragHandler{
 	}
 
 	startDraggingPoint(id,offset){
-		this.initYX=[DRAG.points[0][0]-DRAG.points[2][0],DRAG.points[0][1]-DRAG.points[2][1]];
+		this.initYX=[DRAG.paperP[0][0]-DRAG.paperP[2][0],DRAG.paperP[0][1]-DRAG.paperP[2][1]];
 	}
 	startDraggingLine(id,offset){
-		const startP=DRAG.points[id];
+		const startP=DRAG.paperP[id];
 		this.dragOffset=[offset[0]-startP[0],offset[1]-startP[1]];
 	}
 	startDraggingArea(offset){
-		const startP=DRAG.points[0]; // ref point
+		const startP=DRAG.paperP[0]; // ref point
 		this.dragOffset=[offset[0]-startP[0],offset[1]-startP[1]];
 	}
 
@@ -23,10 +23,10 @@ class CropDragHandler extends DragHandler{
 			const id2=(id+2)%4;
 			const id3=(id+3)%4;
 
-			const p0=DRAG.points[id];
-			const p1=DRAG.points[id1];
-			const p2=DRAG.points[id2];
-			const p3=DRAG.points[id3];
+			const p0=DRAG.paperP[id];
+			const p1=DRAG.paperP[id1];
+			const p2=DRAG.paperP[id2];
+			const p3=DRAG.paperP[id3];
 
 			const g02=this.initYX; // initial diagonal line
 			const h02=[-g02[1],g02[0]]; // perpendicular to g02
@@ -47,9 +47,9 @@ class CropDragHandler extends DragHandler{
 			const newP1S=SMath.lineIntersectionPV(p2,gp1,newP0,SMath.vector(p0,p1));
 			const newP3S=SMath.lineIntersectionPV(p2,gp3,newP0,SMath.vector(p0,p3));
 			// update new points
-			DRAG.points[id]=newP0;
-			DRAG.points[id1]=[newP1S[0],newP1S[1]];
-			DRAG.points[id3]=[newP3S[0],newP3S[1]];
+			DRAG.paperP[id]=newP0;
+			DRAG.paperP[id1]=[newP1S[0],newP1S[1]];
+			DRAG.paperP[id3]=[newP3S[0],newP3S[1]];
 		}
 		else if(EVENTS.key.ctrl){ // pan
 			const newP0=offset;
@@ -57,60 +57,60 @@ class CropDragHandler extends DragHandler{
 			const id1=(id+1)%4;
 			const id2=(id+2)%4;
 			const id3=(id+3)%4;
-			const p0=DRAG.points[id];
-			const p1=DRAG.points[id1];
-			const p2=DRAG.points[id2];
-			const p3=DRAG.points[id3];
+			const p0=DRAG.paperP[id];
+			const p1=DRAG.paperP[id1];
+			const p2=DRAG.paperP[id2];
+			const p3=DRAG.paperP[id3];
 
 			// pan
 			const diff=SMath.vector(p0,newP0);
-			DRAG.points[id]=newP0;
-			DRAG.points[id1]=[p1[0]+diff[0],p1[1]+diff[1]];
-			DRAG.points[id2]=[p2[0]+diff[0],p2[1]+diff[1]];
-			DRAG.points[id3]=[p3[0]+diff[0],p3[1]+diff[1]];
+			DRAG.paperP[id]=newP0;
+			DRAG.paperP[id1]=[p1[0]+diff[0],p1[1]+diff[1]];
+			DRAG.paperP[id2]=[p2[0]+diff[0],p2[1]+diff[1]];
+			DRAG.paperP[id3]=[p3[0]+diff[0],p3[1]+diff[1]];
 		}
 		else{ // xy-free
-			const p0=DRAG.points[id];
+			const p0=DRAG.paperP[id];
 			const newP0=CropDragHandler._verifyCropPoint(id,...offset);
 			const id1=(id+1)%4;
 			const id2=(id+2)%4;
 			const id3=(id+3)%4;
 
 			// old points
-			const p1=DRAG.points[id1];
-			const p2=DRAG.points[id2];
-			const p3=DRAG.points[id3];
+			const p1=DRAG.paperP[id1];
+			const p2=DRAG.paperP[id2];
+			const p3=DRAG.paperP[id3];
 			const gp1=SMath.vector(p2,p1);
 			const gp3=SMath.vector(p2,p3);
 			// calculate intersection
 			const newP1S=SMath.lineIntersectionPV(p2,gp1,newP0,SMath.vector(p0,p1));
 			const newP3S=SMath.lineIntersectionPV(p2,gp3,newP0,SMath.vector(p0,p3));
 			// update new points
-			DRAG.points[id]=newP0;
-			DRAG.points[id1]=[newP1S[0],newP1S[1]];
-			DRAG.points[id3]=[newP3S[0],newP3S[1]];
+			DRAG.paperP[id]=newP0;
+			DRAG.paperP[id1]=[newP1S[0],newP1S[1]];
+			DRAG.paperP[id3]=[newP3S[0],newP3S[1]];
 		}
 	}
 
 	draggingLine(id,offset){
-		if(EVENTS.key.shift||EVENTS.key.ctrl){ // pan
+		if(EVENTS.key.ctrl){ // pan
 			const newP0=SMath.vector(this.dragOffset,offset);
 			const id1=(id+1)%4;
 			const id2=(id+2)%4;
 			const id3=(id+3)%4;
 
 			// old points
-			const p0=DRAG.points[id];
-			const p1=DRAG.points[id1];
-			const p2=DRAG.points[id2];
-			const p3=DRAG.points[id3];
+			const p0=DRAG.paperP[id];
+			const p1=DRAG.paperP[id1];
+			const p2=DRAG.paperP[id2];
+			const p3=DRAG.paperP[id3];
 
 			// pan
 			const diff=SMath.vector(p0,newP0);
-			DRAG.points[id]=newP0;
-			DRAG.points[id1]=[p1[0]+diff[0],p1[1]+diff[1]];
-			DRAG.points[id2]=[p2[0]+diff[0],p2[1]+diff[1]];
-			DRAG.points[id3]=[p3[0]+diff[0],p3[1]+diff[1]];
+			DRAG.paperP[id]=newP0;
+			DRAG.paperP[id1]=[p1[0]+diff[0],p1[1]+diff[1]];
+			DRAG.paperP[id2]=[p2[0]+diff[0],p2[1]+diff[1]];
+			DRAG.paperP[id3]=[p3[0]+diff[0],p3[1]+diff[1]];
 		}
 		else{ // free-xy
 			const newP0=CropDragHandler._verifyCropLine(id,...offset);
@@ -120,10 +120,10 @@ class CropDragHandler extends DragHandler{
 			const id3=(id+3)%4;
 
 			// old points
-			const p0=DRAG.points[id];
-			const p1=DRAG.points[id1];
-			const p2=DRAG.points[id2];
-			const p3=DRAG.points[id3];
+			const p0=DRAG.paperP[id];
+			const p1=DRAG.paperP[id1];
+			const p2=DRAG.paperP[id2];
+			const p3=DRAG.paperP[id3];
 
 			const gp01=SMath.vector(p0,p1);
 			const gp12=SMath.vector(p1,p2);
@@ -134,8 +134,8 @@ class CropDragHandler extends DragHandler{
 			const newP1S=SMath.lineIntersectionPV(p1,gp12,newP0,gp01);
 			// @TODO: one more verification here, not exceed the paper outer edges
 			// update new points
-			DRAG.points[id]=[newP0S[0],newP0S[1]];
-			DRAG.points[id1]=[newP1S[0],newP1S[1]];
+			DRAG.paperP[id]=[newP0S[0],newP0S[1]];
+			DRAG.paperP[id1]=[newP1S[0],newP1S[1]];
 		}
 	}
 
@@ -143,17 +143,17 @@ class CropDragHandler extends DragHandler{
 		const newP0=SMath.vector(this.dragOffset,offset);
 
 		// old points
-		const p0=DRAG.points[0];
-		const p1=DRAG.points[1];
-		const p2=DRAG.points[2];
-		const p3=DRAG.points[3];
+		const p0=DRAG.paperP[0];
+		const p1=DRAG.paperP[1];
+		const p2=DRAG.paperP[2];
+		const p3=DRAG.paperP[3];
 
 		// pan
 		const diff=SMath.vector(p0,newP0);
-		DRAG.points[0]=newP0;
-		DRAG.points[1]=[p1[0]+diff[0],p1[1]+diff[1]];
-		DRAG.points[2]=[p2[0]+diff[0],p2[1]+diff[1]];
-		DRAG.points[3]=[p3[0]+diff[0],p3[1]+diff[1]];
+		DRAG.paperP[0]=newP0;
+		DRAG.paperP[1]=[p1[0]+diff[0],p1[1]+diff[1]];
+		DRAG.paperP[2]=[p2[0]+diff[0],p2[1]+diff[1]];
+		DRAG.paperP[3]=[p3[0]+diff[0],p3[1]+diff[1]];
 	}
 
 	endDraggingLine(id,offset){
@@ -166,39 +166,28 @@ class CropDragHandler extends DragHandler{
 	// ===================== Verifications for size control =====================
 	// verify valid points when doing transform
 
-	static _verifyCropPoint(id,xW,yW){ // verify an active point when cropping
-		let [xP,yP]=ENV.toPaperXY(xW,yW);
+	static _verifyCropPoint(id,xP,yP){ // verify an active point when cropping
 		const [xPRel,yPRel]=DRAG.paperP[(id+2)%4]; // relative reference point
 		
 		// fix diff lower than 16 pixels
 		const [dX,dY]=[xP-xPRel,yP-yPRel];
-		let isGood=true;
-		// @TODO: add max-length restriction
 		if(Math.abs(dX)<16){
 			xP=xPRel+16*(Math.sign(dX)||1);
-			isGood=false;
 		}
 		else if(Math.abs(dX)>ENV.maxPaperSize){
 			xP=xPRel+ENV.maxPaperSize*(Math.sign(dX)||1);
-			isGood=false;
 		}
 		if(Math.abs(dY)<16){
 			yP=yPRel+16*(Math.sign(dY)||1);
-			isGood=false;
 		}
 		else if(Math.abs(dY)>ENV.maxPaperSize){
 			yP=yPRel+ENV.maxPaperSize*(Math.sign(dY)||1);
-			isGood=false;
-		}
-		if(isGood){ // no change at all
-			return [xW,yW];
 		}
 
-		return ENV.toWindowXY(xP,yP); // new position in window
+		return [xP,yP];
 	}
 
-	static _verifyCropPointZoom(id,xW,yW){ // verify an active point when cropping, zoom
-		let [xP,yP]=ENV.toPaperXY(xW,yW);
+	static _verifyCropPointZoom(id,xP,yP){ // verify an active point when cropping, zoom
 		const [xPRel,yPRel]=DRAG.paperP[(id+2)%4]; // relative reference point
 		
 		// fix diff lower than 16 pixels
@@ -213,24 +202,21 @@ class CropDragHandler extends DragHandler{
 		if(mr>1){ // too small
 			xP=xPRel+dX*mr;
 			yP=yPRel+dY*mr;
-			return ENV.toWindowXY(xP,yP); // new position in window
 		}
 		if(xr<1){ // too large
 			xP=xPRel+dX*xr;
 			yP=yPRel+dY*xr;
-			return ENV.toWindowXY(xP,yP); // new position in window
 		}
-		return [xW,yW];
+		return [xP,yP];
 	}
 
-	static _verifyCropLine(id,xW,yW){
-		let [xP,yP]=ENV.toPaperXY(xW,yW);
+	static _verifyCropLine(id,xP,yP){
 		const pRel1=DRAG.paperP[(id+2)%4]; // relative line
 		const pRel2=DRAG.paperP[(id+3)%4];
 		const dis=SMath.getPointToLineDis(...pRel1,...pRel2,xP,yP);
 		if(dis<16){
-			return DRAG.points[id%4]; // original
+			return DRAG.paperP[id%4]; // original
 		}
-		return [xW,yW];
+		return [xP,yP];
 	}
 }

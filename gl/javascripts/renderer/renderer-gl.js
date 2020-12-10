@@ -889,21 +889,21 @@ class GLRenderer extends BasicRenderer {
 
 	// Get a <canvas> element with a CanvasRenderingContext2D containing data in src
 	// left & top are used for indicating the left/top bias on the canvas
-	// srcRange cuts out the part of src from the screen.
-	getContext2DCanvasFromImageData(src,srcRange) {
+	// srcRange cuts out the part of src from the screen. init: validArea part
+	getContext2DCanvasFromImageData(src,srcRange,param) {
 		const canvas=document.createElement("canvas");
-		srcRange=srcRange||src; // init all src range
+		srcRange=srcRange||src.validArea; // initial: src valid range
 
 		canvas.width=srcRange.width;
 		canvas.height=srcRange.height;
-		if(!(src.width&&src.height)) { // the src is empty
+		if(!(srcRange.width&&srcRange.height)) { // the src is empty
 			return canvas; // return directly
 		}
 
 		this.vramManager.verify(src);
 		const ctx2d=canvas.getContext("2d"); // Use Context2D mode
 		const imgData2D=ctx2d.createImageData(canvas.width,canvas.height);
-		const buffer=this.imageDataFactory.imageDataToUint8(src,srcRange); // convert src into 8bit RGBA format
+		const buffer=this.imageDataFactory.imageDataToUint8(src,srcRange,null,param); // convert src into 8bit RGBA format
 		imgData2D.data.set(buffer);
 		ctx2d.putImageData(imgData2D,0,0); // put buffer data into canvas
 		return canvas;

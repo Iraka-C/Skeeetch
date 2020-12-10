@@ -266,7 +266,13 @@
 					</svg>
 
 					<svg id="drag-selection-layer" xmlns="http://www.w3.org/2000/svg" version="1.1">
-						<polygon id="drag-area" points="150,200 250,450 250,300 150,300" stroke="none" fill="#00000000"/>
+						<mask id="drag-crop-mask">
+							<polygon id="drag-outer-area" points="" stroke="none" fill="#888888"/>
+							<polygon id="drag-inner-area" points="" stroke="none" fill="#000000"/>
+						</mask>
+
+						<polygon id="drag-paper-area" points="" stroke="none" fill="#000000" mask="url(#drag-crop-mask)"/>
+						<polygon id="drag-area" points="" stroke="none" fill="#00000000"/>
 						<g id="drag-lines-padding" stroke-width="12" stroke="#00000000" fill="none">
 							<line id="l12p" x1="100" y1="100" x2="100" y2="200"/>
 							<line id="l23p" x1="100" y1="200" x2="200" y2="200"/>
