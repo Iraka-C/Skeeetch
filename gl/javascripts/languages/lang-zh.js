@@ -189,6 +189,7 @@ LANG_ZH={
 
 	"Repository":"库",
 	"Specified paper too large":"指定的纸张尺寸过大",
+	"file-name-abort":"（已中止）",
 
 	// Info
 	"About Skeeetch":"关于Skeeetch",

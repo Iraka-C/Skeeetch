@@ -97,6 +97,7 @@ LANG_EN={
 	"file-deleted":"deleted from repository.",
 	"file-delete-prefix":"Removing ",
 	"file-delete-suffix":" from repository",
+	"file-name-abort":" (aborted)",
 
 	// Info
 	"about-skeeetch":`

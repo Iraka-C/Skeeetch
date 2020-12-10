@@ -121,7 +121,7 @@ FILES.initFileMenu=function() {
 	const cropDraggerUpdater=FILES.initCropDragger(widthUpdateFunc,heightUpdateFunc);
 
 	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
-		FILES.newPaperAction();
+		FILES.newPaperAction(true); // auto save //TODO: really? use dialog box
 		sizeChangeHint(false); // reset size change hint (resize)
 		fileManager.toggleExpand(); // close the file menu
 	});
@@ -256,21 +256,23 @@ FILES.initFileMenu=function() {
 }
 
 // ==================== Actions in setting ======================
-FILES.newPaperAction=function(){
+FILES.newPaperAction=function(isSavePresentContents,newFileName){
 	//if(ENV.taskCounter.isWorking()) return; // cannot create new when busy
 	// Save current layerTree and contents in files
 	// @TODO: save old one depending on isAutoSave
-	const layerTreeStr=STORAGE.FILES.saveLayerTree();
-	Promise.all([
-		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
-		STORAGE.FILES.saveAllContents()
-	]).then(()=>{
+	const createNew=()=>{
 		// init a new storage space
 		ENV.fileID=STORAGE.FILES.generateFileID();
-		ENV.setFileTitle("Skeeetch");
+		ENV.setFileTitle(newFileName||"Skeeetch");
 		STORAGE.FILES.initLayerStorage(ENV.fileID); // record new title and create storage
 		// Some works on new file
-		ENV.setPaperSize(FILES.tempPaperSize.width,FILES.tempPaperSize.height);
+		let w=FILES.tempPaperSize.width;
+		let h=FILES.tempPaperSize.height;
+		if(!(w&&h)){ // no temp size at present
+			w=ENV.paperSize.width;
+			h=ENV.paperSize.height;
+		}
+		ENV.setPaperSize(w,h);
 		LAYERS.initFirstLayer(); // also store the initial layer contents
 		FILES.fileSelector.addNewFileUIToSelector(ENV.fileID); // add the icon in selector
 
@@ -278,7 +280,18 @@ FILES.newPaperAction=function(){
 		const ti=$titleInput[0];
 		$titleInput.focus(); // prompt the user to input the title
 		ti.selectionStart=ti.selectionEnd="Skeeetch".length;
-	});
+	};
+
+	if(isSavePresentContents){
+		const layerTreeStr=STORAGE.FILES.saveLayerTree();
+		Promise.all([
+			STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
+			STORAGE.FILES.saveAllContents()
+		]).then(createNew);
+	}
+	else{
+		createNew();
+	}
 }
 
 FILES.savePaperAction=function(){ // saving in repository

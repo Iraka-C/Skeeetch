@@ -412,8 +412,9 @@ STORAGE.FILES.loadLayerTree=function(node) {
 				if(ENV.taskCounter.isTryingToAbort) { // User tries to abort the loading process
 					ENV.taskCounter.init(); // reset task indicator
 					STORAGE.FILES.isFailedLayer=true;
-					EventDistributer.footbarHint.showInfo(Lang("File loading aborted"),2000);
-					return; // give up
+					EventDistributer.footbarHint.showInfo(Lang("File loading aborted"),5000);
+					STORAGE.FILES.onLayerTreeAborted();
+					return; // give up, do not call this.loaded
 				}
 				if(this.nextNodeToLoad) { // prepare to load the next node
 					setTimeout(e => {
@@ -556,6 +557,19 @@ STORAGE.FILES.onLayerTreeLoad=function(activeNode) {
 		LAYERS.updateAllThumbs(); // update thumbs of every layer
 		STORAGE.FILES.updateCurrentThumb(); // update the thumb of this psd file
 	});
+}
+
+/**
+ * Abort loading, use a blank new page instead
+ */
+STORAGE.FILES.onLayerTreeAborted=function(){
+	const fileID=ENV.fileID; // record ID before abort
+	const fileName=ENV.getFileTitle();
+	// use 256x256 as init, at most 1MB
+	FILES.tempPaperSize.width=256;
+	FILES.tempPaperSize.height=256;
+	FILES.newPaperAction(false,fileName+Lang("file-name-abort")); // DO NOT save, use a new paper instead
+	STORAGE.FILES.updateThumbFromDatabase(fileID);
 }
 
 // clear buf/chunk unused by any layer

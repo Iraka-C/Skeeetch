@@ -178,6 +178,7 @@ FILES.loadPSDNodes=function(node) {
 				if(ENV.taskCounter.isTryingToAbort){ // User tries to abort the loading process
 					ENV.taskCounter.init(); // reset task indicator
 					EventDistributer.footbarHint.showInfo(Lang("File loading aborted"),2000);
+					FILES.onPSDAborted();
 					return; // give up
 				}
 				setTimeout(e => {
@@ -305,6 +306,14 @@ FILES.onPSDLoaded=function() {
 	// Layer tree construction completed. Save layer tree info
 	const layerTreeStr=STORAGE.FILES.saveLayerTree();
 	STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr);
+}
+
+FILES.onPSDAborted=function(){
+	const fileID=ENV.fileID;
+	const newName=ENV.getFileTitle()+Lang("file-name-abort");
+	ENV.setFileTitle(newName);
+	// setFileTitle won't save the filename in storage
+	FILES.fileSelector.changeFileNameByFileID(fileID,newName);
 }
 
 // Image Handlers. If !layerToLoad, then create a new layer
