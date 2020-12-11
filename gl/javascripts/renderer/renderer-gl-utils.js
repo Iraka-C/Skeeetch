@@ -765,8 +765,7 @@ class GLImageDataFactory {
 	imageDataToBuffer(src) {
 		const gl=this.gl;
 		const VW=src.validArea.width;
-		const VH=src.validArea.hidth;
-
+		const VH=src.validArea.height;
 
 		if(!(VW&&VH)) { // empty
 			switch(this.dataFormat) {

@@ -13,9 +13,20 @@ class GLVRAMManager {
 		this.lastVerified=null;
 		this.lastVerifiedSize=0;
 	}
-	verify(imgData) {
 
-		const size=imgData.width*imgData.height*imgData.bitDepth/2; // in bytes, *4/8
+	static _getVRAMSize(w,h,bd){ // width, height, bitdepth, return bytes
+		function POT(v){ // power of two that is larger/equal to v
+			v--;
+			let t=1;
+			while(v>>>=1)t++;
+			return 1<<t;
+		}
+		return POT(w)*POT(h)*bd/2; // bd/2 is bd*4/8: 4 channels, 8 bits/byte
+	}
+
+	verify(imgData) {
+		const size=GLVRAMManager._getVRAMSize(imgData.width,imgData.height,imgData.bitDepth);
+
 		if(this.whiteList.has(imgData)) { // The size won't take much
 			const prevSize=this.whiteList.get(imgData);
 			this.vRAMUsage+=size-prevSize;
@@ -55,7 +66,7 @@ class GLVRAMManager {
 			if(sizeToRelease>0) { // still not enough space
 				for(const [oldData,oldRecSize] of this.activeTextures){ // release old first
 					this.renderer.freezeImageData(oldData); // move VRAM to RAM
-					const oldLatSize=oldData.width*oldData.height*oldData.bitDepth/2; // in bytes
+					const oldLatSize=GLVRAMManager._getVRAMSize(oldData.width,oldData.height,oldData.bitDepth);
 					this.ramUsage+=oldLatSize;
 					console.log("Compressed VRAM"+(oldLatSize/1048576).toFixed(2)+"MB");
 					this.activeTextures.delete(oldData); // Safely delete, as the for loop uses iterator
@@ -92,7 +103,7 @@ class GLVRAMManager {
 
 	// imgData won't be compressed
 	addWhiteList(imgData) {
-		const size=imgData.width*imgData.height*4*imgData.bitDepth/8; // in bytes
+		const size=GLVRAMManager._getVRAMSize(imgData.width,imgData.height,imgData.bitDepth); // in bytes
 		if(this.whiteList.has(imgData)){ // already in whitelist
 			const prevSize=this.whiteList.get(imgData);
 			this.vRAMUsage+=size-prevSize;
@@ -110,7 +121,7 @@ class GLVRAMManager {
 	}
 
 	remove(imgData){
-		const size=imgData.width*imgData.height*4*imgData.bitDepth/8; // in bytes
+		const size=GLVRAMManager._getVRAMSize(imgData.width,imgData.height,imgData.bitDepth); // in bytes
 		if(imgData.type=="GLRAMBuf") { // frozen texture to be added
 			this.ramUsage-=size;
 		}
@@ -133,7 +144,7 @@ class GLVRAMManager {
 	}
 	updateVRAMCount(){
 		for(const [oldData,oldRecSize] of this.activeTextures){ // release old first
-			const oldLatSize=oldData.width*oldData.height*oldData.bitDepth/2; // in bytes
+			const oldLatSize=GLVRAMManager._getVRAMSize(oldData.width,oldData.height,oldData.bitDepth);
 			this.vRAMUsage+=oldLatSize-oldRecSize;
 			this.activeTextures.set(oldData,oldLatSize); // refresh
 		}
