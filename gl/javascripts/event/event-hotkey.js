@@ -45,7 +45,10 @@ EVENTS.initHotKeys=function() {
 	// },true);
 	// ============================ Ctrl+X/C/V ================================
 	$(window).on("paste",event=>{
-		CLIPBOARD.paste((event.clipboardData||event.originalEvent.clipboardData).items);
+		CLIPBOARD.paste(
+			(event.clipboardData||event.originalEvent.clipboardData).items,
+			EVENTS.key.space
+		);
 	});
 
 	$(window).on("copy",event=>{

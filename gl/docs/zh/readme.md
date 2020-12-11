@@ -1,4 +1,4 @@
-# Skeeetch - WebGL 版本
+# Skeeetch使用说明
 
 Skeeetch 是一个基于Web平台的绘图工具，小巧而功能强大，完全开源免费。
 

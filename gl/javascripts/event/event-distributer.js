@@ -3,6 +3,7 @@ EventDistributer={};
 EventDistributer.init=function(){
 	EventDistributer.wheel._init();
 	EventDistributer.button._init();
+	EventDistributer.key._init();
 }
 
 /**
@@ -253,42 +254,65 @@ EventDistributer.footbarHint.showInfo=function(text,time){
 
 /**
  * keyboard operation, hot keys
- * key is a character (string)
- * funcKey=[isCtrl,isShift,isAlt]
- * isPreventDefault: if there is a default action of the browser, prevent it
- * 
- * //@TODO: simplify "keydown" binding
- * At present, there are listeners as much as the number of hotkeys
- * Simplify them to one for each element?
  */
 EventDistributer.key={
+	patterns:[
+		/**
+		 * each item:
+		 * {
+		 *    code: keycode like "a" or "space"
+		 *    ctrl, shift, alt,
+		 *    callback,
+		 *    isPreventDefault
+		 * }
+		 */
+	],
 	_init:function(){
-	},
-	addListener:function(key,callback,isPreventDefault){
-		// notice left/right: KeyboardEvent.DOM_KEY_LOCATION_STANDARD
-
-		let keys=key.toLowerCase().split("+");
-		let funcKey=[
-			keys.indexOf("ctrl")>=0, // Ctrl
-			keys.indexOf("shift")>=0, // Shift
-			keys.indexOf("alt")>=0 // Alt
-		];
-		let code=keys[keys.length-1];
-
-		if(isPreventDefault===undefined){ // init: true
-			isPreventDefault=true;
-		}
 		$(window).on("keydown",event=>{
-			if(event.originalEvent.key.toLowerCase()==code){ // check keycode
-				const ek=EVENTS.key;
-				if(ek.ctrl==funcKey[0]&&ek.shift==funcKey[1]&&ek.alt==funcKey[2]){ // the key combination
-					callback(event);
-					if(isPreventDefault){ // only prevent default after executing
-						event.preventDefault();
+			const keycode=event.originalEvent.key.toLowerCase();
+			const ek=EVENTS.key;
+			LOGGING&&console.log(keycode);
+
+			for(const p of EventDistributer.key.patterns){
+				if(p.code==keycode){ // is this key
+					if(ek.ctrl==p.ctrl&&ek.shift==p.shift&&ek.alt==p.alt){ // is this function
+						p.callback(event);
+						if(p.isPreventDefault){ // only prevent default after executing
+							event.preventDefault();
+						}
 					}
 				}
 			}
 		});
+	},
+	/**
+	 * Add a hot key callback
+	 * @param {String} patternStr something like "ctrl+z" or "ctrl+alt+0"
+	 * @param {()=>{}} callback function to execute when this hot key is fired
+	 * @param {Boolean=true} isPreventDefault is to prevent browser action. default: yes
+	 */
+	addListener:function(patternStr,callback,isPreventDefault){
+		// notice left/right: KeyboardEvent.DOM_KEY_LOCATION_STANDARD
+		const pattern={
+			ctrl: false,
+			shift: false,
+			alt: false,
+			code: ""
+		};
+
+		for(const s of patternStr.toLowerCase().split("+")){
+			if(s=="ctrl")pattern.ctrl=true;
+			else if(s=="shift")pattern.shift=true;
+			else if(s=="alt")pattern.alt=true;
+			else pattern.code=s;
+		}
+
+		if(isPreventDefault===undefined){ // init: true
+			isPreventDefault=true;
+		}
+		pattern.isPreventDefault=isPreventDefault;
+		pattern.callback=callback;
+		EventDistributer.key.patterns.push(pattern);
 	}
 }
 
