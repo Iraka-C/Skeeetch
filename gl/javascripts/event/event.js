@@ -278,6 +278,9 @@ EVENTS.keyDown=function(event) {
 	if(functionKeyChanged) { // shift|ctrl|alt pressed
 		// more actions related to key changed?
 		EventDistributer.footbarHint.update();
+		if(EVENTS.key.shift){ // disable area drag: shift+drag is panning paper
+			$("#drag-area").css("pointer-events","none");
+		}
 	}
 }
 
@@ -312,6 +315,9 @@ EVENTS.keyUp=function(event) {
 
 	if(functionKeyChanged) { // shift|ctrl|alt leave
 		EventDistributer.footbarHint.update();
+		if(!EVENTS.key.shift){ // enable area drag
+			$("#drag-area").css("pointer-events","all");
+		}
 	}
 }
 
