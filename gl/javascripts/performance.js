@@ -134,6 +134,18 @@ PERFORMANCE.getGPUMemEstimation=function(){
 // 	PERFORMANCE.fpsCounter.submit(intv);
 // }
 
+/**
+ * This is an async function! returns a Promise
+ */
+PERFORMANCE.getDriveEstimation=function(){
+	if(navigator.storage){
+		return navigator.storage.estimate().then(est=>est.usage);
+	}
+	else{ // just an approximation to img, not including brushes and thumbs
+		return MyForage.getDriveUsage("img");
+	}
+}
+
 // ================= Idle Task Manager ===================
 class IdleTaskManager{
 	constructor(){

@@ -16,14 +16,108 @@ class MyForage{
 	constructor(name,storeName){
 		//this.name=name;
 		this.storeName=storeName||"";
-		this.storeKeys={}; // the keys of this store
-		this.storage=localforage.createInstance({
+		this.storeKeys={}; // the keys of this store, key: size in bytes
+		this.storage=localforage.createInstance({ // the db instance: all data in all stores
 			name: name,
 			storeName: "storage"
 		});
-		this.storeList=localforage.createInstance({ // the db instance of all stores
+		this.storeList=localforage.createInstance({ // the db instance: index of all stores
 			name: name,
 			storeName: "store"
+		});
+		this.size=0;
+	}
+
+	static _roughSizeOfObject(v){ // will never be 0
+		const objectSet=new Set();
+		const stack=[v];
+		let bytes=8; // at least a pointer to itself
+	
+		while(stack.length){
+			const value=stack.pop();
+			if(typeof(value)==="boolean"){
+				bytes+=4;
+			}
+			else if(typeof(value)==="string"){
+				bytes+=value.length*2;
+			}
+			else if(typeof(value)==="number"){
+				bytes+=8;
+			}
+			else if(typeof(value)==="object"&&!objectSet.has(value)){
+				if(value instanceof Element||value instanceof HTMLElement){
+					continue; // do not count HTML element
+				}
+				if(value instanceof jQuery||value instanceof Sortable){
+					continue; // do not count jQuery element
+				}
+				if(value instanceof Function){
+					continue; // do not count functions, including arrow function
+				}
+
+				objectSet.add(value);
+				if(value instanceof Int8Array||value instanceof Uint8Array||value instanceof Uint8ClampedArray){
+					bytes+=value.length;
+				}
+				else if(value instanceof Int16Array||value instanceof Uint16Array){
+					bytes+=value.length*2;
+				}
+				else if(value instanceof Int32Array||value instanceof Uint32Array||value instanceof Float32Array){
+					bytes+=value.length*4;
+				}
+				else if(value instanceof Float64Array||value instanceof BigInt64Array||value instanceof BigUint64Array){
+					bytes+=value.length*8;
+				}
+				else if(value instanceof ArrayBuffer){
+					bytes+=value.byteLength;
+				}
+				else if(value instanceof Blob){ // including File
+					bytes+=value.size;
+				}
+				else if(value instanceof RegExp){
+					bytes+=value.toString().length*2;
+				}
+				else if(value instanceof Map){
+					for(const [k,v] in value){
+						stack.push(k);
+						stack.push(v);
+					}
+				}
+				else if(value instanceof Set){
+					for(const k in value){
+						stack.push(k);
+					}
+				}
+				else{
+					for(const key in value){
+						bytes+=key.length*2;
+						stack.push(value[key]);
+					}
+				}
+			}
+		}
+		return bytes;
+	}
+
+	static getDriveUsage(name){
+		const storeList=localforage.createInstance({ // the db instance: index of all stores
+			name: name,
+			storeName: "store"
+		});
+		return storeList.keys().then(keys=>{
+			const taskList=[];
+			for(const key of keys){
+				if(key.indexOf(":size")>-1){
+					taskList.push(storeList.getItem(key));
+				}
+			}
+			return Promise.all(taskList);
+		}).then(sizes=>{
+			let totalSize=0;
+			for(const size of sizes){
+				totalSize+=size;
+			}
+			return totalSize;
 		});
 	}
 
@@ -36,10 +130,21 @@ class MyForage{
 		return this.storeList.getItem(this.storeName).then(val=>{
 			if(val){ // already existing, read it
 				this.storeKeys=val;
+				return this.storeList.getItem(this.storeName+":size").then(val=>{
+					if(isNaN(val)){
+						// TODO: things are a bit hard: size not acquired.
+					}
+					else{
+						this.size=val;
+					}
+				});
 				// promise fulfilled
 			}
 			else{ // create storeList, write it
-				return this.storeList.setItem(this.storeName,{});
+				return Promise.all([
+					this.storeList.setItem(this.storeName,{}),
+					this.storeList.setItem(this.storeName+":size",0)
+				]);
 			}
 		});
 	}
@@ -51,11 +156,18 @@ class MyForage{
 		const itemName=this.storePrefix+key;
 		return this.storage.setItem(itemName,value).then(()=>{
 			// set item successful, write keys to storage
-			if(!this.storeKeys[key]){
-				this.storeKeys[key]=1;
-				return this.storeList.setItem(this.storeName,this.storeKeys);
+			if(!this.storeKeys[key])this.storeKeys[key]=0;
+			const prevSize=this.storeKeys[key];
+			const nowSize=MyForage._roughSizeOfObject(value);
+			const diff=nowSize-prevSize;
+			if(diff){
+				this.size+=diff;
+				this.storeKeys[key]=nowSize;
+				return Promise.all([
+					this.storeList.setItem(this.storeName,this.storeKeys),
+					this.storeList.setItem(this.storeName+":size",this.size)
+				]);
 			}
-			// else: fulfilled
 		}).then(()=>{ // set key valid
 			return value; // compatible to localForage method
 		});
@@ -70,8 +182,13 @@ class MyForage{
 		const itemName=this.storePrefix+key;
 		return this.storage.removeItem(itemName).then(()=>{
 			// Successfully removed item
+			const prevSize=this.storeKeys[key];
+			this.size-=prevSize;
 			delete this.storeKeys[key];
-			return this.storeList.setItem(this.storeName,this.storeKeys);
+			return Promise.all([
+				this.storeList.setItem(this.storeName,this.storeKeys),
+				this.storeList.setItem(this.storeName+":size",this.size)
+			]);
 		});
 	}
 
@@ -87,7 +204,11 @@ class MyForage{
 			// Successfully removed item
 			// update old keys
 			this.storeKeys={};
-			return this.storeList.setItem(this.storeName,{});
+			this.size=0;
+			return Promise.all([
+				this.storeList.setItem(this.storeName,{}),
+				this.storeList.setItem(this.storeName+":size",0)
+			]);
 		});
 	}
 
@@ -99,6 +220,10 @@ class MyForage{
 		// To be continued...
 	}
 
+	size(){
+		return this.size;
+	}
+
 	drop(){
 		const taskList=[];
 		for(const key in this.storeKeys){
@@ -106,6 +231,7 @@ class MyForage{
 			taskList.push(this.storage.removeItem(itemName));
 		}
 		taskList.push(this.storeList.removeItem(this.storeName));
+		taskList.push(this.storeList.removeItem(this.storeName+":size"));
 		return Promise.all(taskList).then(()=>{ // updated
 			this.storeKeys={}; // in fact invalid
 		});
