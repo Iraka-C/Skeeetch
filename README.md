@@ -4,9 +4,9 @@ A Web based sketchpad application.
 
 You can try it [here](https://iraka-c.github.io/Skeeetch/index.html).
 
-### [< English Tutorial >](https://github.com/Iraka-C/Skeeetch/blob/master/gl/docs/readme.md)
+### [< English Tutorial >](./gl/docs/en/readme.md)
 
-### [< 中文指南 >](https://github.com/Iraka-C/Skeeetch/blob/master/gl/docs/zh/readme.md)
+### [< 中文指南 >](./gl/docs/zh/readme.md)
 
 ## Introduction
 

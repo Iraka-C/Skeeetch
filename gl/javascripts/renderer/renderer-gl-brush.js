@@ -279,7 +279,6 @@ class GLBrushRenderer {
 					opa=clamp(r*r,0.,1.); // prevent NaN operation
 				}
 
-				// @TODO: add more sample points, sample in vertex shader?
 				vec2 coord_samp=u_pos_tex/u_res_tex; // sampling pos in sampler coordinate
 				vec2 v_samp_tex=vec2(coord_samp.x,1.-coord_samp.y);
 

@@ -6,7 +6,7 @@ CLIPBOARD={};
 
 // items is DataTransferList
 // async function!
-CLIPBOARD.paste=function(items){
+CLIPBOARD.paste=function(items,isSpace){
 	function pasteAction(img){
 		let lastCopiedInfo=JSON.parse(localStorage.getItem("clipboard"))||{};
 		
@@ -15,7 +15,7 @@ CLIPBOARD.paste=function(items){
 			lastCopiedInfo={}; // discard
 			localStorage.removeItem("clipboard"); // clipboard no such data now @TODO: new win clipboard?
 		}
-		if(EVENTS.key.space){ // Ctrl+Space+V
+		if(isSpace){ // Ctrl+Space+V
 			const validArea={...LAYERS.active.rawImageData.validArea};
 			if(LAYERS.active instanceof CanvasNode){ // successfully cleared
 				if(LAYERS.active.isOpacityLocked()){
