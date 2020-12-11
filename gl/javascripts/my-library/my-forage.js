@@ -65,7 +65,13 @@ class MyForage{
 				else if(value instanceof Int32Array||value instanceof Uint32Array||value instanceof Float32Array){
 					bytes+=value.length*4;
 				}
-				else if(value instanceof Float64Array||value instanceof BigInt64Array||value instanceof BigUint64Array){
+				else if(value instanceof Float64Array){
+					bytes+=value.length*8;
+				}
+				else if(
+					window.BigInt64Array && value instanceof BigInt64Array || 
+					window.BigUInt64Array && value instanceof BigUint64Array
+				){
 					bytes+=value.length*8;
 				}
 				else if(value instanceof ArrayBuffer){
