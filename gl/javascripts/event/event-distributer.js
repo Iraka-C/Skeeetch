@@ -16,7 +16,6 @@ EventDistributer.wheel={
 	_init:function(){
 		//window.addEventListener("wheel",EventDistributer.wheel._onwheel,false);
 		EventDistributer.wheel.threshold=ENV.browserInfo.macOS?5:1;
-		console.log(EventDistributer.wheel.threshold);
 	},
 	_nowListener:null, // a DOM Object
 	_nowFunction:()=>{}, // a function
@@ -48,17 +47,11 @@ EventDistributer.wheel={
 	_onwheel:function(e){
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){
 			const cnt=EventDistributer.wheel.scrollCnt;
-			if(ENV.browserInfo.macOS){
-				cnt[0]+=Math.sign(e.deltaX);
-				cnt[1]+=Math.sign(e.deltaY);
-			}
-			else{
-				cnt[0]-=Math.sign(e.deltaX);
-				cnt[1]-=Math.sign(e.deltaY);
-			}
+			cnt[0]-=Math.sign(e.deltaX);
+			cnt[1]-=Math.sign(e.deltaY);
 
 			const threshold=EventDistributer.wheel.threshold;
-			let wX=0,wY=0;
+			let wX=0,wY=0; // accumulate the events
 			if(cnt[0]>= threshold){wX= 1;cnt[0]=0;}
 			if(cnt[0]<=-threshold){wX=-1;cnt[0]=0;}
 			if(cnt[1]>= threshold){wY= 1;cnt[1]=0;}
