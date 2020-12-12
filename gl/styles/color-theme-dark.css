@@ -55,6 +55,9 @@ input:disabled {
 .layer-item{
 	background: #ffffff18;
 }
+#new-layer-select-sign{
+	color: #ccc;
+}
 
 .layer-ui{
 	color: #000;
