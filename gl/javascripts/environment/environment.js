@@ -232,6 +232,18 @@ ENV.transformTo=function(x,y,r,s) { // four values, with hint
 	// $("#rotate_info").html(Math.round(r)+"&deg;");
 }
 
+ENV.setTransformToWindowSize=function(){
+	const k1=ENV.window.SIZE.width/ENV.paperSize.width;
+	const k2=ENV.window.SIZE.height/ENV.paperSize.height;
+	const k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
+	ENV.setFlip(false);
+	ENV.transformTo(0,0,0,k);
+	$("#scale-info-input").val(Math.round(k*100));
+	$("#rotate-info-input").val("0");
+	$("#flip-info").html("&lrarr;");
+	$("#flip-info").css("color","");
+}
+
 /**
  * set the current canvas sizes to w*h pixels
  * Will remove all histories!
@@ -296,13 +308,7 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	}
 
 	// update transform
-	let k1=ENV.window.SIZE.width/w;
-	let k2=ENV.window.SIZE.height/h;
-	let k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
-	ENV.transformTo(0,0,0,k);
-	// set transform info by force
-	$("#scale-info-input").val(Math.round(k*100));
-	$("#rotate-info-input").val(Math.round(0));
+	ENV.setTransformToWindowSize();
 
 	ENV.displaySettings.enableTransformAnimation=isAnim; // restore animation setting
 	$("#main-canvas-background").css("background-size",Math.sqrt(Math.max(w,h))*2+"px"); // set transparent block size

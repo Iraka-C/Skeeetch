@@ -25,6 +25,7 @@ EVENTS.initHotKeys=function() {
 		ENV.rotateTo(newA);
 		$("#rotate-info-input").val(Math.round(ENV.window.rot));
 	});
+	EventDistributer.key.addListener("home",ENV.setTransformToWindowSize); // reset paper position
 
 	// Save
 	EventDistributer.key.addListener("ctrl+KeyS",e => { // Save in browser

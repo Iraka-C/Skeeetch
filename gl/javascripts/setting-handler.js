@@ -112,21 +112,13 @@ SettingHandler.initTransformHandler=function() {
 	);
 
 	// Reset all transform
-	const $flipButton=$("#flip-info");
 	$("#reset-info").click(event => {
-		const k1=ENV.window.SIZE.width/ENV.paperSize.width;
-		const k2=ENV.window.SIZE.height/ENV.paperSize.height;
-		const k=(Math.min(k1,k2)*0.8).clamp(0.1,8.0);
-		ENV.setFlip(false);
-		ENV.transformTo(0,0,0,k);
-		$scale.val(Math.round(k*100));
-		$rotate.val("0");
-		$flipButton.html("&lrarr;");
-		$flipButton.css("color","");
+		ENV.setTransformToWindowSize();
 	});
 	EventDistributer.footbarHint($("#reset-info"),() => Lang("Reset paper position"));
 
 	// set flip
+	const $flipButton=$("#flip-info");
 	$flipButton.click(event => {
 		ENV.setFlip(!ENV.window.flip);
 		$flipButton.html(ENV.window.flip? "&rlarr;":"&lrarr;");
