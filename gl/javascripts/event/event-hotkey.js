@@ -1,12 +1,14 @@
 EVENTS.initHotKeys=function() {
 	// History Operations
-	EventDistributer.key.addListener("ctrl+z",e => {HISTORY.undo();});
-	EventDistributer.key.addListener("ctrl+shift+z",e => {HISTORY.redo();});
-	EventDistributer.key.addListener("ctrl+y",e => {HISTORY.redo();});
+	EventDistributer.key.addListener("ctrl+KeyZ",e => {HISTORY.undo();});
+	EventDistributer.key.addListener("ctrl+shift+KeyZ",e => {HISTORY.redo();});
+	EventDistributer.key.addListener("ctrl+KeyY",e => {HISTORY.redo();});
+	
+	EventDistributer.key.addListener("shift+any",e => {console.log(e.originalEvent.code);});
 
 	// Brush Operations
-	EventDistributer.key.addListener("[",e => {BrushManager.changeActiveBrushSizeBy(-1);});
-	EventDistributer.key.addListener("]",e => {BrushManager.changeActiveBrushSizeBy(+1);});
+	EventDistributer.key.addListener("BracketLeft",e => {BrushManager.changeActiveBrushSizeBy(-1);});
+	EventDistributer.key.addListener("BracketRight",e => {BrushManager.changeActiveBrushSizeBy(+1);});
 
 	// paper transform operation, for wacom boards
 	EventDistributer.key.addListener("alt+f13",e => {
@@ -25,10 +27,10 @@ EVENTS.initHotKeys=function() {
 	});
 
 	// Save
-	EventDistributer.key.addListener("ctrl+s",e => { // Save in browser
+	EventDistributer.key.addListener("ctrl+KeyS",e => { // Save in browser
 		FILES.savePaperAction();
 	});
-	EventDistributer.key.addListener("ctrl+shift+s",e => { // Save as psd
+	EventDistributer.key.addListener("ctrl+shift+KeyS",e => { // Save as psd
 		EventDistributer.footbarHint.showInfo("Rendering ...");
 		ENV.taskCounter.startTask(1); // start PSD task
 		setTimeout(FILES.saveAsPSD,500); // for show info animation

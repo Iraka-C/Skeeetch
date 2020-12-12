@@ -271,7 +271,7 @@ EVENTS.keyDown=function(event) {
 		event.preventDefault(); // prevent browser menu
 	}
 
-	if(event.originalEvent.key==" "&&!EVENTS.key.space){ // space
+	if(event.originalEvent.code.toLowerCase()=="space"&&!EVENTS.key.space){ // space
 		EVENTS.key.space=true;
 	}
 
@@ -309,7 +309,7 @@ EVENTS.keyUp=function(event) {
 		event.preventDefault(); // prevent browser menu
 	}
 
-	if(event.originalEvent.key==" "&&EVENTS.key.space){ // space
+	if(event.originalEvent.code.toLowerCase()=="space"&&EVENTS.key.space){ // space
 		EVENTS.key.space=false;
 	}
 

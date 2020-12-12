@@ -197,7 +197,7 @@ EventDistributer.key={
 		/**
 		 * each item:
 		 * {
-		 *    code: keycode like "a" or "space"
+		 *    code: keycode like "keya" or "space", "any" for any keycode.
 		 *    ctrl, shift, alt,
 		 *    callback,
 		 *    isPreventDefault
@@ -206,13 +206,13 @@ EventDistributer.key={
 	],
 	_init:function(){
 		$(window).on("keydown",event=>{
-			const keycode=event.originalEvent.key.toLowerCase();
+			const code=event.originalEvent.code.toLowerCase();
 			const ek=EVENTS.key;
-			LOGGING&&console.log(keycode);
+			LOGGING&&console.log(code);
 
 			for(const p of EventDistributer.key.patterns){
-				if(p.code==keycode){ // is this key
-					if(ek.ctrl==p.ctrl&&ek.shift==p.shift&&ek.alt==p.alt){ // matched
+				if(ek.ctrl==p.ctrl&&ek.shift==p.shift&&ek.alt==p.alt){ // func key matched
+					if(p.code==code||p.code=="any"){ // is this key
 						if(p.isPreventDefault){
 							event.preventDefault();
 						}
@@ -228,7 +228,7 @@ EventDistributer.key={
 	},
 	/**
 	 * Add a hot key callback
-	 * @param {String} patternStr something like "ctrl+z" or "ctrl+alt+0"
+	 * @param {String} patternStr something like "ctrl+keyz" or "ctrl+alt+digit0"
 	 * @param {()=>{}} callback function to execute when this hot key is fired
 	 * @param {Boolean=true} isPreventDefault is to prevent browser action. default: yes
 	 * @param {()=>{}} onDetachedCallback function to execute when this hot key is detached (by another binding)
@@ -256,22 +256,32 @@ EventDistributer.key={
 		pattern.isPreventDefault=isPreventDefault;
 		pattern.callback=callback;
 		pattern.onDetachedCallback=onDetachedCallback;
-		for(let i=0;i<EventDistributer.key.patterns.length;i++){
-			const p=EventDistributer.key.patterns[i];
-			if( // same hot key binding
-				p.ctrl==pattern.ctrl
-				&& p.shift==pattern.shift
-				&& p.alt==pattern.alt
-				&& p.code==pattern.code
-			){ // remove this binding
-				if(p.onDetachedCallback){
-					p.onDetachedCallback();
+
+		function detachPattern(pt){
+			for(let i=0;i<EventDistributer.key.patterns.length;){
+				const p=EventDistributer.key.patterns[i];
+				if( // same hot key binding
+					p.ctrl==pt.ctrl
+					&& p.shift==pt.shift
+					&& p.alt==pt.alt
+					&& (p.code==pt.code||pt.code=="any")
+				){ // remove this binding
+					if(p.onDetachedCallback){
+						p.onDetachedCallback();
+					}
+					EventDistributer.key.patterns.splice(i,1);
 				}
-				EventDistributer.key.patterns.splice(i,1);
-				break;
+				else{ // find next one
+					i++;
+				}
 			}
-		}
+		};
+		detachPattern(pattern); // try to detach first
 		EventDistributer.key.patterns.push(pattern);
+
+		return ()=>{ // function for detaching
+			detachPattern(pattern);
+		};
 	}
 }
 
