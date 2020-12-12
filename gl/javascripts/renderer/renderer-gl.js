@@ -136,21 +136,35 @@ class GLRenderer extends BasicRenderer {
 			precision mediump sampler2D;
 			uniform sampler2D u_image;
 			uniform vec2 u_aa_step; // anti-alias pixel interval (x,y) in sampler coordinate, may be non-int
-			uniform float u_aa_cnt; // how many steps to sample
+			uniform float u_aa_cnt; // how many steps to sample. compare to Gaussian, this is 2*sigma
 			varying highp vec2 v_position;
 
-			const float max_its=10.;
+			const float max_its=10.; // at least 10% zoom rate
 			void main(){
 				float cnt=u_aa_cnt+1.;
 				vec4 totalColor=texture2D(u_image,v_position)*cnt;
 				float totalCnt=cnt;
-				for(float i=1.;i<max_its;i++){
-					if(i>=cnt)break; // counting finished
-					vec2 dPos=u_aa_step*i;
-					float k=cnt-i;
-					totalColor+=texture2D(u_image,v_position+dPos)*k;
-					totalColor+=texture2D(u_image,v_position-dPos)*k;
-					totalCnt+=k+k;
+				for(float i=1.;i<max_its;i+=2.){
+					if(i>=cnt){ // reach the side
+						break;
+					}
+					vec2 dPos1=u_aa_step*i;
+					float k1=cnt-i;
+					float k2=k1-1.;
+					if(k2<=0.){ // only count k1
+						vec4 pix=texture2D(u_image,v_position+dPos1)+texture2D(u_image,v_position-dPos1);
+						totalColor+=pix*k1;
+						totalCnt+=k1+k1;
+					}
+					else{ // use interpolation based on sampler
+						float k=k1+k2;
+						float p=k1/k;
+						float q=1.-p;
+						vec2 dPosM=dPos1+u_aa_step*q;
+						vec4 pix=texture2D(u_image,v_position+dPosM)+texture2D(u_image,v_position-dPosM);
+						totalColor+=pix*k;
+						totalCnt+=k+k;
+					}
 				}
 				gl_FragColor=totalColor/totalCnt; // average pixel
 			}
