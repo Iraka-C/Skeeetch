@@ -144,62 +144,6 @@ EventDistributer.setClick=function($element,callback){
 	});
 };
 
-// ========= Another verision of button ===========
-// A button that can detect down-and-drag to its outside
-/**
- * addListener($DOMElement, callback)
- * callback function format: callback(pointerchange)
- * pointerchange: {dx,dy} in pixel
- */
-// EventDistributer.button={
-// 	// @TODO: Buggy! What if multitouch?
-// 	// @TODO: Buggy! moving from one div to another while pressing also changes listener target
-// 	_init:function(){
-// 		$(window).on("pointermove",EventDistributer.button._onpointermove);
-// 		$(window).on("pointerup pointercancel",EventDistributer.button._onpointerup);
-// 	},
-// 	_nowPointerID: -1,
-// 	isDragging:false,
-// 	_origin:{x:NaN,y:NaN},
-// 	_nowListener:null, // a DOM Object
-// 	_nowFunction:()=>{}, // a function
-// 	_nowInitValue:null,
-// 	addListener:function($element,callback,initFunc){ // $element is a jQuery Object
-// 		let el=$element[0];
-// 		el.addEventListener("pointerdown",event=>{
-// 			console.log("down");
-			
-// 			EventDistributer.button._nowPointerID=event.originalEvent.pointerId;
-// 			EventDistributer.button._nowListener=el;
-// 			EventDistributer.button._nowFunction=callback;
-// 			EventDistributer.button._nowInitValue=initFunc();
-// 			EventDistributer.button._origin={x:event.clientX,y:event.clientY};
-// 			EventDistributer.button.isDragging=true;
-// 		},true);
-// 	},
-// 	_onpointermove:function(event){ // send the {dx,dy}
-	
-// 		console.log("move");
-// 		if(EventDistributer.button._nowListener&&EventDistributer.button._nowFunction){
-// 			// There is a pointer down
-// 			// @TODO: disable drawing when dragging here
-// 			let e=event.originalEvent;
-// 			let dx=e.clientX-EventDistributer.button._origin.x;
-// 			let dy=e.clientY-EventDistributer.button._origin.y;
-// 			EventDistributer.button._nowFunction({x:dx,y:dy,initVal:EventDistributer.button._nowInitValue});
-// 		}
-// 	},
-// 	_onpointerup:function(event){
-		
-// 		console.log("up");
-// 		EventDistributer.button._nowListener=null;
-// 		EventDistributer.button._origin={x:NaN,y:NaN};
-// 		EventDistributer.button._nowInitValue={};
-// 		EventDistributer.button.isDragging=false;
-// 	}
-// };
-// ============= END ============
-
 // System hint
 // Show a hint from infoFunc() when mouse over $el
 EventDistributer.footbarHint=function($el,infoFunc){ // infoFunc put in closure
@@ -268,11 +212,15 @@ EventDistributer.key={
 
 			for(const p of EventDistributer.key.patterns){
 				if(p.code==keycode){ // is this key
-					if(ek.ctrl==p.ctrl&&ek.shift==p.shift&&ek.alt==p.alt){ // is this function
-						p.callback(event);
-						if(p.isPreventDefault){ // only prevent default after executing
+					if(ek.ctrl==p.ctrl&&ek.shift==p.shift&&ek.alt==p.alt){ // matched
+						if(p.isPreventDefault){
 							event.preventDefault();
 						}
+						if(!(event.target instanceof HTMLBodyElement)){ // only detect body
+							return;
+						}
+						p.callback(event);
+						break;
 					}
 				}
 			}
@@ -283,9 +231,11 @@ EventDistributer.key={
 	 * @param {String} patternStr something like "ctrl+z" or "ctrl+alt+0"
 	 * @param {()=>{}} callback function to execute when this hot key is fired
 	 * @param {Boolean=true} isPreventDefault is to prevent browser action. default: yes
+	 * @param {()=>{}} onDetachedCallback function to execute when this hot key is detached (by another binding)
 	 */
-	addListener:function(patternStr,callback,isPreventDefault){
+	addListener:function(patternStr,callback,isPreventDefault,onDetachedCallback){
 		// notice left/right: KeyboardEvent.DOM_KEY_LOCATION_STANDARD
+
 		const pattern={
 			ctrl: false,
 			shift: false,
@@ -305,6 +255,22 @@ EventDistributer.key={
 		}
 		pattern.isPreventDefault=isPreventDefault;
 		pattern.callback=callback;
+		pattern.onDetachedCallback=onDetachedCallback;
+		for(let i=0;i<EventDistributer.key.patterns.length;i++){
+			const p=EventDistributer.key.patterns[i];
+			if( // same hot key binding
+				p.ctrl==pattern.ctrl
+				&& p.shift==pattern.shift
+				&& p.alt==pattern.alt
+				&& p.code==pattern.code
+			){ // remove this binding
+				if(p.onDetachedCallback){
+					p.onDetachedCallback();
+				}
+				EventDistributer.key.patterns.splice(i,1);
+				break;
+			}
+		}
 		EventDistributer.key.patterns.push(pattern);
 	}
 }

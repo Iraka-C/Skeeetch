@@ -207,7 +207,7 @@ FILES.initFileMenu=function() {
 				toSaveAsNew();
 			});
 		}
-		else{ // directly save as new, discard changes to the old one
+		else{ // directly save as new, discard changes to the old one TODO: auto save logic
 			STORAGE.FILES.updateThumbFromDatabase(ENV.fileID); // reload saved thumb
 			toSaveAsNew();
 		}
@@ -284,13 +284,14 @@ FILES.newPaperAction=function(isSavePresentContents,newFileName){
 
 	if(isSavePresentContents){
 		const layerTreeStr=STORAGE.FILES.saveLayerTree();
-		Promise.all([
+		return Promise.all([
 			STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
 			STORAGE.FILES.saveAllContents()
 		]).then(createNew);
 	}
 	else{
 		createNew();
+		return Promise.resolve();
 	}
 }
 
@@ -311,9 +312,39 @@ FILES.initImportDropHandler=function() {
 			FILES.onFilesLoaded(e.originalEvent.dataTransfer.files);
 		}
 	});
+
+	const $fileMenu=$("#file-menu-panel");
+	const $fileMenuMask=$("<div id='file-menu-panel-mask'>").append();
+	const $fileMenuHint=$("<div id='file-menu-panel-hint'>+</div>");
+	$fileMenuMask.append($fileMenuHint);
+	$fileMenu.append($fileMenuMask);
+
+	let enterCnt=0;
+	$fileMenu.on("dragenter dragover dragleave drop",e => {
+		e.preventDefault();
+		e.stopPropagation(); // don't pass to body
+		if(e.type=="drop") {
+			enterCnt=0;
+			$fileMenuMask.css("opacity","0");
+			FILES.onFilesLoaded(e.originalEvent.dataTransfer.files,true);
+		}
+		else if(e.type=="dragenter"){
+			if(!enterCnt){
+				$fileMenuMask.css("opacity","1");
+			}
+			enterCnt++;
+		}
+		else if(e.type=="dragleave"){
+			enterCnt--;
+			if(!enterCnt){
+				$fileMenuMask.css("opacity","0");
+			}
+		}
+	});
 }
 
-FILES.onFilesLoaded=function(files){
+FILES.onFilesLoaded=function(files,isNewFile){
+	isNewFile=isNewFile||false;
 	const file=files[0]; // @TODO: open multiple files
 	//console.log(file);
 
@@ -336,7 +367,22 @@ FILES.onFilesLoaded=function(files){
 		img.src=window.URL.createObjectURL(file);
 		img.filename=file.name;
 		img.onload=function(e) {
-			FILES.loadAsImage(this);
+			if(isNewFile){
+				FILES.tempPaperSize.width=img.width;
+				FILES.tempPaperSize.height=img.height;
+				const newName=file.name.slice(0,file.name.lastIndexOf("."));
+				// TODO: auto save dialog box
+				FILES.newPaperAction(true,newName).then(()=>{
+					FILES.loadAsImage(this,LAYERS.active);
+					FILES.fileManager.update();
+					PERFORMANCE.idleTaskManager.addTask(e=>{ // when idle
+						STORAGE.FILES.updateCurrentThumb(); // also update and save thumb
+					});
+				});
+			}
+			else{
+				FILES.loadAsImage(this);
+			}
 		}
 	}
 }

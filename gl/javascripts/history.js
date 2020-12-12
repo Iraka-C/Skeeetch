@@ -92,13 +92,11 @@ class HistoryItem{
 	}
 
 	getRAMSize(){ // how many RAM is this item using?
-		const pixelBytes=CANVAS.rendererBitDepth/8*4; // RGBA Float(4bytes)
 		let size=0;
 		switch(this.type){
 			case "image-data": // Do not access data directly as the implementation may change
-				//@TODO: stat in blocks
-				size+=this.oldData.width*this.oldData.height*pixelBytes;
-				size+=this.newData.width*this.newData.height*pixelBytes;
+				size+=this.oldData.width*this.oldData.height*this.oldData.bitDepth/2; // RGBA
+				size+=this.newData.width*this.newData.height*this.oldData.bitDepth/2; // RGBA
 				return size;
 			case "bundle":
 				for(const v of this.children){

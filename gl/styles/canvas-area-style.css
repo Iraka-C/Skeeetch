@@ -177,6 +177,22 @@ table{
 #file-menu-panel{
 	background: #000000cc;
 }
+#file-menu-panel-mask{
+	width: var(--menu-width);
+	overflow-y: hidden;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	pointer-events: none;
+	background-color: #ffffff88;
+	opacity: 0;
+	transition: opacity 0.4s;
+}
+#file-menu-panel-hint{
+	color: #00000099;
+	font-weight: bold;
+	font-size: 400%;
+}
 
 /* =================== Info Panel ==================== */
 #front-info-panel, #bottom-info-panel{

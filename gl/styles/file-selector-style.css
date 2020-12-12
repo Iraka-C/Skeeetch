@@ -1,6 +1,7 @@
 #file-selector-container{
 	display: flex;
 	flex-direction: column;
+	margin: 0.7em 0em 0em 0em;
 }
 
 .file-ui{
@@ -8,7 +9,7 @@
 	position: relative;
 	background-color: #000;
 	box-shadow: 0em 0em 1.5em #000;
-	margin: 1em 0em 0em 0em;
+	margin: 0em 0em 1em 0em;
 	overflow: hidden;
 	transition: box-shadow 0.5s;
 }

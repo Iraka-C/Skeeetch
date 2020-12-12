@@ -187,7 +187,7 @@ DRAG.init=function(){
 		idTable["drag-area"].attr("points",polygonStr);
 		idTable["drag-inner-area"].attr("points",polygonStr);
 
-		const dPix=0.5/(p2wTransArr?p2wTransArr[3]:ENV.window.scale); // anti-alias over the gl canvas
+		const dPix=1/(p2wTransArr?p2wTransArr[3]:ENV.window.scale); // anti-alias over the gl canvas
 		const corners=[
 			ENV.toWindowXY(-dPix,-dPix,p2wTransArr),
 			ENV.toWindowXY(ENV.paperSize.width+dPix,-dPix,p2wTransArr),
