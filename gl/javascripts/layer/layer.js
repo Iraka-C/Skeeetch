@@ -171,6 +171,7 @@ LAYERS.init=function(layerTreeJSON) {
 
 	LAYERS.layerTree=new RootNode(); // The root of the layer tree
 	LAYERS.initLayerPanelButtons();
+	LAYERS.initNewLayerButton();
 	LAYERS.initScrollbar();
 	if(!LAYERS.blendModeSelector){ // create a selector
 		LAYERS.blendModeSelector=new LayerBlendModeSelector();

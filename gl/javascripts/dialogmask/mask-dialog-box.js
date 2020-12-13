@@ -3,38 +3,119 @@ DIALOGBOX={
 };
 
 DIALOGBOX.init=function(){
-	const $ui=$("#mask-item");
+	const $ui=$("#body-mask-panel");
 	$ui.empty();
+}
+
+DIALOGBOX.show=function(dialogBoxItem){
+	if(DIALOGBOX.nowItem){ // chain this box
+		DIALOGBOX.nowItem.append(dialogBoxItem);
+		return;
+		//throw new Error("Try to show dialog when Dialog Box Occupied!");
+	}
+	const $ui=$("#body-mask-panel");
+	$ui.append(dialogBoxItem.$ui);
+	DIALOGBOX.nowItem=dialogBoxItem;
+	$ui.fadeIn(250);
+};
+
+DIALOGBOX._change=function(dialogBoxItem){
+	const $ui=$("#body-mask-panel");
+	$ui.empty();
+	$ui.append(dialogBoxItem.$ui);
+	DIALOGBOX.nowItem=dialogBoxItem;
+}
+
+DIALOGBOX.clear=function(){
+	const $ui=$("#body-mask-panel");
+	$ui.fadeOut(400,e=>{
+		$ui.empty();
+		DIALOGBOX.nowItem=null;
+	});
 };
 
 /**
  * an item that can be used to create dialog boxes
- * contentArr[i]={
- *    type: "text"|"input"|"input-password",
- *    name: String,
- *    text: String, the hint for input
- *    callback: (on input changed event)=>String:info|null
- * }
+ * buttonArr=[{
+ *    text: text in the button,
+ *    callback: (form)=>{}, called when pressed
+ * }, ...]
  */
 class DialogBoxItem{
-	constructor(contentArr,buttonArr){
+	constructor($uiArr,buttonArr){
 		this.$ui=$("<div class='dialog-box-container'>");
+		this.$form=$("<div class='dialog-box-form'>");
+		this.$buttonPanel=$("<div class='dialog-box-button-panel'>");
+		this._next=null; // next item to activate
 
-		for(const item of contentArr){
-			if(item.type=="input"){ // insert an input
-				const $inputUI=DialogBoxItem._$newInputUI(item);
-				
-			}
+		for(const $ui of $uiArr){
+			this.$form.append($ui);
 		}
+		for(const button of buttonArr){
+			const $b=DialogBoxItem._button(button.text);
+			$b.click(e=>{
+				if(button.callback){
+					button.callback(this._getForm());
+				}
+				if(this._next){ // there's another box, maybe AFTER callback
+					DIALOGBOX._change(this._next);
+				}
+				else{
+					DIALOGBOX.clear();
+				}
+			});
+			this.$buttonPanel.append($b);
+		}
+
+		this.$ui.append(this.$form,this.$buttonPanel);
 	}
 
-	static _$newInputUI(item){
-		const $ui=$("<div class='dialog-box-input-container'>");
+	_getForm(){
+		const form=[];
+		for(const item of this.$form.children()){
+			if(item instanceof HTMLInputElement){
+				form.push({
+					name: item.name,
+					value: item.value
+				});
+			}
+		}
+		return form;
+	}
 
-		const $input=$("<input class='dialog-box-input' maxLength='256' size='18'>"); // size overwritten with css
-		$input.attr("type",item.type.indexOf("password")>-1?"password":"text");
-		const $info=$("<div class='dialog-box-input-info'>");
-		$ui.append($input,$info);
-		return $ui;
+	append(dialogBoxItem){ // append a dialog box item to show after this
+		let p=this;
+		while(p._next){
+			p=p._next;
+		}
+		p._next=dialogBoxItem;
+	}
+
+	/**
+	 * get a new input box
+	 * @param {*} option {
+	 *    isPassword: true/false, is this a password box
+	 *    name: input box name
+	 * }
+	 */
+	static inputBox(option){
+		const $input=$("<input class='dialog-box-input' maxLength='256'>"); // size overwritten with css
+		$input.attr({
+			"type": option.isPassword?"password":"text",
+			"name": option.name
+		});
+		return $input;
+	}
+
+	static textBox(option){
+		const $text=$("<div class='dialog-box-text'>");
+		$text.text(option.text);
+		return $text;
+	}
+
+	static _button(text){
+		const $button=$("<div class='dialog-box-button'>");
+		$button.text(text);
+		return $button;
 	}
 }

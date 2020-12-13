@@ -121,9 +121,15 @@ FILES.initFileMenu=function() {
 	const cropDraggerUpdater=FILES.initCropDragger(widthUpdateFunc,heightUpdateFunc);
 
 	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
-		FILES.newPaperAction(true); // auto save //TODO: really? use dialog box
-		sizeChangeHint(false); // reset size change hint (resize)
-		fileManager.toggleExpand(); // close the file menu
+		( // detect if is to save current file
+			ENV.displaySettings.isAutoSave||!STORAGE.FILES.isUnsaved()?
+			Promise.resolve(true):
+			FILES.showSaveFileDialogBox()
+		).then(isToSave=>{
+			FILES.newPaperAction(isToSave); // decide auto save
+			sizeChangeHint(false); // reset size change hint (resize)
+			fileManager.toggleExpand(); // close the file menu
+		});
 	});
 	fileManager.addButton(Lang("Change Paper Size"),() => {
 		const [w,h,l,t]=[
@@ -163,7 +169,7 @@ FILES.initFileMenu=function() {
 
 	const $fileInput=$("<input type='file' style='display:none;position:fixed;top:-1000px'/>");
 	$fileInput.on("change",e => { // file selected
-		FILES.onFilesLoaded($fileInput[0].files);
+		FILES.onFilesLoaded($fileInput[0].files,true);
 	});
 	fileManager.addButton(Lang("Open File"),() => {
 		$fileInput[0].click();
@@ -200,6 +206,7 @@ FILES.initFileMenu=function() {
 		EventDistributer.footbarHint.showInfo(Lang("Saving")+" ...",3000);
 		if(ENV.displaySettings.isAutoSave){ // shall save present before switching to a new file
 			const layerTreeStr=STORAGE.FILES.saveLayerTree();
+			STORAGE.FILES.updateCurrentThumb(); // maybe a draw after open file menu
 			Promise.all([
 				STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
 				STORAGE.FILES.saveAllContents()
@@ -244,7 +251,16 @@ FILES.initFileMenu=function() {
 		};
 		if(!fileManager.isExpanded()){ // if is closed at first
 			// update thumb image
-			STORAGE.FILES.updateCurrentThumb();
+			if(ENV.displaySettings.isAutoSave){ // update saved
+				STORAGE.FILES.updateCurrentThumb();
+			}
+			else{ // previously not loaded
+				const $fileUI=FILES.fileSelector.$uiList[ENV.fileID];
+				const cv=$fileUI.find(".file-ui-canvas")[0];
+				if(!(cv.width&&cv.height)){
+					STORAGE.FILES.updateCurrentThumb();
+				}
+			}
 		}
 		else{ // open to close, turn off dragging
 			cropDraggerUpdater(false);
@@ -259,7 +275,6 @@ FILES.initFileMenu=function() {
 FILES.newPaperAction=function(isSavePresentContents,newFileName){
 	//if(ENV.taskCounter.isWorking()) return; // cannot create new when busy
 	// Save current layerTree and contents in files
-	// @TODO: save old one depending on isAutoSave
 	const createNew=()=>{
 		// init a new storage space
 		ENV.fileID=STORAGE.FILES.generateFileID();
@@ -284,6 +299,7 @@ FILES.newPaperAction=function(isSavePresentContents,newFileName){
 
 	if(isSavePresentContents){
 		const layerTreeStr=STORAGE.FILES.saveLayerTree();
+		STORAGE.FILES.updateCurrentThumb();
 		return Promise.all([
 			STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
 			STORAGE.FILES.saveAllContents()
@@ -318,6 +334,12 @@ FILES.initImportDropHandler=function() {
 	const $fileMenuHint=$("<div id='file-menu-panel-hint'>+</div>");
 	$fileMenuMask.append($fileMenuHint);
 	$fileMenu.append($fileMenuMask);
+
+	$("#file-button").on("dragenter",e=>{ // expand when drag on to file button
+		if(!FILES.fileManager.isExpanded()){
+			FILES.fileManager.toggleExpand();
+		}
+	});
 
 	let enterCnt=0;
 	$fileMenu.on("dragenter dragover dragleave drop",e => {
@@ -371,12 +393,30 @@ FILES.onFilesLoaded=function(files,isNewFile){
 				FILES.tempPaperSize.width=img.width;
 				FILES.tempPaperSize.height=img.height;
 				const newName=file.name.slice(0,file.name.lastIndexOf("."));
-				// TODO: auto save dialog box
-				FILES.newPaperAction(true,newName).then(()=>{
+
+				( // detect if is to save current file
+					ENV.displaySettings.isAutoSave||!STORAGE.FILES.isUnsaved()?
+					Promise.resolve(true):
+					FILES.showSaveFileDialogBox()
+				).then(
+					isToSave=>FILES.newPaperAction(isToSave,newName)
+				).then(()=>{ // after creating new paper
+					const newFileID=ENV.fileID; // record here
 					FILES.loadAsImage(this,LAYERS.active);
-					FILES.fileManager.update();
+					// always save when loading
+					const layerTreeStr=STORAGE.FILES.saveLayerTree();
+					STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
+					STORAGE.FILES.saveContentChanges(LAYERS.active,true);
+					FILES.fileManager.update(); // update file menu like width/height
 					PERFORMANCE.idleTaskManager.addTask(e=>{ // when idle
 						STORAGE.FILES.updateCurrentThumb(); // also update and save thumb
+						setTimeout(e=>{ // in case it doesn't update (updated before layer composition finish)
+							const $fileUI=FILES.fileSelector.$uiList[newFileID];
+							const cv=$fileUI.find(".file-ui-canvas")[0];
+							if(!(cv.width&&cv.height)){
+								STORAGE.FILES.updateCurrentThumb();
+							}
+						},1000);
 					});
 				});
 			}

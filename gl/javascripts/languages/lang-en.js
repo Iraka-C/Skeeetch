@@ -99,6 +99,10 @@ LANG_EN={
 	"file-delete-suffix":" from repository",
 	"file-name-abort":" (aborted)",
 
+	"file-save-warning":"There are changes in this paper. Do you want to save them?",
+	"file-save-yes":"Yes, save them.",
+	"file-save-no":"No, discard them.",
+
 	// Info
 	"about-skeeetch":`
 		This web app is designed and programmed by

@@ -180,6 +180,16 @@ LAYERS.expandUI=function() {
 	requestAnimationFrame(mutate); // Kick!
 }
 
+// =================== New Layer Button ====================
+LAYERS.initNewLayerButton=function(){
+	const $new=$("#new-layer-button");
+	$new.on("pointerdown",event=>{
+		$new.addClass("new-layer-button-hover");
+	});
+	$new.on("pointerleave pointerup",event=>{
+		$new.removeClass("new-layer-button-hover");
+	});
+}
 // ================ Layers blend mode selector ================
 class LayerBlendModeSelector {
 	constructor() {

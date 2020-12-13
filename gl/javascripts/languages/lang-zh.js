@@ -150,7 +150,7 @@ LANG_ZH={
 	"Paper Width":"宽度",
 	"Paper Height":"高度",
 	"Change Paper Size":"改变尺寸",
-	"workspace-hint-1":"改变纸张尺寸时可能会丢弃超出范围的内容",
+	"workspace-hint-1":"改变画纸尺寸时可能会丢弃超出范围的内容",
 	"render-bitdepth-hint":"位深度设置将在网页刷新后生效",
 	"vram-limit-hint":"显存设置将在网页刷新后生效",
 
@@ -188,8 +188,12 @@ LANG_ZH={
 	"file-delete-suffix":"",
 
 	"Repository":"库",
-	"Specified paper too large":"指定的纸张尺寸过大",
+	"Specified paper too large":"指定的画纸尺寸过大",
 	"file-name-abort":"（已中止）",
+
+	"file-save-warning":"是否保存当前画纸中变更的内容？",
+	"file-save-yes":"是的，请保存",
+	"file-save-no":"无需保存",
 
 	// Info
 	"About Skeeetch":"关于Skeeetch",

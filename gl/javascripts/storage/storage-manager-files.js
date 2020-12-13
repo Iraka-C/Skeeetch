@@ -270,6 +270,7 @@ STORAGE.FILES.saveAllContents=function() { // force save all changed contents
 			}
 		}
 	}
+	STORAGE.FILES.isNowActiveLayerSaved=true; // sure to be saved
 	return Promise.all(taskList);
 }
 

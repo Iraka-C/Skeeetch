@@ -90,12 +90,13 @@ ENV.init=function() { // When the page is loaded
 		BrushManager.init(sysSettingParams);
 		HISTORY.init();
 		FILES.init();
+		DIALOGBOX.init();
 		DRAG.init();
 		//GUIDELINE.init();
 
 		ENV.setUIOrientation(ENV.displaySettings.uiOrientationLeft); // set UI orientation at init, after settings
 		ENV.setUITheme(ENV.displaySettings.uiTheme); // set color theme
-		ENV.debug();
+		//ENV.debug();
 
 		// prevent pen-dragging in Firefox causing window freezing
 		EVENTS.disableInputSelection($("#filename-input"));
@@ -247,8 +248,7 @@ ENV.setTransformToWindowSize=function(){
 /**
  * set the current canvas sizes to w*h pixels
  * Will remove all histories!
- * @TODO: There's GPU memory leak!
- * @TODO: Doesn't seem like memory leak, more like a memory allocation policy
+ * Won't do any file savings or history handling!
  */
 ENV.setPaperSize=function(w,h,isPreservingContents) {
 	isPreservingContents=isPreservingContents||false; // do not reserve by default
@@ -257,6 +257,7 @@ ENV.setPaperSize=function(w,h,isPreservingContents) {
 	}
 	// Anyway, clear dragging layer first
 	FILES.isCropping=false;
+	STORAGE.FILES.isNowActiveLayerSaved=true; // you already created a new paper. talk about these later.
 	DRAG.setDragHandler(null);
 
 	let isAnim=ENV.displaySettings.enableTransformAnimation; // store animation

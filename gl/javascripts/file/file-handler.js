@@ -33,11 +33,7 @@ FILES.loadAsPSD=function(data,filename) {
 	};
 	FILES.fileManager.update();
 
-	const layerTreeStr=STORAGE.FILES.saveLayerTree();
-	Promise.all([ // save current first TODO: auto saving control?
-		STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
-		STORAGE.FILES.saveAllContents()
-	]).then(() => {
+	function startLoadingPSD(){
 		// init a new storage space
 		ENV.fileID=STORAGE.FILES.generateFileID();
 		ENV.setFileTitle(filename); // set new title
@@ -49,6 +45,26 @@ FILES.loadAsPSD=function(data,filename) {
 		FILES.loadPSDNodes.isUnsupportedLayerFound=false;
 		FILES.loadPSDNodes.lastLoadingElement=null;
 		FILES.loadPSDNodes(psdFile); // Start loading file contents
+	}
+
+	( // detect if is to save current file
+		ENV.displaySettings.isAutoSave||!STORAGE.FILES.isUnsaved()?
+		Promise.resolve(true):
+		FILES.showSaveFileDialogBox()
+	).then(isToSave=>{
+		if(isToSave){
+			const layerTreeStr=STORAGE.FILES.saveLayerTree();
+			STORAGE.FILES.updateCurrentThumb();
+			return Promise.all([ // save current contents
+				STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
+				STORAGE.FILES.saveAllContents()
+			]);
+		}
+		else{
+			return Promise.resolve();
+		}
+	}).then(() => { // after saving or giving up
+		startLoadingPSD();
 	});
 }
 
@@ -103,7 +119,7 @@ FILES.loadPSDNodes=function(node) {
 				});
 
 				// store contents
-				STORAGE.FILES.saveContentChanges(newElement); // save loaded contents
+				STORAGE.FILES.saveContentChanges(newElement,true); // save loaded contents. Even when not saving, save it.
 				this.elem=newElement;
 			}
 			else if(sNode.hasOwnProperty("children")) { // group node
@@ -119,7 +135,7 @@ FILES.loadPSDNodes=function(node) {
 				 */
 				const lockStatus=(sNode.protected&&sNode.protected.transparency)?
 					1:sNode.transparencyProtected? 2:0; // a bit weird
-				newElement.setProperties({ // @TODO: add initial value
+				newElement.setProperties({
 					name: sNode.name,
 					isExpanded: sNode.opened,
 					locked: lockStatus==2,
@@ -127,7 +143,7 @@ FILES.loadPSDNodes=function(node) {
 					opacity: sNode.opacity/255, // in psd, opacity is from 0 to 255
 					visible: !sNode.hidden,
 					clipMask: sNode.clipping,
-					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode)
+					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode) // TODO: group: see-thru to normal!
 				});
 				this.elem=newElement;
 			}
@@ -165,7 +181,7 @@ FILES.loadPSDNodes=function(node) {
 				});
 
 				// store contents
-				STORAGE.FILES.saveContentChanges(newElement); // save loaded contents
+				STORAGE.FILES.saveContentChanges(newElement,true); // save loaded contents, save even when not auto save
 				this.elem=newElement;
 
 				if(sNode.version>=70){ // Photoshop 7.0 and afterwards
@@ -240,7 +256,6 @@ FILES.loadPSDNodes=function(node) {
 		}
 
 		// Some layers, such as adjustment layers without initialized mask, has a mask without canvas
-		// TODO: adjustment layer isn't loaded while its mask is
 		if(jsonNode.mask&&jsonNode.mask.canvas) { // load mask json
 			const stackNodeM=new StackNode(Object.assign(jsonNode.mask,{
 				isMask: true, // Note that this is a mask layer
@@ -271,7 +286,6 @@ FILES.loadPSDNodes=function(node) {
 	}
 
 	// Load all children async
-	// @TODO: length==0?
 	EventDistributer.footbarHint.showInfo(Lang("Loading")+" 0.0% ...",5000);
 	loadQueue[0].load(); // kick!
 }
@@ -446,4 +460,28 @@ FILES.downloadBlob=function(filename,blob) {
 	const event=document.createEvent("MouseEvents");
 	event.initMouseEvent("click",true,false,window,0,0,0,0,0,false,false,false,false,0,null);
 	save_link.dispatchEvent(event);
+}
+
+// ====================== none-autosave dialogbox =========================
+FILES.showSaveFileDialogBox=function(){
+	/**
+	 * return a Promise resolving true/false (is to save the file)
+	 */
+	return new Promise(resolve=>{
+		// TODO: language
+		const $text=DialogBoxItem.textBox({text: Lang("file-save-warning")});
+		const dialog=new DialogBoxItem([$text],[{
+			text: Lang("file-save-yes"),
+			callback: e=>{
+				resolve(true);
+			}
+		},{
+			text: Lang("file-save-no"),
+			callback: e=>{
+				resolve(false);
+			}
+		}]);
+		DIALOGBOX.show(dialog);
+	});
+	
 }

@@ -26,7 +26,7 @@
 	<script src="./javascripts/library/jquery-3.4.1.min.js"></script>
 	<script type="text/javascript">
 		const glsl=s => s; // string conversion, for glsl tag linting.
-		const LOGGING=true; // logging switch & optimize unused console object
+		const LOGGING=false; // logging switch & optimize unused console object
 		$(e => ENV.init()); // Main program entrance
 	</script>
 
@@ -111,6 +111,9 @@
 	<script src="./javascripts/drag-selection/crop-drag-handler.js"></script>
 	<!-- Guidelines -->
 	<script src="./javascripts/guideline/guideline.js"></script>
+	<!-- Dialog Box -->
+	<script src="./javascripts/dialogmask/mask-dialog-box.js"></script>
+
 
 	<title>Skeeetch</title>
 </head>
@@ -196,7 +199,8 @@
 							<div id="new-layer-select-panel-outer">
 								<div id="new-layer-select-sign">&or;</div>
 								<div id="new-layer-select-panel">
-									sdasgduagsfiuas<br>fhaufhaoufhadsuf
+									PlaceHolder for<br>
+									future use.
 								</div>
 							</div>
 						</div>
