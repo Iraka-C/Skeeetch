@@ -35,6 +35,10 @@ input:disabled {
 	background: #444;
 }
 
+#system-button-hint{
+	color: #bb0;
+}
+
 /* #brush-size{
 	color: #eee;
 } */

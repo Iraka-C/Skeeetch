@@ -66,9 +66,10 @@ ENV.init=function() { // When the page is loaded
 		EventDistributer.init();
 		PALETTE.init(sysSettingParams);
 		CURSOR.init();
-
-		// init storage managers
+		// init performance monitor and reporter
+		// must after SettingHandler.init because it creates window inside
 		PERFORMANCE.init(ENV.displaySettings.maxVRAM);
+		// init storage managers
 		const lastLayerTreeJSON=STORAGE.FILES.getLayerTree();
 		STORAGE.FILES.initLayerStorage(ENV.fileID); // load the layer database, file title already set BEFORE (ENV.setFileTitle)
 		STORAGE.FILES.saveLayerTreeInDatabase(lastLayerTreeJSON); // update layer tree in database
@@ -96,7 +97,7 @@ ENV.init=function() { // When the page is loaded
 
 		ENV.setUIOrientation(ENV.displaySettings.uiOrientationLeft); // set UI orientation at init, after settings
 		ENV.setUITheme(ENV.displaySettings.uiTheme); // set color theme
-		//ENV.debug();
+		ENV.debug();
 
 		// prevent pen-dragging in Firefox causing window freezing
 		EVENTS.disableInputSelection($("#filename-input"));

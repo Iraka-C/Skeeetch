@@ -148,6 +148,9 @@ SettingHandler.updateScale=function(dS,oldVal) {
 SettingHandler.initSystemSetting=function(sysParams) {
 
 	let sys=new SettingManager($("#settings-menu-panel"),Lang("System"));
+
+	SettingHandler.$report=sys.addDiv();
+
 	sys.addSectionTitle(Lang("Renderer"));
 
 	CANVAS.rendererBitDepth=sysParams.preference.channelBitDepth||CANVAS.rendererBitDepth;

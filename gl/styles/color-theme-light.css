@@ -35,6 +35,10 @@ input:disabled {
 	background: #bbb;
 }
 
+#system-button-hint{
+	color: #ff0;
+}
+
 /* layer panel */
 
 #palette-panel{

@@ -98,7 +98,8 @@ LAYERS._updateScrollBar=function(isAnimate) {
  * Scroll to the position of a certain layer node / node ID
  */
 LAYERS.scrollTo=function(node,isAnimate) {
-	if(!node||!node.$ui)return; // not a layer
+	if(!node||!node.$ui) return Promise.resolve(); // not a layer
+	// @TODO: check if node is deleted!
 	const nTop=node.$ui.offset().top;
 	const $scroll=$("#layer-panel-scroll");
 	const $panel=$("#layer-panel-inner");
@@ -108,12 +109,18 @@ LAYERS.scrollTo=function(node,isAnimate) {
 	const sTop=nTop-pTop-sH*0.3; // scroll top
 	// 0.3 for putting the node kind-of center
 
-	if(isAnimate) {
-		$scroll.animate({scrollTop: sTop},isNaN(isAnimate)? 300:isAnimate);
-	}
-	else {
-		$scroll.scrollTop(sTop);
-	}
+	// returns a new promise, as the jQuery promise is not a standard Promise
+	return new Promise(resolve=>{
+		if(isAnimate) {
+			$scroll.animate(
+				{scrollTop: sTop},
+				isNaN(isAnimate)? 300:isAnimate
+			).promise().done(resolve);
+		}
+		else {
+			$scroll.scrollTop(sTop).promise().done(resolve);
+		}
+	});
 }
 
 // For Debugging!

@@ -64,6 +64,7 @@ PERFORMANCE.init=function(maxVRAMSetting){
 	else{
 		PERFORMANCE.maxMem.ram=PERFORMANCE.maxMem.gpu/2; // half-vram equivalent ram for history
 	}
+	PERFORMANCE.REPORTER.init();
 }
 
 PERFORMANCE.getRAMEstimation=function(){ // in MB

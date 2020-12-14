@@ -26,7 +26,7 @@
 	<script src="./javascripts/library/jquery-3.4.1.min.js"></script>
 	<script type="text/javascript">
 		const glsl=s => s; // string conversion, for glsl tag linting.
-		const LOGGING=false; // logging switch & optimize unused console object
+		const LOGGING=true; // logging switch & optimize unused console object
 		$(e => ENV.init()); // Main program entrance
 	</script>
 
@@ -104,7 +104,8 @@
 	<script src="./javascripts/file/file-settings.js"></script>
 	<script src="./javascripts/file/file-settings-crop.js"></script>
 	<script src="./javascripts/file/file-selector.js"></script>
-	<script src="./javascripts/performance.js"></script>
+	<script src="./javascripts/performance/performance.js"></script>
+	<script src="./javascripts/performance/performance-reporter.js"></script>
 
 	<!-- Drag selector -->
 	<script src="./javascripts/drag-selection/drag-selector.js"></script>
@@ -154,7 +155,10 @@
 				</div>
 			</div>
 			<div id="top-menu-right-panel">
-				<div id="system-button" class="top-block">Settings</div>
+				<div id="system-button" class="top-block">
+					<div id="system-button-text">Settings</div>
+					<div id="system-button-hint">&utrif;</div>
+				</div>
 				<div id="file-button" class="top-block">Files</div>
 			</div>
 		</div>

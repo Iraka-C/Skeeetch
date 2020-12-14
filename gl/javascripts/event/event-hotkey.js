@@ -4,7 +4,7 @@ EVENTS.initHotKeys=function() {
 	EventDistributer.key.addListener("ctrl+shift+KeyZ",e => {HISTORY.redo();});
 	EventDistributer.key.addListener("ctrl+KeyY",e => {HISTORY.redo();});
 	
-	EventDistributer.key.addListener("shift+any",e => {console.log(e.originalEvent.code);});
+	//EventDistributer.key.addListener("shift+any",e => {console.log(e.originalEvent.code);});
 
 	// Brush Operations
 	EventDistributer.key.addListener("BracketLeft",e => {BrushManager.changeActiveBrushSizeBy(-1);});

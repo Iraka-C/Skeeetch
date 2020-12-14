@@ -207,3 +207,65 @@
 .brush-accessories-button:hover{
 	color: #fff;
 }
+/* ================= setting button ================== */
+#system-button-hint{
+	transform: translateY(-0.3em);
+	width: 0em;
+	opacity: 0;
+	transition: width 0.3s, opacity 0.3s;
+}
+
+#system-button-hint.system-button-hint-shown{
+	width: 0.5em;
+	opacity: 1;
+}
+
+/* reports */
+.reporter-outer{
+	background: #00000055;
+	margin-top: 0.7em;
+	max-height: 50vh;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	overflow-y: -moz-scrollbars-none; /* IE 10+ */
+	-ms-overflow-style: none; /* Old FF */
+	scrollbar-width: none; /* FF 64+ */
+}
+.reporter-outer::-webkit-scrollbar{
+	display: none; /* Chrome, Edge, Safari, Opera */
+	width: 0px !important;
+}
+
+#reporter-title{
+	padding: 0.2em 0.1em;
+	text-align: center;
+}
+
+.report-block{
+	background: #00000088;
+	margin-bottom: 0.7em;
+	display: none; /* hidden at first */
+}
+.report-block-title-panel{
+	display: flex;
+	flex-direction: row;
+	padding: 0.2em 0.5em;
+}
+.report-block-title-expand{
+	margin-right: 0.5em;
+	transition: transform 0.5s;
+}
+.report-expanded{
+	transform: rotate(90deg);
+}
+.report-block-title-text{
+	flex: 1;
+	color: #aaa;
+}
+.report-block-container{
+	font-size: 80%;
+}
+.report-block-item{
+	padding: 0.2em 0.5em;
+	border-top: 1px solid #ffffff33;
+}

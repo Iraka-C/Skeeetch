@@ -195,6 +195,9 @@ LANG_ZH={
 	"file-save-yes":"是的，请保存",
 	"file-save-no":"无需保存",
 
+	// Task reports
+	"Task Report":"任务报告",
+
 	// Info
 	"About Skeeetch":"关于Skeeetch",
 	"about-skeeetch":`
@@ -208,7 +211,7 @@ LANG_ZH={
 LANG_ZH._id={
 	"filename-input":"Skeeetch",
 	"palette-button-text":"调色盘",
-	"system-button":"设置",
+	"system-button-text":"设置",
 	"file-button":"文件",
 	"layer-panel-name":"图层",
 	"":""
