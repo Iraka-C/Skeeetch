@@ -38,15 +38,16 @@ class GLTextureBlender {
 			precision mediump sampler2D;
 			uniform sampler2D u_image;
 			uniform float u_image_alpha;
+			uniform float u_mcolor; // default mask color
 			varying highp vec2 v_pos;
 			void main(){
 				if(v_pos.x<0.||v_pos.y<0.||v_pos.x>1.||v_pos.y>1.){ // out of bound, sharp cut
-					gl_FragColor=vec4(0.,0.,0.,1.); // no change
+					gl_FragColor=vec4(0.,0.,0.,u_mcolor); // no change
 				}
 				else{ // sample from u_image
 					vec4 color=texture2D(u_image,v_pos)*u_image_alpha;
 					float lum=(color.x+color.y+color.z)/3.; // x,y,z are pre-mult
-					float final_alpha=1.-color.w+lum;
+					float final_alpha=(1.-color.w)*u_mcolor+lum;
 					gl_FragColor=vec4(0.,0.,0.,final_alpha);
 				}
 			}
@@ -277,13 +278,21 @@ class GLTextureBlender {
 	blendTexture(src,dst,param) {
 		if(!param.targetArea) param.targetArea=src.validArea; // blend all src valid pixels
 		param.alphaLock=param.alphaLock||false;
-		if(param.alphaLock||param.mode==GLTextureBlender.ERASE){ // only need to blend within dst.validArea
+		if(
+			param.alphaLock
+			||param.mode==GLTextureBlender.ERASE
+			||param.mode==GLTextureBlender.MASK
+			||param.mode==GLTextureBlender.MASKB // Notice: maskb will change area out of validArea
+		){ // only need to blend within dst.validArea
 			param.targetArea=GLProgram.borderIntersection(param.targetArea,dst.validArea);
 		}
-		else{
+		else{ // may extend
 			param.targetArea=GLProgram.borderIntersection(param.targetArea,dst);
 		}
 		if(!param.targetArea.width||!param.targetArea.height) { // target contains zero pixel
+			if(param.mode==GLTextureBlender.MASKB){ // all black mask: clear everything
+				this.renderer.clearImageData(dst);
+			}
 			return; // needless to blend
 		}
 
@@ -358,6 +367,7 @@ class GLTextureBlender {
 				}
 				break;
 			case GLTextureBlender.MASK: // use source alpha
+			case GLTextureBlender.MASKB: // use source alpha
 				gl.blendFunc(gl.ZERO,gl.SRC_ALPHA);
 				break;
 			default:
@@ -370,10 +380,14 @@ class GLTextureBlender {
 		}
 		else { // blend with blendFunc
 			// if is blending mask, use this.blendMaskProgram
-			const program=(param.mode==GLTextureBlender.MASK)?this.blendMaskProgram:this.blendProgram;
+			const isMask=(param.mode==GLTextureBlender.MASK||param.mode==GLTextureBlender.MASKB);
+			const program=isMask?this.blendMaskProgram:this.blendProgram;
 			program.setTargetTexture(dst.data);
 			program.setSourceTexture("u_image",src.data);
 			program.setUniform("u_image_alpha",param.srcAlpha);
+			if(isMask){ // set default mask color (0~1)
+				program.setUniform("u_mcolor",param.mode==GLTextureBlender.MASK?1:0);
+			}
 
 			// set target area attribute, to 0~1 coord space(LB origin).
 			// gl will automatically trim within viewport
@@ -403,6 +417,9 @@ class GLTextureBlender {
 			program.run();
 		}
 
+		if(param.mode==GLTextureBlender.MASKB){ // only within src.validArea
+			dst.validArea=GLProgram.borderIntersection(dst.validArea,src.validArea);
+		}
 		if(!param.alphaLock&&param.mode!=GLTextureBlender.ERASE&&param.mode!=GLTextureBlender.MASK) {
 			// extend dst valid area, but not larger than dst size
 			// erase or mask won't extend valid area: they only delete things
@@ -541,6 +558,7 @@ GLTextureBlender.COLOR=BasicRenderer.COLOR;
 GLTextureBlender.LUMINOSITY=BasicRenderer.LUMINOSITY;
 
 GLTextureBlender.MASK=BasicRenderer.MASK; // mask layer
+GLTextureBlender.MASKB=BasicRenderer.MASKB; // black mask layer
 
 
 class GLImageDataFactory {

@@ -350,6 +350,7 @@ class CanvasNode extends ContentNode {
 			const $blendButtonImg=$blendButton.children("img");
 			$blendButtonImg.attr("src","./resources/blend-mode/"
 				+LayerBlendModeSelector.blendModeEnumToFilename(mode)+".svg");
+			this.$ui.css("background",mode==GLTextureBlender.MASKB?"#000":"#fff");
 		};
 		
 		this.buttonUpdateFuncs.blendButton=() => {

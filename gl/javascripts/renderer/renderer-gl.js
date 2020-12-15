@@ -276,6 +276,7 @@ class GLRenderer extends BasicRenderer {
 
 	// source is a texture
 	// the minimum scale is 0.1, at most 10px antialiasing (which is 21x merging)
+	// @TODO: draw only validArea (notice the edge of blur!)
 	drawCanvas(imgData,antiAliasRadius) {
 		antiAliasRadius=antiAliasRadius||0; // 0px as default
 

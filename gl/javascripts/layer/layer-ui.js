@@ -255,7 +255,8 @@ class LayerBlendModeSelector {
 				$("<td>").append($("<img src='./resources/blend-mode/color.svg'>")),
 				$("<td>").append($("<img src='./resources/blend-mode/luminosity.svg'>")),
 				$("<td>").append(""),
-				$("<td>").append($("<img src='./resources/blend-mode/mask.svg'>"))
+				$("<td>").append($("<img src='./resources/blend-mode/mask.svg'>")),
+				$("<td>").append($("<img src='./resources/blend-mode/maskb.svg'>"))
 			)
 		));
 		$("#layer-panel-container").append(blendModeSelector);
@@ -278,10 +279,10 @@ class LayerBlendModeSelector {
 				let prevClip=this.caller.properties.clipMask;
 				let prevMode=this.caller.properties.blendMode;
 				let nowClip=prevClip;
-				if(mode==BasicRenderer.MASK) {
+				if(mode==BasicRenderer.MASK||mode==BasicRenderer.MASKB) {
 					nowClip=true;
 				}
-				else if(prevMode==BasicRenderer.MASK&&prevClip) {
+				else if((prevMode==BasicRenderer.MASK||prevMode==BasicRenderer.MASKB)&&prevClip) {
 					nowClip=false;
 				}
 				const prevStatus={blendMode: prevMode,clipMask: prevClip};
@@ -294,6 +295,7 @@ class LayerBlendModeSelector {
 					nowStatus: nowStatus
 				});
 				// set active button
+				this.updateMaskIcon(mode);
 				this.$buttons.removeClass("active-blend-mode");
 				$targetButton.addClass("active-blend-mode");
 			});
@@ -345,6 +347,7 @@ class LayerBlendModeSelector {
 			case BasicRenderer.COLOR: return "color";
 			case BasicRenderer.LUMINOSITY: return "luminosity";
 			case BasicRenderer.MASK: return "mask";
+			case BasicRenderer.MASKB: return "maskb";
 		}
 	};
 
@@ -361,7 +364,7 @@ class LayerBlendModeSelector {
 			BasicRenderer.SUBTRACT,BasicRenderer.DIVIDE,
 			BasicRenderer.HUE,BasicRenderer.SATURATION,
 			BasicRenderer.COLOR,BasicRenderer.LUMINOSITY,
-			BasicRenderer.MASK
+			BasicRenderer.MASK,BasicRenderer.MASKB
 		][id]||BasicRenderer.NORMAL;
 	};
 	static blendModeEnumToID(mode) { // reverse list of blendModeIDToEnum
@@ -394,6 +397,7 @@ class LayerBlendModeSelector {
 			case BasicRenderer.COLOR: return 24;
 			case BasicRenderer.LUMINOSITY: return 25;
 			case BasicRenderer.MASK: return 26;
+			case BasicRenderer.MASKB: return 27;
 		};
 	};
 
@@ -404,7 +408,22 @@ class LayerBlendModeSelector {
 		this.$buttons.removeClass("active-blend-mode");
 		const $targetButton=this.$buttons.eq(LayerBlendModeSelector.blendModeEnumToID(mode));
 		$targetButton.addClass("active-blend-mode");
+		this.updateMaskIcon(mode);
 	}
+	updateMaskIcon(mode){
+		// white & black mask
+		const $white=this.$buttons.eq(LayerBlendModeSelector.blendModeEnumToID(BasicRenderer.MASK));
+		const $black=this.$buttons.eq(LayerBlendModeSelector.blendModeEnumToID(BasicRenderer.MASKB));
+		if(mode==BasicRenderer.MASK){ // show black mask option
+			$white.css("display","none");
+			$black.css("display","table-cell");
+		}
+		else{ // hide black
+			$white.css("display","table-cell");
+			$black.css("display","none");
+		}
+	}
+
 	show(targetArea) { // px in the window
 		const w=this.$selector.width();
 		const h=this.$selector.height();

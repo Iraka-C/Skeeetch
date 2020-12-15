@@ -89,11 +89,23 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 			// for group, only blend non-clip mask layers
 			// use node.imageDataCombinedCnt to skip clip mask
 			COMPOSITOR.recompositeLayers(child,dirtyArea); // recomposite this level
-			if(child.properties.visible&&child.imageData.width&&child.imageData.height){
+			if(child.properties.visible&&( // still blend even if no w/h when black mask
+				(child.imageData.width&&child.imageData.height||child.properties.blendMode==BasicRenderer.MASKB)
+			)){
 				// visible and has content
 				// to blend the imageData into layer's raw imageData
 				childrenToBlend.push(i);
-				initSize=GLProgram.extendBorderSize(initSize,child.imageData.validArea); // @TODO: change GL to other class
+				if(child.properties.blendMode==BasicRenderer.MASK){
+					// mask, no need to extend
+				}
+				else if(child.properties.blendMode==BasicRenderer.MASKB){
+					// black: cut inside
+					initSize=GLProgram.borderIntersection(initSize,child.imageData.validArea);
+				}
+				else{ // normal extension
+					initSize=GLProgram.extendBorderSize(initSize,child.imageData.validArea);
+				}
+				// @TODO-: change GL to other class
 			}
 			i-=child.clipMaskChildrenCnt+1; // skip clip masks
 		}
@@ -144,6 +156,7 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 
 	if(!node.isImageDataValid) { // image data needs recomposition (with clip masks)
 		// @TODO: change condition to imagedata equal
+		// @TODO: black mask area
 		if(node.clipMaskChildrenCnt>0) { // there is a clip mask over this layer
 			// At here, imageData is surely not equal to rawImageData
 			const siblings=node.parent.children;
@@ -154,7 +167,8 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 				const clipMaskNode=siblings[v];
 				COMPOSITOR.recompositeLayers(clipMaskNode); // recomposite this level
 				if(!clipMaskNode.properties.visible) continue; // invisible: pass this node
-				if(!clipMaskNode.imageData.width||!clipMaskNode.imageData.height) continue; // contains 0 pixel: do not blend
+				if(!(clipMaskNode.imageData.width&&clipMaskNode.imageData.height) // contains 0 pixel: do not blend
+					&&clipMaskNode.properties.blendMode!=BasicRenderer.MASKB) continue; // nor a black mask
 				childrenToBlend.push(v);
 			}
 

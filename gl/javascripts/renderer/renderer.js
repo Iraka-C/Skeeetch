@@ -318,6 +318,7 @@ class BasicRenderer {
 			case BasicRenderer.COLOR: return Lang("blend-color");
 			case BasicRenderer.LUMINOSITY: return Lang("blend-luminosity");
 			case BasicRenderer.MASK: return Lang("blend-mask");
+			case BasicRenderer.MASKB: return Lang("blend-maskb");
 		}
 	}
 
@@ -395,7 +396,9 @@ BasicRenderer.SATURATION=41;
 BasicRenderer.COLOR=42;
 BasicRenderer.LUMINOSITY=43;
 
+// Following is the white mask and the black mask
 BasicRenderer.MASK=50;
+BasicRenderer.MASKB=51;
 
 BasicRenderer.blendModeNameList={ // name: PSD standard
 	"normal": BasicRenderer.NORMAL,
@@ -429,7 +432,8 @@ BasicRenderer.blendModeNameList={ // name: PSD standard
 	"saturation": BasicRenderer.SATURATION,
 	"color": BasicRenderer.COLOR,
 	"luminosity": BasicRenderer.LUMINOSITY,
-	"mask": BasicRenderer.MASK
+	"mask": BasicRenderer.MASK,
+	"maskb": BasicRenderer.MASKB
 };
 // create reversed list
 for(const v of Object.keys(BasicRenderer.blendModeNameList)) {

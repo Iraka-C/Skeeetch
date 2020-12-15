@@ -155,6 +155,7 @@ LANG_ZH={
 	"blend-color":"颜色",
 	"blend-luminosity":"明度",
 	"blend-mask":"蒙版",
+	"blend-maskb":"黑蒙版",
 
 	// Workspace
 	"Paper Width":"宽度",
