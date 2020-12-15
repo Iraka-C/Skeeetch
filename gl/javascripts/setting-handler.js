@@ -7,7 +7,8 @@ SettingHandler={};
 SettingHandler.init=function(sysParams) {
 	SettingHandler.initTitle();
 	SettingHandler.initTransformHandler();
-	let sys=SettingHandler.initSystemSetting(sysParams);
+	const sys=SettingHandler.initSystemSetting(sysParams);
+	SettingHandler.sysMenu=sys;
 	sys.update();
 }
 

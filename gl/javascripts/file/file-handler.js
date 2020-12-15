@@ -74,6 +74,10 @@ FILES.loadAsPSD=function(data,filename) {
  */
 FILES.loadPSDNodes=function(node) {
 	const loadQueue=[]; // A queue of StackNodes
+	const loadReport={
+		title: Lang("open-psd-report")+ENV.getFileTitle(),
+		items: []
+	};
 
 	class StackNode {
 		constructor(json,parent) {
@@ -108,15 +112,24 @@ FILES.loadPSDNodes=function(node) {
 				}
 
 				// UI/status settings
+				const maskName=sNode.master.name+" "+Lang("layer-mask");
 				newElement.setProperties({ // also requested recomposition @TODO: add initial value
 					locked: false,
 					pixelOpacityLocked: false,
 					opacity: 1, // 1 by default, change the alpha with the same ratio
 					visible: !sNode.disabled,
 					clipMask: true, // only to the following one layer by default
-					name: sNode.master.name+" "+Lang("layer-mask"),
+					name: maskName,
 					blendMode: BasicRenderer.MASK // MASK blend mode
 				});
+
+				// default color option
+				if(sNode.defaultColor!=255){ // not white
+					loadReport.items.push({
+						content: maskName+Lang("mask-layer-dc-report"),
+						target: newElement.id
+					});
+				}
 
 				// store contents
 				STORAGE.FILES.saveContentChanges(newElement,true); // save loaded contents. Even when not saving, save it.
@@ -143,9 +156,13 @@ FILES.loadPSDNodes=function(node) {
 					opacity: sNode.opacity/255, // in psd, opacity is from 0 to 255
 					visible: !sNode.hidden,
 					clipMask: sNode.clipping,
-					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode) // TODO: group: see-thru to normal!
+					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode)
 				});
 				this.elem=newElement;
+
+				if(sNode.sectionDivider&&sNode.sectionDivider.key=="pass"){ // "pass" blend mode for group, give a hint
+					this.isPassBlendMode=true;
+				}
 			}
 			else { // canvas node, load image data from canvas
 				const newElement=new CanvasNode();
@@ -155,8 +172,15 @@ FILES.loadPSDNodes=function(node) {
 					sNode.canvas.width=0;
 					sNode.canvas.height=0;
 				}
-				else{ // Maybe unsupported
-					FILES.loadPSDNodes.isUnsupportedLayerFound=true;
+				else{ // Maybe unsupported, create a report
+					if(sNode.nameSource=="cont"){ // adjust layer, will affect "pass" group effect
+						FILES.loadPSDNodes.isUnsupportedLayerFound=true;
+						this.parent.isPassConflict=true;
+						loadReport.items.push({
+							content: Lang("adjust-layer-report")+sNode.name,
+							target: newElement.id
+						});
+					}
 				}
 				// Set image data position
 				if(sNode.hasOwnProperty("left")) { // set both border and valid area
@@ -179,6 +203,9 @@ FILES.loadPSDNodes=function(node) {
 					name: sNode.name,
 					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode)
 				});
+				if(sNode.blendMode!="normal"){ // other blend mode will affect "pass" group
+					this.parent.isPassConflict=true;
+				}
 
 				// store contents
 				STORAGE.FILES.saveContentChanges(newElement,true); // save loaded contents, save even when not auto save
@@ -223,12 +250,20 @@ FILES.loadPSDNodes=function(node) {
 			// report sth
 			ENV.taskCounter.finishTask(1); // register load node
 			if(this.parent) {
+				if(this.isPassBlendMode&&this.isPassConflict){
+					loadReport.items.push({
+						content: Lang("group-pass-report-front")+this.json.name+Lang("group-pass-report-back"),
+						target: this.elem.id
+					});
+				}
 				this.parent.append(this);
 				if(this.parent.elem==LAYERS.layerTree&&this.elem) { // parent is root
 					FILES.loadPSDNodes.lastLoadingElement=this.elem;
 				}
 			}
 			else { // root loaded
+				PERFORMANCE.REPORTER.report(loadReport);
+				// TODO: sometime this is before last percentage info
 				FILES.onPSDLoaded();
 			}
 		}
@@ -256,15 +291,28 @@ FILES.loadPSDNodes=function(node) {
 		}
 
 		// Some layers, such as adjustment layers without initialized mask, has a mask without canvas
-		if(jsonNode.mask&&jsonNode.mask.canvas) { // load mask json
-			const stackNodeM=new StackNode(Object.assign(jsonNode.mask,{
-				isMask: true, // Note that this is a mask layer
-				master: jsonNode
-			}),parentStackNode);
-			const M1=loadQueue.length;
-			stackNodeM.index=M1;
-			loadQueue[M1-1].nextNodeToLoad=stackNodeM;
-			loadQueue.push(stackNodeM);
+		if(jsonNode.mask){
+			if(jsonNode.mask.canvas) { // load mask json
+				const stackNodeM=new StackNode(Object.assign(jsonNode.mask,{
+					isMask: true, // Note that this is a mask layer
+					master: jsonNode
+				}),parentStackNode);
+				const M1=loadQueue.length;
+				stackNodeM.index=M1;
+				loadQueue[M1-1].nextNodeToLoad=stackNodeM;
+				loadQueue.push(stackNodeM);
+			}
+			else{ // an overall opacity change
+				const color=jsonNode.mask.defaultColor;
+				if(!jsonNode.mask.disabled){ // if disabled, do nothing
+					if(color==0){
+						jsonNode.hidden=true;
+					}
+					else{
+						jsonNode.opacity*=color/255;
+					}
+				}
+			}
 		}
 	};
 

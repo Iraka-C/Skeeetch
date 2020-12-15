@@ -313,7 +313,59 @@ addHandler('FMsk', function (target) { return target.filterMask !== undefined; }
     psdWriter_1.writeBytes(writer, new Uint8Array(target.filterMask.colorSpace));
     psdWriter_1.writeUint16(writer, target.filterMask.opacity);
 });
-// TODO: implement
+// Iraka-C: TODO: add extra handler
+/*addHandler('brit', function (target) { return target.adjustmentValue !== undefined; }, function (reader, target) {
+    target.adjustmentValue = {
+		type: "brit",
+        brightness: psdReader_1.readInt16(reader),
+		contrast: psdReader_1.readInt16(reader),
+		mean: psdReader_1.readInt16(reader),
+		lab: psdReader_1.readUint8(reader)
+	};
+	console.log("read",target.adjustmentValue);
+	
+}, function (writer, target) {
+    psdWriter_1.writeInt16(writer, target.adjustmentValue.brightness);
+    psdWriter_1.writeInt16(writer, target.adjustmentValue.contrast);
+    psdWriter_1.writeInt16(writer, target.adjustmentValue.mean);
+    psdWriter_1.writeUint8(writer, target.adjustmentValue.lab);
+});
+addHandler('expA', function (target) { return target.adjustmentValue !== undefined; }, function (reader, target) {
+    target.adjustmentValue = {
+		type: "expA",
+		version: psdReader_1.readUint16(reader),
+        exposure: psdReader_1.readFloat32(reader),
+		offset: psdReader_1.readFloat32(reader),
+		gamma: psdReader_1.readFloat32(reader)
+	};
+	console.log("read",target.adjustmentValue);
+	
+}, function (writer, target) {
+    psdWriter_1.writeInt16(writer, target.adjustmentValue.brightness);
+    psdWriter_1.writeInt16(writer, target.adjustmentValue.contrast);
+    psdWriter_1.writeInt16(writer, target.adjustmentValue.mean);
+    psdWriter_1.writeUint8(writer, target.adjustmentValue.lab);
+});
+addHandler('clrL', function (target) { return target.adjustmentValue !== undefined; }, function (reader, target) {
+    target.adjustmentValue = {
+		type: "clrL",
+		version: psdReader_1.readUint16(reader),
+		descriptorVersion: psdReader_1.readUint32(reader)
+	};
+	const bw=descriptor_1.readDescriptorStructure(reader);
+	console.log("LUTData",new TextDecoder("utf-8").decode(bw.LUT3DFileData).split("\n"));
+	target.adjustmentValue.bw=bw;
+	console.log("read",target.adjustmentValue);
+	
+}, function (writer, target) {
+    psdWriter_1.writeInt16(writer, target.adjustmentValue.brightness);
+    psdWriter_1.writeInt16(writer, target.adjustmentValue.contrast);
+    psdWriter_1.writeInt16(writer, target.adjustmentValue.mean);
+    psdWriter_1.writeUint8(writer, target.adjustmentValue.lab);
+});*/
+
+
+// agpsd-TODO implement
 addHandler('lfx2', function (target) { return !target; }, // target.objectBasedEffectsLayerInfo !== undefined,
 function (reader, _target, left) {
     psdReader_1.skipBytes(reader, left());

@@ -243,6 +243,10 @@
 	position: absolute;
 	left: 0em;
 	bottom: 0em;
+	pointer-events: none; /* not active until this layer is active */
+}
+.layer-ui-active .layer-name-label{
+	pointer-events: all; /* allowed to edit */
 }
 .layer-name-label:focus{
 	/* Use box shadow instead of border to avoid size change */
@@ -346,7 +350,12 @@
 .group-name-label{
 	color: #000;
 	margin: 0.3em;
+	pointer-events: none;
 }
+.layer-group-ui-active .group-name-label{
+	pointer-events: all;
+}
+
 .group-title-expand-button{
 	padding: 0.3em 0.5em 0.3em 0.5em;
 	transition: transform 0.5s;

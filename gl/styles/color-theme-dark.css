@@ -38,6 +38,19 @@ input:disabled {
 #system-button-hint{
 	color: #bb0;
 }
+.reporter-outer{
+	background: #ffffff22;
+	box-shadow: 0em 0em 1em #ffffff22;
+}
+.report-block{
+	background: #ffffff22;
+}
+.report-block-item{
+	border-top: 1px solid #00000055;
+}
+.report-block-item:hover{
+	background: #00000088;
+}
 
 /* #brush-size{
 	color: #eee;

@@ -197,6 +197,13 @@ LANG_ZH={
 
 	// Task reports
 	"Task Report":"任务报告",
+	"open-psd-report":"加载 ",
+	"check-worker-report":"Web Worker 并行化",
+	"check-worker-info":"当前环境不支持Web Worker。运行性能可能会有所下降。",
+	"adjust-layer-report":"不支持的调整图层 ",
+	"group-pass-report-front":"转换穿透组 ",
+	"group-pass-report-back":" 为正常，可能导致显示差异",
+	"mask-layer-dc-report":" 蒙版默认颜色非白色，可能导致显示差异",
 
 	// Info
 	"About Skeeetch":"关于Skeeetch",

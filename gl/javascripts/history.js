@@ -313,6 +313,12 @@ HISTORY.redo=function(){ // redo 1 step
 }
 
 // ================= Deal with each type of Undo/Redo ==================
+// same as LAYERS, but add a scroll to the target
+HISTORY.setActive=function(node){ // setActive must be synchronized!
+	LAYERS.setActive(node);
+	LAYERS.scrollTo(node,true);
+}
+
 /**
  * ----------------------------------------------------
  * "image-data" type
@@ -323,7 +329,7 @@ HISTORY.redo=function(){ // redo 1 step
  * resizeImageData(rawD,item.xxxValidArea,true) will only preserve the contents within viewport:
  * can be problematic when undo after paper size change: only part within viewport is rendered
  * 
- * Use LAYERS.setActive(node) to act lastRawImageData as a buffer to store the contents
+ * Use HISTORY.setActive(node) to act lastRawImageData as a buffer to store the contents
  * anyway the lastRawImageData will be the same size as rawD.validArea
  * 
  * resize lastRawImageData first to buffer the present contents of rawD
@@ -332,12 +338,12 @@ HISTORY.redo=function(){ // redo 1 step
  */
 HISTORY.undoImageDataChange=function(item){
 	const node=LAYERS.layerHash[item.id];
-	LAYERS.setActive(node); // also refresh and set lastRawImageData to valid part
+	HISTORY.setActive(node); // also refresh and set lastRawImageData to valid part
 	// at this point, node.lastRawImageData contains the contents of node.rawImageData
 
 	const rawD=node.rawImageData;
 	const lastD=node.lastRawImageData; // after setActive, node has lastRawImageData
-
+	
 	CANVAS.renderer.resizeImageData(rawD,item.oldValidArea,false);
 	CANVAS.renderer.blendImageData(lastD,rawD,{mode:BasicRenderer.SOURCE});
 
@@ -360,7 +366,7 @@ HISTORY.undoImageDataChange=function(item){
 
 HISTORY.redoImageDataChange=function(item){
 	const node=LAYERS.layerHash[item.id];
-	LAYERS.setActive(node); // also refresh and set lastRawImageData
+	HISTORY.setActive(node); // also refresh and set lastRawImageData
 	const rawD=node.rawImageData;
 	const lastD=node.lastRawImageData; // after setActive, node has lastRawImageData
 
@@ -401,14 +407,14 @@ HISTORY.undoStructureChange=function(item){
 		oldGroup.insertNode$UI(obj.$ui,item.oldIndex); // insert $ui at old place
 		oldGroup.insertNode(obj,item.oldIndex); // insert at old place
 		if(item.oldActive!=item.newActive){ // also refresh. setActive accepts string or Node
-			LAYERS.setActive(obj);
+			HISTORY.setActive(obj);
 		}
 		COMPOSITOR.updateLayerTreeStructure(); // call manually. setActive() won't update when active layer's unchanged
 	}
 	else{ // else: no old group, this is a create-new-layer action
 		obj.$ui.detach(); // detach $ui from DOM
 		obj.detach(); // detach node from layerTree
-		LAYERS.setActive(item.oldActive);
+		HISTORY.setActive(item.oldActive);
 		COMPOSITOR.updateLayerTreeStructure();
 	}
 }
@@ -424,7 +430,7 @@ HISTORY.redoStructureChange=function(item){
 		newGroup.insertNode$UI(obj.$ui,item.newIndex); // insert $ui at new place
 		newGroup.insertNode(obj,item.newIndex); // insert at new place
 		if(item.oldActive!=item.newActive){ // also refresh. setActive accepts string or Node
-			LAYERS.setActive(obj);
+			HISTORY.setActive(obj);
 		}
 		COMPOSITOR.updateLayerTreeStructure(); // call manually. setActive() won't update when active layer's unchanged
 	}
@@ -434,7 +440,7 @@ HISTORY.redoStructureChange=function(item){
 		if(obj instanceof LayerGroupNode){ // clear all unused intermediate image data
 			obj.discardNonLeafImageData();
 		}
-		LAYERS.setActive(item.newActive);
+		HISTORY.setActive(item.newActive);
 		COMPOSITOR.updateLayerTreeStructure();
 	}
 }

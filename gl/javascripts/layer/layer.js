@@ -253,6 +253,34 @@ LAYERS.setActive=function(obj) { // layer or group or id
 	COMPOSITOR.updateLayerTreeStructure();
 }
 
+// expand all ancestors
+LAYERS.expandToLayer=function(node){
+	const historyItem=[];
+	const stack=[];
+	while(node.parent){ // push in all parents
+		node=node.parent;
+		stack.push(node);
+	}
+	if(node!=LAYERS.layerTree){ // not in layer tree
+		return null; // failed
+	}
+	stack.pop(); // pop out root node
+	for(const p of stack){
+		if(p.isExpanded){ // no need to expand
+			continue;
+		}
+		p.setProperties({isExpanded: true});
+		historyItem.push({ // add a history
+			type: "node-property",
+			id: p.id,
+			prevStatus: {isExpanded: false},
+			nowStatus: {isExpanded: true}
+		});
+	}
+	// return the possible history items
+	return historyItem;
+}
+
 // deactivate the present active object
 LAYERS._inactive=function() {
 	if(!LAYERS.active) { // already deactivated

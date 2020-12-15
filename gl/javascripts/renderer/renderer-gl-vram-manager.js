@@ -12,6 +12,8 @@ class GLVRAMManager {
 
 		this.lastVerified=null;
 		this.lastVerifiedSize=0;
+
+		this.vramFreezeCnt=0;
 	}
 
 	static _getVRAMSize(w,h,bd){ // width, height, bitdepth, return bytes
@@ -64,6 +66,7 @@ class GLVRAMManager {
 			sizeToRelease=size-remainingSize;
 
 			if(sizeToRelease>0) { // still not enough space
+				this.vramFreezeCnt++; // try to release VRAM by moving textures to RAM
 				for(const [oldData,oldRecSize] of this.activeTextures){ // release old first
 					this.renderer.freezeImageData(oldData); // move VRAM to RAM
 					const oldLatSize=GLVRAMManager._getVRAMSize(oldData.width,oldData.height,oldData.bitDepth);
@@ -148,5 +151,8 @@ class GLVRAMManager {
 			this.vRAMUsage+=oldLatSize-oldRecSize;
 			this.activeTextures.set(oldData,oldLatSize); // refresh
 		}
+	}
+	getVRAMFreezeCnt(){
+		return this.vramFreezeCnt;
 	}
 }

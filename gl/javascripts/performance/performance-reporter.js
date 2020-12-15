@@ -19,6 +19,11 @@ PERFORMANCE.REPORTER.init=function(){
 	$("#system-button").click(e=>{
 		const $hint=$("#system-button-hint");
 		$hint.removeClass("system-button-hint-shown");
+		if(!SettingHandler.sysMenu.isExpanded()){ // to be closed, shrink all report blocks
+			$container.find(".report-expanded").removeClass("report-expanded"); // expand buttons
+			$container.find(".report-block-container").slideUp(250); // containers
+		}
+		
 	});
 	$ui.css("display","none");
 }
@@ -36,6 +41,10 @@ PERFORMANCE.REPORTER.init=function(){
  * }
  */
 PERFORMANCE.REPORTER.report=function(block){
+	if(!block.items||!block.items.length){
+		// nothing to report
+		return;
+	}
 	const $ui=SettingHandler.$report;
 	const $hint=$("#system-button-hint");
 
@@ -55,12 +64,20 @@ PERFORMANCE.REPORTER.report=function(block){
 			if(item.target){
 				const node=LAYERS.layerHash[item.target];
 				if(node){ // this is a node in layer tree
+					const historyItem=LAYERS.expandToLayer(node);
+					if(historyItem&&historyItem.length){
+						HISTORY.addHistory({ // combine history steps
+							type: "bundle",
+							children: historyItem
+						});
+					}
 					LAYERS.scrollTo(node,true).then(()=>{
 						LAYERS.setActive(node);
 					})
 				}
 				else{
 					// some external links
+					// based on LANG!
 				}
 			}
 		});
@@ -80,9 +97,12 @@ PERFORMANCE.REPORTER.report=function(block){
 			});
 		}
 		else{ // hide all
-			$ui.slideUp(300,e=>{
-				$block.remove();
+			$block.slideUp(300,e=>{
+				$ui.slideUp(150,e=>{
+					$block.remove();
+				});
 			});
+			
 		}
 		$hint.removeClass("system-button-hint-shown");
 		e.stopPropagation(); // disable click to expand/shrink
@@ -100,8 +120,14 @@ PERFORMANCE.REPORTER.report=function(block){
 	});
 
 	// show this block in the report
-	$rc.append($block);
+	$rc.prepend($block); // new first
 	$ui.css("display","block");
 	$block.fadeIn(200);
 	$hint.addClass("system-button-hint-shown");
+
+	// small animation
+	$hint.css({"color":"#dd7700"});
+	setTimeout(e=>{
+		$hint.css({"color":""});
+	},800);
 }

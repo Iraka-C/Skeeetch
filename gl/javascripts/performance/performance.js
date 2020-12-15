@@ -65,6 +65,7 @@ PERFORMANCE.init=function(maxVRAMSetting){
 		PERFORMANCE.maxMem.ram=PERFORMANCE.maxMem.gpu/2; // half-vram equivalent ram for history
 	}
 	PERFORMANCE.REPORTER.init();
+	PERFORMANCE.checkWorkerSupport(); // after reporter init
 }
 
 PERFORMANCE.getRAMEstimation=function(){ // in MB
@@ -144,6 +145,19 @@ PERFORMANCE.getDriveEstimation=function(){
 	}
 	else{ // just an approximation to img, not including brushes and thumbs
 		return MyForage.getDriveUsage("img");
+	}
+}
+
+PERFORMANCE.checkWorkerSupport=function(){
+	if(!window.Worker||document.location.protocol=="file:"){ // no worker
+		const loadReport={
+			title: Lang("check-worker-report"),
+			items: [{
+				content: Lang("check-worker-info"),
+				target: "" // TODO: fill in target
+			}]
+		};
+		PERFORMANCE.REPORTER.report(loadReport);
 	}
 }
 

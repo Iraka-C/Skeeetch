@@ -328,20 +328,4 @@ ENV.taskCounter.printStatus=function(){
 
 ENV.debug=function() {
 	//$("#work-indicator-arc").attr("d",describeSVGArc(50,50,40,0,359));
-	const nodes=LAYERS.layerTree.children;
-	setTimeout(e=>{
-		PERFORMANCE.REPORTER.report({
-			title: "Open file",
-			items: [
-				{
-					content: "layer 1 not supported",
-					target: nodes[0].id
-				},
-				{
-					content: "layer 2 not supported",
-					target: nodes[nodes.length-1].id
-				}
-			]
-		});
-	},4000);
 }

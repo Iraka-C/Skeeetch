@@ -212,7 +212,7 @@
 	transform: translateY(-0.3em);
 	width: 0em;
 	opacity: 0;
-	transition: width 0.3s, opacity 0.3s;
+	transition: width 0.3s, opacity 0.3s, color 0.3s;
 }
 
 #system-button-hint.system-button-hint-shown{
@@ -222,7 +222,6 @@
 
 /* reports */
 .reporter-outer{
-	background: #00000055;
 	margin-top: 0.7em;
 	max-height: 50vh;
 	overflow-x: hidden;
@@ -242,7 +241,6 @@
 }
 
 .report-block{
-	background: #00000088;
 	margin-bottom: 0.7em;
 	display: none; /* hidden at first */
 }
@@ -267,5 +265,6 @@
 }
 .report-block-item{
 	padding: 0.2em 0.5em;
-	border-top: 1px solid #ffffff33;
+	cursor: pointer; /* you can click on it */
+	transition: background 0.2s;
 }

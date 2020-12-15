@@ -38,6 +38,19 @@ input:disabled {
 #system-button-hint{
 	color: #ff0;
 }
+.reporter-outer{
+	background: #00000055;
+	box-shadow: 0em 0em 1em #00000055;
+}
+.report-block{
+	background: #00000088;
+}
+.report-block-item{
+	border-top: 1px solid #ffffff33;
+}
+.report-block-item:hover{
+	background: #ffffff33;
+}
 
 /* layer panel */
 
