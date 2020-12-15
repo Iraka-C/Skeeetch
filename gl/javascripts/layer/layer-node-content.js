@@ -408,14 +408,31 @@ class ContentNode extends LayerNode {
 		const prop=this.properties;
 		const vA=imgData.validArea;
 
-		if(prop.blendMode==BasicRenderer.MASK&&prop.clipMask&&!this.children.length) return { // a mask layer in PS
-			"isMask": true,
-			"top": vA.top,
-			"left": vA.left,
-			"positionRelativeToLayer": false,
-			"disabled": !prop.visible,
-			"defaultColor": 255 // White at present
-		};
+		if(prop.blendMode==BasicRenderer.MASK){
+			if(prop.clipMask&&!this.children.length){
+				return { // a mask layer in PS
+					"isMask": true,
+					"top": vA.top,
+					"left": vA.left,
+					"positionRelativeToLayer": false,
+					"disabled": !prop.visible,
+					"defaultColor": 255 // White at present
+				};
+			}
+			else{ // send a report first
+				FILES.saveAsPSD.reports.push({ // add a report
+					content: this.getName()+Lang("save-psdmask-report"),
+					target: this.id
+				});
+			}
+		}
+
+		if(prop.clipMask&&this.children.length){ // group with clipmask
+			FILES.saveAsPSD.reports.push({ // add a report
+				content: this.getName()+Lang("save-clipgroup-report"),
+				target: this.id
+			});
+		}
 
 		return {
 			"top": vA.top,

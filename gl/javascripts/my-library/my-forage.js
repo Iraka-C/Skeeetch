@@ -105,6 +105,10 @@ class MyForage{
 		return bytes;
 	}
 
+	/**
+	 * Get the approximated storage quota in bytes
+	 * @param {*} name the name of this instance
+	 */
 	static getDriveUsage(name){
 		const storeList=localforage.createInstance({ // the db instance: index of all stores
 			name: name,
@@ -124,6 +128,22 @@ class MyForage{
 				totalSize+=size;
 			}
 			return totalSize;
+		});
+	}
+
+	static getStoreNames(name){
+		const storeList=localforage.createInstance({ // the db instance: index of all stores
+			name: name,
+			storeName: "store"
+		});
+		return storeList.keys().then(keys=>{
+			const nameList=[];
+			for(const key of keys){
+				if(key.indexOf(":size")==-1){ // a store name
+					nameList.push(key);
+				}
+			}
+			return Promise.resolve(nameList);
 		});
 	}
 
@@ -220,10 +240,6 @@ class MyForage{
 
 	keys(){ // return an array of keys, with promise
 		return Promise.resolve(Object.keys(this.storeKeys));
-	}
-
-	stores(){
-		// To be continued...
 	}
 
 	size(){

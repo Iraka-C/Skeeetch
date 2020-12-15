@@ -101,13 +101,23 @@ LAYERS.scrollTo=function(node,isAnimate) {
 	if(!node||!node.$ui) return Promise.resolve(); // not a layer
 	// @TODO: check if node is deleted!
 	const nTop=node.$ui.offset().top;
+	const nH=node.$ui.height();
 	const $scroll=$("#layer-panel-scroll");
 	const $panel=$("#layer-panel-inner");
 	const pTop=$panel.offset().top;
 
 	const sH=$scroll.height();
-	const sTop=nTop-pTop-sH*0.3; // scroll top
+	const nPos=nTop-pTop; // position of node ui top in inner panel
+	const sTop=nPos-sH*0.3; // scroll top
 	// 0.3 for putting the node kind-of center
+
+	const scrollTop=$scroll.offset().top;
+	if(nTop>=scrollTop&&nTop+nH<=scrollTop+sH){ // node ui is fully visible
+		return Promise.resolve(); // directly return
+	}
+	if(nTop>=scrollTop&&nH>=sH&&nTop<scrollTop+sH){ // node ui is partially visible
+		return Promise.resolve(); // directly return
+	}
 
 	// returns a new promise, as the jQuery promise is not a standard Promise
 	return new Promise(resolve=>{

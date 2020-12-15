@@ -175,7 +175,9 @@ FILES.loadPSDNodes=function(node) {
 				else{ // Maybe unsupported, create a report
 					if(sNode.nameSource=="cont"){ // adjust layer, will affect "pass" group effect
 						FILES.loadPSDNodes.isUnsupportedLayerFound=true;
-						this.parent.isPassConflict=true;
+						if(!sNode.clipping){ // not clipping, may affect outside
+							this.parent.isPassConflict=true;
+						}
 						loadReport.items.push({
 							content: Lang("adjust-layer-report")+sNode.name,
 							target: newElement.id
@@ -203,7 +205,8 @@ FILES.loadPSDNodes=function(node) {
 					name: sNode.name,
 					blendMode: BasicRenderer.blendModeNameToEnum(sNode.blendMode)
 				});
-				if(sNode.blendMode!="normal"){ // other blend mode will affect "pass" group
+				if(sNode.blendMode!="normal"&&!sNode.clipping){
+					// other blend mode will affect "pass" group
 					this.parent.isPassConflict=true;
 				}
 
@@ -211,10 +214,10 @@ FILES.loadPSDNodes=function(node) {
 				STORAGE.FILES.saveContentChanges(newElement,true); // save loaded contents, save even when not auto save
 				this.elem=newElement;
 
-				if(sNode.version>=70){ // Photoshop 7.0 and afterwards
-					// may be unsupported features
-					FILES.loadPSDNodes.isUnsupportedLayerFound=true;
-				}
+				// if(sNode.version>=70){ // Photoshop 7.0 and afterwards
+				// 	// may be unsupported features
+				// 	FILES.loadPSDNodes.isUnsupportedLayerFound=true;
+				// }
 			}
 
 			if(this.nextNodeToLoad) { // prepare to load the next node
@@ -472,6 +475,7 @@ FILES.saveAsPSD=function(psdJSON) { // @TODO: change to async function
 	 * 
 	 * **What it combining setTimeOut & Promise? Better grammar that doesn't block the UI?
 	 */
+	FILES.saveAsPSD.reports=[];
 	psdJSON=psdJSON||LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
 
 	ENV.taskCounter.startTask(1); // start PSD encoding task
@@ -485,6 +489,10 @@ FILES.saveAsPSD=function(psdJSON) { // @TODO: change to async function
 			const filename=ENV.getFileTitle();
 			FILES.downloadBlob(filename+".psd",blob);
 			ENV.taskCounter.finishTask(1); // finish PSD task
+			PERFORMANCE.REPORTER.report({
+				title: Lang("save-psd-report")+ENV.getFileTitle(),
+				items: FILES.saveAsPSD.reports
+			});
 		},0);
 	},0);
 }

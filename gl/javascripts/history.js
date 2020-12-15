@@ -316,7 +316,7 @@ HISTORY.redo=function(){ // redo 1 step
 // same as LAYERS, but add a scroll to the target
 HISTORY.setActive=function(node){ // setActive must be synchronized!
 	LAYERS.setActive(node);
-	LAYERS.scrollTo(node,true);
+	LAYERS.scrollTo(node,false); // heavy task, avoid animation
 }
 
 /**

@@ -10,6 +10,12 @@ LANG_ZH={
 	"New Layer":"新图层",
 	"New Group":"新组",
 	"button-tools":"工具",
+	
+	// tools
+	"Reset paper position":"重置画纸位置",
+	"Flip display horizontally":"水平翻转显示",
+	"Undo one step":"撤销一步",
+	"Redo one step":"重做一步",
 
 	// Palette
 	"palette-hue-sign":"色相",
@@ -97,6 +103,8 @@ LANG_ZH={
 
 	"color-to-opacity":"颜色转透明度",
 	"Replace white component with transparency.":"将白色成分转换为透明度",
+	"Add new brush based on current brush":"从当前画笔新建画笔",
+	"Delete current brush":"删除当前画笔",
 
 	// Layer
 	"layer-opacity-label-shown":"拖动或滚动以调整图层不透明度，点击以隐藏图层",
@@ -115,6 +123,8 @@ LANG_ZH={
 
 	"node-copy-suffix":" 副本",
 	"Make a copy of the current layer / group":"复制图层（组）",
+	"Cannot replace content: Opacity locked":"无法替换内容：不透明度已锁定",
+	"Cannot replace content: Not a canvas":"无法替换内容：该图层不可绘制",
 
 	// Blend Modes
 	"blend-mode-hint":"混合模式 - ",
@@ -199,11 +209,23 @@ LANG_ZH={
 	"Task Report":"任务报告",
 	"open-psd-report":"加载 ",
 	"check-worker-report":"Web Worker 并行化",
-	"check-worker-info":"当前环境不支持Web Worker。运行性能可能会有所下降。",
+	"check-worker-info":"当前环境不支持Web Worker，运行性能可能会有所下降",
 	"adjust-layer-report":"不支持的调整图层 ",
 	"group-pass-report-front":"转换穿透组 ",
 	"group-pass-report-back":" 为正常，可能导致显示差异",
 	"mask-layer-dc-report":" 蒙版默认颜色非白色，可能导致显示差异",
+	"glcontextlost-report":"GL显存丢失",
+	"glcontextlost-hint1":"您好，您的显存刚刚爆炸了。",
+	"glcontextlost-hint2":"请尝试减小显存限制数值，当前是",
+	"glcontextlost-hint3":"或将渲染器位深度降低到",
+	"glcontextlost-hint4":"或使用更小一些的画纸，当前是",
+	"glcontextlost-hint5":"请在更改设置后立即刷新Skeeetch网页以免已保存的内容丢失。最后祝您生活愉快！",
+
+	"failed-storage-report1":"无法读取图层 ",
+	"failed-storage-report2":" 的内容",
+	"save-psdmask-report":" 蒙版图层在PSD文件中可能无法正确显示",
+	"save-clipgroup-report":" 图层组剪贴蒙版在PSD文件中可能无法正确显示",
+	"save-psd-report":"导出PSD ",
 
 	// Info
 	"About Skeeetch":"关于Skeeetch",

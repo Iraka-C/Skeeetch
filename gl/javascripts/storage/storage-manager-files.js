@@ -392,13 +392,16 @@ STORAGE.FILES.loadLayerTree=function(node) {
 
 	const loadQueue=[]; // A queue of StackNodes
 	const layerStore=STORAGE.FILES.layerStore; // do not change storage here
-	console.log("Now store",layerStore);
-	
+	//console.log("Now store",layerStore);
+	const loadReport={
+		title: Lang("open-psd-report")+ENV.getFileTitle(),
+		items: []
+	};
 
 	class StackNode {
 		constructor(json,parent) {
 			this.parent=parent;
-			this.json=json; // ag-psd json object to load
+			this.json=json; // storage json object to load
 			this.elem=null;
 			this.N=0; // total children
 			this.loadedChildrenCnt=0; // loaded children number
@@ -454,18 +457,30 @@ STORAGE.FILES.loadLayerTree=function(node) {
 					else { // failed to get content, delete broken chunk
 						STORAGE.FILES.removeContent(layerStore,sNode.id);
 						STORAGE.FILES.isFailedLayer=true;
+						loadReport.items.push({
+							content: Lang("failed-storage-report1")
+								+sNode.name
+								+Lang("failed-storage-report2"),
+							target: newElement.id
+						});
 					}
 					newElement.setProperties(sNode); // also request refresh. This might be a potential bottleneck
 					// @TODO: possible solution: insert after loading?
 				}).catch(err => { // load failed
 					console.warn("ImageData Loading Failed");
-					console.error(err);
+					//console.error(err);
 					STORAGE.FILES.isFailedLayer=true;
+					loadReport.items.push({
+						content: Lang("failed-storage-report1")
+							+sNode.name
+							+Lang("failed-storage-report2"),
+						target: newElement.id
+					});
 					// @TODO: delete $ui & texture?
 				}).finally(() => {
 					this.loaded();
 					loadNextNodeAsync();
-					// @TODO: load contents after inserting UI?
+					// @TODO-: load contents after inserting UI?
 				});
 				this.elem=newElement;
 				return;
@@ -496,6 +511,7 @@ STORAGE.FILES.loadLayerTree=function(node) {
 				this.parent.append(this);
 			}
 			else { // root loaded
+				PERFORMANCE.REPORTER.report(loadReport);
 				STORAGE.FILES.onLayerTreeLoad(LAYERS.layerHash[node.active]);
 			}
 		}
@@ -530,6 +546,9 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	EventDistributer.footbarHint.showInfo(Lang("Loading")+" 0.0% ...",5000);
 	if(loadQueue.length) {
 		loadQueue[0].load(); // kick
+	}
+	else{
+		rootStackNode.loaded(); // finish now
 	}
 }
 
@@ -680,7 +699,7 @@ STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monito
 STORAGE.FILES.organizeDatabase=function(){
 	// T-ODO: change into sequencial operation?
 	// It's Okay...
-	const taskList=[];
+	/*const taskList=[];
 	for(const id in STORAGE.FILES.filesStore.undroppedList){
 		if(!STORAGE.FILES.filesStore.fileList.hasOwnProperty(id)){
 			// id only in undropped list
@@ -689,9 +708,17 @@ STORAGE.FILES.organizeDatabase=function(){
 			// });
 			taskList.push(STORAGE.FILES.removeFileID(id));
 		}
-	}
-
-	return Promise.all(taskList).then(()=>taskList.length);
+	}*/
+	const fileList=STORAGE.FILES.filesStore.fileList;
+	return MyForage.getStoreNames("img").then(list=>{
+		const taskList=[];
+		for(const storeName of list){
+			if(!fileList[storeName]){ // store name is this id
+				taskList.push(STORAGE.FILES.removeFileID(storeName));
+			}
+		}
+		return Promise.all(taskList).then(()=>taskList.length);
+	});
 }
 
 /**

@@ -98,7 +98,8 @@ PERFORMANCE.REPORTER.report=function(block){
 		}
 		else{ // hide all
 			$block.slideUp(300,e=>{
-				$ui.slideUp(150,e=>{
+				$ui.css("opacity","0"); // opacity animation
+				$ui.slideUp(200,e=>{
 					$block.remove();
 				});
 			});
@@ -120,7 +121,8 @@ PERFORMANCE.REPORTER.report=function(block){
 	});
 
 	// show this block in the report
-	$rc.prepend($block); // new first
+	$rc.prepend($block); // newer first
+	$ui.css("opacity","1"); // opacity animation
 	$ui.css("display","block");
 	$block.fadeIn(200);
 	$hint.addClass("system-button-hint-shown");

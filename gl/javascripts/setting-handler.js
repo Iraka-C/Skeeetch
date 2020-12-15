@@ -125,7 +125,7 @@ SettingHandler.initTransformHandler=function() {
 		$flipButton.html(ENV.window.flip? "&rlarr;":"&lrarr;");
 		$flipButton.css("color",ENV.window.flip? "#0ff":"");
 	});
-	EventDistributer.footbarHint($flipButton,() => Lang("Flip paper horizontally"));
+	EventDistributer.footbarHint($flipButton,() => Lang("Flip display horizontally"));
 
 	// Undo/Redo
 	$("#undo-info").click(event => {

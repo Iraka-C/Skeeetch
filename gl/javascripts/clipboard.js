@@ -19,7 +19,7 @@ CLIPBOARD.paste=function(items,isSpace){
 			const validArea={...LAYERS.active.rawImageData.validArea};
 			if(LAYERS.active instanceof CanvasNode){ // successfully cleared
 				if(LAYERS.active.isOpacityLocked()){
-					EventDistributer.footbarHint.showInfo("Cannot replace content: Opacity locked");
+					EventDistributer.footbarHint.showInfo(Lang("Cannot replace content: Opacity locked"));
 					return; // cannot change opacity
 				}
 				if(CANVAS.clearAll()){ // contents successfully cleared
@@ -32,7 +32,7 @@ CLIPBOARD.paste=function(items,isSpace){
 				
 			}
 			else{ // not a CanvasNode
-				EventDistributer.footbarHint.showInfo("Cannot replace content: Not a canvas");
+				EventDistributer.footbarHint.showInfo(Lang("Cannot replace content: Not a canvas"));
 				return;
 			}
 		}

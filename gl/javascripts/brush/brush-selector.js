@@ -58,7 +58,7 @@ BrushManager.addCustomizedBrush=function(brush){
 	$cv.attr({"width": 0,"height": 0});
 	const $brushtipCanvasBlock=$("<td>").append(
 		$("<div class='brush-selector-canvas-container'>").append($cv)
-	); // @TODO: update canvas
+	);
 
 	// add a row in selector
 	const $row=$("<tr>").append($block,$brushtipCanvasBlock);

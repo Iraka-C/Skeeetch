@@ -161,6 +161,41 @@ PERFORMANCE.checkWorkerSupport=function(){
 	}
 }
 
+// send a report on webgl context lost
+PERFORMANCE.webglContextLost=function(){
+	if(!PERFORMANCE.webglContextLost.isLost){ // not reported yet
+		PERFORMANCE.webglContextLost.isLost=true;
+		const loadReport={
+			title: Lang("glcontextlost-report"),
+			items: []
+		};
+		loadReport.items.push({
+			content: Lang("glcontextlost-hint1"),
+			target: "" // TODO: fill in target
+		});
+		loadReport.items.push({
+			content: Lang("glcontextlost-hint2")+(ENV.displaySettings.maxVRAM/1073741824).toFixed(1)+"GB",
+			target: "" // TODO: fill in target
+		});
+		if(CANVAS.renderer.bitDepth>8){
+			loadReport.items.push({
+				content: Lang("glcontextlost-hint3")+CANVAS.renderer.bitDepth/2+Lang("bit"),
+				target: "" // TODO: fill in target
+			});
+		}
+		loadReport.items.push({
+			content: Lang("glcontextlost-hint4")+ENV.paperSize.width+"×"+ENV.paperSize.height,
+			target: "" // TODO: fill in target
+		});
+		loadReport.items.push({
+			content: Lang("glcontextlost-hint5"),
+			target: "" // TODO: fill in target
+		});
+		PERFORMANCE.REPORTER.report(loadReport);
+	}
+}
+PERFORMANCE.webglContextLost.isLost=false;
+
 // ================= Idle Task Manager ===================
 class IdleTaskManager{
 	constructor(){

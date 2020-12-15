@@ -224,6 +224,9 @@
 .reporter-outer{
 	margin-top: 0.7em;
 	max-height: 50vh;
+	opacity: 0; /* hidden at first */
+	transition: opacity 0.2s;
+
 	overflow-x: hidden;
 	overflow-y: scroll;
 	overflow-y: -moz-scrollbars-none; /* IE 10+ */
@@ -259,6 +262,13 @@
 .report-block-title-text{
 	flex: 1;
 	color: #aaa;
+	transition: color 0.3s;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.report-block-title-text:hover{
+	color: #ccc;
 }
 .report-block-container{
 	font-size: 80%;

@@ -32,9 +32,10 @@ CANVAS.init=function() {
 		canvas: CANVAS.targetCanvas,
 		onRefresh: CANVAS.onRefresh,
 		bitDepth: CANVAS.rendererBitDepth,
-		maxVRAMSize: PERFORMANCE.maxMem.gpu
+		maxVRAMSize: PERFORMANCE.maxMem.gpu,
 		// In fact, there are compression strategies for VRAM
 		// The actual usage will be less than estimated
+		onWebGLContextLost: PERFORMANCE.webglContextLost
 	});
 	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
 	CANVAS.changedArea={width:0,height:0,left:0,top:0};
