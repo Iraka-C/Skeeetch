@@ -147,13 +147,12 @@ ENV.refreshTransform=function() {
 			DRAG.updateUI();
 		}
 		const lowFPS=PERFORMANCE.animationFpsCounter.getLowFPS();
-		LOGGING&&console.log("lowfps = "+lowFPS);
 		if(lowFPS<24&&!PERFORMANCE.isAnimLowFPSHint){
 			PERFORMANCE.isAnimLowFPSHint=true;
 			const animFPSReport={
 				title: Lang("anim-lowfps-report"),
 				items: [{
-					content: Lang("anim-lowfps-info1"),
+					content: Lang("anim-lowfps-info1")+lowFPS.toFixed(1)+Lang("fps"),
 					target: "" // TODO: fill in target
 				}]
 			};

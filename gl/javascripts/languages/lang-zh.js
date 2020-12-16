@@ -63,9 +63,12 @@ LANG_ZH={
 	"ui-light":"浅色",
 
 	"anim-lowfps-report":"低帧率警告",
-	"anim-lowfps-info1":"画面刷新率不足",
+	"anim-lowfps-info1":"画面刷新率不足，最低帧率为",
 	"anim-lowfps-info2":"尝试关闭平滑滚动动画",
 	"anim-lowfps-info3":"尝试关闭抗锯齿滤镜",
+
+	"check-bitrate-macos16-report":"位深度警告",
+	"check-bitrate-macos16-info":"当前浏览器可能无法正常工作在16位深模式下",
 
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",

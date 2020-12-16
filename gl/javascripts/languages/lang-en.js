@@ -46,9 +46,12 @@ LANG_EN={
 	"ui-light":"Light",
 
 	"anim-lowfps-report":"Low FPS",
-	"anim-lowfps-info1":"The refresh rate is low.",
+	"anim-lowfps-info1":"The refresh rate is low. Current lowest rate is ",
 	"anim-lowfps-info2":"Try turn off transform animation.",
 	"anim-lowfps-info3":"Try turn off anti-aliasing.",
+
+	"check-bitrate-macos16-report":"Bit Depth Warning",
+	"check-bitrate-macos16-info":"This browser may not work properly under 16 bit depth mode.",
 
 	// Layer
 	"node-copy-suffix":" copy",

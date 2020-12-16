@@ -11,8 +11,8 @@ PERFORMANCE={
 		gpu: 8*1024*1024*1024 // init 8G (my card)
 	},
 	idleTaskManager: null,
-	strokeFpsCounter: {fps:30}, // starts slow
-	animationFpsCounter: {fps:30},
+	strokeFpsCounter: null,
+	animationFpsCounter: null,
 	isAnimLowFPSHint: false // is there already a hint on low animation fps shown
 };
 
@@ -39,6 +39,10 @@ class FPSCounter{
 			if(this.fps<this.lowList[i]){ // to insert
 				this.lowList.splice(i,0,this.fps);
 				this.lowList.pop();
+				if(i>=8){ // above median
+					this.lowList.shift(); // discard a lowest value
+					this.lowList.push(60); // push an initial value
+				}
 				break;
 			}
 		}
@@ -83,6 +87,7 @@ PERFORMANCE.init=function(maxVRAMSetting){
 	}
 	PERFORMANCE.REPORTER.init();
 	PERFORMANCE.checkWorkerSupport(); // after reporter init
+	PERFORMANCE.checkBitdepthSupport();
 }
 
 PERFORMANCE.getRAMEstimation=function(){ // in MB
@@ -171,6 +176,23 @@ PERFORMANCE.checkWorkerSupport=function(){
 			title: Lang("check-worker-report"),
 			items: [{
 				content: Lang("check-worker-info"),
+				target: "" // TODO: fill in target
+			}]
+		};
+		PERFORMANCE.REPORTER.report(loadReport);
+	}
+}
+
+PERFORMANCE.checkBitdepthSupport=function(){
+	if(
+		ENV.browserInfo.macOS
+		&&ENV.browserInfo.gecko
+		&&CANVAS.rendererBitDepth==16
+	){ // does not support read from 16bit
+		const loadReport={
+			title: Lang("check-bitrate-macos16-report"),
+			items: [{
+				content: Lang("check-bitrate-macos16-info"),
 				target: "" // TODO: fill in target
 			}]
 		};
