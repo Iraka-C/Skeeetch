@@ -70,9 +70,9 @@ class FileWorker { // Work on canvas layer content, not files in repository!
 			// before we can work with thread-safe worker
 			const rawData=CANVAS.renderer.getUint8ArrayFromImageData(imgData,vArea);
 
-			console.log("Local Save");
+			LOGGING&console.log("Local Save");
 			const data=Compressor.encode(rawData); // encode first!
-			console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
+			LOGGING&console.log("Compress "+(100*data.length/rawData.length).toFixed(2)+"%");
 
 			return saveChunks(data);
 		}
@@ -241,7 +241,7 @@ STORAGE.FILES.saveContentChanges=function(node,isForceSaving) {
 				fileSaver.saveFile(node).then(() => {
 					STORAGE.FILES.savingList.delete(node.id); // delete first
 					node.isContentChanged=false;
-					console.log(node.id+" Saved");
+					LOGGING&console.log(node.id+" Saved");
 					if(!STORAGE.FILES.savingList.size) { // all saved
 						STORAGE.FILES.isNowActiveLayerSaved=true;
 						//$("#icon").attr("href","./resources/favicon.png");

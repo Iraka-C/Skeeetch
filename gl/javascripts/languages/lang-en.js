@@ -45,8 +45,16 @@ LANG_EN={
 	"ui-dark":"Dark",
 	"ui-light":"Light",
 
+	"anim-lowfps-report":"Low FPS",
+	"anim-lowfps-info1":"The refresh rate is low.",
+	"anim-lowfps-info2":"Try turn off transform animation.",
+	"anim-lowfps-info3":"Try turn off anti-aliasing.",
+
 	// Layer
 	"node-copy-suffix":" copy",
+	"copy-text-manual":"The browser requires a user confirmation before copy. Do you want to copy contents from the current layer to the clipboard?",
+	"copy-manual-yes":"Yes",
+	"copy-manual-no":"No",
 
 	// Blend Modes
 	"blend-mode-hint":"Blend Mode - ",
@@ -77,6 +85,7 @@ LANG_EN={
 	"blend-color":"Color",
 	"blend-luminosity":"Luminosity",
 	"blend-mask":"Mask",
+	"blend-maskb":"Black Mask",
 
 	// Palette part
 	"palette-hue-sign":"Hue",
@@ -94,6 +103,7 @@ LANG_EN={
 	"delete-file-confirm-suffix":" from repository?",
 	"error-unsupported-layer":"Unsupported layer or feature in this file is discarded",
 	"error-corrupted-layer":"ERROR: Loaded with corrupted layers",
+	"error-oversize":"ERROR: Image size larger than ",
 	"file-deleted":"deleted from repository.",
 	"file-delete-prefix":"Removing ",
 	"file-delete-suffix":" from repository",
@@ -102,6 +112,30 @@ LANG_EN={
 	"file-save-warning":"There are changes in this paper. Do you want to save them?",
 	"file-save-yes":"Yes, save them.",
 	"file-save-no":"No, discard them.",
+
+	"layer-mask":" Mask",
+
+	// Task reports
+	"open-psd-report":"Loading ",
+	"check-worker-report":"Web Worker",
+	"check-worker-info":"Current environment does not support Web Worker acceleration. There might be a performance loss.",
+	"adjust-layer-report":"Unsupported adjustment layer ",
+	"group-pass-report-front":"Converting pass-through group ",
+	"group-pass-report-back":" to normal. This may cause display difference.",
+	"mask-layer-dc-report":" 's default masking color is neither white nor black. This may cause display difference.",
+	"glcontextlost-report":"GL Context Lost",
+	"glcontextlost-hint1":"Greetings, your VRAM (graphics memory) has just exploded.",
+	"glcontextlost-hint2":"Please reduce the VRAM limit. Current value is ",
+	"glcontextlost-hint3":"Or lower the renderer bit depth to ",
+	"glcontextlost-hint4":"Or use a smaller paper. Current size is ",
+	"glcontextlost-hint5":"Please refresh the webpage after changing the settings to preserve saved contents. We wish you a good day! Owo",
+
+	"failed-storage-report1":"Failed to load the contents of ",
+	"failed-storage-report2":".",
+	"save-psdmask-report":" will not display as a mask properly in .psd file.",
+	"save-clipgroup-report":" clip mask group may not display properly in .psd file.",
+	"save-psd-report":"Export PSD File ",
+	"save-psd-fail-report":"Failed to encode .psd file.",
 
 	// Info
 	"about-skeeetch":`

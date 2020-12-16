@@ -15,7 +15,7 @@ EventDistributer.wheel={
 	isSlowDown:false,
 	_init:function(){
 		//window.addEventListener("wheel",EventDistributer.wheel._onwheel,false);
-		EventDistributer.wheel.threshold=ENV.browserInfo.macOS?5:1;
+		EventDistributer.wheel.threshold=10;//ENV.browserInfo.macOS?5:1;
 	},
 	_nowListener:null, // a DOM Object
 	_nowFunction:()=>{}, // a function
@@ -47,8 +47,14 @@ EventDistributer.wheel={
 	_onwheel:function(e){
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){
 			const cnt=EventDistributer.wheel.scrollCnt;
-			cnt[0]-=Math.sign(e.deltaX);
-			cnt[1]-=Math.sign(e.deltaY);
+			if(e.webkitDirectionInvertedFromDevice){ // On safari: natural on
+				cnt[0]+=e.deltaX;
+				cnt[1]+=e.deltaY;
+			}
+			else{ // Win or natural scroll off
+				cnt[0]-=e.deltaX;
+				cnt[1]-=e.deltaY;
+			}
 
 			const threshold=EventDistributer.wheel.threshold;
 			let wX=0,wY=0; // accumulate the events

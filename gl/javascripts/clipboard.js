@@ -71,18 +71,34 @@ CLIPBOARD.copy=function(imgData,imgInfo){
 	// Must be a context2d canvas for Blob
 	// copy only valid area
 	const canvas=CANVAS.renderer.getContext2DCanvasFromImageData(imgData,vArea);
+	function setCopyLayerInfo(){ // store the copied layer info in local storage
+		localStorage.setItem("clipboard",JSON.stringify({ // save image info
+			info: Object.assign({ // add left/top info
+				left: vArea.left,
+				top: vArea.top
+			},imgInfo),
+			width: canvas.width,
+			height: canvas.height
+		}));
+	}
 	//console.log(canvas.width,canvas.height);
 	canvas.toBlob(blob => { // Only Context2D can be safely changed into blob
 		const item=new ClipboardItem({"image/png":blob});
-		navigator.clipboard.write([item]);
+		navigator.clipboard.write([item]).then(()=>{
+			setCopyLayerInfo();
+		}).catch(err=>{ // Copy permission failed on such as Safari: only trigger by click
+			const $text=DialogBoxItem.textBox({text: Lang("copy-text-manual")});
+			const dialog=new DialogBoxItem([$text],[{
+				text: Lang("copy-manual-yes"),
+				callback: e=>{ // write again with click
+					navigator.clipboard.write([item]).then(()=>{ // write layer info again
+						setCopyLayerInfo();
+					});
+				}
+			},{text: Lang("copy-manual-no")}]);
+			DIALOGBOX.show(dialog);
+		});
 	});
-	localStorage.setItem("clipboard",JSON.stringify({ // save image info
-		info: Object.assign({ // add left/top info
-			left: vArea.left,
-			top: vArea.top
-		},imgInfo),
-		width: canvas.width,
-		height: canvas.height
-	}));
+	
 	return true;
 }

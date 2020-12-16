@@ -146,6 +146,29 @@ ENV.refreshTransform=function() {
 		if(DRAG.setNewPaperPoints&&DRAG.mode!="none"){ // update dragger layer
 			DRAG.updateUI();
 		}
+		const lowFPS=PERFORMANCE.animationFpsCounter.getLowFPS();
+		LOGGING&&console.log("lowfps = "+lowFPS);
+		if(lowFPS<24&&!PERFORMANCE.isAnimLowFPSHint){
+			PERFORMANCE.isAnimLowFPSHint=true;
+			const animFPSReport={
+				title: Lang("anim-lowfps-report"),
+				items: [{
+					content: Lang("anim-lowfps-info1"),
+					target: "" // TODO: fill in target
+				}]
+			};
+			if(ENV.displaySettings.enableTransformAnimation){
+				animFPSReport.items.push({
+					content: Lang("anim-lowfps-info2")
+				});
+				if(ENV.displaySettings.antiAlias){
+					animFPSReport.items.push({
+						content: Lang("anim-lowfps-info3")
+					});
+				}
+			}
+			PERFORMANCE.REPORTER.report(animFPSReport);
+		}
 	});
 	if(ENV.displaySettings.antiAlias){ // update canvas anti-aliasing
 		const tmpAARadius=ENV.getAARadius();

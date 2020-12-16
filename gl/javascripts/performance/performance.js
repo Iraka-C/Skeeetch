@@ -12,18 +12,13 @@ PERFORMANCE={
 	},
 	idleTaskManager: null,
 	strokeFpsCounter: {fps:30}, // starts slow
-	animationFpsCounter: {fps:30}
+	animationFpsCounter: {fps:30},
+	isAnimLowFPSHint: false // is there already a hint on low animation fps shown
 };
 
 class FPSCounter{
 	constructor(){
-		const N=10;
-		Object.assign(this,{
-			fps: 60, // init
-			intvList: new Array(N).fill(16), // init 16ms
-			intvSum: 16*N, // sum of intervals
-			intvPt: 0 // now head item in intvList
-		});
+		this.reset();
 	}
 	submit(intv){ // interval in ms
 		intv=intv.clamp(1,1000); // 1~1000fps
@@ -39,6 +34,28 @@ class FPSCounter{
 		if(this.intvPt>=len){ // reset to head
 			this.intvPt=0;
 		}
+
+		for(let i=0;i<this.lowList.length;i++){
+			if(this.fps<this.lowList[i]){ // to insert
+				this.lowList.splice(i,0,this.fps);
+				this.lowList.pop();
+				break;
+			}
+		}
+	}
+	reset(){
+		const N=10;
+		Object.assign(this,{
+			fps: 60, // init
+			intvList: new Array(N).fill(16), // init 16ms
+			intvSum: 16*N, // sum of intervals
+			intvPt: 0, // now head item in intvList
+			lowList: new Array(N).fill(60) // init 60fps
+		});
+		PERFORMANCE.isAnimLowFPSHint=false;
+	}
+	getLowFPS(){
+		return this.lowList[8]; // median
 	}
 }
 
@@ -50,7 +67,7 @@ PERFORMANCE.init=function(maxVRAMSetting){
 	 * PERFORMANCE.strokeFpsCounter is just a debugging object
 	 * At present, no method is provided to get WebGL1.0 render time
 	 */
-	PERFORMANCE.strokeFpsCounter=new FPSCounter(); // not useful at this moment
+	//PERFORMANCE.strokeFpsCounter=new FPSCounter(); // not useful at this moment
 	PERFORMANCE.animationFpsCounter=new FPSCounter();
 	PERFORMANCE.idleTaskManager=new IdleTaskManager();
 	if(maxVRAMSetting){

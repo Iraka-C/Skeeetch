@@ -102,6 +102,16 @@ EVENTS.init=function() {
 	}
 
 	$canvasWindow.on("pointermove",event => {
+		if(!event.buttons&&CURSOR.isDown){ // move button record show that mouse is up
+			// This happens when switching window with mouse on Safari
+			// Anyway end this stroke
+			console.log("end");
+			endStroke();
+			CURSOR.up(event);
+			CURSOR.updateAction(event);
+			return;
+		}
+
 		CURSOR.setIsShown(true); // pen->mouse switching
 		CURSOR.updateAction(event); // still registering right button: change to movecursor?
 		CURSOR.moveCursor(event); // may be stroke or pan
@@ -245,8 +255,8 @@ EVENTS.init=function() {
 
 // keyboard down handler
 EVENTS.keyDown=function(event) {
-	let shift=event.shiftKey==1;
-	let ctrl=event.ctrlKey==1;
+	let shift=event.shiftKey;
+	let ctrl=(event.ctrlKey||event.metaKey);
 	let alt=event.altKey==1;
 	let functionKeyChanged=false;
 
@@ -286,9 +296,9 @@ EVENTS.keyDown=function(event) {
 
 // keyboard up handler
 EVENTS.keyUp=function(event) {
-	let shift=event.shiftKey==1;
-	let ctrl=event.ctrlKey==1;
-	let alt=event.altKey==1;
+	let shift=event.shiftKey;
+	let ctrl=(event.ctrlKey||event.metaKey);
+	let alt=event.altKey;
 	let functionKeyChanged=false;
 
 	if(!shift&&EVENTS.key.shift) { // long pressing a key may fire several events

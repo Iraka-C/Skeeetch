@@ -62,6 +62,11 @@ LANG_ZH={
 	"ui-dark":"深色",
 	"ui-light":"浅色",
 
+	"anim-lowfps-report":"低帧率警告",
+	"anim-lowfps-info1":"画面刷新率不足",
+	"anim-lowfps-info2":"尝试关闭平滑滚动动画",
+	"anim-lowfps-info3":"尝试关闭抗锯齿滤镜",
+
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",
 	"Size Control":"笔刷尺寸控制",
@@ -125,6 +130,9 @@ LANG_ZH={
 	"Make a copy of the current layer / group":"复制图层（组）",
 	"Cannot replace content: Opacity locked":"无法替换内容：不透明度已锁定",
 	"Cannot replace content: Not a canvas":"无法替换内容：该图层不可绘制",
+	"copy-text-manual":"浏览器请求用户确认：要复制当前图层内容到剪贴板吗？",
+	"copy-manual-yes":"确认",
+	"copy-manual-no":"取消",
 
 	// Blend Modes
 	"blend-mode-hint":"混合模式 - ",

@@ -183,12 +183,14 @@ SettingHandler.initSystemSetting=function(sysParams) {
 			case 1: ENV.setAntiAliasing(false); break;
 			default: ENV.setAntiAliasing(true); break;
 		}
+		PERFORMANCE.animationFpsCounter.reset();
 	},() => ENV.displaySettings.antiAlias? 0:1);
 	sys.addSwitch(Lang("Transform Animation"),[Lang("On"),Lang("Off")],null,val => {
 		switch(val) {
 			case 1: ENV.setTransformAnimation(false); break;
 			default: ENV.setTransformAnimation(true); break;
 		}
+		PERFORMANCE.animationFpsCounter.reset();
 	},() => ENV.displaySettings.enableTransformAnimation? 0:1);
 	sys.addSwitch(Lang("UI Orientation"),[Lang("ui-left"),Lang("ui-right")],null,val => {
 		switch(val) {

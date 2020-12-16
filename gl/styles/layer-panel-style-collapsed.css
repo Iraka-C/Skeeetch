@@ -13,7 +13,7 @@
 }
 
 #layer-panel-title{
-	font-size: 100%;
+	font-size: 80%;
 }
 .layer-ui{
 	height: var(--collapsed-layer-ui-size);
