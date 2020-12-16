@@ -112,7 +112,8 @@ CANVAS.setCanvasEnvironment=function() {
 		rgb: PALETTE.colorSelector.getRGB(),
 		sensitivity: BrushManager.general.sensitivity,
 		isOpacityLocked: CANVAS.targetLayerOpacityLocked,
-		antiAlias: ENV.displaySettings.antiAlias
+		antiAlias: ENV.displaySettings.antiAlias,
+		defaultColor: CANVAS.nowLayer.properties.blendMode==BasicRenderer.MASKB?0:1
 	});
 	// init changed area, put this first as isChanged sign init
 	// changed area for history
@@ -429,8 +430,8 @@ CANVAS.pickColor=function(x,y) { // ALL visible layers, (x,y) is under the windo
 	}
 	const imgData=LAYERS.layerTree.imageData;
 	const buffer=CANVAS.renderer.getUint8ArrayFromImageData(imgData,{
-		left: Math.round(p[0])-EXT-imgData.left,
-		top: Math.round(p[1])-EXT-imgData.top,
+		left: Math.round(p[0])-EXT,
+		top: Math.round(p[1])-EXT,
 		width: RANGE,
 		height: RANGE
 	});

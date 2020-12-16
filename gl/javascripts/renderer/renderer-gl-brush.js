@@ -371,13 +371,7 @@ class GLBrushRenderer {
 		// ... Well, should be like this
 		// Using only one shader program allows re-using set program: efficient
 		
-		let color; // only RGB
-		if(brush.blendMode>=0) { // pre-multiply colors
-			color=[colorRGB[0]*opacity,colorRGB[1]*opacity,colorRGB[2]*opacity,opacity];
-		}
-		else { // white
-			color=[opacity,opacity,opacity,opacity];
-		}
+		let color=[colorRGB[0]*opacity,colorRGB[1]*opacity,colorRGB[2]*opacity,opacity];
 		this.renderSolidCircleBrushtip(target,pos,radius,color,softRange,brush.blendMode,isOpacityLocked);
 
 		// Update valid area

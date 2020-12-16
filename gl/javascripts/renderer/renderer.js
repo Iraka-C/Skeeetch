@@ -26,7 +26,13 @@ class BasicRenderer {
 	initBeforeStroke(param) {
 		// BrushManager.general.sensitivity, general seeting
 		this.isOpacityLocked=param.isOpacityLocked||false;
-		this.rgb=param.rgb;
+		if(param.brush.blendMode<0){ // erase
+			this.rgb=param.defaultColor?[255,255,255]:[0,0,0];
+		}
+		else{
+			this.rgb=param.rgb;
+		}
+		
 		this.sensitivity=param.sensitivity||1.0;
 		this._sPower=Math.pow(BasicRenderer._sBase,this.sensitivity-1);
 		this.brush=param.brush;
