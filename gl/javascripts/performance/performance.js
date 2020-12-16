@@ -38,10 +38,11 @@ class FPSCounter{
 		for(let i=0;i<this.lowList.length;i++){
 			if(this.fps<this.lowList[i]){ // to insert
 				this.lowList.splice(i,0,this.fps);
-				this.lowList.pop();
 				if(i>=8){ // above median
 					this.lowList.shift(); // discard a lowest value
-					this.lowList.push(60); // push an initial value
+				}
+				else{ // insert
+					this.lowList.pop(); // discard a highest value
 				}
 				break;
 			}
@@ -218,7 +219,7 @@ PERFORMANCE.webglContextLost=function(){
 		});
 		if(CANVAS.renderer.bitDepth>8){
 			loadReport.items.push({
-				content: Lang("glcontextlost-hint3")+CANVAS.renderer.bitDepth/2+Lang("bit"),
+				content: Lang("gl-lowvram-hint3")+CANVAS.renderer.bitDepth/2+Lang("bit"),
 				target: "" // TODO: fill in target
 			});
 		}
@@ -234,6 +235,32 @@ PERFORMANCE.webglContextLost=function(){
 	}
 }
 PERFORMANCE.webglContextLost.isLost=false;
+
+PERFORMANCE.reportLowVRAM=function(){
+	if(!PERFORMANCE.reportLowVRAM.reported){
+		PERFORMANCE.reportLowVRAM.reported=true;
+		const loadReport={
+			title: Lang("gl-lowvram-report"),
+			items: []
+		};
+		loadReport.items.push({
+			content: Lang("gl-lowvram-hint1"),
+			target: "" // TODO: fill in target
+		});
+		loadReport.items.push({
+			content: Lang("gl-lowvram-hint2")+(ENV.displaySettings.maxVRAM/1073741824).toFixed(1)+"GB",
+			target: "" // TODO: fill in target
+		});
+		if(CANVAS.renderer.bitDepth>8){
+			loadReport.items.push({
+				content: Lang("gl-lowvram-hint3")+CANVAS.renderer.bitDepth/2+Lang("bit"),
+				target: "" // TODO: fill in target
+			});
+		}
+		PERFORMANCE.REPORTER.report(loadReport);
+	}
+}
+PERFORMANCE.reportLowVRAM.reported=false;
 
 // ================= Idle Task Manager ===================
 class IdleTaskManager{

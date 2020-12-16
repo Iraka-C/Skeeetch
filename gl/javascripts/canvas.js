@@ -17,6 +17,8 @@ CANVAS.nowLayer=null; // now operating layer
 CANVAS.changedArea={width:0,height:0,left:0,top:0};
 CANVAS.drawSuccessful=false; // if you try to stroke on canvas, will it be successful?
 
+CANVAS.lastVRAMFreezeCnt=0;
+CANVAS.vramCompressCnt=0; // how many times did VRAM compress during stroking
 // ========================= Functions ===========================
 CANVAS.init=function() {
 	//LOGGING&&console.log("Canvas init "+CANVAS.rendererBitDepth+" bit");
@@ -37,6 +39,7 @@ CANVAS.init=function() {
 		// The actual usage will be less than estimated
 		onWebGLContextLost: PERFORMANCE.webglContextLost
 	});
+	PERFORMANCE.reportLowVRAM.reported=false; // reset low VRAM report
 	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
 	CANVAS.changedArea={width:0,height:0,left:0,top:0};
 }
@@ -65,6 +68,7 @@ CANVAS.setTargetLayer=function(targetLayer) {
 		targetLayer.lastRawImageData=CANVAS.renderer.createImageData(); // create last buffer
 		CANVAS.updateLastImageData(targetLayer);
 	}
+	CANVAS.vramCompressCnt=0;
 }
 
 // update the lastRawImageData in a node
@@ -119,6 +123,7 @@ CANVAS.setCanvasEnvironment=function() {
 	// changed area for history
 	//CANVAS.changedArea={width:0,height:0,left:0,top:0};
 	//CANVAS.dirtyArea={width:0,height:0,left:0,top:0}; // set by refreshScreen
+	CANVAS.lastVRAMFreezeCnt=CANVAS.renderer.getVRAMFreezeCnt();
 };
 
 CANVAS.updateSpeed=function() {
@@ -274,6 +279,18 @@ CANVAS.strokeEnd=function() {
 	}
 	// reset changedArea here so that won't conflict with other keys
 	CANVAS.changedArea={width:0,height:0,left:0,top:0};
+	// Also check vram status here
+	const vramFreezeCnt=CANVAS.renderer.getVRAMFreezeCnt();
+	if(vramFreezeCnt>CANVAS.lastVRAMFreezeCnt){
+		CANVAS.vramCompressCnt++;
+		CANVAS.lastVRAMFreezeCnt=vramFreezeCnt;
+	}
+	else{
+		CANVAS.vramCompressCnt=0;
+	}
+	if(CANVAS.vramCompressCnt>=3){ // many vram compression
+		PERFORMANCE.reportLowVRAM();
+	}
 }
 
 // ================= Canvas refresh control ===================

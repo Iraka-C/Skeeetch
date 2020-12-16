@@ -1011,4 +1011,7 @@ class GLRenderer extends BasicRenderer {
 		// }
 		this.imageDataFactory.convertGLRAMBufToTexture(src);
 	}
+	getVRAMFreezeCnt(){
+		return this.vramManager.getVRAMFreezeCnt();
+	}
 }

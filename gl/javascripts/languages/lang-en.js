@@ -129,9 +129,14 @@ LANG_EN={
 	"glcontextlost-report":"GL Context Lost",
 	"glcontextlost-hint1":"Greetings, your VRAM (graphics memory) has just exploded.",
 	"glcontextlost-hint2":"Please reduce the VRAM limit. Current value is ",
-	"glcontextlost-hint3":"Or lower the renderer bit depth to ",
+	// "glcontextlost-hint3" is same as "gl-lowvram-hint3"
 	"glcontextlost-hint4":"Or use a smaller paper. Current size is ",
 	"glcontextlost-hint5":"Please refresh the webpage after changing the settings to preserve saved contents. We wish you a good day! Owo",
+
+	"gl-lowvram-report":"Low VRAM",
+	"gl-lowvram-hint1":"Low remaining VRAM (graphics memory) reserved for Skeeetch. This may cause the display to freeze.",
+	"gl-lowvram-hint2":"Please increase the VRAM limit. Current value is ",
+	"gl-lowvram-hint3":"Or lower the renderer bit depth to ",
 
 	"failed-storage-report1":"Failed to load the contents of ",
 	"failed-storage-report2":".",

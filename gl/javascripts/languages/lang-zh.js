@@ -229,9 +229,14 @@ LANG_ZH={
 	"glcontextlost-report":"GL显存丢失",
 	"glcontextlost-hint1":"您好，您的显存刚刚爆炸了。",
 	"glcontextlost-hint2":"请尝试减小显存限制数值，当前是",
-	"glcontextlost-hint3":"或将渲染器位深度降低到",
+	// "glcontextlost-hint3", "gl-lowvram-hint3" 相同
 	"glcontextlost-hint4":"或使用更小一些的画纸，当前是",
 	"glcontextlost-hint5":"请在更改设置后立即刷新Skeeetch网页以免已保存的内容丢失。最后祝您生活愉快！",
+
+	"gl-lowvram-report":"低显存警告",
+	"gl-lowvram-hint1":"可用显存过低，可能导致界面卡顿",
+	"gl-lowvram-hint2":"请尝试增大显存限制数值，当前是",
+	"gl-lowvram-hint3":"或将渲染器位深度降低到",
 
 	"failed-storage-report1":"无法读取图层 ",
 	"failed-storage-report2":" 的内容",

@@ -147,7 +147,8 @@ ENV.refreshTransform=function() {
 			DRAG.updateUI();
 		}
 		const lowFPS=PERFORMANCE.animationFpsCounter.getLowFPS();
-		if(lowFPS<24&&!PERFORMANCE.isAnimLowFPSHint){
+		if(lowFPS<24&&!PERFORMANCE.isAnimLowFPSHint&&!ENV.taskCounter.isWorking()){
+			// only stat when not working
 			PERFORMANCE.isAnimLowFPSHint=true;
 			const animFPSReport={
 				title: Lang("anim-lowfps-report"),
