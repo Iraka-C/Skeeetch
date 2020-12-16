@@ -55,8 +55,8 @@ class RootNode extends ContentNode { // only one root node
 
 		const imgData=this.rawImageData; // contents not saved here, only for dimensions
 		return {
-			"width": imgData.width,
-			"height": imgData.height,
+			"width": ENV.paperSize.width,
+			"height": ENV.paperSize.height,
 			"channels": 4,
 			"bitsPerChannel": 8, // only support 8-bit output
 			"colorMode": 3, // RGBA

@@ -91,6 +91,10 @@ FILES.loadPSDNodes=function(node) {
 			this.index=0;
 			this.nextNodeToLoad=null;
 			ENV.taskCounter.startTask(1); // register load node
+
+			if(parent){ // add a child
+				parent.N++;
+			}
 		}
 		load() { // sync function, can be called async
 			// **NOTE** setProperties() actually requested screen refresh
@@ -120,11 +124,11 @@ FILES.loadPSDNodes=function(node) {
 					visible: !sNode.disabled,
 					clipMask: true, // only to the following one layer by default
 					name: maskName,
-					blendMode: BasicRenderer.MASK // MASK blend mode
+					blendMode: sNode.defaultColor>=128?BasicRenderer.MASK:BasicRenderer.MASKB // MASK blend mode
 				});
 
 				// default color option
-				if(sNode.defaultColor!=255){ // not white
+				if(sNode.defaultColor!=255&&sNode.defaultColor!=0){ // not white
 					loadReport.items.push({
 						content: maskName+Lang("mask-layer-dc-report"),
 						target: newElement.id
@@ -137,7 +141,7 @@ FILES.loadPSDNodes=function(node) {
 			}
 			else if(sNode.hasOwnProperty("children")) { // group node
 				//LOGGING&&console.log(sNode.name+": "+sNode.blendMode+", '"+sNode.sectionDivider.key+"'");
-				this.N=sNode.children.length; // children count
+				//this.N=sNode.children.length; // children count
 				const newElement=new LayerGroupNode();
 
 				/**
@@ -173,6 +177,8 @@ FILES.loadPSDNodes=function(node) {
 					sNode.canvas.height=0;
 				}
 				else{ // Maybe unsupported, create a report
+					/** TODO: use handlers to check. some adjust layers don't have nameSource */
+					
 					if(sNode.nameSource=="cont"){ // adjust layer, will affect "pass" group effect
 						FILES.loadPSDNodes.isUnsupportedLayerFound=true;
 						if(!sNode.clipping){ // not clipping, may affect outside
@@ -266,7 +272,6 @@ FILES.loadPSDNodes=function(node) {
 			}
 			else { // root loaded
 				PERFORMANCE.REPORTER.report(loadReport);
-				// TODO: sometime this is before last percentage info
 				FILES.onPSDLoaded();
 			}
 		}
@@ -320,13 +325,13 @@ FILES.loadPSDNodes=function(node) {
 	};
 
 	if(node.children){ // pushing children into queue
-		rootStackNode.N=node.children.length;
-		for(let i=0;i<rootStackNode.N;i++) { // traverse root
+		//rootStackNode.N=node.children.length;
+		for(let i=0;i<node.children.length;i++) { // traverse root
 			traverse(node.children[i],rootStackNode);
 		}
 	}
 	else{ // only root itself. This happens when psd only contains a bg
-		rootStackNode.N=1;
+		//rootStackNode.N=1;
 		const stackNode=new StackNode(Object.assign(node,{ // necessary additional info
 			left: 0,
 			top: 0,
@@ -466,7 +471,7 @@ FILES.loadAsImage=function(img,layerToLoad,prop) {
 
 // ===================== Export operations ========================
 
-FILES.saveAsPSD=function(psdJSON) { // @TODO: change to async function
+FILES.saveAsPSD=function(psdJSON) {
 	/**
 	 * **NOTE** Should not use Promise for asynchronized JSON composition:
 	 * Promise() creates microtasks in the task loop,
@@ -478,23 +483,42 @@ FILES.saveAsPSD=function(psdJSON) { // @TODO: change to async function
 	FILES.saveAsPSD.reports=[];
 	psdJSON=psdJSON||LAYERS.layerTree.getAgPSDCompatibleJSON(); // Construct layers
 
-	ENV.taskCounter.startTask(1); // start PSD encoding task
-	EventDistributer.footbarHint.showInfo(Lang("Encoding")+" ...");
-	setTimeout(e => { // convert into binary stream
-		const buffer=agPsd.writePsd(psdJSON);
-		ENV.taskCounter.finishTask(1); // finish PSD encoding task
-		EventDistributer.footbarHint.showInfo(Lang("Exporting")+" ...");
-		setTimeout(e => { // Download
-			const blob=new Blob([buffer],{type: "application/octet-stream"});
-			const filename=ENV.getFileTitle();
-			FILES.downloadBlob(filename+".psd",blob);
-			ENV.taskCounter.finishTask(1); // finish PSD task
-			PERFORMANCE.REPORTER.report({
-				title: Lang("save-psd-report")+ENV.getFileTitle(),
-				items: FILES.saveAsPSD.reports
-			});
+	function report(){
+		PERFORMANCE.REPORTER.report({
+			title: Lang("save-psd-report")+ENV.getFileTitle(),
+			items: FILES.saveAsPSD.reports
+		});
+		FILES.saveAsPSD.reports=[];
+	}
+
+	return new Promise((res,rej)=>{
+		ENV.taskCounter.startTask(1); // start PSD encoding task
+		EventDistributer.footbarHint.showInfo(Lang("Encoding")+" ...");
+		setTimeout(e => { // convert into binary stream
+			try{
+				const buffer=agPsd.writePsd(psdJSON);
+				ENV.taskCounter.finishTask(1); // finish PSD encoding task
+				EventDistributer.footbarHint.showInfo(Lang("Exporting")+" ...");
+				setTimeout(e => { // Download
+					const blob=new Blob([buffer],{type: "application/octet-stream"});
+					const filename=ENV.getFileTitle();
+					FILES.downloadBlob(filename+".psd",blob);
+					report();
+					res(true); // successful
+				},0);
+			}
+			catch(err){
+				console.error(err);
+				FILES.saveAsPSD.reports.push({ // add a failed report
+					content: Lang("save-psd-fail-report"),
+					target: ""
+				});
+				ENV.taskCounter.finishTask(1); // finish PSD encoding task
+				report();
+				res(false); // failed
+			}
 		},0);
-	},0);
+	});
 }
 
 FILES.saveAsPNG=function() {

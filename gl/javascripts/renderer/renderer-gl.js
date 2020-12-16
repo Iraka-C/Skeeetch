@@ -130,11 +130,15 @@ class GLRenderer extends BasicRenderer {
 	_initRenderCanvasProgram() {
 		// add the glsl codes inside a closure
 		const vCanvasShaderSource=glsl`
-			attribute vec2 a_position; // vertex position
-			varying vec2 v_position;
+			attribute vec2 a_src_pos; // position of tA in src texture
+			attribute vec2 a_src_posv; // position of tA in src texture validArea
+			attribute vec2 a_dst_pos; // position of tA in dst texture
+			varying vec2 v_pos;
+			varying vec2 v_posv;
 			void main(){
-				v_position=a_position;
-				gl_Position=vec4(a_position*2.0-1.0,0.0,1.0); // to clip space
+				v_pos=a_src_pos;
+				v_posv=a_src_posv;
+				gl_Position=vec4(a_dst_pos*2.0-1.0,0.0,1.0); // to clip space
 			}
 		`;
 		const fCanvasShaderSource=glsl`
@@ -142,23 +146,34 @@ class GLRenderer extends BasicRenderer {
 			precision mediump sampler2D;
 			uniform sampler2D u_image;
 			uniform vec2 u_aa_step; // anti-alias pixel interval (x,y) in sampler coordinate, may be non-int
+			uniform vec2 u_aa_stepv; // anti-alias pixel interval (x,y) in src validArea coordinate
 			uniform float u_aa_cnt; // how many steps to sample. compare to Gaussian, this is 2*sigma
-			varying highp vec2 v_position;
+			varying highp vec2 v_pos;
+			varying highp vec2 v_posv;
 
 			const float max_its=10.; // at least 10% zoom rate
+
+			vec4 get_color(vec2 vp,vec2 vpv){ // get a color from position vp, while the area is vpv
+				if(vpv.x<0.||vpv.x>1.||vpv.y<0.||vpv.y>1.){
+					return vec4(0.,0.,0.,0.);
+				}
+				return texture2D(u_image,vp);
+			}
+
 			void main(){
 				float cnt=u_aa_cnt+1.;
-				vec4 totalColor=texture2D(u_image,v_position)*cnt;
+				vec4 totalColor=get_color(v_pos,v_posv)*cnt;
 				float totalCnt=cnt;
 				for(float i=1.;i<max_its;i+=2.){
 					if(i>=cnt){ // reach the side
 						break;
 					}
 					vec2 dPos1=u_aa_step*i;
+					vec2 dPos1v=u_aa_stepv*i;
 					float k1=cnt-i;
 					float k2=k1-1.;
 					if(k2<=0.){ // only count k1
-						vec4 pix=texture2D(u_image,v_position+dPos1)+texture2D(u_image,v_position-dPos1);
+						vec4 pix=get_color(v_pos+dPos1,v_posv+dPos1v)+get_color(v_pos-dPos1,v_posv-dPos1v);
 						totalColor+=pix*k1;
 						totalCnt+=k1+k1;
 					}
@@ -167,7 +182,8 @@ class GLRenderer extends BasicRenderer {
 						float p=k1/k;
 						float q=1.-p;
 						vec2 dPosM=dPos1+u_aa_step*q;
-						vec4 pix=texture2D(u_image,v_position+dPosM)+texture2D(u_image,v_position-dPosM);
+						vec2 dPosMv=dPos1v+u_aa_stepv*q;
+						vec4 pix=get_color(v_pos+dPosM,v_posv+dPosMv)+get_color(v_pos-dPosM,v_posv-dPosMv);
 						totalColor+=pix*k;
 						totalCnt+=k+k;
 					}
@@ -177,7 +193,6 @@ class GLRenderer extends BasicRenderer {
 		`;
 		// ================= Create program ====================
 		this.canvasProgram=new GLProgram(this.gl,vCanvasShaderSource,fCanvasShaderSource);
-		this.canvasProgram.setAttribute("a_position",[0,0,1,0,0,1,0,1,1,0,1,1],2);
 	}
 
 	_initClearCanvasProgram() {
@@ -276,7 +291,6 @@ class GLRenderer extends BasicRenderer {
 
 	// source is a texture
 	// the minimum scale is 0.1, at most 10px antialiasing (which is 21x merging)
-	// @TODO: draw only validArea (notice the edge of blur!)
 	drawCanvas(imgData,antiAliasRadius) {
 		antiAliasRadius=antiAliasRadius||0; // 0px as default
 
@@ -284,23 +298,34 @@ class GLRenderer extends BasicRenderer {
 		const program=this.canvasProgram;
 		const w=this.canvas.width;
 		const h=this.canvas.height;
-		const iw=imgData.width;
-		const ih=imgData.height;
+		// const iw=imgData.validArea.width;
+		// const ih=imgData.validArea.height;
+		const tA=GLProgram.borderIntersection(imgData.validArea,this.viewport); // area to draw
 
-		const isToDraw=iw&&ih;
+		const isToDraw=tA.width&&tA.height;
 		const tmp=this.tmpImageData;
 		// horizontal blur
+		const unitRect=GLProgram.getAttributeRect();
 		if(isToDraw) {
 			this.vramManager.verify(imgData);
+			this.vramManager.verify(tmp);
 			program.setTargetTexture(tmp.data); // draw to temp data
 			gl.viewport(0,0,w,h);
 			gl.clearColor(0,0,0,0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 
+			// reset position to viewport
+			// Object.assign(tmp,this.viewport);
+			// Object.assign(tmp,this.viewport);
+
 			program.setSourceTexture("u_image",imgData.data);
-			program.setUniform("u_aa_step",[1/w,0]);
+			program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,imgData),2);
+			program.setAttribute("a_src_posv",GLProgram.getAttributeRect(tA,imgData.validArea),2);
+			program.setAttribute("a_dst_pos",unitRect,2);
+			program.setUniform("u_aa_step",[1/imgData.width,0]); // 1 pixel horizontal
+			program.setUniform("u_aa_stepv",[1/imgData.validArea.width,0]); // 1 pixel horizontal
 			program.setUniform("u_aa_cnt",antiAliasRadius);
-			gl.viewport(imgData.left,h-ih-imgData.top,iw,ih); // set viewport according to the image data
+			gl.viewport(tA.left,h-tA.height-tA.top,tA.width,tA.height); // set viewport according to tA
 			gl.blendFunc(this.gl.ONE,this.gl.ZERO); // copy
 			program.run();
 		}
@@ -314,9 +339,14 @@ class GLRenderer extends BasicRenderer {
 			return;
 		}
 
+		// draw all tmp to canvas
 		program.setSourceTexture("u_image",tmp.data);
-		program.setUniform("u_aa_step",[0,1/h]);
+		program.setUniform("u_aa_step",[0,1/h]); // 1 pixel vertical
+		program.setUniform("u_aa_stepv",[0,1/h]); // 1 pixel vertical
 		program.setUniform("u_aa_cnt",antiAliasRadius);
+		program.setAttribute("a_src_pos",unitRect,2);
+		program.setAttribute("a_src_posv",unitRect,2);
+		program.setAttribute("a_dst_pos",unitRect,2);
 		gl.blendFunc(this.gl.ONE,this.gl.ZERO); // copy
 		program.run();
 	}
@@ -447,6 +477,41 @@ class GLRenderer extends BasicRenderer {
 		gl.clearColor(0,0,0,0); // Set clear color
 		gl.clear(gl.COLOR_BUFFER_BIT); // Clear the color buffer with specified clear color
 		gl.disable(gl.SCISSOR_TEST);
+	}
+	clearScissoredImageDataExt(target,range) { // target, range, all in paper coordinate
+		if(!(target.width&&target.height)) { // No pixel, clear everything
+			this.clearImageData(target,null);
+			return;
+		}
+		this.vramManager.verify(target);
+		range=range||target; // default: clear all
+		const gl=this.gl;
+		gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuffer); // render to a texture
+		gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,target.data,0);
+		gl.viewport(0,0,target.width,target.height);
+		gl.enable(gl.SCISSOR_TEST);
+		gl.clearColor(0,0,0,0); // Set clear color
+
+		// clear 4 edges
+		if(range.left>target.left){
+			gl.scissor(0,0,range.left-target.left,target.height);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+		}
+		if(range.top>target.top){
+			gl.scissor(0,target.top+target.height-range.top,target.width,range.top-target.top);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+		}
+		if(range.left+range.width<target.left+target.width){
+			gl.scissor(range.left+range.width-target.left,0,
+				target.left+target.width-range.left-range.width,target.height);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+		}
+		if(range.top+range.height<target.top+target.height){
+			gl.scissor(0,0,target.width,target.top+target.height-range.top-range.height);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+		}
+		gl.disable(gl.SCISSOR_TEST);
+		target.validArea=GLProgram.borderIntersection(target.validArea,range);
 	}
 	/**
 	 * Change src's size to newParam, size may be smaller (will crop the src)

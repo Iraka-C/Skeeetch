@@ -524,7 +524,9 @@ class CanvasNode extends ContentNode {
 		let json=super.getAgPSDCompatibleJSON();
 		return Object.assign(json,{
 			"canvas": CANVAS.renderer.getContext2DCanvasFromImageData(this.rawImageData,null,{
-				bgColor: json.isMask?[1,1,1,1]:[0,0,0,0] // if it is mask, fill with white
+				bgColor: json.isMask?
+					this.properties.blendMode==BasicRenderer.MASK?[1,1,1,1]:[0,0,0,1]
+					:[0,0,0,0] // if it is mask, fill with white
 			}) // left & top info are handled by json
 		});
 	}

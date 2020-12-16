@@ -148,11 +148,17 @@ ENV.refreshTransform=function() {
 		}
 	});
 	if(ENV.displaySettings.antiAlias){ // update canvas anti-aliasing
-		CANVAS.requestRefresh();
+		const tmpAARadius=ENV.getAARadius();
+		if(tmpAARadius!=CANVAS.lastAARad){
+			CANVAS.requestRefresh();
+		}
 	}
 	
 	CURSOR.updateXYR();
 };
+ENV.getAARadius=function(){
+	return ENV.displaySettings.antiAlias?0.7*Math.max(1/ENV.window.scale-1,0):0;
+}
 
 /**
  * Set is the paper flipped

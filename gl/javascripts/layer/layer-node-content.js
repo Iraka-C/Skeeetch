@@ -408,7 +408,7 @@ class ContentNode extends LayerNode {
 		const prop=this.properties;
 		const vA=imgData.validArea;
 
-		if(prop.blendMode==BasicRenderer.MASK){
+		if(prop.blendMode==BasicRenderer.MASK||prop.blendMode==BasicRenderer.MASKB){
 			if(prop.clipMask&&!this.children.length){
 				return { // a mask layer in PS
 					"isMask": true,
@@ -416,7 +416,7 @@ class ContentNode extends LayerNode {
 					"left": vA.left,
 					"positionRelativeToLayer": false,
 					"disabled": !prop.visible,
-					"defaultColor": 255 // White at present
+					"defaultColor": prop.blendMode==BasicRenderer.MASK?255:0 // white or black
 				};
 			}
 			else{ // send a report first

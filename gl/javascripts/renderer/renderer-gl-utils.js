@@ -276,7 +276,23 @@ class GLTextureBlender {
 	 * **NOTE** if not param.alphaLock, then the dst.validArea may change!
 	 */
 	blendTexture(src,dst,param) {
-		if(!param.targetArea) param.targetArea=src.validArea; // blend all src valid pixels
+		let tA=param.targetArea?{...param.targetArea}:{...src.validArea};
+		/*if(!param.targetArea){
+			param.targetArea=src.validArea; // blend all src valid pixels
+		}
+		else{ // XXX! only need to add valid from src
+			//param.targetArea=GLProgram.borderIntersection(param.targetArea,src.validArea);
+			// Nope: resulting areas may be scissored and won't be cleared
+		}*/
+		const tAL=Math.floor(tA.left);
+		const tAT=Math.floor(tA.top);
+		tA={
+			width: Math.ceil(tA.width+tA.left)-tAL,
+			height: Math.ceil(tA.height+tA.top)-tAT,
+			left: tAL,
+			top: tAT
+		};
+
 		param.alphaLock=param.alphaLock||false;
 		if(
 			param.alphaLock
@@ -284,12 +300,12 @@ class GLTextureBlender {
 			||param.mode==GLTextureBlender.MASK
 			||param.mode==GLTextureBlender.MASKB // Notice: maskb will change area out of validArea
 		){ // only need to blend within dst.validArea
-			param.targetArea=GLProgram.borderIntersection(param.targetArea,dst.validArea);
+			tA=GLProgram.borderIntersection(tA,dst.validArea);
 		}
-		else{ // may extend
-			param.targetArea=GLProgram.borderIntersection(param.targetArea,dst);
+		else{ // may extend, but still within dst
+			tA=GLProgram.borderIntersection(tA,dst);
 		}
-		if(!param.targetArea.width||!param.targetArea.height) { // target contains zero pixel
+		if(!tA.width||!tA.height) { // target contains zero pixel
 			if(param.mode==GLTextureBlender.MASKB){ // all black mask: clear everything
 				this.renderer.clearImageData(dst);
 			}
@@ -374,8 +390,8 @@ class GLTextureBlender {
 				advancedBlendFlag=true;
 		}
 
-		const tA=param.targetArea; // Do not change the contents!
 		if(advancedBlendFlag) { // need advanced composition shader
+			param.targetArea=tA; // new area calculated
 			this.advancedBlendTexture(src,dst,param);
 		}
 		else { // blend with blendFunc
@@ -397,12 +413,13 @@ class GLTextureBlender {
 			// gl.viewport(0,0,dst.width,dst.height); // target area as dst
 
 			// FIXME: GLTextureBlender.MASK will clear all contents outside viewArea
-			const viewArea={ // round the target area
-				left: Math.floor(tA.left),
-				top: Math.floor(tA.top),
-				width: Math.ceil(tA.width),
-				height: Math.ceil(tA.height)
-			}
+			// const viewArea={ // round the target area
+			// 	left: Math.floor(tA.left),
+			// 	top: Math.floor(tA.top),
+			// 	width: Math.ceil(tA.width),
+			// 	height: Math.ceil(tA.height)
+			// }
+			const viewArea=tA; // already rounded
 			
 			program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,src,!param.antiAlias),2);
 			program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(tA,viewArea,!param.antiAlias),2);
@@ -417,13 +434,22 @@ class GLTextureBlender {
 			program.run();
 		}
 
-		if(param.mode==GLTextureBlender.MASKB){ // only within src.validArea
-			dst.validArea=GLProgram.borderIntersection(dst.validArea,src.validArea);
+		const pA={ // a rounded src.validArea version
+			width: Math.ceil(src.validArea.width),
+			height: Math.ceil(src.validArea.height),
+			left: Math.floor(src.validArea.left),
+			top: Math.floor(src.validArea.top)
+		};
+		if(param.mode==GLTextureBlender.MASKB){ // result only within src.validArea
+			if(!param.targetArea){ // not a partial update
+				this.renderer.clearScissoredImageDataExt(dst,pA);
+			}
+			//dst.validArea=GLProgram.borderIntersection(dst.validArea,src.validArea);
 		}
-		if(!param.alphaLock&&param.mode!=GLTextureBlender.ERASE&&param.mode!=GLTextureBlender.MASK) {
+		else if(!param.alphaLock&&param.mode!=GLTextureBlender.ERASE&&param.mode!=GLTextureBlender.MASK) {
 			// extend dst valid area, but not larger than dst size
 			// erase or mask won't extend valid area: they only delete things
-			const extArea=GLProgram.borderIntersection(src.validArea,tA); // part blended
+			const extArea=GLProgram.borderIntersection(pA,tA); // part blended
 			const tmpArea=GLProgram.extendBorderSize(extArea,dst.validArea); // new valid area extended
 			dst.validArea=GLProgram.borderIntersection(tmpArea,dst); // trim in dst borders
 		}

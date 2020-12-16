@@ -225,7 +225,11 @@ FILES.initFileMenu=function() {
 		EventDistributer.footbarHint.showInfo(Lang("Rendering")+" ...");
 		fileManager.toggleExpand();
 		ENV.taskCounter.startTask(1); // start PSD task
-		setTimeout(FILES.saveAsPSD,1000);
+		setTimeout(e=>{
+			FILES.saveAsPSD().then(isSuccess=>{
+				ENV.taskCounter.finishTask(1); // finish PSD task
+			})
+		},1000);
 	});
 	EventDistributer.footbarHint(psdButtonFunc(),() => Lang("Save as PSD")+" (Ctrl+Shift+S)");
 
@@ -389,6 +393,11 @@ FILES.onFilesLoaded=function(files,isNewFile){
 		img.src=window.URL.createObjectURL(file);
 		img.filename=file.name;
 		img.onload=function(e) {
+			if(img.width>ENV.maxPaperSize||img.height>ENV.maxPaperSize){
+				// larger than maximum paper size
+				EventDistributer.footbarHint.showInfo(Lang("error-oversize")+ENV.maxPaperSize+Lang("pix"),2000);
+				return;
+			}
 			if(isNewFile){
 				FILES.tempPaperSize.width=img.width;
 				FILES.tempPaperSize.height=img.height;

@@ -214,7 +214,7 @@ LANG_ZH={
 	"adjust-layer-report":"不支持的调整图层 ",
 	"group-pass-report-front":"转换穿透组 ",
 	"group-pass-report-back":" 为正常，可能导致显示差异",
-	"mask-layer-dc-report":" 蒙版默认颜色非白色，可能导致显示差异",
+	"mask-layer-dc-report":" 蒙版默认颜色非白色或黑色，可能导致显示差异",
 	"glcontextlost-report":"GL显存丢失",
 	"glcontextlost-hint1":"您好，您的显存刚刚爆炸了。",
 	"glcontextlost-hint2":"请尝试减小显存限制数值，当前是",
@@ -227,6 +227,7 @@ LANG_ZH={
 	"save-psdmask-report":" 蒙版图层在PSD文件中可能无法正确显示",
 	"save-clipgroup-report":" 图层组剪贴蒙版在PSD文件中可能无法正确显示",
 	"save-psd-report":"导出PSD ",
+	"save-psd-fail-report":"写入PSD文件失败",
 
 	// Info
 	"About Skeeetch":"关于Skeeetch",

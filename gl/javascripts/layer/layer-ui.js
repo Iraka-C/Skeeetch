@@ -279,10 +279,13 @@ class LayerBlendModeSelector {
 				let prevClip=this.caller.properties.clipMask;
 				let prevMode=this.caller.properties.blendMode;
 				let nowClip=prevClip;
-				if(mode==BasicRenderer.MASK||mode==BasicRenderer.MASKB) {
+
+				const nowMask=(mode==BasicRenderer.MASK||mode==BasicRenderer.MASKB);
+				const prevMask=(prevMode==BasicRenderer.MASK||prevMode==BasicRenderer.MASKB);
+				if(!prevMask&&nowMask){
 					nowClip=true;
 				}
-				else if((prevMode==BasicRenderer.MASK||prevMode==BasicRenderer.MASKB)&&prevClip) {
+				else if(prevMask&&!nowMask&&prevClip) {
 					nowClip=false;
 				}
 				const prevStatus={blendMode: prevMode,clipMask: prevClip};

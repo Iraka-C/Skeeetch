@@ -229,7 +229,7 @@ CANVAS.stroke=function() {
 	const targetSize={width: wH-wL,height: hH-hL,left: wL,top: hL};
 	let clippedTargetSize=targetSize;
 	// render
-	if(CANVAS.renderer.brush.blendMode!=-1&&!CANVAS.targetLayerOpacityLocked){ // need to expand border
+	if(CANVAS.renderer.brush.blendMode!=GLTextureBlender.NONE&&!CANVAS.targetLayerOpacityLocked){ // need to expand border
 		//console.log("now Target",nowTarget,"Clipp",);
 		
 		CANVAS.renderer.adjustImageDataBorders(nowTarget,clippedTargetSize,true);
@@ -252,6 +252,7 @@ CANVAS.stroke=function() {
 	// render end
 	CANVAS.changedArea=GLProgram.extendBorderSize(CANVAS.changedArea,clippedTargetSize);
 	nowLayer.setRawImageDataInvalid(); // the layers needs to be recomposited
+
 	CANVAS.requestRefresh(clippedTargetSize); // request a refresh on the screen. Saved Time?
 };
 
@@ -333,12 +334,14 @@ CANVAS.onRefresh=function() {
 CANVAS.refreshScreen=function() {
 	if(!LAYERS.layerTree)return; // not valid layerTree
 	//const startT=window.performance.now();
-	const antiAliasRadius=ENV.displaySettings.antiAlias?0.7*Math.max(1/ENV.window.scale-1,0):0;
+	const antiAliasRadius=ENV.getAARadius(); // calculate anti-alias filter radius
 	COMPOSITOR.recompositeLayers(null,CANVAS.dirtyArea); // recomposite from root.
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
 	//LOGGING&&console.log("Refresh Time = "+Math.round(window.performance.now()-startT)+" ms");
 	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
+	CANVAS.lastAARad=antiAliasRadius;
 }
+CANVAS.lastAARad=0; // last AA radius when refreshed
 
 /**
  * The last refresh after a stroke stops

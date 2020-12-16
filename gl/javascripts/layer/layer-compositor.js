@@ -72,6 +72,8 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 	const isNeutralColor=ENV.displaySettings.blendWithNeutralColor;
 	//dirtyArea=null;
 	// If no dirty area provided, assume that node shall contain all contents of leaves
+	//if(dirtyArea)console.log("dirty");else console.log("normal");
+	
 
 	if(!node.isRawImageDataValid&&!(node instanceof CanvasNode)) {
 		// raw data of this node needs recomposition
@@ -84,8 +86,9 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 		const list=node.children;
 		const childrenToBlend=[];
 		let initSize={width: 0,height: 0,left: 0,top: 0};
-		for(let i=list.length-1;i>=0;) { // reversed order
+		for(let i=list.length-1,j;i>=0;i-=j+1) { // reversed order, skip clip masks
 			const child=list[i];
+			j=child.clipMaskChildrenCnt;
 			// for group, only blend non-clip mask layers
 			// use node.imageDataCombinedCnt to skip clip mask
 			COMPOSITOR.recompositeLayers(child,dirtyArea); // recomposite this level
@@ -100,6 +103,11 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 				}
 				else if(child.properties.blendMode==BasicRenderer.MASKB){
 					// black: cut inside
+					if(!(child.imageData.width&&child.imageData.height)){ // reset
+						childrenToBlend.length=0; // clear
+						initSize={width: 0,height: 0,left: 0,top: 0};
+						continue;
+					}
 					initSize=GLProgram.borderIntersection(initSize,child.imageData.validArea);
 				}
 				else{ // normal extension
@@ -107,7 +115,6 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 				}
 				// @TODO-: change GL to other class
 			}
-			i-=child.clipMaskChildrenCnt+1; // skip clip masks
 		}
 		// Make sizes integer to contain all layers
 		initSize.left=Math.floor(initSize.left);

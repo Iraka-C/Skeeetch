@@ -34,7 +34,11 @@ EVENTS.initHotKeys=function() {
 	EventDistributer.key.addListener("ctrl+shift+KeyS",e => { // Save as psd
 		EventDistributer.footbarHint.showInfo("Rendering ...");
 		ENV.taskCounter.startTask(1); // start PSD task
-		setTimeout(FILES.saveAsPSD,500); // for show info animation
+		setTimeout(e=>{
+			FILES.saveAsPSD().then(isSuccess=>{
+				ENV.taskCounter.finishTask(1); // finish PSD task
+			})
+		},500); // for animation
 	});
 
 	// New paper. No way to override ctrl+N
