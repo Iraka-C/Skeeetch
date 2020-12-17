@@ -212,7 +212,9 @@ EVENTS.init=function() {
 
 	// Scroll on canvas
 	// Expose this method to public so that other UI can also update canvas window by scrolling
-	const scrollOnCanvasWindowHandler=(dy,dx) => { // Scroll
+	let lastVX=0;
+	let lastSXOverSpeedTime=0;
+	const scrollOnCanvasWindowHandler=(dy,dx,event) => { // Scroll
 		if(EVENTS.key.alt||EVENTS.key.ctrl) { // normal pan
 			let newTx=ENV.window.trans.x-dx*10;
 			let newTy=ENV.window.trans.y-dy*10;
@@ -245,6 +247,43 @@ EVENTS.init=function() {
 			const newY=cursorY+dY*k-ENV.window.SIZE.height/2;
 			ENV.transformTo(newX,newY,ENV.window.rot,newS);
 			$("#scale-info-input").val(Math.round(newS*100));
+
+			// deal with scroll-x event as swipe by yourself
+
+			const T=event.timeStamp;
+			const vX=EventDistributer.wheel.speed[0];
+
+			const threshold=1;
+			if(Math.abs(vX)>threshold&&Math.abs(lastVX)<=threshold){
+				// start to overspeed
+				lastSXOverSpeedTime=T;
+			}
+			else if(Math.abs(vX)>threshold){
+				// end overspeeding
+				const dT=T-lastSXOverSpeedTime;
+				const isFileExpanded=FILES.fileManager.isExpanded();
+				const isBrushExpanded=BrushManager.brushMenu.isExpanded();
+				if(dT>200){ // over threshold
+					if(lastVX<0){ // towards left
+						if(isBrushExpanded){ // close brush menu
+							BrushManager.brushMenu.toggleExpand();
+						}
+						else if(!isFileExpanded){ // open file menu
+							FILES.fileManager.toggleExpand();
+						}
+					}
+					else{ // towards right
+						if(isFileExpanded){ // close file menu
+							FILES.fileManager.toggleExpand();
+						}
+						else if(!isBrushExpanded){ // open brush menu
+							BrushManager.brushMenu.toggleExpand();
+						}
+					}
+					lastSXOverSpeedTime=Infinity; // cancel following
+				}
+			}
+			lastVX=vX;
 		}
 	};
 	EventDistributer.wheel.addListener($("#canvas-layers-panel"),scrollOnCanvasWindowHandler);
