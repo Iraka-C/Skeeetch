@@ -252,6 +252,8 @@ EVENTS.init=function() {
 
 			const T=event.timeStamp;
 			const vX=EventDistributer.wheel.speed[0];
+			console.log(vX);
+			
 
 			const threshold=1;
 			if(Math.abs(vX)>threshold&&Math.abs(lastVX)<=threshold){
@@ -263,7 +265,8 @@ EVENTS.init=function() {
 				const dT=T-lastSXOverSpeedTime;
 				const isFileExpanded=FILES.fileManager.isExpanded();
 				const isBrushExpanded=BrushManager.brushMenu.isExpanded();
-				if(dT>200){ // over threshold
+				const isSettingExpanded=SettingHandler.sysMenu.isExpanded();
+				if(dT>100){ // over threshold
 					if(lastVX<0){ // towards left
 						if(isBrushExpanded){ // close brush menu
 							BrushManager.brushMenu.toggleExpand();
@@ -273,7 +276,10 @@ EVENTS.init=function() {
 						}
 					}
 					else{ // towards right
-						if(isFileExpanded){ // close file menu
+						if(isSettingExpanded){ // close setting first
+							SettingHandler.sysMenu.toggleExpand();
+						}
+						else if(isFileExpanded){ // close file menu
 							FILES.fileManager.toggleExpand();
 						}
 						else if(!isBrushExpanded){ // open brush menu

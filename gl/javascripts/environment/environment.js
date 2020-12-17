@@ -68,7 +68,6 @@ ENV.init=function() { // When the page is loaded
 		EventDistributer.init();
 		PALETTE.init(sysSettingParams);
 		CURSOR.init();
-		FILES.init();
 		// init performance monitor and reporter
 		// must after SettingHandler.init because it creates window inside
 		PERFORMANCE.init(ENV.displaySettings.maxVRAM);
@@ -111,6 +110,7 @@ ENV.init=function() { // When the page is loaded
 		// init accessories
 		BrushManager.init(sysSettingParams); // must after EVENTS to enable hotkeys
 		HISTORY.init();
+		FILES.init(); // must after layer set to init ui
 		DIALOGBOX.init();
 		DRAG.init();
 		//GUIDELINE.init();

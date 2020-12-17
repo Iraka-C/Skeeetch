@@ -16,16 +16,19 @@ PERFORMANCE.REPORTER.init=function(){
 	$title.text(Lang("Task Report"));
 	$ui.append($title,$container);
 	$ui.addClass("reporter-outer");
-	$("#system-button").click(e=>{
+	$ui.css("display","none");
+
+	// add setting menu button action
+	const hideHint=isToCloseMenu=>{
 		const $hint=$("#system-button-hint");
 		$hint.removeClass("system-button-hint-shown");
-		if(!SettingHandler.sysMenu.isExpanded()){ // to be closed, shrink all report blocks
+		if(isToCloseMenu){ // to be closed, shrink all report blocks
 			$container.find(".report-expanded").removeClass("report-expanded"); // expand buttons
 			$container.find(".report-block-container").slideUp(250); // containers
 		}
-		
-	});
-	$ui.css("display","none");
+	};
+	SettingHandler.sysMenu.onMenuOpen(()=>hideHint(false));
+	SettingHandler.sysMenu.onMenuClose(()=>hideHint(true));
 }
 
 /**

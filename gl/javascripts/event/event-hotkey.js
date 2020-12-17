@@ -141,11 +141,10 @@ EVENTS.initBrushHotKeys=function(){ // after BrushManager initializd
 			if(!brush)brushHotKeyMap.delete(key); // deleted
 			if(brush==brushToSet)return; // same brush
 			removeHotKey(brush);
-			LOGGING&&console.log("Remove hot key "+key+" from brush "+(brush?brush.name:"deleted"));
 		}
 		// set new hot key
 		setHotKey(brushToSet,key);
-		LOGGING&&console.log("Set hot key "+key+" to brush "+brushToSet.name);
+		EventDistributer.footbarHint.showInfo(Lang("hot-key-set")(key.toUpperCase(),brushToSet.name));
 	},false); // do not prevent default on input
 
 	EventDistributer.key.addListener("any",e=>{ // fire

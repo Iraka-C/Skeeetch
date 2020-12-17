@@ -6,6 +6,9 @@ class SettingManager{
 		this._updateFuncList=[];
 		this.tempVal=null;
 
+		this.onMenuOpenFunc=null;
+		this.onMenuCloseFunc=null;
+
 		let colgroup=$("<colgroup>");
 		colgroup.append($("<col class='setting-item-name'>"));
 		colgroup.append($("<col class='setting-item-symbol'>"));
@@ -31,13 +34,18 @@ class SettingManager{
 		}
 		this.toggleExpand=()=>{
 			if($outerFrame.hasClass("setting-panel-collapsed")){ // not opened
+				if(this.onMenuOpenFunc){
+					this.onMenuOpenFunc();
+				}
 				this.update();
 				$outerFrame.removeClass("setting-panel-collapsed");
 			}
 			else{ // opened
+				if(this.onMenuCloseFunc){
+					this.onMenuCloseFunc();
+				}
 				$outerFrame.addClass("setting-panel-collapsed");
 			}
-			// @TODO: add return trigger function
 		};
 	}
 	// Calls when opening this setting panel
@@ -51,6 +59,13 @@ class SettingManager{
 		EventDistributer.setClick($div,e=>{
 			this.toggleExpand();
 		});
+	}
+
+	onMenuOpen(func){
+		this.onMenuOpenFunc=func;
+	}
+	onMenuClose(func){
+		this.onMenuCloseFunc=func;
 	}
 // ====================== UI Management ========================
 	// Add a section with the name title

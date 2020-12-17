@@ -236,4 +236,5 @@ BrushManager.setActiveBrush=function(v){
 	if(BrushManager.brushMenu){ // if associated with menu
 		BrushManager.brushMenu.update(); // menu items and values updated here
 	}
+	CURSOR.updateXYR(); // update cursor display
 }

@@ -245,34 +245,31 @@ FILES.initFileMenu=function() {
 
 	// ============== open action ===============
 	// Refreshing the file panel and selector
-	EventDistributer.setClick($("#file-button"),event => { // update temp data when clicked
-		// reset temp size number to paper size
+	// then, refresh UI when expanded
+	fileManager.setOpenButton($("#file-button"));
+	fileManager.onMenuOpen(()=>{
 		FILES.tempPaperSize={
 			width: ENV.paperSize.width,
 			height: ENV.paperSize.height,
 			left: 0,
 			top: 0
 		};
-		if(!fileManager.isExpanded()){ // if is closed at first
-			// update thumb image
-			if(ENV.displaySettings.isAutoSave){ // update saved
+		// update thumb image
+		if(ENV.displaySettings.isAutoSave){ // update saved
+			STORAGE.FILES.updateCurrentThumb();
+		}
+		else{ // previously may be not loaded
+			const $fileUI=FILES.fileSelector.$uiList[ENV.fileID];
+			const cv=$fileUI.find(".file-ui-canvas")[0];
+			if(!(cv.width&&cv.height)){
 				STORAGE.FILES.updateCurrentThumb();
 			}
-			else{ // previously not loaded
-				const $fileUI=FILES.fileSelector.$uiList[ENV.fileID];
-				const cv=$fileUI.find(".file-ui-canvas")[0];
-				if(!(cv.width&&cv.height)){
-					STORAGE.FILES.updateCurrentThumb();
-				}
-			}
-		}
-		else{ // open to close, turn off dragging
-			cropDraggerUpdater(false);
-			sizeChangeHint(false);
 		}
 	});
-	// then, refresh UI when expanded
-	fileManager.setOpenButton($("#file-button"));
+	fileManager.onMenuClose(()=>{ // open to close, turn off dragging
+		cropDraggerUpdater(false);
+		sizeChangeHint(false);
+	});
 }
 
 // ==================== Actions in setting ======================
