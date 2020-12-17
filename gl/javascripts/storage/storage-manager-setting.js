@@ -39,7 +39,8 @@ STORAGE.SETTING.init=function(){ // async! returns a Promise
 	const windowParams=STORAGE.SETTING.initWindowParams();
 
 	if(windowParams.query["reset"]){
-		// Empty
+		localStorage.removeItem("is-run");
+		localStorage.removeItem("start-report");
 	}
 	else{
 		try{
@@ -109,6 +110,9 @@ STORAGE.SETTING.initWindowParams=function(){
 }
 
 STORAGE.SETTING.saveAllSettings=function(){
+	// save brushes and files
+	STORAGE.SETTING.saveBrushes();
+	STORAGE.FILES.saveFilesStore();
 	/**
 	 * localForage uses async function, not guaranteed to save data before closing!
 	 * Save important settings in localStorage (Sync calling).
@@ -128,9 +132,6 @@ STORAGE.SETTING.saveAllSettings=function(){
 		version: ENV.version,
 		nowFileID: ENV.fileID
 	}));
-
-	STORAGE.SETTING.saveBrushes();
-	STORAGE.FILES.saveFilesStore();
 }
 
 STORAGE.SETTING.saveBrushes=function(){ // save on exit

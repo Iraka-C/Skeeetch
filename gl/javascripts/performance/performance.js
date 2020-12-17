@@ -201,6 +201,18 @@ PERFORMANCE.checkBitdepthSupport=function(){
 	}
 }
 
+PERFORMANCE.reportUnsafeExit=function(){
+	const loadReport={
+		title: Lang("unsafe-exit-report"),
+		items: []
+	};
+	loadReport.items.push({
+		content: Lang("unsafe-exit-hint"),
+		target: "" // TODO: fill in target
+	});
+	PERFORMANCE.REPORTER.report(loadReport);
+}
+
 // send a report on webgl context lost
 PERFORMANCE.webglContextLost=function(){
 	if(!PERFORMANCE.webglContextLost.isLost){ // not reported yet

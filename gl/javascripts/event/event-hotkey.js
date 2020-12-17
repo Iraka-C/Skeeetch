@@ -3,8 +3,6 @@ EVENTS.initHotKeys=function() {
 	EventDistributer.key.addListener("ctrl+KeyZ",e => {HISTORY.undo();});
 	EventDistributer.key.addListener("ctrl+shift+KeyZ",e => {HISTORY.redo();});
 	EventDistributer.key.addListener("ctrl+KeyY",e => {HISTORY.redo();});
-	
-	//EventDistributer.key.addListener("shift+any",e => {console.log(e.originalEvent.code);});
 
 	// Brush Operations
 	EventDistributer.key.addListener("BracketLeft",e => {BrushManager.changeActiveBrushSizeBy(-1);});
@@ -85,4 +83,94 @@ EVENTS.initHotKeys=function() {
 			}
 		}
 	});
+}
+
+EVENTS.initBrushHotKeys=function(){ // after BrushManager initializd
+	const brushHotKeyMap=new Map(); // brush-hotkey -> brush-id(String)/brush-proto(Number)
+
+	function removeHotKey(brush){
+		if(!brush)return;
+		brushHotKeyMap.delete(brush.hotKey);
+		brush.hotKey=null;
+	}
+
+	function setHotKey(brush,key){
+		if(brush.hotKey){ // remove first
+			removeHotKey(brush);
+		}
+		brushHotKeyMap.set(key,brush.id||brush.proto);
+		brush.hotKey=key;
+	}
+
+	for(const brush of BrushManager.brushes){ // default brushes
+		if(brush.hotKey){
+			brushHotKeyMap.set(brush.hotKey,brush.proto);
+		}
+	}
+	for(const brush of BrushManager.customBrushes){ // custom brushes
+		if(brush.hotKey){
+			brushHotKeyMap.set(brush.hotKey,brush.id);
+		}
+	}
+
+	// Create Brush hotkey handlers
+	EventDistributer.key.addListener("shift+any",e=>{ // set
+		const code=e.originalEvent.code.toLowerCase();
+		const brushToSet=BrushManager.activeBrush;
+		let key;
+		if(code.length==4&&code.startsWith("key")){
+			key=code.charAt(3);
+		}
+		else if(code.length==6&&code.startsWith("digit")){
+			key=code.charAt(5);
+		}
+		else if(code=="slash"){ // Shift+/: remove current hot key
+			removeHotKey(brushToSet);
+			return;
+		}
+		else{ // neither letter nor number
+			return;
+		}
+		if(brushHotKeyMap.has(key)){ // already possessed
+			// remove first
+			const brushID=brushHotKeyMap.get(key);
+			const brush=(typeof(brushID)=="string"?
+				BrushManager.brushHash.get(brushID): // custom id
+				BrushManager.brushes[brushID] // proto
+			);
+			if(!brush)brushHotKeyMap.delete(key); // deleted
+			if(brush==brushToSet)return; // same brush
+			removeHotKey(brush);
+			LOGGING&&console.log("Remove hot key "+key+" from brush "+(brush?brush.name:"deleted"));
+		}
+		// set new hot key
+		setHotKey(brushToSet,key);
+		LOGGING&&console.log("Set hot key "+key+" to brush "+brushToSet.name);
+	},false); // do not prevent default on input
+
+	EventDistributer.key.addListener("any",e=>{ // fire
+		const code=e.originalEvent.code.toLowerCase();
+		let key;
+		if(code.length==4&&code.startsWith("key")){
+			key=code.charAt(3);
+		}
+		else if(code.length==6&&code.startsWith("digit")){
+			key=code.charAt(5);
+		}
+		else{ // neither letter nor number
+			return;
+		}
+
+		const brushID=brushHotKeyMap.get(key);
+		if(brushID===undefined)return; // no brush
+		const brush=(typeof(brushID)=="string"?
+			BrushManager.brushHash.get(brushID): // custom id
+			BrushManager.brushes[brushID] // proto
+		);
+		if(!brush){ // brush deleted
+			brushHotKeyMap.delete(key);
+			return;
+		}
+		BrushManager.setActiveBrush(brush);
+	},false); // do not prevent default on input
 }

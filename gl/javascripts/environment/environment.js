@@ -49,6 +49,8 @@ ENV.fileID=""; // present working file ID
 // ========================= Functions ============================
 ENV.init=function() { // When the page is loaded
 	STORAGE.init(sysSettingParams => { // after loading all settings
+		const isLastSafe=ENV.checkSafeExit();
+
 		// Init language / browser environment
 		ENV.fileID=sysSettingParams.nowFileID; // get file ID
 		ENV.browserInfo=ENV.detectBrowser();
@@ -66,6 +68,7 @@ ENV.init=function() { // When the page is loaded
 		EventDistributer.init();
 		PALETTE.init(sysSettingParams);
 		CURSOR.init();
+		FILES.init();
 		// init performance monitor and reporter
 		// must after SettingHandler.init because it creates window inside
 		PERFORMANCE.init(ENV.displaySettings.maxVRAM);
@@ -77,20 +80,37 @@ ENV.init=function() { // When the page is loaded
 		// init layers
 		ENV.window.SIZE.width=$("#canvas-window").width();
 		ENV.window.SIZE.height=$("#canvas-window").height();
-		if(lastLayerTreeJSON){ // there is a saved file structure in local storage
+		let loadPaperPromise; // promise of loading a paper
+		if(lastLayerTreeJSON&&isLastSafe){ // there is a saved file structure in local storage
 			LOGGING&&console.log("Reading File...",lastLayerTreeJSON);
 			ENV.setPaperSize(...lastLayerTreeJSON.paperSize);
 			ENV.setFileTitle(lastLayerTreeJSON.title);
+			LAYERS.init(); // must after setPaperSize
+			loadPaperPromise=STORAGE.FILES.loadLayerTree(lastLayerTreeJSON); // load all layers
 		}
 		else{ // no layer yet, init CANVAS
 			ENV.setPaperSize(window.screen.width,window.screen.height);
+			LAYERS.init();
+			if(!isLastSafe){ // store that in storage
+				/**
+				 * Here, maybe the page will refresh BEFORE we can store the last layerTree to storage
+				 * This is up to the browser. We can do nothing.
+				 */
+				loadPaperPromise=FILES.newPaperAction(false); // create a NEW paper
+			}
+			else{
+				loadPaperPromise=LAYERS.initFirstLayer(); // load all layers
+			}
 		}
-		LAYERS.init(lastLayerTreeJSON); // load all layers
+		loadPaperPromise.catch(err=>{ // loading paper failed
+			// do sth
+		}).finally(()=>{
+			setTimeout(ENV.reportSafelyLoaded,1000); // make sure it is safe after 1s
+		});
 
 		// init accessories
-		BrushManager.init(sysSettingParams);
+		BrushManager.init(sysSettingParams); // must after EVENTS to enable hotkeys
 		HISTORY.init();
-		FILES.init();
 		DIALOGBOX.init();
 		DRAG.init();
 		//GUIDELINE.init();
@@ -130,6 +150,58 @@ ENV.detectBrowser=function(){
 	};
 }
 
+ENV.checkSafeExit=function(){ // return is safely exited last time
+	// Note that there may be several runs!
+	let isRunning=localStorage.getItem("is-run");
+	localStorage.setItem("is-run","true");
+	let isSafeExited=isRunning?isRunning=="false":true;
+
+	/**
+	 * start-report is: {
+	 *    rnd: N,
+	 *    failedList: [N1, N2, N3, ...]
+	 * }
+	 */
+	let startReport=localStorage.getItem("start-report");
+	if(!startReport){
+		startReport={
+			rnd: 0,
+			failedList: []
+		};
+	}
+	else{
+		startReport=JSON.parse(startReport);
+	}
+	// record new status
+	startReport.rnd++;
+	if(!isSafeExited){
+		startReport.failedList.push(startReport.rnd);
+	}
+	localStorage.setItem("start-report",JSON.stringify(startReport));
+	console.log("start ",startReport);
+	
+	return isSafeExited;
+}
+ENV.reportSafelyLoaded=function(){
+	console.log("report!");
+	let startReport=localStorage.getItem("start-report");
+	if(!startReport){
+		startReport={
+			rnd: 0,
+			failedList: []
+		};
+	}
+	else{
+		startReport=JSON.parse(startReport);
+	}
+
+	// record new status
+	if(startReport.failedList.length){
+		PERFORMANCE.reportUnsafeExit();
+		startReport.failedList=[];
+		localStorage.setItem("start-report",JSON.stringify(startReport));
+	}
+}
 // ====================== Settings ========================
 /**
  * upload css transform from ENV.window settings

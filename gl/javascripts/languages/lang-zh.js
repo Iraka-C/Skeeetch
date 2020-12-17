@@ -114,6 +114,8 @@ LANG_ZH={
 	"Add new brush based on current brush":"从当前画笔新建画笔",
 	"Delete current brush":"删除当前画笔",
 
+	"brush-hot-key":"快捷键 ",
+
 	// Layer
 	"layer-opacity-label-shown":"拖动或滚动以调整图层不透明度，点击以隐藏图层",
 	"layer-opacity-label-hidden":"点击以显示图层",
@@ -216,6 +218,9 @@ LANG_ZH={
 	"file-save-warning":"是否保存当前画纸中变更的内容？",
 	"file-save-yes":"是的，请保存",
 	"file-save-no":"无需保存",
+
+	"unsafe-exit-report":"意外退出",
+	"unsafe-exit-hint":"上次打开的文件未能正常关闭。可能导致内容丢失。",
 
 	// Task reports
 	"Task Report":"任务报告",

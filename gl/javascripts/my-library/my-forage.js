@@ -16,7 +16,7 @@ class MyForage{
 	constructor(name,storeName){
 		//this.name=name;
 		this.storeName=storeName||"";
-		this.storeKeys={}; // the keys of this store, key: size in bytes
+		this.storeKeys={}; // the keys of this store, key -> size in bytes
 		this.storage=localforage.createInstance({ // the db instance: all data in all stores
 			name: name,
 			storeName: "storage"
@@ -153,12 +153,24 @@ class MyForage{
 			return new Promise.reject("Illegal identifier : in store name",this.storeName);
 		}
 		this.storePrefix=this.storeName+":";
+
+		function recalcStoreSize(keys){
+			let totalSize=0;
+			for(const size in keys){
+				totalSize+=size;
+			}
+			return totalSize;
+		}
+
 		return this.storeList.getItem(this.storeName).then(val=>{
 			if(val){ // already existing, read it
 				this.storeKeys=val;
 				return this.storeList.getItem(this.storeName+":size").then(val=>{
 					if(isNaN(val)){
 						// TODO: things are a bit hard: size not acquired.
+						this.size=recalcStoreSize(this.storeKeys);
+						// Really, this is the best u can do
+						return this.storeList.setItem(this.storeName+":size",this.size);
 					}
 					else{
 						this.size=val;
@@ -222,8 +234,6 @@ class MyForage{
 		const taskList=[];
 		for(const key in this.storeKeys){
 			const itemName=this.storePrefix+key;
-			console.log("Trying to remove "+itemName);
-			
 			taskList.push(this.storage.removeItem(itemName));
 		}
 		return Promise.all(taskList).then(()=>{
@@ -256,6 +266,28 @@ class MyForage{
 		taskList.push(this.storeList.removeItem(this.storeName+":size"));
 		return Promise.all(taskList).then(()=>{ // updated
 			this.storeKeys={}; // in fact invalid
+		});
+	}
+
+	static organizeStorage(name){
+		const storeList=localforage.createInstance({ // the db instance: index of all stores
+			name: name,
+			storeName: "store"
+		});
+		const storage=localforage.createInstance({ // the db instance: all contents
+			name: name,
+			storeName: "storage"
+		});
+		return Promise.all([storeList.keys(),storage.keys()]).then(([storeKeys,storageKeys])=>{
+			const storeNameSet=new Set(storeKeys);
+			const taskList=[];
+			for(const key of storageKeys){ // organize storage
+				const keyStoreName=key.substring(0,key.indexOf(":"));
+				if(!storeNameSet.has(keyStoreName)){ // belong to no store
+					taskList.push(storage.removeItem(key));
+				}
+			}
+			return Promise.all(taskList).then(()=>taskList.length);
 		});
 	}
 }

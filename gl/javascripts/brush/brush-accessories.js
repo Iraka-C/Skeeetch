@@ -7,7 +7,7 @@ BrushManager.initBrushAccessories=function($defTable){
 
 	const $blockContainer=$("<div id='block-accessories-container'>");
 
-	const $block=$("<td id='brush-accessories-block' class='brush-selector-item'>");
+	const $block=$("<td id='brush-accessories-block' class='brush-selector-item brush-notrans'>");
 	$block.append($blockTitle,$blockContainer);
 	//$block.text(Lang("color-to-opacity"));
 	const $row=$("<tr>").append($block);

@@ -384,8 +384,11 @@ STORAGE.FILES.getLayerTree=function() {
 }
 
 // ================ Load Layer Contents ==================
-
 STORAGE.FILES.loadLayerTree=function(node) {
+	const loadLayerTreePromise=new Promise((resolve,reject)=>{
+		STORAGE.FILES.loadLayerTree._resolve=resolve;
+		STORAGE.FILES.loadLayerTree._reject=reject;
+	});
 	// set busy status
 	EventDistributer.footbarHint.showInfo(Lang("Loading saved paper")+" ...");
 	STORAGE.FILES.isFailedLayer=false;
@@ -550,7 +553,11 @@ STORAGE.FILES.loadLayerTree=function(node) {
 	else{
 		rootStackNode.loaded(); // finish now
 	}
+
+	return loadLayerTreePromise;
 }
+STORAGE.FILES.loadLayerTree._resolve=null;
+STORAGE.FILES.loadLayerTree._reject=null;
 
 STORAGE.FILES.onLayerTreeLoad=function(activeNode) {
 	STORAGE.FILES.clearUnusedContents(STORAGE.FILES.layerStore); // maybe uncleared history
@@ -576,6 +583,9 @@ STORAGE.FILES.onLayerTreeLoad=function(activeNode) {
 	PERFORMANCE.idleTaskManager.addTask(e=>{ // update all layer thumbs when idle
 		LAYERS.updateAllThumbs(); // update thumbs of every layer
 		STORAGE.FILES.updateCurrentThumb(); // update the thumb of this psd file
+		STORAGE.FILES.loadLayerTree._resolve(); // resolve loading
+		STORAGE.FILES.loadLayerTree._resolve=null;
+		STORAGE.FILES.loadLayerTree._reject=null;
 	});
 }
 
@@ -605,6 +615,10 @@ STORAGE.FILES.onLayerTreeAborted=function(){
 	CANVAS.renderer.loadToImageData(CANVAS.nowLayer.rawImageData,canvas);
 	CANVAS.nowLayer.setImageDataInvalid();
 	COMPOSITOR.updateLayerTreeStructure();
+
+	STORAGE.FILES.loadLayerTree._reject(); // reject loading
+	STORAGE.FILES.loadLayerTree._resolve=null;
+	STORAGE.FILES.loadLayerTree._reject=null;
 }
 
 // clear buf/chunk unused by any layer
@@ -710,7 +724,10 @@ STORAGE.FILES.organizeDatabase=function(){
 		}
 	}*/
 	const fileList=STORAGE.FILES.filesStore.fileList;
-	return MyForage.getStoreNames("img").then(list=>{
+	//@TODO: add MyForage self-organization check
+	return MyForage.organizeStorage("img").then(()=>{
+		return MyForage.getStoreNames("img");
+	}).then(list=>{ // check if store name in file list
 		const taskList=[];
 		for(const storeName of list){
 			if(!fileList[storeName]){ // store name is this id

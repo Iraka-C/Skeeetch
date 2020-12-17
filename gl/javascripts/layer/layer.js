@@ -167,7 +167,7 @@ LAYERS.onOrderChanged=function(event) {
 /**
  * Init layer panels and functions
  */
-LAYERS.init=function(layerTreeJSON) {
+LAYERS.init=function() {
 
 	LAYERS.layerTree=new RootNode(); // The root of the layer tree
 	LAYERS.initLayerPanelButtons();
@@ -181,14 +181,6 @@ LAYERS.init=function(layerTreeJSON) {
 	$("#layer-panel").on("pointerdown",event => {
 		event.stopPropagation();
 	});
-
-	if(!layerTreeJSON){
-		LAYERS.initFirstLayer();
-	}
-	else{ // blabla
-		console.log("loading layer tree");
-		STORAGE.FILES.loadLayerTree(layerTreeJSON);
-	}
 }
 
 /**
@@ -222,7 +214,7 @@ LAYERS.initFirstLayer=function() {
 	 * will step 3 saveContentChanges() end.
 	 */
 	const layerTreeStr=STORAGE.FILES.saveLayerTree();
-	STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr); // update structure in database
+	return STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr); // update structure in database
 }
 
 /**

@@ -25,24 +25,26 @@ EVENTS.init=function() {
 
 	// ============ Auto File saving related ==============
 	let isNotSavedOnExit=false;
+	let isUnloadTriggered=false;
 	$(window).on("blur",e => {
+
+		// This handler is also triggered when clicking "yes, unload" !
 		//console.log(isUnloadTriggered);
 
 		if(ENV.displaySettings.isAutoSave) {
 			EventDistributer.footbarHint.showInfo("Saving contents ...");
-			STORAGE.FILES.requestSaveContentChanges();
+			STORAGE.FILES.requestSaveContentChanges(); // autosave: only current layer could be unsaved
 			isNotSavedOnExit=false;
 		}
-		// This is also triggered when clicking "yes, unload" !
-		// else if(isUnloadTriggered){ // return after an unload attempt
-		// 	EventDistributer.footbarHint.showInfo("Saving all contents ...");
-		// 	STORAGE.FILES.saveLayerTree();
-		// 	STORAGE.FILES.saveAllContents();
-		// 	isUnloadTriggered=false;
-		// }
+		if(isUnloadTriggered){
+			isUnloadTriggered=false;
+			setTimeout(e=>{
+				localStorage.setItem("is-run","true"); // re-open running state
+			},1000); // make sure this will never be called if really unloaded
+		}
 	});
 	$(window).on("beforeunload",e => {
-		//isUnloadTriggered=true;
+		isUnloadTriggered=true;
 		// see STORAGE.SETTING.saveAllSettings
 		STORAGE.saveOnExit();
 		const isUnsavedExist=STORAGE.FILES.isUnsaved();

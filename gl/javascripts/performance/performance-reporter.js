@@ -131,5 +131,5 @@ PERFORMANCE.REPORTER.report=function(block){
 	$hint.css({"color":"#dd7700"});
 	setTimeout(e=>{
 		$hint.css({"color":""});
-	},800);
+	},1000);
 }

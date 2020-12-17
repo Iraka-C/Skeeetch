@@ -10,6 +10,10 @@ BrushManager.initBrushSelector=function(customBrushes) {
 		$row.click(event => {
 			BrushManager.setActiveBrush(brush);
 		});
+		EventDistributer.footbarHint($row,()=>brush.hotKey?
+			Lang("brush-hot-key")+brush.hotKey.toUpperCase():
+			null
+		);
 		$defTable.append($row);
 	}
 
@@ -66,6 +70,10 @@ BrushManager.addCustomizedBrush=function(brush){
 	$row.click(() => {
 		BrushManager.setActiveBrush(brush);
 	});
+	EventDistributer.footbarHint($row,()=>brush.hotKey?
+		Lang("brush-hot-key")+brush.hotKey.toUpperCase():
+		null
+	);
 
 	const $sel=$("#brush-selector-custom");
 	$sel.children().append($row);
@@ -78,7 +86,6 @@ BrushManager.addCustomizedBrush=function(brush){
 
 	// add hash
 	BrushManager.brushHash.set(brush.id,brush);
-	EventDistributer.footbarHint($row,() => brush.id); // for debugging
 }
 
 BrushManager.updateBrushtipThumb=function(brush,data){ // Update canvas in selector
@@ -145,6 +152,7 @@ BrushManager.initCustomizedBrushPanel=function(){
 		newBrush.id=BrushManager.generateHash(); // offer new hash
 		newBrush.name=Lang("new-brush-prefix")+newBrush.name.slice(-14); // always within 14 length
 		newBrush.isCustom=true; // custom flag
+		newBrush.hotKey=null; // do not inherit the hot key
 		BrushManager.customBrushes.push(newBrush); // add to list
 		BrushManager.addCustomizedBrush(newBrush); // add to selector
 		if(isToCopyBrushtip&&brush.brushtip){
@@ -204,7 +212,7 @@ BrushManager.initCustomizedBrushPanel=function(){
 		}
 	});
 	$("#brush-selector-set").click(e=>{
-		return; // not now!!!
+		//return; // not now!!!
 		// get brushtip image data from THIS layer
 		const nowImg=LAYERS.active.rawImageData;
 		const bImg=CANVAS.renderer.getBrushtipImageData(nowImg);

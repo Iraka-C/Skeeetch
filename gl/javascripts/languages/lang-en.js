@@ -15,6 +15,7 @@ LANG_EN={
 	"Pressure Controlled Size":"Pen Pressure",
 	"Pressure Controlled Opacity":"Pen Pressure",
 	"new-brush-prefix":"New ",
+	"brush-hot-key":"Hotkey: ",
 
 	"color-to-opacity":"Color > Opa",
 	"button-tools":"Tools",
@@ -117,6 +118,9 @@ LANG_EN={
 	"file-save-no":"No, discard them.",
 
 	"layer-mask":" Mask",
+
+	"unsafe-exit-report":"Unexpected Exit",
+	"unsafe-exit-hint":"The file you opened last time didn't exit safely. This may cause incomplete contents.",
 
 	// Task reports
 	"open-psd-report":"Loading ",

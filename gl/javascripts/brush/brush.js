@@ -28,7 +28,8 @@ BrushManager.brushes=[
 		randScale: 0.5, // random scaling, unit as basic size
 		randRot: 0.5, // random rotation, unit as 1 full circle
 		randOpa: 0.5, // random opacity, unit same as minAlpha
-		interval: 0.02 // auto when round & no scatter
+		interval: 0.02, // auto when round & no scatter
+		hotKey: null
 	},
 	{
 		proto:1,
@@ -44,7 +45,8 @@ BrushManager.brushes=[
 		// paint brush specialized
 		extension: 0.8, // how much color to pick from sampler
 		isScatter: 0,
-		interval: 0.02 // auto when round & no scatter
+		interval: 0.02, // auto when round & no scatter
+		hotKey: null
 	},
 	{
 		proto:2,
@@ -64,8 +66,9 @@ BrushManager.brushes=[
 		brushtipRot: 0, // degree of brushtip pattern rotation.
 		isRotWithStroke: 0, // is to rotate the brushtip along the stroke direction
 		// doesn't allow scatter
-		isScatter: -1 // -1 for not allowed
+		isScatter: -1, // -1 for not allowed
 		// fixed density
+		hotKey: null
 	},
 	{
 		proto:3,
@@ -79,7 +82,8 @@ BrushManager.brushes=[
 		edgeHardness:1.0,
 		blendMode:-1,
 		isScatter: 0,
-		interval: 0.02 // auto when round & no scatter
+		interval: 0.02, // auto when round & no scatter
+		hotKey: null
 	}
 ];
 /**
@@ -164,6 +168,7 @@ BrushManager.init=function(sysSettingParams){
 		BrushManager.initBrushSelector();
 		BrushManager.setActiveBrush(BrushManager.brushes[0]); // set default active
 	}
+	EVENTS.initBrushHotKeys(); // init hot keys for brushes
 
 	// init brush setting menus
 	const brushMenu=BrushManager.initBrushSettingMenu();

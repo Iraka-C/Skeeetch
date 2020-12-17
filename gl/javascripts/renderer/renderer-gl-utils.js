@@ -758,6 +758,7 @@ class GLImageDataFactory {
 		}
 
 		// read pixels from texture, takes time (~3ms)
+		// NOTICE: Firefox 83 on MacOS Catalina 10.15.7 cannot read HALF_FLOAT with Uint16Array
 		gl.readPixels(0,0,W,H,gl.RGBA,this.dataFormat,pixelsF); // read from buffer
 		gl.deleteTexture(tmpTexture);
 

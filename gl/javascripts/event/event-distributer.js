@@ -214,7 +214,7 @@ EventDistributer.key={
 		$(window).on("keydown",event=>{
 			const code=event.originalEvent.code.toLowerCase();
 			const ek=EVENTS.key;
-			LOGGING&&console.log(code);
+			//LOGGING&&console.log("Press: "+code);
 
 			for(const p of EventDistributer.key.patterns){
 				if(ek.ctrl==p.ctrl&&ek.shift==p.shift&&ek.alt==p.alt){ // func key matched

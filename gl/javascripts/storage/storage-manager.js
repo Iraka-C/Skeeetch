@@ -37,8 +37,9 @@ STORAGE.init=function(callback){
 };
 
 STORAGE.saveOnExit=function(){ // This must be synced function
-	STORAGE.SETTING.saveAllSettings();
 	if(ENV.displaySettings.isAutoSave){ // requires auto save on exit
 		STORAGE.FILES.saveLayerTree();
 	}
+	STORAGE.SETTING.saveAllSettings();
+	localStorage.setItem("is-run","false"); // last setting before exit
 };
