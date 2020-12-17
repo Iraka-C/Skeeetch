@@ -39,6 +39,19 @@ EVENTS.initHotKeys=function() {
 		},500); // for animation
 	});
 
+	// Layers
+	EventDistributer.key.addListener("tab",e=>{LAYERS.setNextActive();});
+	EventDistributer.key.addListener("shift+tab",e=>{LAYERS.setPrevActive();});
+	EventDistributer.key.addListener("pagedown",e=>{LAYERS.setNextActive();});
+	EventDistributer.key.addListener("pageup",e=>{LAYERS.setPrevActive();});
+
+	EventDistributer.key.addListener("delete",e=>{ // clear
+		// canvas layer and not locked
+		if(!(LAYERS.active instanceof LayerGroupNode)&&!LAYERS.active.isLocked()){
+			LAYERS.clearCurrentLayer();
+		}
+	});
+
 	// New paper. No way to override ctrl+N
 	// Mysterious BUG: using this hot key will cause multiple new layers being created
 	// EventDistributer.key.addListener("ctrl+;",e => { // new paper
@@ -117,20 +130,7 @@ EVENTS.initBrushHotKeys=function(){ // after BrushManager initializd
 	EventDistributer.key.addListener("shift+any",e=>{ // set
 		const code=e.originalEvent.code.toLowerCase();
 		const brushToSet=BrushManager.activeBrush;
-		let key;
-		if(code.length==4&&code.startsWith("key")){
-			key=code.charAt(3);
-		}
-		else if(code.length==6&&code.startsWith("digit")){
-			key=code.charAt(5);
-		}
-		else if(code=="slash"){ // Shift+/: remove current hot key
-			removeHotKey(brushToSet);
-			return;
-		}
-		else{ // neither letter nor number
-			return;
-		}
+		const key=code.charAt(code.length==4?3:5); // keyX or digitX
 		if(brushHotKeyMap.has(key)){ // already possessed
 			// remove first
 			const brushID=brushHotKeyMap.get(key);
@@ -147,18 +147,14 @@ EVENTS.initBrushHotKeys=function(){ // after BrushManager initializd
 		EventDistributer.footbarHint.showInfo(Lang("hot-key-set")(key.toUpperCase(),brushToSet.name));
 	},false); // do not prevent default on input
 
+	EventDistributer.key.addListener("shift+slash",e=>{ // Shift+/ to unbind
+		removeHotKey(BrushManager.activeBrush);
+		EventDistributer.footbarHint.showInfo(Lang("hot-key-cancel")(BrushManager.activeBrush.name));
+	},false);
+
 	EventDistributer.key.addListener("any",e=>{ // fire
 		const code=e.originalEvent.code.toLowerCase();
-		let key;
-		if(code.length==4&&code.startsWith("key")){
-			key=code.charAt(3);
-		}
-		else if(code.length==6&&code.startsWith("digit")){
-			key=code.charAt(5);
-		}
-		else{ // neither letter nor number
-			return;
-		}
+		const key=code.charAt(code.length==4?3:5); // keyX or digitX
 
 		const brushID=brushHotKeyMap.get(key);
 		if(brushID===undefined)return; // no brush

@@ -116,6 +116,7 @@ LANG_ZH={
 
 	"brush-hot-key":"快捷键 ",
 	"hot-key-set":(key,name)=>`将${name}的快捷键设置为${key}`,
+	"hot-key-cancel":(name)=>`清除${name}的快捷键`,
 
 	// Layer
 	"layer-opacity-label-shown":"拖动或滚动以调整图层不透明度，点击以隐藏图层",

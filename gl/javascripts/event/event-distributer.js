@@ -232,14 +232,17 @@ EventDistributer.key={
 		 */
 	],
 	_init:function(){
+		function isKeyDigit(code){
+			return (code.length==4&&code.startsWith("key"))||(code.length==6&&code.startsWith("digit"));
+		}
 		$(window).on("keydown",event=>{
 			const code=event.originalEvent.code.toLowerCase();
 			const ek=EVENTS.key;
-			//LOGGING&&console.log("Press: "+code);
+			LOGGING&&console.log("Press: "+code);
 
 			for(const p of EventDistributer.key.patterns){
 				if(ek.ctrl==p.ctrl&&ek.shift==p.shift&&ek.alt==p.alt){ // func key matched
-					if(p.code==code||p.code=="any"){ // is this key
+					if(p.code==code||(p.code=="any"&&isKeyDigit(code))){ // is this key
 						if(p.isPreventDefault){
 							event.preventDefault();
 						}
@@ -284,6 +287,9 @@ EventDistributer.key={
 		pattern.callback=callback;
 		pattern.onDetachedCallback=onDetachedCallback;
 
+		function isKeyDigit(code){
+			return (code.length==4&&code.startsWith("key"))||(code.length==6&&code.startsWith("digit"));
+		}
 		function detachPattern(pt){
 			for(let i=0;i<EventDistributer.key.patterns.length;){
 				const p=EventDistributer.key.patterns[i];
@@ -291,7 +297,7 @@ EventDistributer.key={
 					p.ctrl==pt.ctrl
 					&& p.shift==pt.shift
 					&& p.alt==pt.alt
-					&& (p.code==pt.code||pt.code=="any")
+					&& (p.code==pt.code||(pt.code=="any"&&isKeyDigit(p.code)))
 				){ // remove this binding
 					if(p.onDetachedCallback){
 						p.onDetachedCallback();

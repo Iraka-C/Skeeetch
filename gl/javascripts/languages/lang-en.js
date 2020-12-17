@@ -20,6 +20,7 @@ LANG_EN={
 	"color-to-opacity":"Color > Opa",
 	"button-tools":"Tools",
 	"hot-key-set":(key,name)=>`Set ${key} as the hotkey for ${name}`,
+	"hot-key-cancel":(name)=>`Unbind the hotkey for ${name}`,
 
 	// Settings part
 	"sys-info":"Information",

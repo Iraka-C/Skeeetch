@@ -282,6 +282,42 @@ LAYERS._inactive=function() {
 	LAYERS.active.setActiveUI(false);
 	LAYERS.active=null;
 }
+
+LAYERS.setNextActive=function(){
+	let nowNode=LAYERS.active;
+	if(nowNode.children.length&&nowNode.isExpanded){
+		// has children, visible, set the first children
+		LAYERS.scrollTo(nowNode.children[0]);
+		LAYERS.setActive(nowNode.children[0]);
+		return;
+	}
+	while(nowNode.index==nowNode.parent.children.length-1){ // last child
+		nowNode=nowNode.parent;
+		if(!nowNode.parent){ // the last layer
+			return; // don't move
+		}
+	}
+	const parent=nowNode.parent;
+	const nextNode=parent.children[nowNode.index+1];
+	LAYERS.scrollTo(nextNode);
+	LAYERS.setActive(nextNode);
+}
+LAYERS.setPrevActive=function(){
+	let nowNode=LAYERS.active;
+	if(nowNode.index==0){ // first child
+		if(nowNode.parent.parent){ // parent is not root
+			LAYERS.scrollTo(nowNode.parent);
+			LAYERS.setActive(nowNode.parent);
+		}
+		return;
+	}
+	let prevNode=nowNode.parent.children[nowNode.index-1];
+	while(prevNode.children.length&&prevNode.isExpanded){ // last child
+		prevNode=prevNode.children[prevNode.children.length-1];
+	}
+	LAYERS.scrollTo(prevNode);
+	LAYERS.setActive(prevNode);
+}
 // ======================= UI Settings =============================
 
 LAYERS.initLayerPanelButtons=function() {
@@ -349,6 +385,17 @@ LAYERS.initLayerPanelButtons=function() {
 	EventDistributer.footbarHint($("#delete-button"),() => Lang("Delete current layer / group"));
 
 	// Clear layer content button
+	LAYERS.clearCurrentLayer=()=>{
+		const validArea={...LAYERS.active.rawImageData.validArea};
+		if(CANVAS.clearAll()){ // successfully cleared
+			HISTORY.addHistory({ // add raw image data changed history
+				type:"image-data",
+				id:LAYERS.active.id,
+				area:validArea // whole image
+			});
+			STORAGE.FILES.saveContentChanges(LAYERS.active);
+		}
+	};
 	$("#clear-button").on("click",event => {
 		if(LAYERS.active.isLocked()) { // locked layer
 			return;
@@ -357,15 +404,7 @@ LAYERS.initLayerPanelButtons=function() {
 			LAYERS.replaceGroupWithLayer(LAYERS.active);
 		}
 		else { // canvas: clear image data
-			const validArea={...LAYERS.active.rawImageData.validArea};
-			if(CANVAS.clearAll()){ // successfully cleared
-				HISTORY.addHistory({ // add raw image data changed history
-					type:"image-data",
-					id:LAYERS.active.id,
-					area:validArea // whole image
-				});
-				STORAGE.FILES.saveContentChanges(LAYERS.active);
-			}
+			LAYERS.clearCurrentLayer();
 		}
 	});
 	EventDistributer.footbarHint($("#clear-button"),() => {
