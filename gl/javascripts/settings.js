@@ -37,6 +37,7 @@ class SettingManager{
 			else{ // opened
 				$outerFrame.addClass("setting-panel-collapsed");
 			}
+			// @TODO: add return trigger function
 		};
 	}
 	// Calls when opening this setting panel

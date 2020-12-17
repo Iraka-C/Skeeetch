@@ -16,6 +16,21 @@ EventDistributer.wheel={
 	_init:function(){
 		//window.addEventListener("wheel",EventDistributer.wheel._onwheel,false);
 		EventDistributer.wheel.threshold=10;//ENV.browserInfo.macOS?5:1;
+
+		// scroll speed monitor
+		let lastWheelTime=0;
+		EventDistributer.wheel.updateSpeed=function(event){
+			const dT=event.timeStamp-lastWheelTime;
+			lastWheelTime=event.timeStamp;
+
+			let dX=event.deltaX;
+			let dY=event.deltaY;
+			if(event.webkitDirectionInvertedFromDevice){
+				dX=-dX;
+				dY=-dY;
+			}
+			EventDistributer.wheel.speed=[dX/dT,dY/dT];
+		};
 	},
 	_nowListener:null, // a DOM Object
 	_nowFunction:()=>{}, // a function
@@ -44,7 +59,10 @@ EventDistributer.wheel={
 		el.onwheel=EventDistributer.wheel._onwheel;
 	},
 	scrollCnt:[0,0],
+	speed: [0,0],
 	_onwheel:function(e){
+		EventDistributer.wheel.updateSpeed(e); // calculate speed
+		// wheel handler
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){
 			const cnt=EventDistributer.wheel.scrollCnt;
 			if(e.webkitDirectionInvertedFromDevice){ // On safari: natural on
@@ -63,7 +81,10 @@ EventDistributer.wheel={
 			if(cnt[1]>= threshold){wY= 1;cnt[1]=0;}
 			if(cnt[1]<=-threshold){wY=-1;cnt[1]=0;}
 			if(wX||wY){
-				EventDistributer.wheel._nowFunction(wY,wX); // Y first
+				EventDistributer.wheel._nowFunction(
+					wY,wX,
+					e
+				); // Y first
 			}
 			e.stopPropagation(); // prevent scrolling on page
 		}
