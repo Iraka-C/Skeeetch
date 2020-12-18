@@ -3,12 +3,21 @@
 	css file for Skeeetch platform
 */
 :root {
-	--default-font-family: Consolas, Monaco, Microsoft YaHei, monospace, sans-serif;
+	--default-font-family: Consolas, Menlo, Monaco, Microsoft YaHei, monospace, sans-serif;
 }
 
 html{
 	width: 100%;
 	height: 100%;
+	overscroll-behavior-x: none; /* prevent two-finger swipe left/right to back/foward */
+	overscroll-behavior-y: contain; /* prevent two-finger swipe left/right to back/foward */
+	/*
+		Note: this is still unable to stop navigation gesture in some cases
+	*/
+}
+div{ /* This will work */
+	overscroll-behavior-x: none;
+	overscroll-behavior-y: contain;
 }
 
 .noselect{

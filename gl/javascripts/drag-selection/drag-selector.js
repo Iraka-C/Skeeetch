@@ -151,9 +151,9 @@ DRAG.init=function(){
 
 	// scroll on SVG also triggers canvas window transform
 	// pass on this event
-	EventDistributer.wheel.addListener(DRAG.$ui,pos=>{
+	EventDistributer.wheel.addListener(DRAG.$ui,(dy,dx,e)=>{
 		if(isNaN(pointerId)){ // when not dragging
-			EVENTS.digestCanvasWindowScrollEvent(pos);
+			EVENTS.digestCanvasWindowScrollEvent(dy,dx,e);
 		}
 	});
 

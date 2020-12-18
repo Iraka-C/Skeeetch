@@ -14,12 +14,18 @@ EventDistributer.init=function(){
  */
 EventDistributer.wheel={
 	_init:function(){
-		//window.addEventListener("wheel",EventDistributer.wheel._onwheel,false);
+		window.addEventListener("wheel",event=>{ // prevent ANY horizontal swipe action
+			updateSpeed(event); // calculate speed
+			EventDistributer.wheel._onwheel(event);
+			if(Math.abs(event.deltaY)<Math.abs(event.deltaX)){ // horizontal swipe
+				event.preventDefault();
+			}
+		});
 		EventDistributer.wheel.threshold=10;//ENV.browserInfo.macOS?5:1;
 
 		// scroll speed monitor
 		let lastWheelTime=0;
-		EventDistributer.wheel.updateSpeed=function(event){
+		function updateSpeed(event){
 			const dT=event.timeStamp-lastWheelTime;
 			lastWheelTime=event.timeStamp;
 
@@ -61,16 +67,14 @@ EventDistributer.wheel={
 			//console.log("out",event.pointerType);
 			EventDistributer.wheel.scrollCnt=[0,0];
 		},true);
-		el.addEventListener("wheel",EventDistributer.wheel._onwheel);
+		//el.addEventListener("wheel",EventDistributer.wheel._onwheel);
+		// TODO: try this
 	},
 	scrollCnt:[0,0],
 	speed: [0,0],
 	_overSpeedStart: [Infinity,Infinity],
 	overSpeedInterval: [0,0],
-	_onwheel:function(e){
-		console.log(e.deltaX);
-		EventDistributer.wheel.updateSpeed(e); // calculate speed
-		// wheel handler
+	_onwheel:function(e){ // wheel handler
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){
 			const cnt=EventDistributer.wheel.scrollCnt;
 			if(e.webkitDirectionInvertedFromDevice){ // On safari: natural on
@@ -92,9 +96,10 @@ EventDistributer.wheel={
 				EventDistributer.wheel._nowFunction(wY,wX,e); // Y first
 			}
 			if(EventDistributer.wheel._nowPreventDefault){
-				e.stopPropagation(); // prevent scrolling on page
 				e.preventDefault();
 			}
+			//e.stopPropagation(); // prevent scrolling on page
+			// propagate this event to window so that it can prevent horizontal-swipe
 		}
 	}
 };

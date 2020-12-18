@@ -22,6 +22,12 @@ EVENTS.init=function() {
 	if(!LOGGING){
 		$(window).on("contextmenu",e => false);
 	}
+	if (history.scrollRestoration) {
+		history.scrollRestoration = 'manual';
+	  }
+	  window.onpopstate = function(event) {
+		alert("location: " + document.location + ", state: " + JSON.stringify(event.state));
+	  };
 
 	// ============ Auto File saving related ==============
 	let isNotSavedOnExit=false;
@@ -136,12 +142,13 @@ EVENTS.init=function() {
 			}
 		}
 	};
+	// Various Move handlers
 	$canvasWindow.on("pointermove",pointerMoveHandler);
 	$canvasWindow.on("touchforcechange", event=>{
 		forceTouchPressure=event.originalEvent.changedTouches[0].force; // replace pressure value
 		pointerMoveHandler(event);
 	});
-	$canvasWindow.on("webkitmouseforcechanged", event=>{
+	$canvasWindow.on("webkitmouseforcechanged", event=>{ // Safari 3D Touch
 		forceTouchPressure=event.originalEvent.webkitForce/3; // replace pressure value
 		pointerMoveHandler(event);
 	});
@@ -319,6 +326,7 @@ EVENTS.init=function() {
 		}
 	};
 	EventDistributer.wheel.addListener($("#canvas-layers-panel"),scrollOnCanvasWindowHandler);
+	// this function is for passing an event to this handler (e.g. event from other elements)
 	EVENTS.digestCanvasWindowScrollEvent=scrollOnCanvasWindowHandler;
 
 	$(window).on("keydown",EVENTS.keyDown);
