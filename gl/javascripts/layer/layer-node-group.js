@@ -157,7 +157,7 @@ class LayerGroupNode extends ContentNode {
 				});
 			}
 		}
-		expandButton.on("click",e=>{
+		EventDistributer.setClick(expandButton,e=>{ // won't be affected by other clicks
 			this.isExpanded=!this.isExpanded;
 			updateExpandUI();
 			HISTORY.addHistory({ // add a history
@@ -269,7 +269,7 @@ class LayerGroupNode extends ContentNode {
 		const $blendButton=$buttons.find(".group-blend-mode-button");
 		EventDistributer.footbarHint($blendButton,() => Lang("Switch blend mode")
 			+": "+BasicRenderer.blendModeEnumToDisplayedName(this.properties.blendMode));
-		$blendButton.on("click",e=>{
+		EventDistributer.setClick($blendButton,e=>{
 			if(this.properties.locked)return; // cannot change
 			LAYERS.blendModeSelector.setCaller(this);
 			const bOffset=$blendButton.offset();

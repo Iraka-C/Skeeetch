@@ -291,38 +291,41 @@ EVENTS.init=function() {
 			// zooming center is the cursor
 			if(isNaN(CURSOR.p0[0]))return; // disabled
 			
-			let newS=SettingHandler.updateScale(dy,ENV.window.scale); // 0.1~8.0 clamped
-			const cursorX=CURSOR.p0[0];
-			const cursorY=CURSOR.p0[1];
-			const W2=ENV.window.SIZE.width/2;
-			const H2=ENV.window.SIZE.height/2;
-			const dX=ENV.window.trans.x+W2-cursorX;
-			const dY=ENV.window.trans.y+H2-cursorY;
-			const k=newS/ENV.window.scale;
-			const newX=cursorX+dX*k-ENV.window.SIZE.width/2;
-			const newY=cursorY+dY*k-ENV.window.SIZE.height/2;
-			ENV.transformTo(newX,newY,ENV.window.rot,newS);
-			$("#scale-info-input").val(Math.round(newS*100));
+			const vX=Math.abs(EventDistributer.wheel.speed[0]);
+			const vY=Math.abs(EventDistributer.wheel.speed[1]);
 
-			// deal with scroll-x event as swipe by yourself
-
-			const T=event.timeStamp;
-			const vX=EventDistributer.wheel.speed[0];
-			const threshold=1;
-			if(Math.abs(vX)>threshold&&Math.abs(lastVX)<=threshold){
-				// start to overspeed
-				lastSXOverSpeedTime=T;
+			if(vY>=vX){ // scroll up/down to zoom
+				let newS=SettingHandler.updateScale(dy,ENV.window.scale); // 0.1~8.0 clamped
+				const cursorX=CURSOR.p0[0];
+				const cursorY=CURSOR.p0[1];
+				const W2=ENV.window.SIZE.width/2;
+				const H2=ENV.window.SIZE.height/2;
+				const dX=ENV.window.trans.x+W2-cursorX;
+				const dY=ENV.window.trans.y+H2-cursorY;
+				const k=newS/ENV.window.scale;
+				const newX=cursorX+dX*k-ENV.window.SIZE.width/2;
+				const newY=cursorY+dY*k-ENV.window.SIZE.height/2;
+				ENV.transformTo(newX,newY,ENV.window.rot,newS);
+				$("#scale-info-input").val(Math.round(newS*100));
 			}
-			else if(Math.abs(vX)>threshold){
-				// end overspeeding
-				const dT=T-lastSXOverSpeedTime;
-				if(dT>100){ // over threshold
-					const isLeft=lastVX<0;
-					menuSwipeOperation(isLeft); // is towards left
-					lastSXOverSpeedTime=Infinity; // cancel following
+			else{ // deal with scroll-x event as swipe by yourself
+				const T=event.timeStamp;
+				const threshold=1;
+				if(vX>threshold&&Math.abs(lastVX)<=threshold){
+					// start to overspeed
+					lastSXOverSpeedTime=T;
+				}
+				else if(vX>threshold){ // horizontal scroll
+					// end overspeeding
+					const dT=T-lastSXOverSpeedTime;
+					if(dT>100){ // over threshold
+						const isLeft=lastVX<0;
+						menuSwipeOperation(isLeft); // is towards left
+						lastSXOverSpeedTime=Infinity; // cancel following
+					}
 				}
 			}
-			lastVX=vX;
+			lastVX=EventDistributer.wheel.speed[0]; // record
 		}
 	};
 	EventDistributer.wheel.addListener($("#canvas-layers-panel"),scrollOnCanvasWindowHandler);

@@ -152,7 +152,7 @@ STORAGE.FILES.loadAllFileThumbs=function(){
 // ======================== Write to =========================
 
 STORAGE.FILES.saveThumbToDatabase=function(fileID,imgSrc){
-	console.log("Saving thumb for "+fileID);
+	LOGGING&&console.log("Saving thumb for "+fileID);
 	
 	if(imgSrc.nodeName=="CANVAS"){ // Context2D type canvas
 		const ctx=imgSrc.getContext("2d");

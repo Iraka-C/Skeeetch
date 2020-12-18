@@ -323,7 +323,7 @@ LAYERS.setPrevActive=function(){
 
 LAYERS.initLayerPanelButtons=function() {
 	// New Layer Button
-	$("#new-layer-button").on("click",event => { // new layer
+	EventDistributer.setClick($("#new-layer-button"),event => { // new layer
 		const layer=LAYERS.addNewCanvasNode();
 		HISTORY.addHistory({ // add a history item
 			type: "node-structure",
@@ -342,7 +342,7 @@ LAYERS.initLayerPanelButtons=function() {
 	EventDistributer.footbarHint($("#new-layer-button"),() => Lang("Add a new layer"));
 
 	// New group button
-	$("#new-group-button").on("click",event => { // new group
+	EventDistributer.setClick($("#new-group-button"),event => { // new group
 		const group=new LayerGroupNode();
 		// Always add group before
 		LAYERS.active.addNodeBefore(group);
@@ -362,7 +362,7 @@ LAYERS.initLayerPanelButtons=function() {
 	EventDistributer.footbarHint($("#new-group-button"),() => Lang("Add a new layer group"));
 
 	// Delete layer / group button
-	$("#delete-button").on("click",event => {
+	EventDistributer.setClick($("#delete-button"),event => {
 		if(LAYERS.active.isLocked()) { // locked layer
 			return;
 		}
@@ -397,7 +397,7 @@ LAYERS.initLayerPanelButtons=function() {
 			STORAGE.FILES.saveContentChanges(LAYERS.active);
 		}
 	};
-	$("#clear-button").on("click",event => {
+	EventDistributer.setClick($("#clear-button"),event => {
 		if(LAYERS.active.isLocked()) { // locked layer
 			return;
 		}
@@ -418,14 +418,14 @@ LAYERS.initLayerPanelButtons=function() {
 	});
 
 	// Make a copy of the current layer/group button
-	$("#copy-button").on("click",event => {
+	EventDistributer.setClick($("#copy-button"),event => {
 		LAYERS.copyLayers();
 	});
 	EventDistributer.footbarHint($("#copy-button"),() => Lang("Make a copy of the current layer / group"));
 
 	// Expand / Collapse button
 	LAYERS.isUIExpanded=true;
-	$("#layer-panel-right-menu").on("click",event => {
+	EventDistributer.setClick($("#layer-panel-right-menu"),event => {
 		LAYERS.isUIExpanded=!LAYERS.isUIExpanded;
 		if(LAYERS.isUIExpanded) {
 			LAYERS.expandUI();

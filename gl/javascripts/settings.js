@@ -163,7 +163,8 @@ class SettingManager{
 		EventDistributer.button.addListener(dragTgt, // Drag on parent by default
 			dP=>{ // Drag
 				if(dragUpdateFunc){
-					dragUpdateFunc(dP.x,dP.initVal);
+					const dS=Math.abs(dP.x)>Math.abs(dP.y)?dP.x:-dP.y; // right/up: ++
+					dragUpdateFunc(dS,dP.initVal);
 				}
 				_updateFunc();
 			},
@@ -383,14 +384,15 @@ class SettingManager{
 		if(!this.swipeHandler){ // init swipe handler
 			this.swipeHandler=(dy,dx,event)=>{
 				const T=event.timeStamp;
-				const vX=EventDistributer.wheel.speed[0];
+				const vX=Math.abs(EventDistributer.wheel.speed[0]);
+				const vY=Math.abs(EventDistributer.wheel.speed[1]);
 				
 				const threshold=1;
-				if(Math.abs(vX)>threshold&&Math.abs(lastVX)<=threshold){
+				if(vX>threshold&&Math.abs(lastVX)<=threshold){
 					// start to overspeed
 					lastSXOverSpeedTime=T;
 				}
-				else if(Math.abs(vX)>threshold){
+				else if(vX>threshold&&vX>vY){ // vertical scroll
 					// end overspeeding
 					const dT=T-lastSXOverSpeedTime;
 					if(dT>100){ // over threshold
@@ -414,7 +416,7 @@ class SettingManager{
 						lastSXOverSpeedTime=Infinity; // cancel following
 					}
 				}
-				lastVX=vX;
+				lastVX=EventDistributer.wheel.speed[0];
 			};
 			// Do not prevent scrolling on menu
 			EventDistributer.wheel.addListener(this.$frame.parent(),this.swipeHandler,false);

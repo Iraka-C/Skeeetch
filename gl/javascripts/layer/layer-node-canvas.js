@@ -333,7 +333,7 @@ class CanvasNode extends ContentNode {
 		const $blendButton=$buttons.find(".layer-blend-mode-button");
 		EventDistributer.footbarHint($blendButton,() => Lang("Switch blend mode")
 			+": "+BasicRenderer.blendModeEnumToDisplayedName(this.properties.blendMode));
-		$blendButton.on("click",e=>{
+		EventDistributer.setClick($blendButton,e=>{
 			if(this.properties.locked)return; // cannot change
 			LAYERS.blendModeSelector.setCaller(this);
 			const bOffset=$blendButton.offset();

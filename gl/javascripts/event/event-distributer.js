@@ -14,11 +14,15 @@ EventDistributer.init=function(){
  */
 EventDistributer.wheel={
 	_init:function(){
-		window.addEventListener("wheel",event=>{ // prevent ANY horizontal swipe action
+		window.addEventListener("wheel",event=>{ // prevent ANY horizontal action
 			updateSpeed(event); // calculate speed
-			EventDistributer.wheel._onwheel(event);
-			if(Math.abs(event.deltaY)<Math.abs(event.deltaX)){ // horizontal swipe
+			if(Math.abs(event.deltaY)<Math.abs(event.deltaX)){
 				event.preventDefault();
+				/**
+				 * NOTE: browsers deals differently with preventDefault
+				 * Firefox allows default actions before preventing
+				 * Safari disables actions if once called preventing
+				 */
 			}
 		});
 		EventDistributer.wheel.threshold=10;//ENV.browserInfo.macOS?5:1;
@@ -67,8 +71,10 @@ EventDistributer.wheel={
 			//console.log("out",event.pointerType);
 			EventDistributer.wheel.scrollCnt=[0,0];
 		},true);
-		//el.addEventListener("wheel",EventDistributer.wheel._onwheel);
-		// TODO: try this
+		el.addEventListener("wheel",EventDistributer.wheel._onwheel);
+		// MUST bind this listener on el rather than using window listener
+		// So that some default actions could be called/prevented before window handler
+		// such as scrolling a div: you can control by yourself
 	},
 	scrollCnt:[0,0],
 	speed: [0,0],
@@ -98,8 +104,8 @@ EventDistributer.wheel={
 			if(EventDistributer.wheel._nowPreventDefault){
 				e.preventDefault();
 			}
-			//e.stopPropagation(); // prevent scrolling on page
-			// propagate this event to window so that it can prevent horizontal-swipe
+			//e.stopPropagation();
+			// propagate this event to window so that it can prevent window default action
 		}
 	}
 };
@@ -128,6 +134,7 @@ EventDistributer.button={
 			isDown=true;
 			isDragTriggered=false;
 			if(downFunc)downFunc();
+			event.stopPropagation();
 		});
 		$element.on("pointermove",event=>{ // call callback when down
 			if(!isDown||!(event.originalEvent.buttons&0x1)){
@@ -145,6 +152,7 @@ EventDistributer.button={
 			if(isDragTriggered){
 				callback({x:dx,y:dy,initVal:initVal});
 			}
+			event.stopPropagation();
 		});
 		$element.on("pointerup pointercancel",event=>{
 			const e=event.originalEvent;
@@ -153,10 +161,16 @@ EventDistributer.button={
 			initVal={};
 			isDown=false;
 			if(upFunc)upFunc();
+			event.stopPropagation();
 		});
 	}
 };
 
+/**
+ * This method differs from $.click is that
+ * it won't be affected by dragging-&-release of other element
+ * nor by stylus misfire
+ */
 EventDistributer.setClick=function($element,callback){
 	let origin={};
 	let isToClick=false;
