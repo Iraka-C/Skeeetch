@@ -48,7 +48,7 @@ CURSOR.init=function() {
 }
 
 CURSOR.moveCursor=function(event) {
-	let type=event.originalEvent.pointerId;
+	let type=event.pointerId;
 
 	// push one id in
 	CURSOR.eventIdList[2]=CURSOR.eventIdList[1];
@@ -63,7 +63,7 @@ CURSOR.moveCursor=function(event) {
 		return;
 	}
 
-	if(event.originalEvent.pressure!=0.5&&event.originalEvent.pressure!=0){
+	if(event.uPressure!=0.5&&event.uPressure!=0){
 		// if no pressure, the value is always 0.5 or 0
 		// 0.5 can be precisely represented with float
 		// It is extremely rare (probably never till the solar system dies)
@@ -73,11 +73,11 @@ CURSOR.moveCursor=function(event) {
 	CURSOR.p1=CURSOR.p0; // hand to the last event
 	const offsetWindow=CURSOR.window.offset(); // relative to document, same as pageX/Y
 	CURSOR.p0=[ // new movement
-		event.originalEvent.pageX-offsetWindow.left,
-		event.originalEvent.pageY-offsetWindow.top,
+		event.pageX-offsetWindow.left,
+		event.pageY-offsetWindow.top,
 		CURSOR.isPressure?
-			event.originalEvent.pressure:
-			event.originalEvent.pressure||CURSOR.isDown?1:0 // 1/0 as default
+			event.uPressure:
+			event.uPressure||CURSOR.isDown?1:0 // 1/0 as default
 		// Note: Safari doesn't provide event.pressure
 	];
 	

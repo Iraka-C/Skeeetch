@@ -13,7 +13,6 @@ EventDistributer.init=function(){
  * wheelchange: +1, 0, -1
  */
 EventDistributer.wheel={
-	isSlowDown:false,
 	_init:function(){
 		//window.addEventListener("wheel",EventDistributer.wheel._onwheel,false);
 		EventDistributer.wheel.threshold=10;//ENV.browserInfo.macOS?5:1;
@@ -35,33 +34,41 @@ EventDistributer.wheel={
 	},
 	_nowListener:null, // a DOM Object
 	_nowFunction:()=>{}, // a function
+	_nowPreventDefault:false,
 	/**
 	 * callback(wY,wX): change on x & y: scroll up = +1, scroll down = -1
+	 * by default, prevent default scroll action
 	 */
-	addListener:function($element,callback){ // $element is a jQuery Object
-		let el=$element[0];
+	addListener:function($element,callback,isPreventDefault){ // $element is a jQuery Object
+		const el=$element[0];
+		const nowPreventDefault=(typeof(isPreventDefault)=="boolean")?isPreventDefault:true;
 		// The only hack: Deal with record during capture stage
 		el.addEventListener("pointerover",event=>{
 			//console.log("over",event.target);
 			EventDistributer.wheel._nowListener=el;
 			EventDistributer.wheel._nowFunction=callback;
+			EventDistributer.wheel._nowPreventDefault=nowPreventDefault;
 			EventDistributer.wheel.scrollCnt=[0,0];
 		},true);
 		// to deal with multiple pointers (e.g. mouse+pen) and when only one pointer's out
 		el.addEventListener("pointermove",event=>{
 			EventDistributer.wheel._nowListener=el;
 			EventDistributer.wheel._nowFunction=callback;
+			EventDistributer.wheel._nowPreventDefault=nowPreventDefault;
 		},true);
 		el.addEventListener("pointerout",event=>{ // pointerup pointercancel?
 			EventDistributer.wheel._nowListener=null;
 			//console.log("out",event.pointerType);
 			EventDistributer.wheel.scrollCnt=[0,0];
 		},true);
-		el.onwheel=EventDistributer.wheel._onwheel;
+		el.addEventListener("wheel",EventDistributer.wheel._onwheel);
 	},
 	scrollCnt:[0,0],
 	speed: [0,0],
+	_overSpeedStart: [Infinity,Infinity],
+	overSpeedInterval: [0,0],
 	_onwheel:function(e){
+		console.log(e.deltaX);
 		EventDistributer.wheel.updateSpeed(e); // calculate speed
 		// wheel handler
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){
@@ -82,14 +89,13 @@ EventDistributer.wheel={
 			if(cnt[1]>= threshold){wY= 1;cnt[1]=0;}
 			if(cnt[1]<=-threshold){wY=-1;cnt[1]=0;}
 			if(wX||wY){
-				EventDistributer.wheel._nowFunction(
-					wY,wX,
-					e
-				); // Y first
+				EventDistributer.wheel._nowFunction(wY,wX,e); // Y first
 			}
-			e.stopPropagation(); // prevent scrolling on page
+			if(EventDistributer.wheel._nowPreventDefault){
+				e.stopPropagation(); // prevent scrolling on page
+				e.preventDefault();
+			}
 		}
-		return false;
 	}
 };
 

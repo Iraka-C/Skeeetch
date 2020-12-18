@@ -28,6 +28,10 @@ ENV.setUIOrientation=function(isLeft) {
 		$("#right-menu-panels .setting-panel").children().addClass("menu-scroll-wrapper").removeClass("left-menu-scroll-wrapper");
 		$("#left-menu-panels .setting-panel").children().addClass("left-menu-scroll-wrapper").removeClass("menu-scroll-wrapper");
 		$("#brush-button").css("justify-content","flex-start");
+
+		FILES.fileManager.setSwipeDirection("right");
+		SettingHandler.sysMenu.setSwipeDirection("right");
+		BrushManager.brushMenu.setSwipeDirection("left");
 	}
 	else { // Reversed
 		$("#top-menu-panel").css("flex-direction","row-reverse");
@@ -55,6 +59,10 @@ ENV.setUIOrientation=function(isLeft) {
 		$("#right-menu-panels .setting-panel").children().addClass("left-menu-scroll-wrapper").removeClass("menu-scroll-wrapper");
 		$("#left-menu-panels .setting-panel").children().addClass("menu-scroll-wrapper").removeClass("left-menu-scroll-wrapper");
 		$("#brush-button").css("justify-content","flex-end");
+
+		FILES.fileManager.setSwipeDirection("left");
+		SettingHandler.sysMenu.setSwipeDirection("left");
+		BrushManager.brushMenu.setSwipeDirection("right");
 	}
 	PALETTE.refreshUIParam(); // refresh palette position
 }

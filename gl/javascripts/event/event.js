@@ -95,15 +95,23 @@ EVENTS.init=function() {
 	
 	let cntAfterUp=0; // Hysteresis of pointer up
 	let isStrokeEnded=true;
+	let forceTouchPressure=NaN; // force touch pressure for touch pad
 	function endStroke(){ // end a down-move-up sequence
 		EVENTS.isCursorInHysteresis=false; // cancel hysteresis count
+		forceTouchPressure=NaN;
 		isStrokeEnded=true;
 		cntAfterUp=0;
 		CANVAS.strokeEnd();
 		eachMenuPanelFunc($el => $el.css("pointer-events","all")); // after stroke, enable menus
 	}
 
-	$canvasWindow.on("pointermove",event => {
+	const pointerMoveHandler=event=>{
+		if(!isNaN(forceTouchPressure)){ // there is a touch pressure
+			event.originalEvent.uPressure=forceTouchPressure; // assign the pressure
+		}
+		else{
+			event.originalEvent.uPressure=event.originalEvent.pressure;
+		}
 		if(!event.buttons&&CURSOR.isDown){ // move button record show that mouse is up
 			// This happens when switching window with mouse on Safari
 			// Anyway end this stroke
@@ -116,7 +124,7 @@ EVENTS.init=function() {
 
 		CURSOR.setIsShown(true); // pen->mouse switching
 		CURSOR.updateAction(event); // still registering right button: change to movecursor?
-		CURSOR.moveCursor(event); // may be stroke or pan
+		CURSOR.moveCursor(event.originalEvent); // may be stroke or pan
 
 		if(EVENTS.isCursorInHysteresis){ // add a count
 			cntAfterUp++;
@@ -127,7 +135,17 @@ EVENTS.init=function() {
 				endStroke(); // end after hysteresis
 			}
 		}
+	};
+	$canvasWindow.on("pointermove",pointerMoveHandler);
+	$canvasWindow.on("touchforcechange", event=>{
+		forceTouchPressure=event.originalEvent.changedTouches[0].force; // replace pressure value
+		pointerMoveHandler(event);
 	});
+	$canvasWindow.on("webkitmouseforcechanged", event=>{
+		forceTouchPressure=event.originalEvent.webkitForce/3; // replace pressure value
+		pointerMoveHandler(event);
+	});
+
 	$canvasWindow.on("pointerout",event => {
 		CURSOR.setIsShown(false); // pen away, disable cursor
 		EVENTS.isCursorInHysteresis=false; // cancel the count
@@ -168,7 +186,8 @@ EVENTS.init=function() {
 		isStrokeEnded=false; // one down-move-up sequence not ended
 		CURSOR.down(event);
 		CURSOR.updateAction(event); // doesn't change the action
-		CURSOR.moveCursor(event);
+		event.originalEvent.uPressure=event.originalEvent.pressure; // assign upressure
+		CURSOR.moveCursor(event.originalEvent);
 		EVENTS.isCursorInHysteresis=false;
 		cntAfterUp=0; // reset count
 	});
@@ -183,7 +202,7 @@ EVENTS.init=function() {
 				else{
 					endStroke();
 				}
-				//CURSOR.moveCursor(event);
+				//CURSOR.moveCursor(event.originalEvent);
 			}
 			else{ // outside canvas, end this stroke
 				if(!isStrokeEnded){ // stroking
@@ -212,6 +231,36 @@ EVENTS.init=function() {
 
 	// Scroll on canvas
 	// Expose this method to public so that other UI can also update canvas window by scrolling
+	const menuSwipeOperation=(isLeft)=>{
+		const isFileExpanded=FILES.fileManager.isExpanded();
+		const isBrushExpanded=BrushManager.brushMenu.isExpanded();
+		const isSettingExpanded=SettingHandler.sysMenu.isExpanded();
+		isLeft=!isLeft^ENV.displaySettings.uiOrientationLeft; // decided by orientation
+		if(isLeft){ // towards left
+			if(isBrushExpanded){ // close brush menu
+				BrushManager.brushMenu.toggleExpand();
+			}
+			else if(!isFileExpanded){ // open file menu
+				FILES.fileManager.toggleExpand();
+			}
+			else if(!isSettingExpanded){ // then close setting
+				SettingHandler.sysMenu.toggleExpand();
+			}
+		}
+		else{ // towards right
+			if(isSettingExpanded){ // close setting first
+				SettingHandler.sysMenu.toggleExpand();
+			}
+			else if(isFileExpanded){ // close file menu
+				FILES.fileManager.toggleExpand();
+			}
+			else if(!isBrushExpanded){ // open brush menu
+				BrushManager.brushMenu.toggleExpand();
+			}
+		}
+	};
+	EVENTS.menuSwipeOperation=menuSwipeOperation; // expose to global
+
 	let lastVX=0;
 	let lastSXOverSpeedTime=0;
 	const scrollOnCanvasWindowHandler=(dy,dx,event) => { // Scroll
@@ -252,9 +301,6 @@ EVENTS.init=function() {
 
 			const T=event.timeStamp;
 			const vX=EventDistributer.wheel.speed[0];
-			//console.log(vX);
-			
-
 			const threshold=1;
 			if(Math.abs(vX)>threshold&&Math.abs(lastVX)<=threshold){
 				// start to overspeed
@@ -263,29 +309,9 @@ EVENTS.init=function() {
 			else if(Math.abs(vX)>threshold){
 				// end overspeeding
 				const dT=T-lastSXOverSpeedTime;
-				const isFileExpanded=FILES.fileManager.isExpanded();
-				const isBrushExpanded=BrushManager.brushMenu.isExpanded();
-				const isSettingExpanded=SettingHandler.sysMenu.isExpanded();
 				if(dT>100){ // over threshold
-					if(lastVX<0){ // towards left
-						if(isBrushExpanded){ // close brush menu
-							BrushManager.brushMenu.toggleExpand();
-						}
-						else if(!isFileExpanded){ // open file menu
-							FILES.fileManager.toggleExpand();
-						}
-					}
-					else{ // towards right
-						if(isSettingExpanded){ // close setting first
-							SettingHandler.sysMenu.toggleExpand();
-						}
-						else if(isFileExpanded){ // close file menu
-							FILES.fileManager.toggleExpand();
-						}
-						else if(!isBrushExpanded){ // open brush menu
-							BrushManager.brushMenu.toggleExpand();
-						}
-					}
+					const isLeft=lastVX<0;
+					menuSwipeOperation(isLeft); // is towards left
 					lastSXOverSpeedTime=Infinity; // cancel following
 				}
 			}

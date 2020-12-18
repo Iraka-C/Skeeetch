@@ -9,6 +9,8 @@ class SettingManager{
 
 		this.onMenuOpenFunc=null;
 		this.onMenuCloseFunc=null;
+		this.swipeDir=null;
+		this.swipeHandler=null;
 
 		let colgroup=$("<colgroup>");
 		colgroup.append($("<col class='setting-item-name'>"));
@@ -369,5 +371,53 @@ class SettingManager{
 		const $divRow=$("<tr>").append($divField);
 		this.$frame.find("tbody").append($divRow);
 		return $div;
+	}
+
+	//====================== drag/swipe to close ======================
+	// swipe to close
+	setSwipeDirection(dir){ // dir="none"/null/"left"/"right"
+		this.swipeDir=dir;
+
+		let lastVX=0;
+		let lastSXOverSpeedTime=0;
+		if(!this.swipeHandler){ // init swipe handler
+			this.swipeHandler=(dy,dx,event)=>{
+				const T=event.timeStamp;
+				const vX=EventDistributer.wheel.speed[0];
+				
+				const threshold=1;
+				if(Math.abs(vX)>threshold&&Math.abs(lastVX)<=threshold){
+					// start to overspeed
+					lastSXOverSpeedTime=T;
+				}
+				else if(Math.abs(vX)>threshold){
+					// end overspeeding
+					const dT=T-lastSXOverSpeedTime;
+					if(dT>100){ // over threshold
+						const isLeft=lastVX<0;
+						if(this.isExpanded()){ // do on this menu first
+							if(isLeft&&this.swipeDir=="left"){ // towards left
+								console.log("To Left");
+								this.toggleExpand();
+							}
+							else if(!isLeft&&this.swipeDir=="right"){ // towards right
+								console.log("To Right");
+								this.toggleExpand();
+							}
+							else{ // also treat as global event
+								EVENTS.menuSwipeOperation(isLeft);
+							}
+						}
+						else{
+							EVENTS.menuSwipeOperation(isLeft);
+						}
+						lastSXOverSpeedTime=Infinity; // cancel following
+					}
+				}
+				lastVX=vX;
+			};
+			// Do not prevent scrolling on menu
+			EventDistributer.wheel.addListener(this.$frame.parent(),this.swipeHandler,false);
+		}
 	}
 }
