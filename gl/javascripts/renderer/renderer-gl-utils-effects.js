@@ -1,3 +1,4 @@
+"use strict";
 GLImageDataFactory.prototype._initEffectProgram=function(){
 	// Color to Opacity program
 	const vc2oShaderSource=glsl`

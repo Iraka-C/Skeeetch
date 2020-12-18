@@ -1,3 +1,4 @@
+"use strict";
 FILES.tempPaperSize={
 	width: 0,
 	height: 0,
@@ -63,7 +64,7 @@ FILES.initFileMenu=function() {
 			cropDraggerUpdater(true);
 		},
 		(dx,oldVal) => { // set on drag-x
-			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.maxPaperSize);
+			let newVal=Math.round((+oldVal)+dx).clamp(16,ENV.maxPaperSize);
 			FILES.tempPaperSize.width=newVal;
 			sizeChangeHint(true);
 			cropDraggerUpdater(true);
@@ -104,7 +105,7 @@ FILES.initFileMenu=function() {
 			cropDraggerUpdater(true);
 		},
 		(dx,oldVal) => { // set on drag-x
-			let newVal=Math.round((oldVal-0)+dx).clamp(16,ENV.maxPaperSize);
+			let newVal=Math.round((+oldVal)+dx).clamp(16,ENV.maxPaperSize);
 			FILES.tempPaperSize.height=newVal;
 			sizeChangeHint(true);
 			cropDraggerUpdater(true);

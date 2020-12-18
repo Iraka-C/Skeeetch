@@ -1,3 +1,4 @@
+"use strict";
 class GLBrushRenderer {
 	constructor(renderer) {
 		this.mainRenderer=renderer;

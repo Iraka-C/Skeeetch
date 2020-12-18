@@ -2,7 +2,8 @@
  * Clipboard operation management
  * TODO: change to Promise type
  */
-CLIPBOARD={};
+"use strict";
+const CLIPBOARD={};
 
 // items is DataTransferList
 // async function!

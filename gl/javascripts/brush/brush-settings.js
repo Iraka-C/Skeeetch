@@ -1,4 +1,4 @@
-
+"use strict";
 // ========================== Brush Menu ===========================
 BrushManager.initMenuSizeSection=function(brushMenu) {
 	brushMenu.addSectionTitle(Lang("Size Control"));

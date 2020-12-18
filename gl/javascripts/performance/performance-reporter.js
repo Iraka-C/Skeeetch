@@ -2,10 +2,8 @@
  * A report UI for issues found during running
  * the UI is SettingHandler.$report
  */
-
-PERFORMANCE.REPORTER={
-
-};
+"use strict";
+PERFORMANCE.REPORTER={};
 
 PERFORMANCE.REPORTER.init=function(){
 	const $ui=SettingHandler.$report;

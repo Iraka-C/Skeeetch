@@ -5,6 +5,7 @@
  * 
  * NOTICE: no ":" in keywords! either storename or key
  */
+"use strict";
 
 class MyForage{
 	/**
@@ -154,13 +155,13 @@ class MyForage{
 		}
 		this.storePrefix=this.storeName+":";
 
-		function recalcStoreSize(keys){
+		const recalcStoreSize=keys=>{
 			let totalSize=0;
 			for(const size in keys){
 				totalSize+=size;
 			}
 			return totalSize;
-		}
+		};
 
 		return this.storeList.getItem(this.storeName).then(val=>{
 			if(val){ // already existing, read it

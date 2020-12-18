@@ -1,4 +1,5 @@
-PALETTE={};
+"use strict";
+const PALETTE={};
 
 /**
  * Palette panel driver

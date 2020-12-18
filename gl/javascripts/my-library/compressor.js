@@ -1,3 +1,4 @@
+"use strict";
 class Compressor{
 	// targetSize is in bytes
 	// Although rle sometimes gives worse result after huffman

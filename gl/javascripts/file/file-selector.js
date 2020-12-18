@@ -1,3 +1,4 @@
+"use strict";
 FILES.fileSelector={};
 
 FILES.fileSelector.init=function(fileManager) {

@@ -1,8 +1,8 @@
 /**
  * Handle the actions when settings changes
  */
-
-SettingHandler={};
+"use strict";
+const SettingHandler={};
 
 SettingHandler.init=function(sysParams) {
 	SettingHandler.initTitle();
@@ -57,7 +57,7 @@ SettingHandler.initTransformHandler=function() {
 			ENV.rotateTo(newA);
 		},
 		(dx,oldVal) => { // drag update
-			let newA=(oldVal-0)+dx;// string to number
+			let newA=(+oldVal)+dx;// string to number
 			if(EVENTS.key.shift){ // shift: round to 15 deg
 				newA=Math.round(newA/15)*15;
 			}
@@ -99,7 +99,7 @@ SettingHandler.initTransformHandler=function() {
 			ENV.scaleTo(newS);
 		},
 		(dx,oldVal) => { // drag update
-			let newS=oldVal-0;
+			let newS=+oldVal;
 			if(EVENTS.key.shift){ // round to power 2
 				const b2=Math.log2(newS/100);
 				newS=Math.pow(2,Math.round(b2+dx/15)).clamp(0.125,8.0);

@@ -1,3 +1,4 @@
+"use strict";
 class ContentNode extends LayerNode {
 	constructor(id) {
 		super(id);

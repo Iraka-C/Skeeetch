@@ -1,3 +1,4 @@
+"use strict";
 BrushManager.initBrushAccessories=function($defTable){
 	const $expandButton=$("<div id='brush-expand-button'>").text(">");
 	const $title=$("<div id='brush-expand-title'>").text(Lang("button-tools"));

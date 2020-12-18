@@ -1,7 +1,8 @@
 /**
  * History recording & switching
  */
-HISTORY={};
+"use strict";
+const HISTORY={};
 /**
  * HISTORY.list is an array containing a sequence of actions, see HistoryItem
  * HISTORY.nowId points to the tail item of the HISTORY.list

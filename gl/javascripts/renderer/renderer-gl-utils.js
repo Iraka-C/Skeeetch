@@ -2,6 +2,7 @@
  * Class to blend two textures
  * Works in a same color space with linear blending
  */
+"use strict";
 class GLTextureBlender {
 	// Enums at the end of class definition
 

@@ -1,8 +1,8 @@
 /**
  * Handle file import/export, file resize, etc.
  */
-
-FILES={};
+"use strict";
+const FILES={};
 
 FILES.init=function() {
 	FILES.initFileMenu();

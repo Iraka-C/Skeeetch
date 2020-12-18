@@ -1,3 +1,4 @@
+"use strict";
 FILES.initCropDragger=function(widthUpdateFunc,heightUpdateFunc){
 	// the handler for dragging when cropping
 	const cropDragHandler=new CropDragHandler(()=>{

@@ -1,3 +1,4 @@
+"use strict";
 EVENTS.initHotKeys=function() {
 	// History Operations
 	EventDistributer.key.addListener("ctrl+KeyZ",e => {HISTORY.undo();});

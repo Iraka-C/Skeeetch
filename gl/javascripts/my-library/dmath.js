@@ -1,8 +1,8 @@
 /**
  * 3D transform maths
  */
-
-DMath={};
+"use strict";
+const DMath={};
 
 DMath.stretch=function(n3,l){
 	return [n3[0]*l,n3[1]*l,n3[2]*l];

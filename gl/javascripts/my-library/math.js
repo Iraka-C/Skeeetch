@@ -1,4 +1,5 @@
-SMath={};
+"use strict";
+const SMath={};
 
 
 Number.prototype.clamp=function(min,max){

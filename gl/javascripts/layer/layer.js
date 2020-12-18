@@ -1,7 +1,8 @@
 /**
  * Layer manager
  */
-LAYERS={};
+"use strict";
+const LAYERS={};
 LAYERS.layerHash={}; // layer id => layer object
 /**
  * The node order in layerTree is identical to the Layer Panel DOM

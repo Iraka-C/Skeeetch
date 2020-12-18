@@ -1,3 +1,4 @@
+"use strict";
 class CropDragHandler extends DragHandler{
 	constructor(callback){
 		super(callback);

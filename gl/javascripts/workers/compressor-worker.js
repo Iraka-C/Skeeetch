@@ -2,7 +2,7 @@
  * Web worker for file saving at storage-manager-files.js
  * Only for compression
  */
-
+"use strict";
 importScripts("../my-library/compressor.js");
 
 /**

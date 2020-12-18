@@ -1,3 +1,4 @@
+"use strict";
 class SettingManager{
 	// Add a setting table named "name" to frame
 	constructor($outerFrame,name){

@@ -4,6 +4,8 @@
  */
 
 // Thumb is short for thumbnail images.
+"use strict";
+
 STORAGE.FILES.initThumbStore=function(){
 	STORAGE.FILES.thumbStore=localforage.createInstance({name: "thumbs"});
 }

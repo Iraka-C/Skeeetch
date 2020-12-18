@@ -1,3 +1,4 @@
+"use strict";
 class GLVRAMManager {
 	constructor(renderer,maxSize) {
 		this.renderer=renderer;

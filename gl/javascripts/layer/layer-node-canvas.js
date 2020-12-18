@@ -1,3 +1,4 @@
+"use strict";
 // ================ UI ==================
 LAYERS.$newCanvasLayerUI=function(id) {
 	let layerUI=$("<div class='layer-item layer-ui'>");

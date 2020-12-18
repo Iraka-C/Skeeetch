@@ -2,8 +2,8 @@
  * Created by Iraka on 2020.04.18
  * Storage Manager for Skeeetch application
  */
-
-STORAGE={};
+"use strict";
+const STORAGE={};
 
 /**
  * There are two parts of the storage:

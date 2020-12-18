@@ -1,3 +1,5 @@
+"use strict";
+
 ENV.setUIOrientation=function(isLeft) {
 	ENV.displaySettings.uiOrientationLeft=isLeft;
 	if(isLeft) { // Normal

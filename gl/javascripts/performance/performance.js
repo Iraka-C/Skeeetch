@@ -1,7 +1,8 @@
 /**
  * performance monitor
  */
-PERFORMANCE={
+"use strict";
+const PERFORMANCE={
 	debugger:{ // debugger settings
 		isDrawingLayerBorder: false
 	},

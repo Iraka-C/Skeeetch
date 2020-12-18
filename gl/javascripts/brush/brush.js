@@ -1,7 +1,8 @@
 /**
  * Manage brush params
  */
-BrushManager={};
+"use strict";
+const BrushManager={};
 BrushManager.brushes=[
 	{
 		proto:0, // a prototype id indicating the type of brush, also the order in brushes

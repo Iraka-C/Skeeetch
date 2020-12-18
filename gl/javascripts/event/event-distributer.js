@@ -1,4 +1,5 @@
-EventDistributer={};
+"use strict";
+const EventDistributer={};
 
 EventDistributer.init=function(){
 	EventDistributer.wheel._init();

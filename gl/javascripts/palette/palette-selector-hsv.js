@@ -1,3 +1,4 @@
+"use strict";
 class H_SVSelector extends PaletteSelector{
 	constructor(rgb,colorInfoManager){
 		super(rgb,colorInfoManager);

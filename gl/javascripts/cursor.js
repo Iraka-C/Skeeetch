@@ -1,8 +1,8 @@
 /**
  * Pointer cursor / event manager
  */
-
-CURSOR={};
+"use strict";
+const CURSOR={};
 
 // present position: (x,y,pressure)
 // The posistion is relative to the #canvas-window

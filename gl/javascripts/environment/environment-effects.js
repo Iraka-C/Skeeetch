@@ -1,7 +1,7 @@
 /**
  * Transform Animation
  */
-
+"use strict";
 
 /**
  * get transform matrix [a,b,c,d,e,f] from pArr = [x,y,r,s]

@@ -10,7 +10,7 @@
  *     Supports to up to Sqrt(1936)*128=5632 length of textures.
  * The output value is 0~256, which corresponds to 1/64 of the actual countings.
  */
-
+"use strict";
 class GLHistogram {
 	constructor(renderer){
 		this.renderer=renderer;

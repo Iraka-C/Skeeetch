@@ -1,8 +1,8 @@
 /**
  * Handle all settings on whole body & canvas area
  */
-
-EVENTS={};
+"use strict";
+const EVENTS={};
 
 EVENTS.key={
 	ctrl: false,

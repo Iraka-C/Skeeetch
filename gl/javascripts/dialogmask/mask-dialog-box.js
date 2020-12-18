@@ -1,4 +1,5 @@
-DIALOGBOX={
+"use strict";
+const DIALOGBOX={
 	nowItem: null // now dialog box item
 };
 

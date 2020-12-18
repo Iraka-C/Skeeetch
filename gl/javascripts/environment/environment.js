@@ -2,8 +2,9 @@
 	Written By Iraka
 	Environment handlers for Sketch platform
 */
+"use strict";
 
-ENV={}; // Environment
+const ENV={}; // Environment
 ENV.version="20201216";
 
 //===================== Settings =====================
@@ -75,6 +76,7 @@ ENV.init=function() { // When the page is loaded
 		const lastLayerTreeJSON=STORAGE.FILES.getLayerTree();
 		STORAGE.FILES.initLayerStorage(ENV.fileID); // load the layer database, file title already set BEFORE (ENV.setFileTitle)
 		STORAGE.FILES.saveLayerTreeInDatabase(lastLayerTreeJSON); // update layer tree in database
+		FILES.init(); // must after layer set to init ui
 
 		// init layers
 		ENV.window.SIZE.width=$("#canvas-window").width();
@@ -110,7 +112,6 @@ ENV.init=function() { // When the page is loaded
 		// init accessories
 		BrushManager.init(sysSettingParams); // must after EVENTS to enable hotkeys
 		HISTORY.init();
-		FILES.init(); // must after layer set to init ui
 		DIALOGBOX.init();
 		DRAG.init();
 		//GUIDELINE.init();

@@ -1,3 +1,4 @@
+"use strict";
 class QBezier{ // quadratic bezier curve
 	/**
 	 * pArr is a point array [p0,p1,p2] where each point is {x,y}

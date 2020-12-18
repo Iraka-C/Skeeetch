@@ -1,4 +1,5 @@
-DRAG={
+"use strict";
+const DRAG={
 	//points: [[100,100],[100,200],[200,200],[200,100]], // 4 points, in canvas window coordinate
 	paperP: [null,null,null,null], // 4 points, in paper coordinate
 	dragHandler: null, // handling the dragged result

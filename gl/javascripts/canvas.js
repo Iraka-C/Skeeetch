@@ -2,8 +2,9 @@
  * Canvas manager
  * @TODO: check all places using texImage2d, this may cause memory leak!
  */
+"use strict";
 
-CANVAS={};
+const CANVAS={};
 CANVAS.settings={
 	enabled: true, // is canvas drawable?
 	method: 1, // webgl:1, cpu16bit:2, ctx2d:3

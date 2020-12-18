@@ -1,14 +1,15 @@
 /**
  * Language Setting
  */
-LANG={};
+"use strict";
+const LANG={};
 LANG.langList={
 	"zh":LANG_ZH,
 	"en":LANG_EN
 };
 LANG.nowLang="en";
 
-Lang=text=>LANG.target[text]||text; // if not found, use the original text
+const Lang=text=>LANG.target[text]||text; // if not found, use the original text
 LANG.init=(sysParams)=>{
 	// Language specification
 	// sysParams.windowParams.query > sysParams.preference.language > sysParams.windowParams.lang

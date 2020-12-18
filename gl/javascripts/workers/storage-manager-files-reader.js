@@ -5,6 +5,7 @@
  * 
  * read from file won't cause key confliction (no key modification)
  */
+"use strict";
 
 importScripts("../my-library/compressor.js");
 importScripts("../library/localforage.min.js");

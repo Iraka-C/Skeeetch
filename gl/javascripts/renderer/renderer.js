@@ -5,7 +5,7 @@
  * 2. init when focusing on a new layer: init
  * 3. init before a stroke (a series of rendering) begins: initBeforeRender
  */
-
+"use strict";
 /**
  * All methods shall be synchronized.
  */

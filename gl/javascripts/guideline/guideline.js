@@ -1,7 +1,8 @@
 /**
  * The GUIDELINE manipulates the guide lines on the canvas window
  */
-GUIDELINE={
+"use strict";
+const GUIDELINE={
 	handlerPoint: [[1,0,0],[0,1,0],[0,0,1]], // the coordinate of three handler directions, in 3D space coordinate
 	fRel: 1, // focal length relative to canvas paper diagonal length.
 	fPix: NaN, // focal length in pixel

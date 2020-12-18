@@ -31,7 +31,7 @@ sysSettingParams={
 	windowParams // params from the url call
 }
 */
-
+"use strict";
 STORAGE.SETTING={};
 
 STORAGE.SETTING.init=function(){ // async! returns a Promise
@@ -94,8 +94,8 @@ STORAGE.SETTING.initWindowParams=function(){
 	const lang=window.navigator.language||window.navigator.browserLanguage; // in RFC standard
 
 	const urlParamsToObject=s=>{
-		usp=new URLSearchParams(s);
-		obj={};
+		const usp=new URLSearchParams(s);
+		const obj={};
 		for(const kv of usp.entries()){
 			obj[kv[0]]=kv[1];
 		}

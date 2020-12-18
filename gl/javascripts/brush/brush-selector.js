@@ -1,3 +1,4 @@
+"use strict";
 BrushManager.initBrushSelector=function(customBrushes) {
 	// Default brush table
 	const $defTable=$("<table class='default-brush-table'>");

@@ -2,7 +2,7 @@
  * Written by Iraka on 20200304
  * Helpers for WebGL application
  */
-
+"use strict";
 class GLProgram {
 	// gl should enable float extension and premultiplied alpha
 	constructor(gl,vShaderSrc,fShaderSrc) {

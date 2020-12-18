@@ -7,6 +7,7 @@
 		this.vramManager.verify(tgt);
  * there are chances that verifying tgt causes src to be compressed again
  */
+"use strict";
 class GLRenderer extends BasicRenderer {
 	/**
 	 * Constructor: when starting the whole program or switching rendering method

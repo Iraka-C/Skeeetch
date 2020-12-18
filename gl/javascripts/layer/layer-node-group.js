@@ -1,3 +1,4 @@
+"use strict";
 // ================ UI ==================
 LAYERS.$newLayerGroupUI=function(id) {
 	let layerGroupUI=$("<div class='layer-item layer-group-ui'>");

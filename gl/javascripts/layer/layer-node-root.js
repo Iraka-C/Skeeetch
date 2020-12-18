@@ -1,3 +1,4 @@
+"use strict";
 class RootNode extends ContentNode { // only one root node
 	constructor() {
 		super("root");

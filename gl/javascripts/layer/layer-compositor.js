@@ -2,8 +2,8 @@
  * Memory Optimizer for layers
  * Regarding the layer composition policies in CANVAS
  */
-
-COMPOSITOR={};
+"use strict";
+const COMPOSITOR={};
 
 /**
  * There should be a monitor watching every change in the layer tree, and create cache structures

@@ -1,3 +1,4 @@
+"use strict";
 class ColorInfoManager {
 	constructor(param) {
 		param=param||{};

@@ -3,6 +3,7 @@
  * All done by IDB/main thread
  * As the task is relatively light, no need to start task counter
  */
+"use strict";
 
 STORAGE.FILES.saveBrushtip=function(brushID,brushtip) {
 	/**

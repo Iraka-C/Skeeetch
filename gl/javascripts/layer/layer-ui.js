@@ -1,3 +1,5 @@
+"use strict";
+
 LAYERS.initScrollbar=function() {
 	// @TODO: scroll to active layer when add/delete
 	/**
