@@ -21,7 +21,7 @@ STORAGE.init=function(callback){
 		 * organizeDatabase() won't be called if clear=1 url param is set
 		 */
 		STORAGE.FILES.organizeDatabase().then(v=>{ // organize database at startup
-			if(v){
+			if(v){ // cleared something
 				console.log("cleared",v);
 				localStorage.setItem("files",JSON.stringify(STORAGE.FILES.filesStore));
 				window.location.reload(false); // do not pull again

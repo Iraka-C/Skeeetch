@@ -56,6 +56,11 @@ LANG_EN={
 	"check-bitrate-macos16-report":"Bit Depth Warning",
 	"check-bitrate-macos16-info":"This browser may not work properly under 16 bit depth mode.",
 
+	"reset-clear-report":"Reset & Clear",
+	"reset-report-hint":"Reset system settings.",
+	"clear-report-hint":"Clear all storages.",
+	"reset-clear-hint":"CLICK THIS message to reload as the new workspace!",
+
 	// Layer
 	"node-copy-suffix":" copy",
 	"copy-text-manual":"The browser requires a user confirmation before copy. Do you want to copy contents from the current layer to the clipboard?",

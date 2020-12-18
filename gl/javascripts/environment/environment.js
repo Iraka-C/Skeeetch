@@ -127,6 +127,9 @@ ENV.init=function() { // When the page is loaded
 		// clean up the unremoved database store
 		// maybe because of failed deletion
 		STORAGE.FILES.loadAllFileThumbs();
+
+		// check if there is a param at last
+		ENV.checkResetParams(sysSettingParams);
 	});
 };
 
@@ -202,6 +205,11 @@ ENV.reportSafelyLoaded=function(){
 		startReport.failedList=[];
 		localStorage.setItem("start-report",JSON.stringify(startReport));
 	}
+}
+
+ENV.checkResetParams=function(sysSettingParams){
+	const query=sysSettingParams.windowParams.query;
+	PERFORMANCE.reportResetClear(query["reset"],query["clear"]);
 }
 // ====================== Settings ========================
 /**

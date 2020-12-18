@@ -252,7 +252,7 @@ EVENTS.init=function() {
 
 			const T=event.timeStamp;
 			const vX=EventDistributer.wheel.speed[0];
-			console.log(vX);
+			//console.log(vX);
 			
 
 			const threshold=1;

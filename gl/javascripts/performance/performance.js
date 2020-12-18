@@ -275,6 +275,31 @@ PERFORMANCE.reportLowVRAM=function(){
 }
 PERFORMANCE.reportLowVRAM.reported=false;
 
+PERFORMANCE.reportResetClear=function(isReset,isClear){
+	const loadReport={
+		title: Lang("reset-clear-report"),
+		items: []
+	};
+	if(isReset){
+		loadReport.items.push({
+			content: Lang("reset-report-hint"),
+			target: "" // TODO: fill in target
+		});
+	}
+	if(isClear){
+		loadReport.items.push({
+			content: Lang("clear-report-hint"),
+			target: "" // TODO: fill in target
+		});
+	}
+	if(isReset||isClear){
+		loadReport.items.push({
+			content: Lang("reset-clear-hint"),
+			target: window.location.origin+window.location.pathname // without any param
+		});
+	}
+	PERFORMANCE.REPORTER.report(loadReport);
+}
 // ================= Idle Task Manager ===================
 class IdleTaskManager{
 	constructor(){

@@ -34,8 +34,9 @@ PERFORMANCE.REPORTER.init=function(){
  *   title: string of title,
  *   items:[
  *      {
- *         content: text/html string
- *         target: nodeID related/html link
+ *         content: text/html string,
+ *         target: nodeID related/html link,
+ *         isNewPage: is to open the link in new page (only when target is link)
  *      },
  *      ...
  *   ]
@@ -76,7 +77,9 @@ PERFORMANCE.REPORTER.report=function(block){
 						LAYERS.setActive(node);
 					})
 				}
-				else{
+				else if(item.target.length){ // item.target is an external link
+					window.location.href=item.target;
+
 					// some external links
 					// based on LANG!
 				}
@@ -130,7 +133,11 @@ PERFORMANCE.REPORTER.report=function(block){
 
 	// small animation
 	$hint.css({"color":"#dd7700"});
-	setTimeout(e=>{
+	if(PERFORMANCE.REPORTER.hintTimeoutHandler){ // already started
+		clearTimeout(PERFORMANCE.REPORTER.hintTimeoutHandler);
+		PERFORMANCE.REPORTER.hintTimeoutHandler=null;
+	}
+	PERFORMANCE.REPORTER.hintTimeoutHandler=setTimeout(e=>{
 		$hint.css({"color":""});
 	},1000);
 }

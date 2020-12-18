@@ -70,6 +70,11 @@ LANG_ZH={
 	"check-bitrate-macos16-report":"位深度警告",
 	"check-bitrate-macos16-info":"当前浏览器可能无法正常工作在16位深模式下",
 
+	"reset-clear-report":"重置和清空",
+	"reset-report-hint":"已重置系统设置",
+	"clear-report-hint":"已清空储存",
+	"reset-clear-hint":"点-击-这-里 来重新加载Skeeetch以应用这些设置！",
+
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",
 	"Size Control":"笔刷尺寸控制",
