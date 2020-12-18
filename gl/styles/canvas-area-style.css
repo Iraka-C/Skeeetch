@@ -282,6 +282,7 @@ table{
 }
 #main-canvas{
 	position: absolute;
+	cursor: none; /* sometimes on Safari there will be cursor */
 }
 
 .pixelated{
