@@ -112,20 +112,28 @@ EVENTS.init=function() {
 	}
 
 	const pointerMoveHandler=event=>{
-		if(!isNaN(forceTouchPressure)){ // there is a touch pressure
+		if(!event.buttons&&CURSOR.isDown){ // move button record show that mouse is up
+			// This happens when switching window with mouse on Safari
+			// Anyway end this stroke
+			if(CURSOR.isPressure){ // pressure stroke detected
+				EVENTS.isCursorInHysteresis=true; // start count moves after up
+			}
+			else{
+				endStroke();
+			}
+			CURSOR.up(event);
+			CURSOR.updateAction(event);
+			return;
+		}
+
+		if(!CURSOR.isDown){ // NOTE: Bug in MacOS Firefox may cause a pressure when not down!
+			event.originalEvent.uPressure=0;
+		}
+		else if(!isNaN(forceTouchPressure)){ // there is a touch pressure
 			event.originalEvent.uPressure=forceTouchPressure; // assign the pressure
 		}
 		else{
 			event.originalEvent.uPressure=event.originalEvent.pressure;
-		}
-		if(!event.buttons&&CURSOR.isDown){ // move button record show that mouse is up
-			// This happens when switching window with mouse on Safari
-			// Anyway end this stroke
-			console.log("end");
-			endStroke();
-			CURSOR.up(event);
-			CURSOR.updateAction(event);
-			return;
 		}
 
 		CURSOR.setIsShown(true); // pen->mouse switching

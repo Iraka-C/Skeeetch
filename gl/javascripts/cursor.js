@@ -72,12 +72,13 @@ CURSOR.moveCursor=function(event) {
 	}
 	CURSOR.p1=CURSOR.p0; // hand to the last event
 	const offsetWindow=CURSOR.window.offset(); // relative to document, same as pageX/Y
+	const pressure=CURSOR.isPressure?
+		event.uPressure:
+		(event.uPressure||CURSOR.isDown?1:0);
 	CURSOR.p0=[ // new movement
 		event.pageX-offsetWindow.left,
 		event.pageY-offsetWindow.top,
-		CURSOR.isPressure?
-			event.uPressure:
-			event.uPressure||CURSOR.isDown?1:0 // 1/0 as default
+		pressure // 1/0 as default
 		// Note: Safari doesn't provide event.pressure
 	];
 	
