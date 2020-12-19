@@ -8,16 +8,8 @@ const COMPOSITOR={};
 /**
  * There should be a monitor watching every change in the layer tree, and create cache structures
  */
-COMPOSITOR.isUpdateRequested=false;
 COMPOSITOR.updateLayerTreeStructure=function(){
-	if(COMPOSITOR.isUpdateRequested) {
-		return; // already requested
-	}
-	COMPOSITOR.isUpdateRequested=true;
-	requestAnimationFrame(() => {
-		COMPOSITOR.onUpdate(); // call refresh callback
-		COMPOSITOR.isUpdateRequested=false;
-	});
+	COMPOSITOR.onUpdate(); // call refresh callback
 }
 /**
  * This function entrance assumes that all nodes have valid imageData.

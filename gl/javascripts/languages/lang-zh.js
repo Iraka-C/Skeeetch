@@ -133,7 +133,7 @@ LANG_ZH={
 	"Background":"背景",
 	"Add a new layer":"新建图层",
 	"Add a new layer group":"新建图层组",
-	"Delete current layer / group":"删除当前图层/图层组",
+	"Delete current layer / group":"删除当前图层（组）",
 	"Clear current layer":"清空当前图层",
 	"Activate the mask layer":"切换蒙版编辑（未完成）",
 	"Merge group contents into one layer":"合并图层组",
@@ -145,6 +145,7 @@ LANG_ZH={
 	"copy-text-manual":"浏览器请求用户确认：要复制当前图层内容到剪贴板吗？",
 	"copy-manual-yes":"确认",
 	"copy-manual-no":"取消",
+	"Cannot delete the only layer / group.":"无法删除仅剩的图层（组）",
 
 	// Blend Modes
 	"blend-mode-hint":"混合模式 - ",

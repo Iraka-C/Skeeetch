@@ -470,7 +470,7 @@ LAYERS.deleteItem=function(obj) {
 		newActive=obj.parent;
 	}
 	if(newActive==LAYERS.layerTree) { // only the root remains
-		EventDistributer.footbarHint.showInfo(Lang("Cannot delete the only layer/group."));
+		EventDistributer.footbarHint.showInfo(Lang("Cannot delete the only layer / group."));
 		return false; // cannot delete
 	}
 

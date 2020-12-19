@@ -34,9 +34,6 @@ CURSOR.rotateDown=NaN; // cursor rotation status
  * @TODO: fix brush moving delay (change svg into canvas?)
  * The delay is seemingly larger than SAI
  */
-/**
- * @TODO: Bug! error cx,cy attribute on window resize
- */
 
 CURSOR.init=function() {
 	// $("#brush-cursor-layer").attr({
@@ -72,11 +69,8 @@ CURSOR.moveCursor=function(event) {
 	}
 	CURSOR.p1=CURSOR.p0; // hand to the last event
 	const offsetWindow=CURSOR.window.offset(); // relative to document, same as pageX/Y
-	const pressure=CURSOR.isDown?
-		CURSOR.isPressure?
-			event.uPressure:
-			(event.uPressure||CURSOR.isDown?1:0):
-		0; // NOTE: Bug in MacOS Firefox may cause a pressure when not down!
+	const pressure=CURSOR.isDown?CURSOR.isPressure?event.uPressure:1:0;
+	// NOTE: Bug in MacOS Firefox may cause a pressure when not down!
 	/**
 	 * NOTE: Bug, an error when deciding the pressure
 	 * On Safari, pressure is always 0 for mouse event

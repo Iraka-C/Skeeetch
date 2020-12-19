@@ -289,7 +289,7 @@ CANVAS.strokeEnd=function() {
 	else{
 		CANVAS.vramCompressCnt=0;
 	}
-	if(CANVAS.vramCompressCnt>=3){ // many vram compression
+	if(CANVAS.vramCompressCnt>=2){ // many vram compression
 		PERFORMANCE.reportLowVRAM();
 	}
 }
@@ -335,7 +335,17 @@ CANVAS.requestRefresh=function(targetArea) {
  * Only called (including async CANVAS.requestRefresh) when no layer structure's changed
  */
 CANVAS.onRefresh=function() {
-	CANVAS.refreshScreen(); // sync function
+	try{
+		CANVAS.refreshScreen(); // sync function
+	}catch(err){
+		if(err instanceof TypeError){
+			if(err.message.indexOf("WebGLTexture")>-1){
+				// cannot bind several textures at one time
+				// TODO: this is gl-specific
+				PERFORMANCE.reportLowVRAM();
+			}
+		}
+	}
 }
 
 /**
@@ -344,11 +354,6 @@ CANVAS.onRefresh=function() {
  * unless you know what you're doing!
  * 
  * The antialiasing parameter 0.7 is a balance of sharpness and crispiness.
- * TODO: everytime when calls
-	if(ENV.displaySettings.antiAlias){
-		CANVAS.requestRefresh(); // update canvas anti-aliasing
-	}
- * refresh in viewport only
  */
 CANVAS.refreshScreen=function() {
 	if(!LAYERS.layerTree)return; // not valid layerTree

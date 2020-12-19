@@ -22,9 +22,10 @@ EventDistributer.wheel={
 				 * NOTE: browsers deals differently with preventDefault
 				 * Firefox allows default actions before preventing
 				 * Safari disables actions if once called preventing
+				 * Chrome will report "passive" cannot be prevented
 				 */
 			}
-		});
+		},{passive:false});
 		EventDistributer.wheel.threshold=10;//ENV.browserInfo.macOS?5:1;
 
 		// scroll speed monitor

@@ -11,6 +11,8 @@ html{
 	height: 100%;
 	overscroll-behavior-x: none; /* prevent two-finger swipe left/right to back/foward */
 	overscroll-behavior-y: contain; /* prevent two-finger swipe left/right to back/foward */
+	touch-action: none;
+	overflow: hidden; /* No scroll */
 	/*
 		Note: this is still unable to stop navigation gesture in some cases
 	*/
