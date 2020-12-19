@@ -72,7 +72,7 @@ EventDistributer.wheel={
 			//console.log("out",event.pointerType);
 			EventDistributer.wheel.scrollCnt=[0,0];
 		},true);
-		el.addEventListener("wheel",EventDistributer.wheel._onwheel);
+		el.addEventListener("wheel",EventDistributer.wheel._onwheel,{passive:false});
 		// MUST bind this listener on el rather than using window listener
 		// So that some default actions could be called/prevented before window handler
 		// such as scrolling a div: you can control by yourself
@@ -136,6 +136,7 @@ EventDistributer.button={
 			isDragTriggered=false;
 			if(downFunc)downFunc();
 			event.stopPropagation();
+			//event.preventDefault(); // will prevent focus in Edge
 		});
 		$element.on("pointermove",event=>{ // call callback when down
 			if(!isDown||!(event.originalEvent.buttons&0x1)){
@@ -154,6 +155,7 @@ EventDistributer.button={
 				callback({x:dx,y:dy,initVal:initVal});
 			}
 			event.stopPropagation();
+			event.preventDefault(); // prevent scrolling the background div
 		});
 		$element.on("pointerup pointercancel",event=>{
 			const e=event.originalEvent;
@@ -163,6 +165,7 @@ EventDistributer.button={
 			isDown=false;
 			if(upFunc)upFunc();
 			event.stopPropagation();
+			event.preventDefault();
 		});
 	}
 };
