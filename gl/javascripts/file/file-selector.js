@@ -184,7 +184,9 @@ FILES.fileSelector.openFileWithID=function(fileID) {
 			};
 			FILES.fileManager.update();
 			ENV.setPaperSize(...layerTree.paperSize); // set paper size and clear all contents
-			STORAGE.FILES.loadLayerTree(layerTree); // load contents
+			STORAGE.FILES.loadLayerTree(layerTree).catch(err=>{ // load contents
+				// error
+			});
 		});
 	});
 }

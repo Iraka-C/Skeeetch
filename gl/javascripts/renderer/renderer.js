@@ -33,7 +33,7 @@ class BasicRenderer {
 			this.rgb=param.rgb;
 		}
 		
-		this.sensitivity=param.sensitivity||1.0;
+		this.sensitivity=isNaN(param.sensitivity)?1.0:param.sensitivity;
 		this._sPower=Math.pow(BasicRenderer._sBase,this.sensitivity-1);
 		this.brush=param.brush;
 		this.antiAlias=param.antiAlias||false; // false in default

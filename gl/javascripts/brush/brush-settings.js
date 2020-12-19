@@ -327,7 +327,7 @@ BrushManager.initStylusSetting=function(brushMenu) {
 		Lang("stylus-pressure-sensitivity"),() => BrushManager.general.sensitivity.toFixed(1),"",
 		newVal => { // set on input
 			if(newVal) {
-				newVal=(newVal-0).clamp(0,2);
+				newVal=(+newVal).clamp(0,2);
 				BrushManager.general.sensitivity=newVal;
 			}
 		},
@@ -336,8 +336,7 @@ BrushManager.initStylusSetting=function(brushMenu) {
 			BrushManager.general.sensitivity=newVal;
 		}, // set
 		(dx,oldVal) => { // set on drag-x
-			oldVal-=0;
-			let newVal=(oldVal+dx/100).clamp(0,2);
+			let newVal=(+oldVal+dx/100).clamp(0,2);
 			BrushManager.general.sensitivity=newVal;
 		} // set
 	);

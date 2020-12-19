@@ -606,11 +606,13 @@ STORAGE.FILES.onLayerTreeAborted=function(){
 	const canvas=$("canvas")[0];
 	canvas.width=canvas.height=256;
 	const ctx2d=canvas.getContext("2d");
-	ctx2d.font="32px Consolas, Monaco, monospace, sans-serif";
+	ctx2d.font="32px "
+		+window.getComputedStyle(document.body)
+		.getPropertyValue("--default-font-family");
 	ctx2d.fillStyle="#cccccc";
 	ctx2d.textAlign="center";
 	ctx2d.textBaseline="middle";
-	ctx2d.fillText("ERROR",128,128);
+	ctx2d.fillText(Lang("load-layertree-error-hint"),128,128);
 
 	// load to image
 	CANVAS.renderer.loadToImageData(CANVAS.nowLayer.rawImageData,canvas);

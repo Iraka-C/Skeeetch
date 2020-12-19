@@ -146,6 +146,7 @@ LANG_ZH={
 	"copy-manual-yes":"确认",
 	"copy-manual-no":"取消",
 	"Cannot delete the only layer / group.":"无法删除仅剩的图层（组）",
+	"load-layertree-error-hint":"未加载",
 
 	// Blend Modes
 	"blend-mode-hint":"混合模式 - ",

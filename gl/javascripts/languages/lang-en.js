@@ -66,6 +66,7 @@ LANG_EN={
 	"copy-text-manual":"The browser requires a user confirmation before copy. Do you want to copy contents from the current layer to the clipboard?",
 	"copy-manual-yes":"Yes",
 	"copy-manual-no":"No",
+	"load-layertree-error-hint":"ABORTED",
 
 	// Blend Modes
 	"blend-mode-hint":"Blend Mode - ",
