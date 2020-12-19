@@ -72,9 +72,24 @@ CURSOR.moveCursor=function(event) {
 	}
 	CURSOR.p1=CURSOR.p0; // hand to the last event
 	const offsetWindow=CURSOR.window.offset(); // relative to document, same as pageX/Y
-	const pressure=CURSOR.isPressure?
-		event.uPressure:
-		(event.uPressure||CURSOR.isDown?1:0);
+	const pressure=CURSOR.isDown?
+		CURSOR.isPressure?
+			event.uPressure:
+			(event.uPressure||CURSOR.isDown?1:0):
+		0; // NOTE: Bug in MacOS Firefox may cause a pressure when not down!
+	/**
+	 * NOTE: Bug, an error when deciding the pressure
+	 * On Safari, pressure is always 0 for mouse event
+	 * Therefore, there might be leading Zeros before a force-pressure detected
+	 * (force event is slower than pointerdown and several pointermoves)
+	 * @TODO: Check Force()?
+	 * These 0s, combined with CURSOR.isDown, create a thick start that is considered pressure 1
+	 * 
+	 * I DON'T WANT TO ADAPT THIS TO SAFARI ANYMORE.
+	 * 
+	 * Update: somehow fixed a bit with webkitmouseforcewillbegin & webkitmouseforcechanged
+	 * there's still a small head, but seems fine in general
+	 */
 	CURSOR.p0=[ // new movement
 		event.pageX-offsetWindow.left,
 		event.pageY-offsetWindow.top,

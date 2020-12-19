@@ -163,7 +163,7 @@ class SettingManager{
 		EventDistributer.button.addListener(dragTgt, // Drag on parent by default
 			dP=>{ // Drag
 				if(dragUpdateFunc){
-					const dS=Math.abs(dP.x)>Math.abs(dP.y)?dP.x:-dP.y; // right/up: ++
+					const dS=dP.x-dP.y; // right/up: ++
 					dragUpdateFunc(dS,dP.initVal);
 				}
 				_updateFunc();

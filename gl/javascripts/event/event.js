@@ -22,12 +22,6 @@ EVENTS.init=function() {
 	if(!LOGGING){
 		$(window).on("contextmenu",e => false);
 	}
-	if (history.scrollRestoration) {
-		history.scrollRestoration = 'manual';
-	  }
-	  window.onpopstate = function(event) {
-		alert("location: " + document.location + ", state: " + JSON.stringify(event.state));
-	  };
 
 	// ============ Auto File saving related ==============
 	let isNotSavedOnExit=false;
@@ -126,10 +120,7 @@ EVENTS.init=function() {
 			return;
 		}
 
-		if(!CURSOR.isDown){ // NOTE: Bug in MacOS Firefox may cause a pressure when not down!
-			event.originalEvent.uPressure=0;
-		}
-		else if(!isNaN(forceTouchPressure)){ // there is a touch pressure
+		if(!isNaN(forceTouchPressure)){ // there is a touch pressure
 			event.originalEvent.uPressure=forceTouchPressure; // assign the pressure
 		}
 		else{
@@ -156,7 +147,9 @@ EVENTS.init=function() {
 		forceTouchPressure=event.originalEvent.changedTouches[0].force; // replace pressure value
 		pointerMoveHandler(event);
 	});
-	$canvasWindow.on("webkitmouseforcechanged", event=>{ // Safari 3D Touch
+	$canvasWindow.on("webkitmouseforcewillbegin webkitmouseforcechanged", event=>{ // Safari 3D Touch
+		// @TODO: use constant?
+		// NOTE: webkitmouseforcewillbegin is always before pointerdown
 		forceTouchPressure=event.originalEvent.webkitForce/3; // replace pressure value
 		pointerMoveHandler(event);
 	});
@@ -201,7 +194,9 @@ EVENTS.init=function() {
 		isStrokeEnded=false; // one down-move-up sequence not ended
 		CURSOR.down(event);
 		CURSOR.updateAction(event); // doesn't change the action
-		event.originalEvent.uPressure=event.originalEvent.pressure; // assign upressure
+		
+		const pressure=event.originalEvent.pressure;
+		event.originalEvent.uPressure=pressure; // assign upressure at first
 		CURSOR.moveCursor(event.originalEvent);
 		EVENTS.isCursorInHysteresis=false;
 		cntAfterUp=0; // reset count
