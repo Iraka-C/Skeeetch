@@ -144,6 +144,8 @@ ENV._transformAnimation=function(timestamp) { // timestamp in ms
 		}
 
 		if(p<0.999999) { // request new frame
+			// NOTE: this does not need to follow ENV.displaySettings.maxFps
+			// as if it is too slow, the system will require cancelling the animation
 			requestAnimationFrame(ENV._transformAnimation);
 		}
 		else {

@@ -8,7 +8,10 @@ DIALOGBOX.init=function(){
 	$ui.empty();
 }
 
-DIALOGBOX.show=function(dialogBoxItem){
+DIALOGBOX.show=function(dialogBoxItem,defaultForm){
+	if(defaultForm){
+		dialogBoxItem._defaultForm=defaultForm;
+	}
 	if(DIALOGBOX.nowItem){ // chain this box
 		DIALOGBOX.nowItem.append(dialogBoxItem);
 		return;
@@ -48,6 +51,7 @@ class DialogBoxItem{
 		this.$form=$("<div class='dialog-box-form'>");
 		this.$buttonPanel=$("<div class='dialog-box-button-panel'>");
 		this._next=null; // next item to activate
+		this._defaultForm={};
 
 		for(const $ui of $uiArr){
 			this.$form.append($ui);
@@ -72,13 +76,10 @@ class DialogBoxItem{
 	}
 
 	_getForm(){
-		const form=[];
+		const form=this._defaultForm; // initial values
 		for(const item of this.$form.children()){
 			if(item instanceof HTMLInputElement){
-				form.push({
-					name: item.name,
-					value: item.value
-				});
+				form[item.name]=item.value;
 			}
 		}
 		return form;

@@ -141,6 +141,7 @@ LAYERS.toString=function() {
 }
 
 // ================= LAYER panels as a whole =================
+// @TODO: use the animation event to achieve smooth transition
 LAYERS.shrinkUI=function() {
 	const initWidth=$("#layer-panel").width();
 	$("#layer-panel-style-collapsed").attr("rel","stylesheet");

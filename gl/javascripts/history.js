@@ -11,7 +11,7 @@ const HISTORY={};
  */
 HISTORY.list=[];
 HISTORY.nowId=-1; // no history yet
-HISTORY.MAX_HISTORY=100; // at most 100 steps
+HISTORY.MAX_HISTORY=1000; // at most 1000 steps
 
 HISTORY.nowRAMUsage=0; // how many RAM is history using?
 
@@ -97,7 +97,7 @@ class HistoryItem{
 		switch(this.type){
 			case "image-data": // Do not access data directly as the implementation may change
 				size+=this.oldData.width*this.oldData.height*this.oldData.bitDepth/2; // RGBA
-				size+=this.newData.width*this.newData.height*this.oldData.bitDepth/2; // RGBA
+				size+=this.newData.width*this.newData.height*this.newData.bitDepth/2; // RGBA
 				return size;
 			case "bundle":
 				for(const v of this.children){
@@ -130,11 +130,9 @@ HISTORY.init=function(){ // init anyways
 HISTORY.pendingHistoryCnt=0; // not added to list, waiting for idle task
 HISTORY.pendingImageDataChangeParam=new Map(); // pending during busy
 HISTORY.addHistory=function(param){ // see HistoryItem constructor for info structure
-	// if(HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
-	// 	HISTORY.popHead(); // pop the oldest history and release related resources
-	// }
-	while(HISTORY.nowRAMUsage>PERFORMANCE.maxMem.ram){ // exceed max memory
-		console.log("Pop");
+	while(HISTORY.nowRAMUsage>PERFORMANCE.maxMem.ram // exceed max memory
+		||HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
+		LOGGING&&console.log("Pop");
 		HISTORY.popHead(); // pop the oldest history and release related resources
 	}
 
@@ -264,6 +262,7 @@ HISTORY.undo=function(){ // undo 1 step
 	};
 	
 	if(HISTORY.pendingHistoryCnt==0&&!HISTORY.pendingNodePropertyItem&&HISTORY.nowId<0){
+		EventDistributer.footbarHint.showInfo(Lang("no-undo-hint"));
 		return; // no older history
 	}
 	HISTORY.submitPropertyHistory(); // submit all property change first
@@ -277,7 +276,10 @@ HISTORY.undo=function(){ // undo 1 step
 }
 
 HISTORY.redo=function(){ // redo 1 step
-	if(HISTORY.nowId>=HISTORY.list.length-1)return; // no newer history
+	if(HISTORY.nowId>=HISTORY.list.length-1){
+		EventDistributer.footbarHint.showInfo(Lang("no-redo-hint"));
+		return; // no newer history
+	}
 
 	const redoInstant=item=>{
 		switch(item.type){ // different types

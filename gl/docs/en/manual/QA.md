@@ -1,23 +1,25 @@
-# 常见问题
+# FAQs
 
-## Skeeetch是个网页，意思是我画的东西都传到网上了？
+## Skeeetch is a webpage. Does this mean my drawings are all on the Internet?
 
-**没有。**
+**Nope.**
 
-虽然Skeeetch是基于网页的应用，但是Skeeetch的所有内容是基于浏览器的[IndexedDB](https://developer.mozilla.org/zh-CN/docs/Glossary/IndexedDB)技术保存在本机硬盘里的，并没有上传到网上。
+Although Skeeetch is a Web application, all contents in Skeeetch are saved on the local machine using [IndexedDB](https://developer.mozilla.org/zh-CN/docs/Glossary/IndexedDB). They are not uploaded to the web.
 
-这意味着他人无法通过网络访问到你在Skeeetch中创作的内容——包括你自己。在一台电脑、一个浏览器中保存的内容无法通过其他电脑、浏览器获取到。
+This also means that people, including yourself, cannot access your drawings from another machine, or another browser, if they don't have access to your computer. If you want to upload your drawings to the Internet, (at present) please export the paper as a `.psd` or `png` file, and upload using other software.
 
-（目前）要上传内容到网络，可以先下载`.psd`或`.png`内容，然后自己使用其他软件上传。
+## I used stylus & graphics tablet / force sensing screens, but there's no pressure effect.
 
-## 使用了数位板/压感屏幕，笔刷却对压力无反应
+If you have a pressure-controlled input device, you may check:
 
-如果你使用了压感设备而笔刷对压感无反应，你可以检查：
+* In the [brush menu (ZH)](./brush.md), enable pen pressure for size or opacity.
 
-* [笔刷设置菜单](./brush.md)中需启用压感并设置最小尺寸/透明度值
-* Windows系统和数位板驱动中需启用**Windows Ink**功能
-  <img src="./images/win-ink.png" width="400"/>
-* 尝试重启浏览器或者重新连接压感设备
+* On Windows system, **Windows Ink** is required for some tablet drivers.
+  [<img src="./images/win-ink.png" width="400"/>](https://www.reddit.com/r/wacom/comments/9iy09a/windows_ink_blessing_curse_help/)
+  
+  > Image from https://www.reddit.com/r/wacom/comments/9iy09a/windows_ink_blessing_curse_help/
+  
+* Try restart the browser or reconnect the input device.
 
 ## Skeeetch在绘制时出现色差/杂色
 

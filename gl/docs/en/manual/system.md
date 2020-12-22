@@ -8,7 +8,7 @@ Most settings in the menu will be saved automatically after you change them.
 
 ### Draw something
 
-Use the left button of the mouse/touch pad/pen to draw lines on the paper. Please refer to the [笔刷帮助](./brush.md) chapter.
+Use the left button of the mouse/touch pad/pen to draw lines on the paper. Please refer to the [Brush (ZH)](./brush.md) chapter.
 
  ### Color picker
 
@@ -88,59 +88,56 @@ Skeeetch has two internal themes: light and dark. Choose the UI style you like w
 
 ### Toggle fullscreen
 
-点击**切换全屏幕显示**按钮可让当前Skeeetch页面在全屏幕/窗口显示之间切换。你也可以使用浏览器自带的全屏显示快捷键。
+Click on **Toggle Fullscreen** button to enter/exit fullscreen mode. You may also use the fullscreen shortcut (often F11 key).
 
-> 不是所有浏览器都支持全屏幕显示
+> Not all browser support fullscreen.
 
-### 调色盘设置
+### Palette settings
 
-详见[调色盘帮助](./palette.md)。
+Please refer to [Palette (ZH)](./palette.md)。
 
-### 语言
+### Language
 
-目前并没有设置更改语言选项。可以通过添加url的lang参数来切换语言。
+At present there's no option for language setting. You may change language by url param "lang=xxx".
 
-https://iraka-c.github.io/Skeeetch/gl/index.html?lang=en 英文版（未完善）
+https://iraka-c.github.io/Skeeetch/gl/index.html?lang=en English version
 
-https://iraka-c.github.io/Skeeetch/gl/index.html?lang=zh 中文版
+https://iraka-c.github.io/Skeeetch/gl/index.html?lang=zh Simplified Chinese version
 
-> 其他语言？看有没有人愿意翻译和检查咯。详见开发者。
+> Other languages? You can help us by contributing to [Skeeetch Language Options](https://github.com/Iraka-C/Skeeetch/tree/master/gl/javascripts/languages) !
 
-## 性能
+## Performance
 
-### 显存限制
+### VRAM limit
 
-这里可以调节允许Skeeetch使用多少显存（大致）。
+This option allows you to specify how much VRAM (approx.) Skeeetch may use.
 
-Skeeetch至少需要1~2GB的显存来正常工作。查看你的计算机显卡配置和日常使用情况来调节显存的限制量。
+Skeeetch needs at least 1~2GB of VRAM to operate. Of course, the more the better. Check your graphics card to set the VRAM limit. If you are using integrated graphics processor (no discrete graphics card), the VRAM is shared with CPU RAM.
 
-注意：这个设置不可以使用拖动或鼠标滚轮来调节！请使用键盘输入。
+> You have to enter with keyboard! This option does not support drag or scroll.
 
-### 刷新率限制
+### FPS limit
 
-这里可以调节Skeeetch允许的最高刷新率（帧率）。
+You may limit the highest refresh rate (fps) of Skeeetch here.
 
-较低的刷新率可以减少Skeeetch的计算和资源消耗，但也可能造成肉眼可见的闪烁。这里刷新率指的是每秒**界面刷新**的次数，和渲染器以及笔刷的绘制效果无关。
+Less fps means less computation/system resource consumption and less input lagging, but may also lead to display flickering. This option limits the **display** refresh rate, rather than the input sampling rate.
 
-### 开发者选项
+### Developers
 
-详见开发者（？）
+**Draw layer border**
 
-**绘制图层边缘**
+Draw the borders of `GLTexture` and valid texture area borders.
 
-绘制当前图层内容占用的GLTexture和记录的有效内容的边缘
+### Information 
 
-### 系统信息
+These rows show system resource consumptions of Skeeetch.
 
-这一栏将显示Skeeetch运行环境的一些信息。
+**RAM** shows the RAM taken up by history operations and buffered layer contents.
 
-**内存使用**项目显示Skeeetch的内存用量。这些占用主要是历史记录和已缓存的图层信息。
+**VRAM** shows the VRAM amount used by renderer.
 
-**显存使用**项目显示Skeeetch的显存用量。显存主要由Skeeetch的渲染器占用。
+**Drive** shows the hard drive amount used by storing images in the repository.
 
-**硬盘使用**项目显示Skeeetch的硬盘用量。这些空间主要用于自动保存的工作区内容。
+The above are estimate values. The actual usage may differ according to the policies of OS/browser/graphics driver.
 
-以上的存储空间使用为Skeeetch估计的结果。由于操作系统/浏览器/显卡驱动的空间分配策略不同，可能出现显示的用量和实际占用量不一致，或者无法读取到相关参数的情况。
-
-Skeeetch默认支持4G的内存和显存。
-
+Skeeetch supports 4GB of memory an VRAM.

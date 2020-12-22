@@ -48,7 +48,7 @@ In the center of the **canvas window** is the paper area where you can sketch. T
 
 <img src="./manual/images/stroke.png" width="200"/>
 
-> Sketch a S curve with Pencil.
+> Sketch an S curve with Pencil.
 
 Select a color on the palette, and use mouse/touchpad/pen to draw the curve you like on the paper. By default, a round cursor shows the brush tip over the paper. If for any reason sketching is disabled (e.g. layer locked, invisible, or brush not supported), the cursor turns into a 🛇.
 
@@ -56,7 +56,7 @@ If you use force/pressure device, the size or opacity will follow the pressure y
 
 Place the cursor over the brush button to list all brushes, and click on one brush to use it. **Drag** or **scroll** on the button to change the brush tip size. Most numeric values in Skeeetch support dragging and scrolling actions.
 
-Now that you have something on the canvas. Try to close this page and reopen it. Your contents are all here, automatically saved **in browser**. In this way, you can continue you drawing the next time you start Skeeetch. For more details, refer to chapter [自动保存](./manual/pc-files.md#保存在浏览器中).
+Now that you have something on the canvas. Try to close this page and reopen it. Your contents are all here, automatically saved **in browser**. In this way, you can continue you drawing the next time you start Skeeetch. For more details, refer to chapter [Auto Save (ZH)](./manual/pc-files.md#保存在浏览器中).
 
 > Hint: Skeeetch by default saved contents in local drive, which means your contents are not uploaded to the Internet or shared with other software. This means you CANNOT access the contents if you change a browser or computer!
 
@@ -90,9 +90,11 @@ Use the right click or `Alt`+Left click to pick a color from the paper and load 
 
 Skeeetch supports undo and redo actions to surf through the drawing history. You can click the `<<` or `>>` button to undo/redo one step, or to use the hotkey `Ctrl+z` for undo, and `Ctrl+Shift+z` or `Ctrl+y` to redo. If you're using a mouse, clicking previous/next key has the same effect.
 
+For more keyboard shortcuts, see [Keyboard Shortcut (Hotkey)](./manual/hotkey.md) (WIP).
+
 ### I need more details
 
-Please refer to the [帮助目录](./manual/index.md)
+Please refer to the [User Manual Index (ZH)](./manual/index.md)
 
 ## FAQs
 * [Skeeetch是个网页，意思是我画的东西都传到网上了？](./manual/QA.md#skeeetch是个网页意思是我画的东西都传到网上了)

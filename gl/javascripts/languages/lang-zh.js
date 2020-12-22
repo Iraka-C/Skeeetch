@@ -16,6 +16,8 @@ LANG_ZH={
 	"Flip display horizontally":"水平翻转显示",
 	"Undo one step":"撤销一步",
 	"Redo one step":"重做一步",
+	"no-undo-hint":"无更早的历史记录",
+	"no-redo-hint":"已前进至最后一步",
 
 	// Palette
 	"palette-hue-sign":"色相",
@@ -258,6 +260,15 @@ LANG_ZH={
 	"save-clipgroup-report":" 图层组剪贴蒙版在PSD文件中可能无法正确显示",
 	"save-psd-report":"导出PSD ",
 	"save-psd-fail-report":"写入PSD文件失败",
+
+	// system reset
+	"danger-zone":"危险区！",
+	"danger-zone-reset":"还原系统设置",
+	"danger-zone-clear":"清除库中内容",
+	"danger-zone-reset-clear":"还原一切",
+	"danger-zone-none":"按错了，退出",
+	"danger-zone-confirm":"确定",
+	"danger-zone-enter":"请在下方输入（大写）",
 
 	// Info
 	"About Skeeetch":"关于Skeeetch",

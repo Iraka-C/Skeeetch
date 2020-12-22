@@ -148,6 +148,7 @@ EVENTS.init=function() {
 		pointerMoveHandler(event);
 	});
 	$canvasWindow.on("webkitmouseforcewillbegin webkitmouseforcechanged", event=>{ // Safari 3D Touch
+		// The starting force is 1, largest is 3
 		// @TODO: use constant?
 		// NOTE: webkitmouseforcewillbegin is always before pointerdown
 		forceTouchPressure=event.originalEvent.webkitForce/3; // replace pressure value

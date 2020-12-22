@@ -97,8 +97,16 @@ EVENTS.initHotKeys=function() {
 			}
 		}
 	});
+
+	EVENTS.initReset();
 }
 
+/**
+ * Initialize these functions:
+ * Shift+... to specify the shortcut for current brush
+ * ... to switch to current brush
+ * Shift+/ to delete shortcut for current brush
+ */
 EVENTS.initBrushHotKeys=function(){ // after BrushManager initializd
 	const brushHotKeyMap=new Map(); // brush-hotkey -> brush-id(String)/brush-proto(Number)
 
@@ -169,4 +177,55 @@ EVENTS.initBrushHotKeys=function(){ // after BrushManager initializd
 		}
 		BrushManager.setActiveBrush(brush);
 	},false); // do not prevent default on input
+}
+
+/**
+ * Init the hotkey for system resetting
+ */
+EVENTS.initReset=function(){
+	EventDistributer.key.addListener("ctrl+shift+alt+enter",e=>{
+		
+		// Ctrl, Shift, Alt, and Enter
+		const $title=DialogBoxItem.textBox({text: Lang("danger-zone")});
+		const dialog=new DialogBoxItem([$title],[{
+			text: Lang("danger-zone-reset"),
+			callback: e=>{
+				showDialog2("RESET",1);
+			}
+		},{
+			text: Lang("danger-zone-clear"),
+			callback: e=>{
+				showDialog2("CLEAR",2);
+			}
+		},{
+			text: Lang("danger-zone-reset-clear"),
+			callback: e=>{
+				showDialog2("RESET&CLEAR",3);
+			}
+		},{ // nothing
+			text: Lang("danger-zone-none")
+		}]);
+		function showDialog2(code,type){
+			const $title=DialogBoxItem.textBox({
+				text: Lang("danger-zone-enter")+code
+			});
+			dialog2Param[0].unshift($title);
+			DIALOGBOX.show(new DialogBoxItem(...dialog2Param),{code:code,type:type});
+		}
+		DIALOGBOX.show(dialog);
+
+		const $inputVerify=DialogBoxItem.inputBox({name: "str"});
+		const dialog2Param=[[$inputVerify],[{
+			text: Lang("danger-zone-confirm"),
+			callback: data=>{
+				if(data.str==data.code){
+					const isReset=data.type&1;
+					const isClear=data.type&2;
+					STORAGE.reset(isReset,isClear);
+				}
+			}
+		}]];
+
+	});
+
 }

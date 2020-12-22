@@ -11,7 +11,7 @@ LANG_EN={
 	"stylus-pressure-sensitivity":"Sensitivity",
 	"brush-pressure-hint-1":"Invalid when pressure is disabled",
 	"layer-opacity-label-shown":"Click to hide this layer. Scroll or drag to change opacity.",
-	"layer-opacity-label-hidden":"Click to show this layer.",
+	"layer-opacity-label-hidden":"Click to show this layer",
 	"Pressure Controlled Size":"Pen Pressure",
 	"Pressure Controlled Opacity":"Pen Pressure",
 	"new-brush-prefix":"New ",
@@ -21,6 +21,9 @@ LANG_EN={
 	"button-tools":"Tools",
 	"hot-key-set":(key,name)=>`Set ${key} as the hotkey for ${name}`,
 	"hot-key-cancel":(name)=>`Unbind the hotkey for ${name}`,
+
+	"no-undo-hint":"No earlier history step",
+	"no-redo-hint":"Already the last step",
 
 	// Settings part
 	"sys-info":"Information",
@@ -156,6 +159,15 @@ LANG_EN={
 	"save-clipgroup-report":" clip mask group may not display properly in .psd file.",
 	"save-psd-report":"Export PSD File ",
 	"save-psd-fail-report":"Failed to encode .psd file.",
+
+	// system reset
+	"danger-zone":"Danger Zone!",
+	"danger-zone-reset":"Reset System Settings",
+	"danger-zone-clear":"Clear Repository",
+	"danger-zone-reset-clear":"Reset Everything",
+	"danger-zone-none":"No, I didn't mean to!",
+	"danger-zone-confirm":"Confirm",
+	"danger-zone-enter":"Please input (upper case) ",
 
 	// Info
 	"about-skeeetch":`
