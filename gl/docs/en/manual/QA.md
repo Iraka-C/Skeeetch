@@ -4,7 +4,7 @@
 
 **Nope.**
 
-Although Skeeetch is a Web application, all contents in Skeeetch are saved on the local machine using [IndexedDB](https://developer.mozilla.org/zh-CN/docs/Glossary/IndexedDB). They are not uploaded to the web.
+Although Skeeetch is a Web application, all contents in Skeeetch are saved on the local machine using [IndexedDB](https://developer.mozilla.org/en-US/docs/Glossary/IndexedDB). They are not uploaded to the web.
 
 This also means that people, including yourself, cannot access your drawings from another machine, or another browser, if they don't have access to your computer. If you want to upload your drawings to the Internet, (at present) please export the paper as a `.psd` or `png` file, and upload using other software.
 
@@ -12,7 +12,7 @@ This also means that people, including yourself, cannot access your drawings fro
 
 If you have a pressure-controlled input device, you may check:
 
-* In the [brush menu (ZH)](./brush.md), enable pen pressure for size or opacity.
+* In the [brush menu](./brush.md), enable pen pressure for size or opacity.
 
 * On Windows system, **Windows Ink** is required for some tablet drivers.
   [<img src="./images/win-ink.png" width="400"/>](https://www.reddit.com/r/wacom/comments/9iy09a/windows_ink_blessing_curse_help/)
@@ -20,6 +20,10 @@ If you have a pressure-controlled input device, you may check:
   > Image from https://www.reddit.com/r/wacom/comments/9iy09a/windows_ink_blessing_curse_help/
   
 * Try restart the browser or reconnect the input device.
+
+-----
+
+(Not translated yet, working in progress)
 
 ## Skeeetch在绘制时出现色差/杂色
 

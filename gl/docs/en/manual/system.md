@@ -8,7 +8,7 @@ Most settings in the menu will be saved automatically after you change them.
 
 ### Draw something
 
-Use the left button of the mouse/touch pad/pen to draw lines on the paper. Please refer to the [Brush (ZH)](./brush.md) chapter.
+Use the left button of the mouse/touch pad/pen to draw lines on the paper. Please refer to the [Brush](./brush.md) chapter.
 
  ### Color picker
 
@@ -60,7 +60,7 @@ Bit depth specifies how many bits are used to represent one color channel of one
 
 ### Opacity blend
 
-This item specifies the algorithm for alpha channel blending. Please refer to [图层说明](./layers.md#混合模式)。
+This item specifies the algorithm for alpha channel blending. Please refer to [blend modes](./layers.md#blendmode)。
 
 ### Anti-aliasing
 

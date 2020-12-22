@@ -1,6 +1,6 @@
 # Skeeetch Introduction
 
-Skeeetch is a Web-based sketchpad. It is concise and powerful, open-source and free to use.
+Skeeetch is a web-based sketchpad. It is elegant and powerful, open-source and free to use.
 
 Skeeetch is available on the website without download:
 
@@ -15,18 +15,18 @@ Skeeetch supports：
 * pressure-sensitive paint brushes, customized brushes
 * layer and layer group management
 * auto save
-* `.png` and `.psd` file import/export
+* image and `.psd` file import/export
 * ... and even more! Check them out.
 
 ## Index
 
 * [A First Glimpse](#afirstglimpse)
-* [Basic Operations](#基本操作)
-* [FAQs](#常见问题)
+* [Basic Operations](#basicoperations)
+* [FAQs (WIP)](#faqs)
 * [**User Manual**](./manual/index.md)
-* [Developer Manual (under progress)](./dev/index.md)
-* [TODOs](#TODOs)
-* [License](#声明及许可证)
+* [Developer Manual (WIP)](./dev/index.md)
+* [TODOs](#todos)
+* [License](#license)
 
 ## A First Glimpse
 
@@ -56,7 +56,7 @@ If you use force/pressure device, the size or opacity will follow the pressure y
 
 Place the cursor over the brush button to list all brushes, and click on one brush to use it. **Drag** or **scroll** on the button to change the brush tip size. Most numeric values in Skeeetch support dragging and scrolling actions.
 
-Now that you have something on the canvas. Try to close this page and reopen it. Your contents are all here, automatically saved **in browser**. In this way, you can continue you drawing the next time you start Skeeetch. For more details, refer to chapter [Auto Save (ZH)](./manual/pc-files.md#保存在浏览器中).
+Now that you have something on the canvas. Try to close this page and reopen it. Your contents are all here, automatically saved **in browser**. In this way, you can continue you drawing the next time you start Skeeetch. For more details, refer to chapter [Auto Save](./manual/pc-files.md#savefileinbrowser).
 
 > Hint: Skeeetch by default saved contents in local drive, which means your contents are not uploaded to the Internet or shared with other software. This means you CANNOT access the contents if you change a browser or computer!
 
@@ -90,22 +90,14 @@ Use the right click or `Alt`+Left click to pick a color from the paper and load 
 
 Skeeetch supports undo and redo actions to surf through the drawing history. You can click the `<<` or `>>` button to undo/redo one step, or to use the hotkey `Ctrl+z` for undo, and `Ctrl+Shift+z` or `Ctrl+y` to redo. If you're using a mouse, clicking previous/next key has the same effect.
 
-For more keyboard shortcuts, see [Keyboard Shortcut (Hotkey)](./manual/hotkey.md) (WIP).
+For more keyboard shortcuts, see [**Keyboard Shortcut** (Hotkey)](./manual/hotkey.md).
 
 ### I need more details
 
-Please refer to the [User Manual Index (ZH)](./manual/index.md)
+Please refer to the [User Manual Index](./manual/index.md)
 
 ## FAQs
-* [Skeeetch是个网页，意思是我画的东西都传到网上了？](./manual/QA.md#skeeetch是个网页意思是我画的东西都传到网上了)
-* [使用了数位板/压感屏幕，笔刷却对压力无反应](./manual/QA.md#使用了数位板压感屏幕笔刷却对压力无反应)
-* [Skeeetch在绘制时出现色差/杂色](./manual/QA.md#skeeetch在绘制时出现色差杂色)
-* [我的Skeeetch在运行的时候很卡顿](./manual/QA.md#我的skeeetch在运行的时候很卡顿)
-* [为什么Skeeetch占用的内存和显存这么多](./manual/QA.md#为什么skeeetch占用的内存和显存这么多)
-* [我的Skeeetch没有反应了/无法完整启动](./manual/QA.md#我的skeeetch没有反应了无法完整启动)
-* [Skeeetch相比Photoshop、CSP、SketchBook、SAI、Krita等绘画软件有什么优势吗](./manual/QA.md#skeeetch相比photoshopcspsketchbooksaikrita等绘画软件有什么优势吗)
-* [我可以多开Skeeetch标签页或者窗口吗](./manual/QA.md#我可以多开skeeetch标签页或者窗口吗)
-* [我觉得这个破应用某个地方会出Bug，或者要是有某某功能就好了](./manual/QA.md#我觉得这个破应用某个地方会出bug或者要是有某某功能就好了)
+Please refer to the [FAQs](./manual/QA.md) (WIP)
 
 
 ## TODOs

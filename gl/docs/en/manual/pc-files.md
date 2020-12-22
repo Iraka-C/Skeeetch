@@ -1,133 +1,114 @@
-# 文件操作
+# Files and Repository
 
-Skeeetch支持一系列对图像文件的操作。图像文件操作主要通过**文件**菜单。
+Skeeetch supports a series of operations on files. These operations are accessible through the Files menu on the upper-right corner. 
 
-## 新建纸张
+## Add Content
 
-在**文件**菜单中**新建内容**项目下有**新建画纸**按钮。点击它将会清空当前所有内容并新建一张白色背景的空白纸张。原有的内容会被保存到库中。
-
-在上方的输入框中可以调整当前画纸的宽度和高度（像素），并应用到新画纸。注意：新建画纸会清空所有历史记录！
+There are two input items on the first Add Content section, controlling the width and height of the paper. You may input value/drag/scroll on it to change the width and height (in pixel) of the paper. Skeeetch also offers a crop-window dragger to manipulate the paper size, which will show up when you click on the width or height value:
 
 <img src="./images/drag-crop.png" width="600"/>
 
-点击宽度高度输入框或调整其数值，会出现红色的矩形选择框示意新的大小。可以拖动矩形选择框来调整宽度、高度、和位置。
+Dragging the corners, edges, or the inner part of the crop window will also change the width and height values.
 
-> 尺寸选择框和功能键的组合
+> Function key combination
 >
-> | 组合功能键 | 拖动角部把手 | 拖动边框 |
-> | ---------- | ------------ | -------- |
-> | 无         | 自由变换     | 自由变换 |
-> | `Shift`    | 等比缩放     | 自由变换 |
-> | `Ctrl`     | 平移         | 平移     |
-> | `Alt`      | 自由变换     | 自由变换 |
+> | Key     | Drag Corner             | Drag Edge |
+> | ------- | ----------------------- | --------- |
+> | None    | free                    | free      |
+> | `Shift` | keep width-height ratio | free      |
+> | `Ctrl`  | pan                     | pan       |
+> | `Alt`   | free                    | free      |
 >
-> 拖动选择框内部总是移动选择框。此时光标会变成抓手形状。
+> Dragging the inner part with `Shift` key will pan the whole paper as usual. Otherwise, it always pans the selected area.
 
-也可以在宽度、高度框中输入标准纸张代号，如A4、B5、32k（32开）等。新建的纸张分辨率将会是300ppi。
+You may also enter a standard paper code like "A4" or "b5" in the width/height input. In this way, you will get a paper of that size with 300 points per inch (ppi).
 
 <img src="./images/drag-crop-std.png" width="300"/>
 
-> 输入标准纸张代号时，宽度处输入得到横向的纸，高度处输入得到纵向的纸。如上图在高度框中输入"a5"将得到一张300ppi的纵向A5尺寸的画纸。
+> Trying to create a horizontal A5 paper. Enter the code in the height input area will generate a vertical paper.
 
-> Skeeetch当前最大支持**5600×5600**像素的文件，这是合理的范围内进行内存管理/内容渲染所能支持的最大尺寸。Skeeetch使用的技术无法以标准方法管理过大的纸张内容。如果输入标准代号对应的纸张过大，也会提示无法修改为指定纸张的尺寸。
+> Skeeetch supports at most 5600×5600 pixels, and at least 16×16.
 >
-> Skeeetch当前最小支持**16×16**像素的文件，这是考虑画布缩放范围的结果。
 
-新建画纸的同时，之前的内容也会在**库**中保存。
+## New Paper
 
-编辑标题栏中央的画布标题（默认为Skeeetch）可以更改当前纸张的**文件名**。
+Click on the New Paper button to create a new blank paper based on the current size in the width/height input. Change the **filename** (initially Skeeetch) at the center-top of the title.
 
-## 改变尺寸（裁剪、扩展画纸）
+## Change Size (extend or crop)
 
-在将画纸宽度和高度调整为目标尺寸数值后，也可以点击下方的**改变尺寸**按钮来更改画纸尺寸。新画纸与原画纸左上角相同，并保留新画纸范围内的内容。
+After you specified a size by either the width/height input area or the crop selector, you may hit Change Size button to **change the size** of the current paper. The area within the new size will be preserved.
 
-> 改变画纸尺寸后，超出画纸尺寸的部分可能会被丢弃。Skeeetch对任何超出画纸部分的内容采取尽力而为的策略。如果超出部分内容过多导致可能占用过多系统资源，Skeeetch可能会视情况丢弃这些部分。
+## Open File
 
-如果通过矩形选择框确定尺寸，则改变尺寸相当于基于选择框对原画纸进行裁剪或扩展。
+Skeeetch supports open regular image files like `.bmp/.jpg/.png/.tiff`, and `.psd` layered image file. You may simply drag the file into the window, or click the Open File button to select one.
 
-## 置入图片文件
+> If you drag an image on to the paper, Skeeetch generates a new **layer** for this image. If you drag it on to the Files menu, Skeeetch generates a new **file**.
 
-Skeeetch支持常见的`.bmp/.jpg/.png/.tiff`等图片文件的置入。将图片从文件管理器、其他网页、或者其他软件窗口中拖入Skeeetch的画纸即可。也可以通过点击**打开文件**按钮从储存中选择。加载的图片将被显示为一个新图层。
+> If you try to open a `.psd` file with unsupported contents, such as an adjustment layer, a text layer, or HDR contents, there will be hints in the Task Report panel on the Settings menu panel. Click on each message to locate the unsupported layer.
 
-## 打开`.psd`文件
+> If you are trying to open a file too large for Skeeetch, that may extort too much resource from the system, the UI may die out with a hint in the Settings menu panel. Follow the hint to see what you can do to improve the performance.
 
-将Photoshop支持的`.psd`文件拖入Skeeetch的画纸即可打开，也可以通过点击**打开文件**按钮从储存中选择文件。打开后将清除所有原有的画纸内容，删除历史记录，并重置画纸尺寸。
+## Save File in Browser
 
-> 由于Skeeetch不支持PSD文件中的所有内容，如调整图层、文字图层、HDR内容等，打开时不支持的图层将被清除内容并显示为一个空白图层。今后会设法支持更多种图层类型的…
->
-> 如果Skeeetch在打开文件时发现了不支持的文件或图层，试图打开后会在左下角给出“不支持的内容已丢弃”的警告。目前不支持的内容包括但不限于图层效果、文字图层、调整图层等等。
+Skeeetch supports automatically saving your works until next visit. If you don't need the automatic saving, turn the option Files > Save Content > Auto Save as Off. If you need a manual save request, you may click on Files > Save Content > Save in Repository, or use the shortcut `Ctrl+S`.
 
-> 如果Skeeetch在加载文件时出现长时间无反应/网页崩溃等情况，可能是因为文件过大而耗尽浏览器资源。（[**!!点此清除所有保存的内容和设置!!**](https://iraka-c.github.io/Skeeetch/index.html?clear=1&reset=1)）。我们将不断优化Skeeetch以争取支持打开更大的文件，但一般而言，Skeeetch支持的文件大小和计算机配置、系统设置、浏览器都有关系。
+All files are save in the **repository**. Click on a file to open and continue working on in.
 
-## 保存在浏览器中
+> Only after you open a file can you rename it! (by the filename block at the center of the title)
 
-Skeeetch支持将当前工作保存在浏览器中直到下一次打开。默认情况下这些保存是**自动**的。如果你觉得不需要自动保存，或者自动保存拖慢了运行速度，可以将 *文件* > *保存内容* > *自动保存* 选项设置为关闭。
+## Save as New File
 
->  自动保存启用时，打开大的`.psd`文件会变得较慢，平均会变慢3倍左右。但是好处是…… 不用每次手动保存了。
+Click Files > Save Content > Save as New File to create a copy of your current work, and then open this copy. If you disabled Auto Save, the changes on the original file will not be saved to it.
 
-关闭自动保存后如果需要手动保存，可以点击 *文件* > *保存内容* > *在浏览器中保存* 按钮，或者使用快捷键 `Ctrl+S`。这样下次打开Skeeetch时又会自动加载。
+This function acts as an archive, where you may save stages of your work as different copies.
 
-如果Skeeetch发现你在有未保存内容时试图关闭，会在关闭前弹出一条提示。如果希望保存内容可以按下取消按钮，并重新手动保存。
+## Delete a File
 
-所有文件都保存在文件菜单的**库**中。点击库里的文件就可以打开它并继续编辑。
+In the repository, each file icon carries a small trash can icon on the upper-right side. Click that icon to delete the file.
 
-> 只有打开了一个文件之后才可以重命名它！（在标题栏的文件名处）
+> CLICK THAT ICON!
 
-## 在浏览器中新建当前画纸的副本
+The currently opened file could not be deleted.
 
-点击 *保存内容* > *另存为副本* 按钮可以在库中新建一个**当前画纸的副本**，并将当前Skeeetch编辑的画纸对象设置为这个副本。所有已经进行的修改（包括当前的历史记录）都将转移到副本中。如果没有开启自动保存，则原画纸不会有内容变化。
+## Front Stage & Back Stage Tasks
 
-这个功能可用于保存不同阶段的工作进度（就像存档点），或者备份已有的内容以便之后再做修改。
-
-## 删除浏览器中保存的文件
-
-库中的每一个文件图标右上角有一个垃圾桶状的删除图标。点中这个图标就可以从库中删除这个文件。
-
-> 试着**点中**它！
-
-另外，当前已打开的文件不可被删除。
-
-## 前台与后台任务
-
-正如你所注意到的，在执行较长的任务时，Skeeetch会在界面左下角显示一个进度条指示当前完成的进度。Skeeetch中有两种任务：前台和后台任务，分别显示为橙色和蓝色进度条。
+As you may have noticed, when performing tasks, Skeeetch shows a round indicator at the bottom-left side of the paper. There are two kinds of tasks in Skeeetch: front stage and back stage tasks, indicated as orange or blue.
 
 <img src="./images/task-indicator.png" width="300"/>
 
-**前台任务**是当前执行的高优先级任务，如打开文件、导出文件等。执行这些任务时Skeeetch会相当繁忙，几乎无法在画纸上绘制。
+**Front stage tasks** are tasks with the highest priority, such as opening a file, exporting a file, or loading saved items. It's hard to operate user instructions while performing these tasks.
 
-**后台任务**是一些低优先级的例行任务，如清理缓存、自动保存等。在有后台任务时你也可以使用Skeeetch。（当然对于过于繁重的后台任务可能也会出现界面卡顿/冻结的现象）
+**Back stage tasks** are tasks with low priority, and can run in the background, such as cleaning caches, or automatic savings, although in certain cases back stage tasks might also freeze the UI.
 
-在没有任何前台或后台任务时可以安全地关闭Skeeetch，否则你创作的内容可能无法被完整保存，或者在下次打开Skeeetch时出现错误。如果在试图关闭Skeeetch时仍有任务运行，将弹出提示。
+When there is no task performing, you may exit Skeeetch safely. If you try to close or refresh the page while there is a task running, Skeeetch will prompt you to wait until it finishes. A force quit may result in content lost or storage error.
 
-## 前台任务中止
+## Cancel Front Stage Task
 
-有时执行前台任务时（如打开画纸或加载大的`.psd`文件时），前台任务指示器中会显示一个×：
+When Skeeetch is performing a front stage task, you may manually request an abort by clicking on the × in the indicator:
 
 <img src="./images/task-front.png" width="400"/>
 
-此时如果希望强行中断当前操作，可以点击×按钮。前台任务将会尽可能快地停止。
+Skeeetch will try to cancel the task as soon as possible.
 
-> 由于前台任务一般都是操作文件的重要任务，强行中止可能造成加载的文件不完整，或者内容损坏等结果。在打开库中的文件时强行中止，Skeeetch会在中止后安排一张新的画纸以免损伤原来库中的内容。
+> Front stage tasks are generally essential tasks. Cancelling these tasks may cause the outcome to be incomplete.
 
-## 导出为图片文件
+## Export a File
 
-点击*文件* > *导出为PNG图片* 按钮可以将当前的画纸内容下载为一个带透明度信息的PNG图片文件。
+Click on Files > Save as PNG to save the paper as a PNG image with opacity information.
 
-> 目前只支持`.png`文件。也不错啦
+> At present only supports PNG image. Well, not a bad thing...
 
-## 导出为`.psd`文件
+Click on Files > Save as PSD (or use the shortcut `Ctrl+Shift+S`) to export the paper as a `.psd` file that can be used in other kinds of CG software. Skeeetch will try to maintain all possible options in the file, but if there are some issues found during exporting, there will be a message in the Settings > Task Report panel telling which layer may cause a problem.
 
-点击*文件* > *保存为PSD文件* 按钮可以将当前的画纸内容下载为一个PSD格式文件，也可以使用快捷键`Ctrl+Shift+S`。Skeeetch将尽力保留图层和图层组的内容及信息，但由于目前只支持低于Photoshop7.0格式的内容保存，一些选项可能无法被完全保留。
+## Clipboard
 
-## 剪贴板操作
+Skeeetch supports `Ctrl+X` (cut), `Ctrl+C` (copy), and `Ctrl+V` (paste) shortcuts. You can copy/paste the activated layer from/to Skeeetch itself, or other software or webpages*.
 
-Skeeetch中支持使用`Ctrl+X`（剪切）、`Ctrl+C`（复制）、`Ctrl+V`（粘贴）快捷键。复制的目标或粘贴的来源可以是Skeeetch自己，也可以是其他软件\*。
+> \* Sometimes the copy/paste will discard the alpha channel of the image
 
-> \* 其他软件中粘贴可能会遇到透明度无法正确表示（例如全部透明像素变为黑色）的情况
+If you try to copy and paste a group with Skeeetch, only the combined result of this group will be pasted, and the structure within this group will not be copied. Use the <img src="../../../resources/copy-layer.svg" height="24"/>button to copy a group with its inner structures. (see the [layer duplication](./layers.md#duplication) section)
 
-在Skeeetch内部复制粘贴时，Skeeetch会保留图层的设置。如果复制的是图层组，则粘贴时会粘贴为含有这个图层组内容的新图层。如果希望复制图层组内的所有图层结构，请使用[复制图层组](./layers.md#复制图层图层组)功能（<img src="../../../resources/copy-layer.svg" height="24"/>按钮）。
+If you try to cut a locked layer, the action will be the same as copy.
 
-如果试图进行剪贴时图层已被锁定，则图层将仅被复制。
-
-此外，`Ctrl+Space+V`快捷键将**粘贴并替换**当前图层（不支持图层组）的内容。
+Meanwhile, Skeeetch supports `Ctrl+Space+V` shortcut to **paste and replace** the contents of the current layer (not group).
 

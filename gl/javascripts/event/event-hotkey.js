@@ -48,6 +48,7 @@ EVENTS.initHotKeys=function() {
 
 	EventDistributer.key.addListener("delete",e=>{ // clear
 		// canvas layer and not locked
+		// @TODO: visible?
 		if(!(LAYERS.active instanceof LayerGroupNode)&&!LAYERS.active.isLocked()){
 			LAYERS.clearCurrentLayer();
 		}
