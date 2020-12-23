@@ -181,10 +181,12 @@ EVENTS.init=function() {
 		 */
 		if(event.originalEvent.buttons&0x8){ // 4th button
 			HISTORY.undo(); // perform as undo
+			event.preventDefault(); // disable back
 			return;
 		}
 		if(event.originalEvent.buttons&0x10){ // 5th button
 			HISTORY.redo(); // perform as redo
+			event.preventDefault(); // disable forward
 			return;
 		}
 

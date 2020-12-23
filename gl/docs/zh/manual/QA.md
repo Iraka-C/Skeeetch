@@ -88,4 +88,4 @@ Skeeetch开发者靠天吃饭，所以不一定能回应所有需求。但如果
 
 > 哦豁
 
-[**点此清除所有保存的内容和设置**](https://iraka-c.github.io/Skeeetch/index.html?clear=1&reset=1)，别忘了从Skeeetch的[主入口](https://iraka-c.github.io/Skeeetch/index.html?lang=zh)重新进入（否则今后的内容也将无限被清除！）。
+参见[“系统重置”章节](./system.md#系统重置)。

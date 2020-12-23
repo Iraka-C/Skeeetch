@@ -8,28 +8,26 @@
 >
 > The mouse button is the left button if not specified.
 
-| UI                               | Operation                                   | Function                                              |
-| -------------------------------- | ------------------------------------------- | ----------------------------------------------------- |
-| Any input value box              | drag                                        | Change the value                                      |
-|                                  | Scroll up/down                              | Change the value                                      |
-| Paper                            | drag                                        | Stroke a line on the paper                            |
-|                                  | Shift+drag                                  | Pan the whole paper                                   |
-|                                  | Shift+right drag                            | Rotate the whole paper                                |
-|                                  | Ctrl+drag                                   | Pan the current active layer/group                    |
-|                                  | right click                                 | Pick color                                            |
-|                                  | Alt+click                                   | Pick color                                            |
-|                                  | Swipe left (on touchpad)<br />Scroll left   | Expand menus on the right<br />Fold menus on the left |
-|                                  | Swipe right (on touchpad)<br />Scroll right | Expand menus on the left<br />Fold menus on the right |
-|                                  | Next button click                           | Redo                                                  |
-|                                  | Previous button click                       | Undo                                                  |
-|                                  | Scroll up/down                              | Zoom in/out the paper                                 |
-|                                  | Shift+scroll up/down                        | Rotate to multiples of 15 degrees                     |
-|                                  | Ctrl+scroll                                 | Pan the whole paper                                   |
-| Palette                          | Scroll (on palette slider)                  | Change the slider value                               |
-| Select box (width & height, red) | drag                                        | Change the position of handler                        |
-|                                  | Shift+drag (corner)                         | Zoom                                                  |
-|                                  | Shift+drag (inner/outer)                    | Pan the whole paper                                   |
-|                                  | Ctrl+drag                                   | Pan                                                   |
+| UI                               | Operation                                               | Function                                              |
+| -------------------------------- | ------------------------------------------------------- | ----------------------------------------------------- |
+| Any input value box              | drag                                                    | Change the value                                      |
+|                                  | Scroll up/down                                          | Change the value                                      |
+| Paper                            | drag                                                    | Stroke a line on the paper                            |
+|                                  | Shift+drag                                              | Pan the whole paper                                   |
+|                                  | Shift+right drag                                        | Rotate the whole paper                                |
+|                                  | Ctrl+drag                                               | Pan the current active layer/group                    |
+|                                  | right click                                             | Pick color                                            |
+|                                  | Alt+click                                               | Pick color                                            |
+|                                  | Two fingers swipe left (on touchpad)<br />Scroll left   | Expand menus on the right<br />Fold menus on the left |
+|                                  | Two fingers swipe right (on touchpad)<br />Scroll right | Expand menus on the left<br />Fold menus on the right |
+|                                  | Scroll up/down                                          | Zoom in/out the paper                                 |
+|                                  | Shift+scroll up/down                                    | Rotate to multiples of 15 degrees                     |
+|                                  | Ctrl+scroll                                             | Pan the whole paper                                   |
+| Palette                          | Scroll (on palette slider)                              | Change the slider value                               |
+| Select box (width & height, red) | drag                                                    | Change the position of handler                        |
+|                                  | Shift+drag (corner)                                     | Zoom                                                  |
+|                                  | Shift+drag (inner/outer)                                | Pan the whole paper                                   |
+|                                  | Ctrl+drag                                               | Pan                                                   |
 
 
 ## Keyboard Shortcuts

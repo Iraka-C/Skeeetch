@@ -136,7 +136,7 @@ class V_HSSelector extends PaletteSelector{
 	}
 	onScrollBanner(dw){
 		const oldV=this.hsv[2];
-		let newV=(oldV-dw*3).clamp(0,255);
+		let newV=(oldV+dw*3).clamp(0,255);
 		this.hsv[2]=newV;
 		this.setHSV(this.hsv,true);
 		this._updateBanner();

@@ -104,7 +104,7 @@ In the UI Layout submenu, choose Left or Right to decide whether you want the la
 
 ### Palette settings
 
-Please refer to [Palette (ZH)](./palette.md)。
+Please refer to [Palette](./palette.md)。
 
 ### Language
 

@@ -90,7 +90,7 @@ Use the right click or `Alt`+Left click to pick a color from the paper and load 
 
 ### Undo and redo
 
-Skeeetch supports undo and redo actions to surf through the drawing history. You can click the `<<` or `>>` button to undo/redo one step, or to use the hotkey `Ctrl+z` for undo, and `Ctrl+Shift+z` or `Ctrl+y` to redo. If you're using a mouse, clicking previous/next key has the same effect.
+Skeeetch supports undo and redo actions to surf through the drawing history. You can click the `<<` or `>>` button to undo/redo one step, or to use the hotkey `Ctrl+z` for undo, and `Ctrl+Shift+z` or `Ctrl+y` to redo.
 
 For more keyboard shortcuts, see [**Keyboard Shortcut** (Hotkey)](./manual/hotkey.md).
 
