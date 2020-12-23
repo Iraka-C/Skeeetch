@@ -178,7 +178,7 @@ PERFORMANCE.checkWorkerSupport=function(){
 			title: Lang("check-worker-report"),
 			items: [{
 				content: Lang("check-worker-info"),
-				target: "" // TODO: fill in target
+				target: null
 			}]
 		};
 		PERFORMANCE.REPORTER.report(loadReport);
@@ -195,7 +195,7 @@ PERFORMANCE.checkBitdepthSupport=function(){
 			title: Lang("check-bitrate-macos16-report"),
 			items: [{
 				content: Lang("check-bitrate-macos16-info"),
-				target: "" // TODO: fill in target
+				target: null
 			}]
 		};
 		PERFORMANCE.REPORTER.report(loadReport);
@@ -209,7 +209,7 @@ PERFORMANCE.reportUnsafeExit=function(){
 	};
 	loadReport.items.push({
 		content: Lang("unsafe-exit-hint"),
-		target: "" // TODO: fill in target
+		target: null
 	});
 	PERFORMANCE.REPORTER.report(loadReport);
 }
@@ -224,25 +224,25 @@ PERFORMANCE.webglContextLost=function(){
 		};
 		loadReport.items.push({
 			content: Lang("glcontextlost-hint1"),
-			target: "" // TODO: fill in target
+			target: null
 		});
 		loadReport.items.push({
 			content: Lang("glcontextlost-hint2")+(ENV.displaySettings.maxVRAM/1073741824).toFixed(1)+"GB",
-			target: "" // TODO: fill in target
+			target: null
 		});
 		if(CANVAS.renderer.bitDepth>8){
 			loadReport.items.push({
 				content: Lang("gl-lowvram-hint3")+CANVAS.renderer.bitDepth/2+Lang("bit"),
-				target: "" // TODO: fill in target
+				target: null
 			});
 		}
 		loadReport.items.push({
 			content: Lang("glcontextlost-hint4")+ENV.paperSize.width+"×"+ENV.paperSize.height,
-			target: "" // TODO: fill in target
+			target: null
 		});
 		loadReport.items.push({
 			content: Lang("glcontextlost-hint5"),
-			target: "" // TODO: fill in target
+			target: "" // refresh
 		});
 		PERFORMANCE.REPORTER.report(loadReport);
 	}
@@ -258,16 +258,16 @@ PERFORMANCE.reportLowVRAM=function(){
 		};
 		loadReport.items.push({
 			content: Lang("gl-lowvram-hint1"),
-			target: "" // TODO: fill in target
+			target: null
 		});
 		loadReport.items.push({
 			content: Lang("gl-lowvram-hint2")+(ENV.displaySettings.maxVRAM/1073741824).toFixed(1)+"GB",
-			target: "" // TODO: fill in target
+			target: null
 		});
 		if(CANVAS.renderer.bitDepth>8){
 			loadReport.items.push({
 				content: Lang("gl-lowvram-hint3")+CANVAS.renderer.bitDepth/2+Lang("bit"),
-				target: "" // TODO: fill in target
+				target: null
 			});
 		}
 		PERFORMANCE.REPORTER.report(loadReport);
@@ -283,19 +283,19 @@ PERFORMANCE.reportResetClear=function(isReset,isClear){
 	if(isReset){
 		loadReport.items.push({
 			content: Lang("reset-report-hint"),
-			target: "" // TODO: fill in target
+			target: null
 		});
 	}
 	if(isClear){
 		loadReport.items.push({
 			content: Lang("clear-report-hint"),
-			target: "" // TODO: fill in target
+			target: null
 		});
 	}
 	if(isReset||isClear){
 		loadReport.items.push({
 			content: Lang("reset-clear-hint"),
-			target: window.location.origin+window.location.pathname // without any param
+			target: "" // refresh
 		});
 		PERFORMANCE.idleTaskManager.addTask(e=>{ // prompt the user to refresh page
 			if(!SettingHandler.sysMenu.isExpanded()){ // open task report
@@ -313,7 +313,7 @@ PERFORMANCE.reportWelcome=function(){
 	};
 	welcomeReport.items.push({
 		content: Lang("welcome-hint-1"),
-		target: ""
+		target: null
 	});
 	welcomeReport.items.push({
 		content: Lang("welcome-hint-2"),

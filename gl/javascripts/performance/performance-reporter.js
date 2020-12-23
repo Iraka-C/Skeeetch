@@ -63,9 +63,13 @@ PERFORMANCE.REPORTER.report=function(block){
 		const $item=$("<div class='report-block-item'>");
 		$item.html(item.content);
 		$item.click(e=>{
-			if(item.target){
+			console.log(item.target);
+			
+			if(typeof(item.target)=="string"){ // including "": refresh page
 				const node=LAYERS.layerHash[item.target];
 				if(node){ // this is a node in layer tree
+					console.log(node);
+					
 					const historyItem=LAYERS.expandToLayer(node);
 					if(historyItem&&historyItem.length){
 						HISTORY.addHistory({ // combine history steps
@@ -77,9 +81,17 @@ PERFORMANCE.REPORTER.report=function(block){
 						LAYERS.setActive(node);
 					})
 				}
-				else if(item.target.length){ // item.target is an external link
-
-					window.open(item.target);
+				else{ // item.target is an external link
+					const target=item.target;
+					if(target.startsWith("?")||target==""){ // do not navigate away
+						window.location.href=
+							window.location.origin
+							+window.location.pathname
+							+target; // refresh
+					}
+					else{ // open new window
+						window.open(item.target);
+					}
 
 					// some external links
 					// based on LANG!

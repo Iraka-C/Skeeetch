@@ -257,7 +257,7 @@ ENV.refreshTransform=function() {
 				title: Lang("anim-lowfps-report"),
 				items: [{
 					content: Lang("anim-lowfps-info1")+lowFPS.toFixed(1)+Lang("fps"),
-					target: "" // TODO: fill in target
+					target: null
 				}]
 			};
 			if(ENV.displaySettings.enableTransformAnimation){
