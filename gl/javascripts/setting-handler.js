@@ -192,12 +192,13 @@ SettingHandler.initSystemSetting=function(sysParams) {
 		}
 		PERFORMANCE.animationFpsCounter.reset();
 	},() => ENV.displaySettings.enableTransformAnimation? 0:1);
-	sys.addSwitch(Lang("UI Orientation"),[Lang("ui-left"),Lang("ui-right")],null,val => {
+	// UI Orientation handled in other display preferences
+	/*sys.addSwitch(Lang("UI Orientation"),[Lang("ui-left"),Lang("ui-right")],null,val => {
 		switch(val) {
 			case 1: ENV.setUIOrientation(false); break;
 			default: ENV.setUIOrientation(true); break;
 		}
-	},() => ENV.displaySettings.uiOrientationLeft? 0:1);
+	},() => ENV.displaySettings.uiOrientationLeft? 0:1);*/
 	sys.addSwitch(Lang("UI Theme"),[Lang("ui-light"),Lang("ui-dark")],null,val => {
 		switch(val) {
 			case 1: ENV.setUITheme("dark"); break;

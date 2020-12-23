@@ -35,6 +35,9 @@ class PaletteSelector { // Abstract!
 		this.hueSign=$("#palette-hue-sign");
 		this.hueSymbol=$("#palette-hue-symbol");
 		this.hueValue=$("#palette-hue-value");
+
+		this.button=$("#palette-button");
+		this.buttonText=$("#palette-button-text");
 		// Init rgb, hsv
 		// The purpose to maintain both rgb & hsv is that they aren't bijections
 		this.setRGB(rgb||[134.0,194.0,224.0]);
@@ -62,7 +65,7 @@ class PaletteSelector { // Abstract!
 		this.hueValue.text(Lang(res[0]));
 	}
 	_updatePaletteButton() {
-		const button=$("#palette-button");
+		const button=this.button;
 		button.css("background-color",PaletteSelector.getColorString(this.rgb));
 		if(this.hsv[2]>150) {
 			button.css("color","#000000");
@@ -71,8 +74,8 @@ class PaletteSelector { // Abstract!
 			const textRGB=hsv2rgb([this.hsv[0],this.hsv[1],255]);
 			button.css("color",PaletteSelector.getColorString(textRGB));
 		}
-		const $buttonText=$("#palette-button-text"); // shrink text width
-		const k=button.width()/$buttonText.width();
+		const $buttonText=this.buttonText; // shrink text width
+		const k=button.width()/$buttonText.width(); // measure actual width! not width after transform
 		if(k<1) {
 			$buttonText.css("transform","scale("+k+", 1)");
 		}
@@ -166,7 +169,7 @@ PALETTE.init=function(sysSettingParams) {
 	// color selector
 	PALETTE.initColorSelector(vSel,vCIM,rgb); // Add from sysSettingParams
 	// for selector event
-	PALETTE.refreshUIParam();
+	//PALETTE.refreshUIParam(); // in ENV.setUIOrientation/setUIFont
 
 	// Flags
 	PALETTE.isSelectingSV=false;
@@ -305,4 +308,5 @@ PALETTE.refreshUIParam=function() {
 	PALETTE.offset=cvp.offset();
 
 	PALETTE.colorSelector._updateCursor(); // UI changed set cursor position again
+	PALETTE.colorSelector._updatePaletteButton(); // UI change may cause width change
 }

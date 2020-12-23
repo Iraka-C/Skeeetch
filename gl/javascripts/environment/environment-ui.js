@@ -79,3 +79,68 @@ ENV.setUITheme=function(theme) {
 			$("#css-theme").attr("href","./styles/color-theme-light.css");
 	}
 }
+
+ENV.setUIFont=function(fontStr){
+	ENV.displaySettings.uiFont=fontStr;
+	switch(fontStr){
+		case "sans-serif":
+			$(":root").css("--default-font-family", "var(--sans-serif-font-family)");
+			break;
+		case "monospace":
+		default:
+			$(":root").css("--default-font-family", "var(--monospace-font-family)");
+	}
+	PALETTE.refreshUIParam(); // position may change
+}
+
+// ================== Other settings dialog ==================
+
+ENV.showPrefDialog=function(){
+	const $title=DialogBoxItem.textBox({text: Lang("other-display-pref")});
+	const dialog=new DialogBoxItem([$title],[{
+		text: Lang("system-font"),
+		callback: e=>{
+			ENV.showFontDialog();
+		}
+	},{
+		text: Lang("UI Orientation"),
+		callback: e=>{
+			ENV.showUIOrientationDialog();
+		}
+	},{ // nothing
+		text: Lang("Cancel")
+	}]);
+	DIALOGBOX.show(dialog);
+}
+
+ENV.showFontDialog=function(){
+	const $title=DialogBoxItem.textBox({text: Lang("system-font")});
+	const dialog=new DialogBoxItem([$title],[{
+		text: Lang("system-font-ss"),
+		callback: e=>{
+			ENV.setUIFont("sans-serif");
+		}
+	},{
+		text: Lang("system-font-mono"),
+		callback: e=>{
+			ENV.setUIFont("monospace");
+		}
+	}]);
+	DIALOGBOX.show(dialog);
+}
+
+ENV.showUIOrientationDialog=function(){
+	const $title=DialogBoxItem.textBox({text: Lang("UI Orientation")});
+	const dialog=new DialogBoxItem([$title],[{
+		text: Lang("ui-left"),
+		callback: e=>{
+			ENV.setUIOrientation(true);
+		}
+	},{
+		text: Lang("ui-right"),
+		callback: e=>{
+			ENV.setUIOrientation(false);
+		}
+	}]);
+	DIALOGBOX.show(dialog);
+}

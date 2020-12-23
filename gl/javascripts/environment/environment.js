@@ -38,6 +38,7 @@ ENV.displaySettings={ // These settings will be saved in localStorage
 	blendWithNeutralColor: true, // blend layers with neutral color filling under certain blend modes
 	uiOrientationLeft: true, // UI flows from left->right: true
 	uiTheme: "light", // UI is the "light"/"dark" theme
+	uiFont: "monospace", // font used in all UI
 	isAutoSave: true, // Auto save files when modified in browser
 	maxFps: Infinity, // 12, 30, 60, Infinity
 	maxVRAM: 4*1024*1024*1024 // 4GB VRAM init
@@ -118,6 +119,7 @@ ENV.init=function() { // When the page is loaded
 
 		ENV.setUIOrientation(ENV.displaySettings.uiOrientationLeft); // set UI orientation at init, after settings
 		ENV.setUITheme(ENV.displaySettings.uiTheme); // set color theme
+		ENV.setUIFont(ENV.displaySettings.uiFont); // set system font
 		ENV.debug();
 
 		// prevent pen-dragging in Firefox causing window freezing

@@ -3,7 +3,10 @@
 	css file for Skeeetch platform
 */
 :root {
-	--default-font-family: Consolas, Menlo, Monaco, Microsoft YaHei, monospace, sans-serif;
+	/* Microsoft YaHei is only for specifying CJK font on Win. On MacOS, the default is pleasant */
+	--monospace-font-family: Consolas, Menlo, Monaco, Microsoft YaHei, monospace, sans-serif;
+	--sans-serif-font-family: Lucida Grande, Segoe UI, Consolas, Menlo, Monaco, Microsoft YaHei, sans-serif;
+	--default-font-family: var(--monospace-font-family);
 }
 
 html{

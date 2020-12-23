@@ -52,6 +52,7 @@ This chapter lists the keyboard shortcuts (hotkeys) available in Skeeetch.
 | Home                             | Reset paper position                                         |
 | Ctrl+S                           | Save contents in repository                                  |
 | Ctrl+Shift+S                     | Export current file as `.psd` file                           |
+| Ctrl+Shift+K                     | Other display preferences menu                               |
 | Tab or Pagedown                  | Activate next layer                                          |
 | Shift+Tab or Pageup              | Activate previous layer                                      |
 | Delete                           | Clear current layer                                          |

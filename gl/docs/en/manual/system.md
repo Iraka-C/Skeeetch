@@ -74,10 +74,6 @@ If you enable AA (right), Skeeetch will perform interpolation algorithms to smoo
 
 Skeeetch will play a smooth transition animation when you adjust the position of the paper. If you are not fond of such a sluggish effect, or such an effect causes lags during your use, turn off transform animation in this setting item.
 
-### UI layout
-
-You can toggle UI layout to decide whether you want the layer panel to be on the left or right of the window.
-
 ### Color theme
 
 Skeeetch has two internal themes: light and dark. Choose the UI style you like with this setting.
@@ -91,6 +87,20 @@ Skeeetch has two internal themes: light and dark. Choose the UI style you like w
 Click on **Toggle Fullscreen** button to enter/exit fullscreen mode. You may also use the fullscreen shortcut (often F11 key).
 
 > Not all browser support fullscreen.
+
+## Other System Preferences
+
+### Other display preferences
+
+Use the `Ctrl+Shift+K` to show the Other Display Preferences menu. In this menu, you can change the **UI Layout** or **System Font**.
+
+#### System Font
+
+You may specify a font style you like for the UI. At present, Skeeetch supports sans-serif and monospace.
+
+#### UI Layout
+
+In the UI Layout submenu, choose Left or Right to decide whether you want the layer panel to be on the left or right. This makes it handier if you move from a previous CG software that has its own layout properties.
 
 ### Palette settings
 

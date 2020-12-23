@@ -25,6 +25,7 @@ LANG_ZH={
 
 	// Setting Menu
 	"System":"系统设置",
+	"Cancel":"取消",
 	"Renderer":"渲染器",
 	"Bit Depth":"位深度",
 	"Display":"显示",
@@ -63,6 +64,11 @@ LANG_ZH={
 	"UI Theme":"界面主题",
 	"ui-dark":"深色",
 	"ui-light":"浅色",
+
+	"other-display-pref":"其他显示选项",
+	"system-font":"系统字体",
+	"system-font-ss":"非衬线",
+	"system-font-mono":"等宽",
 
 	"anim-lowfps-report":"低帧率警告",
 	"anim-lowfps-info1":"画面刷新率不足，最低帧率为",

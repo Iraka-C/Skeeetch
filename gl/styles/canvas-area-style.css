@@ -243,7 +243,7 @@ table{
 #bottom-info-panel:hover .bottom-info-block{
 	opacity: 1;
 }
-#rotate-info{
+#rotate-info, #scale-info{
 	margin-left: 0.3em;
 }
 /* ==================== Canvas panels ==================== */

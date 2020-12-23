@@ -51,6 +51,11 @@ LANG_EN={
 	"ui-dark":"Dark",
 	"ui-light":"Light",
 
+	"other-display-pref":"Other Display Preferences",
+	"system-font":"System Font",
+	"system-font-ss":"Sans-Serif",
+	"system-font-mono":"Monospace",
+
 	"anim-lowfps-report":"Low FPS",
 	"anim-lowfps-info1":"The refresh rate is low. Current lowest rate is ",
 	"anim-lowfps-info2":"Try turn off transform animation.",

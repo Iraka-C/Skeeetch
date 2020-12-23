@@ -100,6 +100,7 @@ EVENTS.initHotKeys=function() {
 	});
 
 	EVENTS.initReset();
+	EVENTS.initStyleMenu();
 }
 
 /**
@@ -228,5 +229,11 @@ EVENTS.initReset=function(){
 		}]];
 
 	});
+}
 
+EVENTS.initStyleMenu=function(){
+	// show a preference dialog (defined in environment-ui)
+	EventDistributer.key.addListener("Ctrl+Shift+KeyK",e=>{
+		ENV.showPrefDialog();
+	},true);
 }

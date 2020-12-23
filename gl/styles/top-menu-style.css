@@ -47,6 +47,9 @@
 #brush-button{
 	min-width: 6em;
 }
+#brush-middot{
+	margin: 0em 0.1em;
+}
 #brush-name{
 	max-width: 10em;
 	white-space: nowrap;

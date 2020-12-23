@@ -262,6 +262,7 @@
 	margin: 0.2em;
 }
 .layer-opacity-input{
+	width: 3em; /* override size attribute */
 	pointer-events: none;
 }
 /* color defined in theme light/dark */
@@ -339,6 +340,7 @@
 .group-opacity-input{
 	color: #4a89a8;
 	pointer-events: none;
+	width: 3em; /* override size attribute */
 }
 .group-opacity-input:disabled{
 	color: #4a89a8;
@@ -377,6 +379,7 @@
 .group-button-panel{
 	color: #000;
 	margin: 0.3em;
+	align-items: center;
 }
 .group-button-panel img{
 	display: block;
