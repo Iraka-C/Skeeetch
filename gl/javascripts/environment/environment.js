@@ -5,7 +5,7 @@
 "use strict";
 
 const ENV={}; // Environment
-ENV.version="20201216";
+ENV.version="20201223";
 
 //===================== Settings =====================
 
@@ -132,6 +132,7 @@ ENV.init=function() { // When the page is loaded
 
 		// check if there is a param at last
 		ENV.checkResetParams(sysSettingParams);
+		ENV.checkVersion(sysSettingParams);
 	});
 };
 
@@ -189,6 +190,7 @@ ENV.checkSafeExit=function(){ // return is safely exited last time
 	return isSafeExited;
 }
 ENV.reportSafelyLoaded=function(){
+	// NOTE FIXME: the "run" might also be true if there are several opened windows!
 	console.log("report!");
 	let startReport=localStorage.getItem("start-report");
 	if(!startReport){
@@ -212,6 +214,24 @@ ENV.reportSafelyLoaded=function(){
 ENV.checkResetParams=function(sysSettingParams){
 	const query=sysSettingParams.windowParams.query;
 	PERFORMANCE.reportResetClear(query["reset"],query["clear"]);
+}
+
+ENV.checkVersion=function(sysSettingParams){
+	if(sysSettingParams.version<ENV.version){ // update
+		console.log("update "+sysSettingParams.version+" to "+ENV.version);
+	}
+	if(!sysSettingParams.version){ // Welcome!
+		const query=sysSettingParams.windowParams.query;
+		if(!query["reset"]&&!query["clear"]){ // not returned from clear
+			// expand menu
+			PERFORMANCE.idleTaskManager.addTask(e=>{
+				if(!SettingHandler.sysMenu.isExpanded()){ // open task report
+					SettingHandler.sysMenu.toggleExpand();
+				}
+				PERFORMANCE.reportWelcome();
+			});
+		}
+	}
 }
 // ====================== Settings ========================
 /**

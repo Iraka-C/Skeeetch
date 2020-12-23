@@ -67,7 +67,7 @@ LANG_EN={
 	"reset-clear-report":"Reset & Clear",
 	"reset-report-hint":"Reset system settings.",
 	"clear-report-hint":"Clear all storages.",
-	"reset-clear-hint":"CLICK THIS message to reload as the new workspace!",
+	"reset-clear-hint":"No setting or content in this page will be preserved. CLICK HERE to reload as the new workspace!",
 
 	// Layer
 	"node-copy-suffix":" copy",
@@ -175,6 +175,11 @@ LANG_EN={
 	"danger-zone-enter":"Please input (upper case) ",
 
 	// Info
+	"welcome-report":"Welcome!",
+	"welcome-hint-1":"Thank you for using Skeeetch.",
+	"welcome-hint-2":"> Click me to read a startup tutorial!",
+	"welcome-link":"https://github.com/Iraka-C/Skeeetch/tree/master/gl/docs/en",
+
 	"about-skeeetch":`
 		This web app is designed and programmed by
 		<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C'>Iraka-C</a>.<br>

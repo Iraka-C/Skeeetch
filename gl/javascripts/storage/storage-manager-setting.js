@@ -45,16 +45,16 @@ STORAGE.SETTING.init=function(){ // async! returns a Promise
 	else{
 		try{
 			v=JSON.parse(localStorage.getItem("system-setting"))||{};
-			const version=v.version||0;
-			if(version<ENV.version){ // low version settings
-				console.log("Low version "+version+" to "+ENV.version);
-			}
+			// if(version<ENV.version){ // low version settings
+			// 	console.log("Low version "+version+" to "+ENV.version);
+			// }
 		}catch(err){
 			console.warn("System Setting read-error",err);
 		}
 	}
 	
 	v.palette=v.palette||{};
+	v.version=v.version||0;
 	v.preference=v.preference||{};
 	v.preference.displaySettings=v.preference.displaySettings||{};
 	v.preference.debugger=v.preference.debugger||{};

@@ -81,7 +81,7 @@ LANG_ZH={
 	"reset-clear-report":"重置和清空",
 	"reset-report-hint":"已重置系统设置",
 	"clear-report-hint":"已清空储存",
-	"reset-clear-hint":"点-击-这-里 来重新加载Skeeetch以应用这些设置！",
+	"reset-clear-hint":"当前页面上所有更改都不会被保留。点-击-这-里 来重新加载Skeeetch以应用这些设置！",
 
 	// Paint Brush Menu
 	"Paint Brush":"笔刷",
@@ -266,6 +266,11 @@ LANG_ZH={
 	"save-clipgroup-report":" 图层组剪贴蒙版在PSD文件中可能无法正确显示",
 	"save-psd-report":"导出PSD ",
 	"save-psd-fail-report":"写入PSD文件失败",
+
+	"welcome-report":"欢迎",
+	"welcome-hint-1":"初次使用Skeeetch？",
+	"welcome-hint-2":"> 点这里浏览一份使用简介！",
+	"welcome-link":"https://github.com/Iraka-C/Skeeetch/tree/master/gl/docs/zh",
 
 	// system reset
 	"danger-zone":"危险区！",

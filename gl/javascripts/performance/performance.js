@@ -297,8 +297,29 @@ PERFORMANCE.reportResetClear=function(isReset,isClear){
 			content: Lang("reset-clear-hint"),
 			target: window.location.origin+window.location.pathname // without any param
 		});
+		PERFORMANCE.idleTaskManager.addTask(e=>{ // prompt the user to refresh page
+			if(!SettingHandler.sysMenu.isExpanded()){ // open task report
+				SettingHandler.sysMenu.toggleExpand();
+				PERFORMANCE.REPORTER.report(loadReport);
+			}
+		});
 	}
-	PERFORMANCE.REPORTER.report(loadReport);
+}
+
+PERFORMANCE.reportWelcome=function(){
+	const welcomeReport={
+		title: Lang("welcome-report"),
+		items: []
+	};
+	welcomeReport.items.push({
+		content: Lang("welcome-hint-1"),
+		target: ""
+	});
+	welcomeReport.items.push({
+		content: Lang("welcome-hint-2"),
+		target: Lang("welcome-link")
+	});
+	PERFORMANCE.REPORTER.report(welcomeReport);
 }
 // ================= Idle Task Manager ===================
 class IdleTaskManager{

@@ -169,7 +169,7 @@ HISTORY.addHistory=function(param){ // see HistoryItem constructor for info stru
 	}
 	HISTORY.submitPropertyHistory(); // submit pending node-property item
 	HISTORY.pendingHistoryCnt++; // new pending
-	PERFORMANCE.idleTaskManager.addTask(e=>{
+	PERFORMANCE.idleTaskManager.addTask(e=>{ // create the history item when idle
 		HISTORY.pendingHistoryCnt--;
 		HISTORY.pendingImageDataChangeParam.delete(param.id);
 		

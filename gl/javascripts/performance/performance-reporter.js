@@ -78,7 +78,8 @@ PERFORMANCE.REPORTER.report=function(block){
 					})
 				}
 				else if(item.target.length){ // item.target is an external link
-					window.location.href=item.target;
+
+					window.open(item.target);
 
 					// some external links
 					// based on LANG!

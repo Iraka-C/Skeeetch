@@ -6,7 +6,9 @@ Skeeetch is available on the website without download:
 
 ### [**> Open Skeeetch <**](https://iraka-c.github.io/Skeeetch/index.html?lang=en)
 
-You can **save Skeeetch in Bookmark** to access it later。
+You can **save Skeeetch in Bookmark** to access it later.
+
+Current version: `Ver. 20201223`
 
 -----
 
