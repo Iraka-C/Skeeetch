@@ -237,8 +237,16 @@
 	position: relative;
 }
 .layer-ui{ /* layer icon */
-	transition: box-shadow 0.5s;
+	transition: box-shadow 0.5s, margin 0.3s;
 }
+.layer-ui-clip, .group-ui-clip{
+	margin: 0em 0em 0em 0em;
+}
+.layer-ui-clip:last-child, .group-ui-clip:last-child{
+	/* last clip layer is not a clip layer */
+	margin: 0em 0em 1em 0em;
+}
+
 .layer-name-label{
 	position: absolute;
 	left: 0em;
@@ -324,12 +332,23 @@
 	width: 1em;
 	right: 0em;
 	bottom: 0em;
+	display: none;
+}
+
+/* clip button */
+.layer-clip-mask-button img{
+	opacity: 0.2;
+}
+.layer-ui-clip .layer-clip-mask-button img{
+	opacity: 1;
+}
+.layer-ui-clip .layer-clip-mask-hint{
 	display: block;
 }
 
 /* ========================== layer groups ========================= */
 .layer-group-ui{ 
-	transition: color 0.5s;
+	transition: color 0.5s, margin 0.3s;
 }
 .group-opacity-label{
 	color: #4a89a8;
@@ -384,6 +403,17 @@
 .group-button-panel img{
 	display: block;
 	width: 1em;
+}
+
+/* clip button */
+.group-clip-mask-button img{
+	opacity: 0.25; /* color deeper than .layer-ui */
+}
+.group-ui-clip .group-clip-mask-button img{
+	opacity: 1;
+}
+.group-ui-clip .group-clip-mask-hint{
+	display: block;
 }
 
 /* ======= Scrollbar items ========= */

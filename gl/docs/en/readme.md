@@ -66,9 +66,9 @@ Now that you have something on the canvas. Try to close this page and reopen it.
 
 Change the value of **zoom** (in percentage) and **rotate** (in degrees clockwise) to change the position of the paper. You can drag the value, scroll on the value, or input the value by keyboard to change it. You may also scroll on the canvas area (or drag up & down with two fingers on a touchpad) to zoom in/out.
 
-Press `Shift` while scrolling on the canvas area to rotate the paper.
+Press `Shift` while scrolling or dragging on the canvas area to rotate/zoom the paper.
 
-Press `Shift` while dragging the paper will **move** the paper horizontally/vertically. You can see a "moving" cross shaped mouse cursor. It is also possible to move the paper by dragging on the touchpad around with two fingers while pressing `Ctrl` key.
+Press `Space` while dragging the paper will **move** the paper horizontally/vertically. You can see a "moving" cross shaped mouse cursor. It is also possible to move the paper by dragging on the touchpad around with two fingers while pressing `Ctrl` key.
 
 Click the `⇆` button on the bottom-right corner will **flip** the paper horizontally. This is only a flip of the view, NOT the actual contents in the paper.
 

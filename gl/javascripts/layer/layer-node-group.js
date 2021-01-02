@@ -222,19 +222,23 @@ class LayerGroupNode extends ContentNode {
 
 		// Clip mask button
 		const $clipButton=$buttons.find(".group-clip-mask-button");
+		const $clipButtonImg=$clipButton.children("img");
+		$clipButtonImg.attr("src","./resources/clip-mask.svg");
 		const setClipMaskButtonStatus=v => {
-			const $clipButtonImg=$clipButton.children("img");
-			$clipButtonImg.attr("src","./resources/clip-mask.svg");
 			switch(v) {
 				case 0: // normal
 					this.properties.clipMask=false;
-					$clipButtonImg.css("opacity","0.25"); // color deeper than canvas code
-					this.$ui.children(".group-clip-mask-hint").css("display","none");
+					this.$ui.removeClass("group-ui-clip");
+					//$clipButtonImg.css("opacity","0.25"); // color deeper than canvas code
+					//this.$ui.children(".group-clip-mask-hint").css("display","none");
+					//this.$ui.animate({"margin-bottom": "1em"},300);
 					break;
 				case 1: // clip mask
 					this.properties.clipMask=true;
-					$clipButtonImg.css("opacity","1");
-					this.$ui.children(".group-clip-mask-hint").css("display","block");
+					this.$ui.addClass("group-ui-clip");
+					//$clipButtonImg.css("opacity","1");
+					//this.$ui.children(".group-clip-mask-hint").css("display","block");
+					//this.$ui.animate({"margin-bottom": "0em"},300);
 					break;
 			}
 		}

@@ -281,19 +281,17 @@ class CanvasNode extends ContentNode {
 
 		// Clip mask button
 		const $clipButton=$buttons.find(".layer-clip-mask-button");
+		const $clipButtonImg=$clipButton.children("img");
+		$clipButtonImg.attr("src","./resources/clip-mask.svg");
 		const setClipMaskButtonStatus=v => {
-			const $clipButtonImg=$clipButton.children("img");
-			$clipButtonImg.attr("src","./resources/clip-mask.svg");
 			switch(v) {
 				case 0: // normal
 					this.properties.clipMask=false;
-					$clipButtonImg.css("opacity","0.2");
-					this.$ui.children(".layer-clip-mask-hint").css("display","none");
+					this.$ui.removeClass("layer-ui-clip");
 					break;
 				case 1: // clip mask
 					this.properties.clipMask=true;
-					$clipButtonImg.css("opacity","1");
-					this.$ui.children(".layer-clip-mask-hint").css("display","block");
+					this.$ui.addClass("layer-ui-clip");
 					break;
 			}
 		}
