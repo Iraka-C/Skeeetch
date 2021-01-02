@@ -92,6 +92,7 @@ class CanvasNode extends ContentNode {
 		this.name=Lang("New Layer");
 		this._setName(this.name);
 		this.$ui.on("pointerdown",event => { // set active on clicking
+			// @TODO: add Alt=> clip
 			LAYERS.setActive(this);
 		});
 		// Move thumb image

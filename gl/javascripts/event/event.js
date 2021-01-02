@@ -179,7 +179,9 @@ EVENTS.init=function() {
 			8 : 4th button (typically the "Browser Back" button)
 			16: 5th button (typically the "Browser Forward" button)
 		 */
-		if(event.originalEvent.buttons&0x8){ // 4th button
+
+		// No use: in some browsers, you cannot prevent this default action
+		/*if(event.originalEvent.buttons&0x8){ // 4th button
 			HISTORY.undo(); // perform as undo
 			event.preventDefault(); // disable back
 			return;
@@ -188,7 +190,7 @@ EVENTS.init=function() {
 			HISTORY.redo(); // perform as redo
 			event.preventDefault(); // disable forward
 			return;
-		}
+		}*/
 
 		if(cntAfterUp==0){ // not in hysteresis state, init canvas
 			CANVAS.setCanvasEnvironment(); // init canvas here
