@@ -272,6 +272,12 @@ LANG_ZH={
 	"welcome-hint-2":"> 点这里浏览一份使用简介！",
 	"welcome-link":"https://github.com/Iraka-C/Skeeetch/tree/master/gl/docs/zh",
 
+	"version-report":"版本更新",
+	"version-hint-1":"已更新至 Ver.",
+	"version-hint-2":"> 点这里查看更新内容！",
+	"version-link":"https://github.com/Iraka-C/Skeeetch/tree/master/gl/docs/zh/update-log/",
+
+
 	// system reset
 	"danger-zone":"危险区！",
 	"danger-zone-reset":"还原系统设置",

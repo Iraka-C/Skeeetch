@@ -321,6 +321,22 @@ PERFORMANCE.reportWelcome=function(){
 	});
 	PERFORMANCE.REPORTER.report(welcomeReport);
 }
+
+PERFORMANCE.reportVersionUpdate=function(){
+	const versionReport={
+		title: Lang("version-report"),
+		items: []
+	};
+	versionReport.items.push({
+		content: Lang("version-hint-1")+ENV.version,
+		target: null
+	});
+	versionReport.items.push({
+		content: Lang("version-hint-2"),
+		target: Lang("version-link")+ENV.version+".md"
+	});
+	PERFORMANCE.REPORTER.report(versionReport);
+}
 // ================= Idle Task Manager ===================
 class IdleTaskManager{
 	constructor(){

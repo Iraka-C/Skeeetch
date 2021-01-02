@@ -179,6 +179,11 @@ LANG_EN={
 	"welcome-hint-1":"Thank you for using Skeeetch.",
 	"welcome-hint-2":"> Click me to read a startup tutorial!",
 	"welcome-link":"https://github.com/Iraka-C/Skeeetch/tree/master/gl/docs/en",
+	
+	"version-report":"Version Update",
+	"version-hint-1":"Updated to Ver.",
+	"version-hint-2":"> Click me to read the update log!",
+	"version-link":"https://github.com/Iraka-C/Skeeetch/tree/master/gl/docs/en/update-log/",
 
 	"about-skeeetch":`
 		This web app is designed and programmed by

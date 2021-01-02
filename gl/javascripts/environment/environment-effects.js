@@ -106,6 +106,9 @@ ENV._transformAnimation=function(timestamp) { // timestamp in ms
 			else if(CURSOR.nowActivity=="rotate-paper"){
 				animSpeed=4;
 			}
+			else if(CURSOR.nowActivity=="rotate-zoom-paper"){
+				animSpeed=6;
+			}
 		}
 		let nextFps=targetFPS/animSpeed;
 		let step=1/(anim.time*nextFps);

@@ -20,6 +20,7 @@ CURSOR.panRecord={ // recording the status of panning a layer/group
 	startPosition: [NaN,NaN] // the original position of rawImageData
 };
 CURSOR.rotateDown=NaN; // cursor rotation status
+CURSOR.zoomDown=NaN; // cursor zoom status
 /**
  * nowActivity:
  * <null>: nothing
@@ -105,7 +106,7 @@ CURSOR.moveCursor=function(event) {
 			let newTy=ENV.window.trans.y+dy;
 			ENV.translateTo(newTx,newTy);
 		}
-		else if(CURSOR.nowActivity=="rotate-paper"){
+		else if(CURSOR.nowActivity=="rotate-paper"){ // rotate only
 			const center=[ENV.window.SIZE.width/2,ENV.window.SIZE.height/2];
 			const angle=-Math.atan2(CURSOR.p0[0]-center[0],CURSOR.p0[1]-center[1])/Math.PI*180; // in deg, CW
 			if(isNaN(CURSOR.rotateDown)){
@@ -120,6 +121,27 @@ CURSOR.moveCursor=function(event) {
 				}
 				ENV.rotateTo(newRot);
 				$("#rotate-info-input").val(Math.round(newRot));
+			}
+		}
+		else if(CURSOR.nowActivity=="rotate-zoom-paper"){ // rotate and zoom
+			const center=[ENV.window.SIZE.width/2,ENV.window.SIZE.height/2];
+			const angle=-Math.atan2(CURSOR.p0[0]-center[0],CURSOR.p0[1]-center[1])/Math.PI*180; // in deg, CW
+			const norm2=Math.hypot(CURSOR.p0[0]-center[0],CURSOR.p0[1]-center[1]); // length to center
+			if(isNaN(CURSOR.rotateDown)){
+				CURSOR.rotateDown=angle-ENV.window.rot;
+				CURSOR.zoomDown=ENV.window.scale/norm2;
+			}
+			else{
+				let newRot=angle-CURSOR.rotateDown;
+				newRot=(newRot+540)%360-180; // at most -360-180 = -540
+				const diffTo90=Math.abs((newRot-45)%90)-45;
+				if(Math.abs(diffTo90)<10){ // within 10 degs, round to 90
+					newRot=Math.round(newRot/90)*90;
+				}
+				let newScale=(norm2*CURSOR.zoomDown).clamp(0.1,8.0); // 10% ~ 800%
+				ENV.rotateScaleTo(newRot,newScale);
+				$("#rotate-info-input").val(Math.round(newRot));
+				$("#scale-info-input").val(Math.round(newScale*100));
 			}
 		}
 		else if(CURSOR.nowActivity=="pan-layer"||CURSOR.nowActivity=="pan-disable") { // ctrl: pan canvas only
@@ -148,12 +170,14 @@ CURSOR.moveCursor=function(event) {
 		// else... for future extension
 
 		// cancel cursor position status
-		if(CURSOR.nowActivity!="rotate-paper"){
+		if(CURSOR.nowActivity!="rotate-paper"&&CURSOR.nowActivity!="rotate-zoom-paper"){
 			CURSOR.rotateDown=NaN;
+			CURSOR.zoomDown=NaN;
 		}
 	}
 	else{
 		CURSOR.rotateDown=NaN;
+		CURSOR.zoomDown=NaN;
 
 		if(EVENTS.isCursorInHysteresis){ // hysteresis drawing after pen up
 			if(CURSOR.nowActivity=="stroke"&&CURSOR.isPressure){
@@ -255,8 +279,11 @@ CURSOR.updateAction=function(event) {
 		}
 	}
 	else if(EVENTS.key.shift) {
-		CURSOR.nowActivity="pan-paper";
+		CURSOR.nowActivity="rotate-zoom-paper";
 		// used as a flag in ENV._transformAnimation
+	}
+	else if(EVENTS.key.space) { // same as SAI/PS
+		CURSOR.nowActivity="pan-paper";
 	}
 	else if(EVENTS.key.ctrl) {
 		if(event=="pan-disable"&&CURSOR.isDown) { // disabled by some reason
@@ -334,6 +361,10 @@ CURSOR.setCursor=function() {
 			break;
 		case "rotate-paper": // rotating paper
 			$("#canvas-area-panel").css("cursor","url('../gl/resources/cursor/rotate-arrow.cur'), grabbing");
+			$("#brush-cursor").css("display","none");
+			break;
+		case "rotate-zoom-paper": // rotating and zoom paper
+			$("#canvas-area-panel").css("cursor","zoom-in");
 			$("#brush-cursor").css("display","none");
 			break;
 		case "pan-layer": // dragging

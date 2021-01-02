@@ -5,7 +5,7 @@
 "use strict";
 
 const ENV={}; // Environment
-ENV.version="20201223";
+ENV.version="20210103";
 
 //===================== Settings =====================
 
@@ -217,9 +217,6 @@ ENV.checkResetParams=function(sysSettingParams){
 }
 
 ENV.checkVersion=function(sysSettingParams){
-	if(sysSettingParams.version<ENV.version){ // update
-		console.log("update "+sysSettingParams.version+" to "+ENV.version);
-	}
 	if(!sysSettingParams.version){ // Welcome!
 		const query=sysSettingParams.windowParams.query;
 		if(!query["reset"]&&!query["clear"]){ // not returned from clear
@@ -231,6 +228,15 @@ ENV.checkVersion=function(sysSettingParams){
 				PERFORMANCE.reportWelcome();
 			});
 		}
+	}
+	else if(sysSettingParams.version<ENV.version){ // update
+		console.log("update "+sysSettingParams.version+" to "+ENV.version);
+		PERFORMANCE.idleTaskManager.addTask(e=>{
+			if(!SettingHandler.sysMenu.isExpanded()){ // open task report
+				SettingHandler.sysMenu.toggleExpand();
+			}
+			PERFORMANCE.reportVersionUpdate();
+		});
 	}
 }
 // ====================== Settings ========================
@@ -322,6 +328,29 @@ ENV.rotateTo=function(angle) { // degree
 	let Sr=Math.sin(dr);
 	ENV.window.trans.x=Cr*tx-Sr*ty;
 	ENV.window.trans.y=Sr*tx+Cr*ty;
+	ENV.refreshTransform();
+};
+
+/**
+ * Set the rotation to angle (degree CW), and scale to ratio (default 1.0)
+ * center: window center
+ */
+ENV.rotateScaleTo=function(angle,ratio) {
+	let r=ENV.window.rot;
+	ENV.window.rot=angle;
+	let tx=ENV.window.trans.x;
+	let ty=ENV.window.trans.y;
+
+	let s=ENV.window.scale;
+	ENV.window.scale=ratio;
+	let tr=ratio/s;
+
+	let dr=(angle-r)/180*Math.PI;
+	let Cr=Math.cos(dr);
+	let Sr=Math.sin(dr);
+	ENV.window.trans.x=(Cr*tx-Sr*ty)*tr;
+	ENV.window.trans.y=(Sr*tx+Cr*ty)*tr;
+
 	ENV.refreshTransform();
 };
 

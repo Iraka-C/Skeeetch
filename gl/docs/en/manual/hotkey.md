@@ -13,7 +13,8 @@
 | Any input value box              | drag                                                    | Change the value                                      |
 |                                  | Scroll up/down                                          | Change the value                                      |
 | Paper                            | drag                                                    | Stroke a line on the paper                            |
-|                                  | Shift+drag                                              | Pan the whole paper                                   |
+|                                  | Space+drag                                              | Pan the whole paper                                   |
+|                                  | Shift+drag                                              | Rotate & zoom the whole paper                         |
 |                                  | Shift+right drag                                        | Rotate the whole paper                                |
 |                                  | Ctrl+drag                                               | Pan the current active layer/group                    |
 |                                  | right click                                             | Pick color                                            |

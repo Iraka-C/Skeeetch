@@ -372,15 +372,18 @@ EVENTS.keyDown=function(event) {
 		$("#palette-selector").css("cursor","crosshair");
 		event.preventDefault(); // prevent browser menu
 	}
-
+	
+	// space is also function key!
 	if(event.originalEvent.code.toLowerCase()=="space"&&!EVENTS.key.space){ // space
 		EVENTS.key.space=true;
+		functionKeyChanged=true;
+		CURSOR.updateAction();
 	}
 
 	if(functionKeyChanged) { // shift|ctrl|alt pressed
 		// more actions related to key changed?
 		EventDistributer.footbarHint.update();
-		if(EVENTS.key.shift){ // disable area drag: shift+drag is panning paper
+		if(EVENTS.key.shift||EVENTS.key.space){ // disable area drag: shift+drag is panning paper
 			$("#drag-area").css("pointer-events","none");
 		}
 	}
@@ -411,13 +414,16 @@ EVENTS.keyUp=function(event) {
 		event.preventDefault(); // prevent browser menu
 	}
 
+	// space is also function key!
 	if(event.originalEvent.code.toLowerCase()=="space"&&EVENTS.key.space){ // space
 		EVENTS.key.space=false;
+		functionKeyChanged=true;
+		CURSOR.updateAction();
 	}
 
 	if(functionKeyChanged) { // shift|ctrl|alt leave
 		EventDistributer.footbarHint.update();
-		if(!EVENTS.key.shift){ // enable area drag
+		if(!(EVENTS.key.shift||EVENTS.key.space)){ // enable area drag
 			$("#drag-area").css("pointer-events","all");
 		}
 	}
