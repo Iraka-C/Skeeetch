@@ -374,11 +374,15 @@ EVENTS.keyDown=function(event) {
 	}
 	
 	// space is also function key!
-	if(event.originalEvent.code.toLowerCase()=="space"&&!EVENTS.key.space){ // space
-		EVENTS.key.space=true;
-		functionKeyChanged=true;
-		CURSOR.updateAction();
+	if(event.originalEvent.code.toLowerCase()=="space"){ // space
+		if(!EVENTS.key.space){
+			EVENTS.key.space=true;
+			functionKeyChanged=true;
+			CURSOR.updateAction();
+		}
+		event.preventDefault(); // space has a default "scroll down" action
 	}
+	
 
 	if(functionKeyChanged) { // shift|ctrl|alt pressed
 		// more actions related to key changed?
