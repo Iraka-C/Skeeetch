@@ -9,7 +9,7 @@ CANVAS.settings={
 	enabled: true, // is canvas drawable?
 	method: 1, // webgl:1, cpu16bit:2, ctx2d:3
 	smoothness: 3,
-	_speed: 0 // a function of smoothness
+	_speed: 0
 };
 CANVAS.rendererBitDepth=32; // init value
 CANVAS.points=[[NaN,NaN,NaN],[NaN,NaN,NaN]]; // the points drawn on canvas, under paper coordinate [x,y,pressure(0~1)]
@@ -61,7 +61,7 @@ CANVAS.setTargetLayer=function(targetLayer) {
 	else {
 		CANVAS.settings.enabled=true;
 		CANVAS.drawSuccessful=true;
-		CANVAS.updateSpeed(); // at init
+		//CANVAS.updateSpeed(); // at init
 		CANVAS.renderer.init({
 			// @TODO: setup strokeBuffer
 			imageData: targetLayer.rawImageData // render target
@@ -115,7 +115,7 @@ CANVAS.setCanvasEnvironment=function() {
 	CANVAS.renderer.initBeforeStroke({ // init renderer before stroke
 		brush: BrushManager.activeBrush,
 		rgb: PALETTE.colorSelector.getRGB(),
-		sensitivity: BrushManager.general.sensitivity,
+		sensitivity: CURSOR.settings.sensitivity,
 		isOpacityLocked: CANVAS.targetLayerOpacityLocked,
 		antiAlias: ENV.displaySettings.antiAlias,
 		defaultColor: CANVAS.nowLayer.properties.blendMode==BasicRenderer.MASKB?0:1
@@ -127,57 +127,12 @@ CANVAS.setCanvasEnvironment=function() {
 	CANVAS.lastVRAMFreezeCnt=CANVAS.renderer.getVRAMFreezeCnt();
 };
 
-CANVAS.updateSpeed=function() {
-	if(CANVAS.settings.smoothness>=0) { // slow down
-		CANVAS.settings._speed=Math.pow(0.75,CANVAS.settings.smoothness);
-	}
-	else { // tremble
-		let p1=CANVAS.settings.smoothness+5;
-		CANVAS.settings._speed=2-p1*p1/25;
-	}
-}
 
 /**
  * Update cursor trace, point=[x,y,pressure] relative to div #canvas-window
  */
-CANVAS.updateCursor=function(point,isPointerDown) {
-	const pT=CANVAS.points;
-	/**
-	 * @TODO: Mysterious behavior
-	 * pT seems to contain some of the uncorrect values
-	 */
-	// if(CURSOR.isDown){
-	// 	LOGGING&&console.log(pT);
-	// 	LOGGING&&console.log(pT.p0);
-	// }
-
-	// Coordinate transform
-	const pC=ENV.toPaperXY(point[0],point[1]);
-
-	if(isPointerDown){ // keep tracking a whole sequence
-		if(pT.length) { // Smooth the trail
-			const p1=pT[pT.length-1]; // last point
-			if(isNaN(p1[0])){ // not a valid point
-				pT.push([pC[0],pC[1],point[2]]);
-			}
-			else{ // interpolate
-				const p=CANVAS.settings._speed;
-				const q=1-p;
-				pT.push([
-					pC[0]*p+p1[0]*q,
-					pC[1]*p+p1[1]*q,
-					point[2]*p+p1[2]*q
-				]);
-			}
-		}
-		else { // no point recorded yet,
-			pT.push([pC[0],pC[1],point[2]]);
-		}
-	}
-	else{ // keep tracking the first several points
-		CANVAS.points=CANVAS.points.slice(-3); // if [] then => []
-		CANVAS.points.push([pC[0],pC[1],point[2]]);
-	}
+CANVAS.updateCursor=function() {
+	CANVAS.points=CURSOR.BUFFER.points;
 }
 
 /**
@@ -198,6 +153,7 @@ CANVAS.stroke=function() {
 	if(pT.length<3){
 		return;
 	}
+	
 	// if(isNaN(pT.p2[0])||isNaN(pT.p1[0])||isNaN(pT.p0[0])) { // There's a not-recorded pointer
 	// 	return;
 	// }

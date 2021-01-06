@@ -5,7 +5,7 @@
 "use strict";
 
 const ENV={}; // Environment
-ENV.version="20210103";
+ENV.version="20210106";
 
 //===================== Settings =====================
 
@@ -69,7 +69,7 @@ ENV.init=function() { // When the page is loaded
 		EVENTS.init();
 		EventDistributer.init();
 		PALETTE.init(sysSettingParams);
-		CURSOR.init();
+		CURSOR.init(sysSettingParams.preference.stylusSettings);
 		// init performance monitor and reporter
 		// must after SettingHandler.init because it creates window inside
 		PERFORMANCE.init(ENV.displaySettings.maxVRAM);

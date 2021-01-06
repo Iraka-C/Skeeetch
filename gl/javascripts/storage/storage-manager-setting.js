@@ -57,6 +57,7 @@ STORAGE.SETTING.init=function(){ // async! returns a Promise
 	v.version=v.version||0;
 	v.preference=v.preference||{};
 	v.preference.displaySettings=v.preference.displaySettings||{};
+	v.preference.stylusSettings=v.preference.stylusSettings||{};
 	v.preference.debugger=v.preference.debugger||{};
 	v.nowFileID=v.nowFileID||"deadbeef"; // init ID
 	v.windowParams=windowParams;
@@ -127,7 +128,8 @@ STORAGE.SETTING.saveAllSettings=function(){
 		preference:{
 			language: LANG.nowLang,
 			channelBitDepth: CANVAS.rendererBitDepth,
-			displaySettings: ENV.displaySettings
+			displaySettings: ENV.displaySettings,
+			stylusSettings: CURSOR.settings
 		},
 		version: ENV.version,
 		nowFileID: ENV.fileID

@@ -36,13 +36,15 @@ CURSOR.zoomDown=NaN; // cursor zoom status
  * The delay is seemingly larger than SAI
  */
 
-CURSOR.init=function() {
+CURSOR.init=function(stylusSettings) {
 	// $("#brush-cursor-layer").attr({
 	// 	width: ENV.window.SIZE.width,
 	// 	height: ENV.window.SIZE.height
 	// });
 	CURSOR.updateColor(PALETTE.colorSelector.getRGB());
 	CURSOR.window=$("#canvas-layers-panel");
+	Object.assign(CURSOR.settings,stylusSettings);
+	CURSOR.settings.setSmoothness(CURSOR.settings.smoothness); // make sure to update
 }
 
 CURSOR.moveCursor=function(event) {
@@ -96,7 +98,7 @@ CURSOR.moveCursor=function(event) {
 	CURSOR.updateXYR();
 
 	// canvas operation
-	CANVAS.updateCursor(CURSOR.p0,CURSOR.isDown);
+	CURSOR.BUFFER.updateCursor(CURSOR.p0,CURSOR.isDown,event);
 	if(CURSOR.isDown) {
 		if(CURSOR.nowActivity=="pan-paper") { // shift: pan the whole canvas
 			let dx=CURSOR.p0[0]-CURSOR.p1[0];
@@ -314,7 +316,7 @@ CURSOR.updateAction=function(event) {
 CURSOR.disableCursor=function() {
 	CURSOR.p0=[NaN,NaN,NaN];
 	CURSOR.p1=[NaN,NaN,NaN];
-	CANVAS.updateCursor(CURSOR.p0,CURSOR.isDown);
+	CURSOR.BUFFER.updateCursor(CURSOR.p0,CURSOR.isDown,null);
 };
 
 /**

@@ -103,8 +103,6 @@ BrushManager.generateHash=function(){
 }
 
 BrushManager.general={
-	sensitivity:1.0, // 0.0 ~ 2.0: 1=normal 0: dull, 2: sharp
-	//_sPower:1.0, // 5^(sensitivity-1)
 	quality:20 // one pixel rendered by how many circles along the stroke
 	//_invQuality:1/20 // 1/quality
 };
@@ -214,6 +212,8 @@ BrushManager.changeActiveBrushSizeBy=function(dS){
 	const oldId=BrushManager._findBrushSizeId(BrushManager.activeBrush.size);
 	const newId=Math.round(oldId+dS).clamp(0,BrushManager.sizeList.length-1);
 	BrushManager.activeBrush.size=BrushManager.sizeList[newId];
+	// although these may be redundant, they guarantee all displays to be the same
+	BrushManager.brushSizeUpdateFunc();
 	BrushManager.minSizeUpdateFunc();
 	BrushManager.brushButtonUpdateFunc();
 	CURSOR.updateXYR(); // update brush cursor

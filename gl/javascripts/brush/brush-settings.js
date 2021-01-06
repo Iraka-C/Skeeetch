@@ -324,41 +324,37 @@ BrushManager.initScatterSetting=function(brushMenu) {
 BrushManager.initStylusSetting=function(brushMenu) {
 	brushMenu.addSectionTitle(Lang("Stylus Control"));
 	brushMenu.addInstantNumberItem(
-		Lang("stylus-pressure-sensitivity"),() => BrushManager.general.sensitivity.toFixed(1),"",
+		Lang("stylus-pressure-sensitivity"),() => CURSOR.settings.sensitivity.toFixed(1),"",
 		newVal => { // set on input
 			if(newVal) {
 				newVal=(+newVal).clamp(0,2);
-				BrushManager.general.sensitivity=newVal;
+				CURSOR.settings.setSensitivity(newVal);
 			}
 		},
 		(dW,oldVal) => { // set on scroll
 			let newVal=(BrushManager.general.sensitivity+dW/10).clamp(0,2);
-			BrushManager.general.sensitivity=newVal;
+			CURSOR.settings.setSensitivity(newVal);
 		}, // set
 		(dx,oldVal) => { // set on drag-x
 			let newVal=(+oldVal+dx/100).clamp(0,2);
-			BrushManager.general.sensitivity=newVal;
+			CURSOR.settings.setSensitivity(newVal);
 		} // set
 	);
 	brushMenu.addInstantNumberItem(
-		Lang("stroke-smoothness"),() => CANVAS.settings.smoothness,"",
+		Lang("stroke-smoothness"),() => CURSOR.settings.smoothness,"",
 		newVal => { // set on input
 			if(newVal) {
 				newVal=(newVal-0).clamp(-5,10);
-				CANVAS.settings.smoothness=newVal;
-				CANVAS.updateSpeed();
+				CURSOR.settings.setSmoothness(newVal);
 			}
 		},
 		(dW,oldVal) => { // set on scroll
-			let newVal=(CANVAS.settings.smoothness+dW).clamp(-5,10);
-			CANVAS.settings.smoothness=newVal;
-			CANVAS.updateSpeed();
+			let newVal=(CURSOR.settings.smoothness+dW).clamp(-5,10);
+			CURSOR.settings.setSmoothness(newVal);
 		}, // set
 		(dx,oldVal) => { // set on drag-x
-			oldVal-=0;
-			let newVal=Math.round(oldVal+dx/30).clamp(-5,10);
-			CANVAS.settings.smoothness=newVal;
-			CANVAS.updateSpeed();
+			let newVal=Math.round(+oldVal+dx/30).clamp(-5,10);
+			CURSOR.settings.setSmoothness(newVal);
 		} // set
 	);
 }

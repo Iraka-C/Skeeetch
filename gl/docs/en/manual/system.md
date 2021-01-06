@@ -18,17 +18,17 @@ Use the right click or `Alt`+Left click to pick a color from the paper and load 
 
 #### Zoom
 
-Change the value of **zoom** (in percentage) to change the position of the paper. You can drag the value, scroll on the value, or input the value by keyboard to change it. You may also scroll on the canvas area (or drag up & down with two fingers on a touchpad) to zoom in/out.
+Change the value of **zoom** (in percentage) to change the position of the paper. You can drag the value, scroll on the value, or input the value by keyboard to change it. You may also scroll on the canvas area (or drag up & down with two fingers on a touchpad) to zoom in/out. It's also possible to zoom in/out by pressing `Shift` key while dragging with left mouse button.
 
 #### Rotate
 
 Press `Shift` while scrolling on the canvas area to rotate the paper. You can also change the value of  **rotate** (in degrees clockwise) by dragging the value, scrolling on the value, or entering the value by keyboard. If you press `Shift` while scrolling on the **rotate** value, it rounds to the multiples of 5 degrees.
 
-You can also rotate the paper by dragging the paper with right mouse button while pressing `Shift` key. When the paper is positioned near a horizontal/vertical direction, it will be attracted to that direction.
+You can also rotate the paper by dragging the paper with left/right mouse button while pressing `Shift` key. When the paper is positioned near a horizontal/vertical direction, it will be attracted to that direction.
 
 #### Pan
 
-Press `Shift` while dragging the paper will **move** the paper horizontally/vertically. You can see a "moving" cross shaped mouse cursor. It is also possible to move the paper by dragging on the touchpad around with two fingers while pressing `Ctrl` key, or scrolling on the paper while pressing `Ctrl` key.
+Press `Space` while dragging the paper will **move** the paper horizontally/vertically. You can see a "moving" cross shaped mouse cursor. It is also possible to move the paper by dragging on the touchpad around with two fingers while pressing `Ctrl` key, or scrolling on the paper while pressing `Ctrl` key.
 
 #### Flip
 
