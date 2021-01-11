@@ -57,7 +57,7 @@ SettingHandler.initTransformHandler=function() {
 			ENV.rotateTo(newA);
 		},
 		(dx,oldVal) => { // drag update
-			let newA=(+oldVal)+dx;// string to number
+			let newA=((+oldVal)+dx)%360;// string to number
 			if(EVENTS.key.shift){ // shift: round to 15 deg
 				newA=Math.round(newA/15)*15;
 			}

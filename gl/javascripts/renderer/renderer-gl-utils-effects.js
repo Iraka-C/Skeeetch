@@ -27,44 +27,61 @@ GLImageDataFactory.prototype._initEffectProgram=function(){
 	this.c2oProgram=new GLProgram(this.gl,vc2oShaderSource,fc2oShaderSource);
 };
 
-GLImageDataFactory.prototype.color2Opacity=function(src){
+/**
+ * Convert the color in src to opacity
+ * within the range of [left,top,width,height]
+ * no larger than the viewport (tmpImageData)
+ */
+GLImageDataFactory.prototype._color2OpacityBlock=function(src,area){
 	const gl=this.gl;
 	const program=this.c2oProgram;
+
+	const tmpImageData=this.renderer.tmpImageData;
+	this.renderer.clearImageData(tmpImageData);
+
+	// Setup temp texture for extracting data
+	// align tmp with src.validArea
+	tmpImageData.left=area.left;
+	tmpImageData.top=area.top;
+
+	program.setTargetTexture(tmpImageData.data);
+	program.setAttribute("a_src_pos",GLProgram.getAttributeRect(area,src),2);
+	program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(),2);
+	// set size to target (left-top)
+	gl.viewport(0,tmpImageData.height-area.height,area.width,area.height);
+	gl.blendFunc(gl.ONE,gl.ZERO); // copy
+	program.run();
+
+	// copy result back
+	Object.assign(tmpImageData.validArea,area);
+	this.renderer.blendImageData(tmpImageData,src,{mode: BasicRenderer.SOURCE});
+}
+GLImageDataFactory.prototype.color2Opacity=function(src){
 	const W=src.validArea.width;
 	const H=src.validArea.height;
 	if(!(W&&H)) {
 		return;
 	}
 
-	// Setup temp texture for extracting data
-	// align tmp with src.validArea
+	// render src by blocks
+	const program=this.c2oProgram;
 	const tmpImageData=this.renderer.tmpImageData;
-	this.renderer.clearImageData(tmpImageData);
-	tmpImageData.left=src.validArea.left;
-	tmpImageData.top=src.validArea.top;
-
-	// TODO: if tmpImageData smaller than src.validArea, use new texture.
-	// Or, render src by blocks
-
-	// Run program to get a zoomed texture
 	program.setSourceTexture("u_image",src.data);
-	program.setTargetTexture(tmpImageData.data);
-	
-	program.setAttribute("a_src_pos",GLProgram.getAttributeRect(src.validArea,src),2);
-	program.setAttribute("a_dst_pos",GLProgram.getAttributeRect(),2);
-
-	gl.viewport(0,tmpImageData.height-H,W,H); // set size to target (left-top)
-	gl.blendFunc(gl.ONE,gl.ZERO); // copy
-	program.run();
 
 	// copy result back
-	tmpImageData.validArea={
-		width: W,
-		height: H,
-		left: tmpImageData.left,
-		top: tmpImageData.top
-	};
-	this.renderer.clearImageData(src);
-	this.renderer.blendImageData(tmpImageData,src,{mode: BasicRenderer.SOURCE});
+	const tW=tmpImageData.width;
+	const tH=tmpImageData.height;
+	for(let i=0;i<W;i+=tW){ // horizontal blocks
+		for(let j=0;j<H;j+=tH){ // vertical blocks
+			const targetArea={
+				left: i+src.validArea.left,
+				top: j+src.validArea.top,
+				width: tW,
+				height: tH
+			};
+			// convert one block of tmpImageData size
+			this._color2OpacityBlock(src,GLProgram.borderIntersection(targetArea,src.validArea));
+		}
+	}
 	// blend afterwards: needn't to change program during the following layer composition
 }
