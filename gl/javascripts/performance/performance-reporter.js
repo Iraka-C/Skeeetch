@@ -119,6 +119,7 @@ PERFORMANCE.REPORTER.report=function(block){
 				$ui.slideUp(200,e=>{
 					$block.remove();
 				});
+				SettingHandler.sysMenu.toggleExpand(); // also close sys menu
 			});
 			
 		}

@@ -27,6 +27,9 @@ class MyForage{
 			storeName: "store"
 		});
 		this.size=0;
+
+		this.savingKeyFlag=new Set(); // the keys that are under the process of saving
+		this.savePendingItem=new Map(); // the (key,value) that are ready to save (the key is pending)
 	}
 
 	static _roughSizeOfObject(v){ // will never be 0
@@ -188,11 +191,10 @@ class MyForage{
 		});
 	}
 
-	setItem(key,value){ // Dangerous: not thread-safe!
-		if(key.indexOf(":")>=0){
-			return new Promise.reject("Illegal identifier : in key",key);
-		}
+	__save(key,value){ // instant saving, no pending list
+		// this function operates this.savingKeyFlag
 		const itemName=this.storePrefix+key;
+		this.savingKeyFlag.add(key);
 		return this.storage.setItem(itemName,value).then(()=>{
 			// set item successful, write keys to storage
 			if(!this.storeKeys[key])this.storeKeys[key]=0;
@@ -207,9 +209,29 @@ class MyForage{
 					this.storeList.setItem(this.storeName+":size",this.size)
 				]);
 			}
-		}).then(()=>{ // set key valid
-			return value; // compatible to localForage method
+		}).then(()=>{
+			this.savingKeyFlag.delete(key);
+			if(this.savePendingItem.has(key)){ // there's a pending item
+				const newVal=this.savePendingItem.get(key);
+				this.savePendingItem.delete(key);
+				return this.__save(key,newVal);
+			}
+			else{
+				return value; // compatible to localForage method
+			}
 		});
+	}
+	setItem(key,value){ // Dangerous: not thread-safe!
+		if(key.indexOf(":")>=0){
+			return Promise.reject("Illegal identifier : in key",key);
+		}
+		if(this.savingKeyFlag.has(key)){ // under saving process
+			this.savePendingItem.set(key,value); // only keep the last data
+			return Promise.resolve(value);
+		}
+		else{ // directly save
+			return this.__save(key,value);
+		}
 	}
 
 	getItem(key){

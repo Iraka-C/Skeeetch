@@ -72,9 +72,14 @@ EVENTS.initHotKeys=function() {
 	});
 
 	$(window).on("copy",event=>{
-		const activeNode=LAYERS.active;
-		const prop=activeNode.getProperties();
-		CLIPBOARD.copy(activeNode.rawImageData,prop); // copy only this node
+		if(EVENTS.key.space){ // copy all
+			CLIPBOARD.copy(LAYERS.layerTree.rawImageData);
+		}
+		else{ // copy active layer
+			const activeNode=LAYERS.active;
+			const prop=activeNode.getProperties();
+			CLIPBOARD.copy(activeNode.rawImageData,prop); // copy only this node
+		}
 	});
 	$(window).on("cut",event=>{ // Ctrl+X or Shift+Delete
 		const activeNode=LAYERS.active;
