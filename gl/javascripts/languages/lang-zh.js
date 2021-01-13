@@ -271,6 +271,7 @@ LANG_ZH={
 	"welcome-hint-1":"初次使用Skeeetch？",
 	"welcome-hint-2":"> 点这里浏览一份使用简介！",
 	"welcome-link":"https://github.com/Iraka-C/Skeeetch/tree/master/gl/docs/zh",
+	"welcome-hint-3":"可随时点击 设置-关于Skeeetch-帮助主页 以访问此使用简介",
 
 	"version-report":"版本更新",
 	"version-hint-1":"已更新至 Ver.",
@@ -288,13 +289,12 @@ LANG_ZH={
 	"danger-zone-enter":"请在下方输入（大写）",
 
 	// Info
+	"skeeetch-page":"帮助主页",
+	"skeeetch-page-url":"https://github.com/Iraka-C/Skeeetch/blob/master/gl/docs/zh/readme.md",
 	"About Skeeetch":"关于Skeeetch",
 	"about-skeeetch":`
 		Skeeetch是<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C'>Iraka-C</a>的个人作品，基于<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>发布。<br>
 		在GitHub上Star这个项目，或者在Issue中提出一些反馈和建议吧！
-		<br><hr>
-		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch" data-size="large" data-show-count="true" aria-label="Star Iraka-C/Skeeetch on GitHub">Star</a>
-		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch/issues" data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue Iraka-C/Skeeetch on GitHub">Issue</a>
 	`
 };
 LANG_ZH._id={

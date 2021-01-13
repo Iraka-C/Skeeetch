@@ -319,6 +319,10 @@ PERFORMANCE.reportWelcome=function(){
 		content: Lang("welcome-hint-2"),
 		target: Lang("welcome-link")
 	});
+	welcomeReport.items.push({
+		content: Lang("welcome-hint-3"),
+		target: null
+	});
 	PERFORMANCE.REPORTER.report(welcomeReport);
 }
 

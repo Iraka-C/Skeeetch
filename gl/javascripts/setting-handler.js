@@ -308,6 +308,9 @@ SettingHandler.initSystemSetting=function(sysParams) {
 	// ================= Skeeetch info =================
 	sys.addSectionTitle(Lang("About Skeeetch"));
 	sys.addInfo(Lang("Version"),null,() => ENV.version);
+	sys.addButton(Lang("skeeetch-page"),()=>{ // the page for help (readme)
+		window.open(Lang("skeeetch-page-url"));
+	});
 	const $infoDiv=sys.addDiv();
 	$infoDiv.css("font-size","80%");
 	$infoDiv.html(Lang("about-skeeetch"));

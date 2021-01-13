@@ -175,10 +175,13 @@ LANG_EN={
 	"danger-zone-enter":"Please input (upper case) ",
 
 	// Info
+	"skeeetch-page":"Help Toppage",
+	"skeeetch-page-url":"https://github.com/Iraka-C/Skeeetch/blob/master/gl/docs/en/readme.md",
 	"welcome-report":"Welcome!",
 	"welcome-hint-1":"Thank you for using Skeeetch.",
 	"welcome-hint-2":"> Click me to read a startup tutorial!",
 	"welcome-link":"https://github.com/Iraka-C/Skeeetch/tree/master/gl/docs/en",
+	"welcome-hint-3":"You may also visit this tutorial by Settings > About Skeeetch > Help Toppage",
 	
 	"version-report":"Version Update",
 	"version-hint-1":"Updated to Ver.",
@@ -190,9 +193,6 @@ LANG_EN={
 		<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C'>Iraka-C</a>.<br>
 		Distributed under <a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>.<br>
 		Star this project or give me some feedback!
-		<br><hr>
-		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch" data-size="large" data-show-count="true" aria-label="Star Iraka-C/Skeeetch on GitHub">Star</a>
-		<a class="github-button" href="https://github.com/Iraka-C/Skeeetch/issues" data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue Iraka-C/Skeeetch on GitHub">Issue</a>
 	`
 }
 LANG_EN._id={
