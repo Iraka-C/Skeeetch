@@ -60,37 +60,18 @@ class MyForage{
 				}
 
 				objectSet.add(value);
-				if(value instanceof Int8Array||value instanceof Uint8Array||value instanceof Uint8ClampedArray){
-					bytes+=value.length;
-				}
-				else if(value instanceof Int16Array||value instanceof Uint16Array){
-					bytes+=value.length*2;
-				}
-				else if(value instanceof Int32Array||value instanceof Uint32Array||value instanceof Float32Array){
-					bytes+=value.length*4;
-				}
-				else if(value instanceof Float64Array){
-					bytes+=value.length*8;
-				}
-				else if(
-					window.BigInt64Array && value instanceof BigInt64Array || 
-					window.BigUInt64Array && value instanceof BigUint64Array
-				){
-					bytes+=value.length*8;
-				}
-				else if(value instanceof ArrayBuffer){
+				if(value.byteLength){ // DataView, TypedArray, or ArrayBuffer
 					bytes+=value.byteLength;
 				}
 				else if(value instanceof Blob){ // including File
 					bytes+=value.size;
 				}
-				else if(value instanceof RegExp){
+				else if(value instanceof RegExp){ // worst size
 					bytes+=value.toString().length*2;
 				}
 				else if(value instanceof Map){
 					for(const [k,v] in value){
-						stack.push(k);
-						stack.push(v);
+						stack.push(k,v);
 					}
 				}
 				else if(value instanceof Set){
@@ -212,13 +193,14 @@ class MyForage{
 		}).then(()=>{
 			this.savingKeyFlag.delete(key);
 			if(this.savePendingItem.has(key)){ // there's a pending item
-				const newVal=this.savePendingItem.get(key);
+				const newValItem=this.savePendingItem.get(key);
+				// newValItem is a {value:value, resolveFunc:func}
+				// resolveFunc is to be called after saving key-value
 				this.savePendingItem.delete(key);
-				return this.__save(key,newVal);
+				// async save the next item, and call resolveFunc
+				this.__save(key,newValItem.value).then(newValItem.resolveFunc);
 			}
-			else{
-				return value; // compatible to localForage method
-			}
+			return value; // compatible to localForage method
 		});
 	}
 	setItem(key,value){ // Dangerous: not thread-safe!
@@ -226,8 +208,17 @@ class MyForage{
 			return Promise.reject("Illegal identifier : in key",key);
 		}
 		if(this.savingKeyFlag.has(key)){ // under saving process
-			this.savePendingItem.set(key,value); // only keep the last data
-			return Promise.resolve(value);
+			if(this.savePendingItem.has(key)){ // already pending
+				const newValItem=this.savePendingItem.get(key);
+				newValItem.resolveFunc(newValItem.value); // directly resolve
+				// assume as saved (will be overwritten anyway)
+			}
+			return new Promise(resolve=>{ // only keep the last data
+				this.savePendingItem.set(key,{
+					value: value,
+					resolveFunc: resolve
+				}); // also record the resolve function and call when saved
+			});
 		}
 		else{ // directly save
 			return this.__save(key,value);
