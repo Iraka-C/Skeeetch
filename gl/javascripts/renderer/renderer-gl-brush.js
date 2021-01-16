@@ -240,7 +240,8 @@ class GLBrushRenderer {
 
 	free() {
 		this.blendBrushtipProgram.free();
-		this.solidCircleProgram.free();
+		//this.solidCircleProgram.free();
+		this.solidCircleRenderer.free();
 		this.samplingCircleProgram.free();
 		this.colorSamplingCircleProgram.free();
 		this.mainRenderer.deleteImageData(this.brushtipImageData);

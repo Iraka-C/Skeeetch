@@ -18,35 +18,41 @@ class GLRoundPencilRenderer{
 		// slice number of a circle divided. Does not quite related with rendering speed.
 		// 64 should be enough for an approximate circle
 		const circleSliceN=64;
+		const cN3=circleSliceN*3;
+
+		// pos array is the vertices on a r=1 circle centered at (0,0)
+		const vertexPosArray=new Float32Array(cN3*2);
+		const vertexRelArray=new Float32Array(cN3);
+
+		for(let i=0;i<cN3;i++){
+			const i2=i*2;
+			if(i%3){ // point on edge
+				const id=Math.floor((i+1.5)/3);
+				const angle=id*Math.PI*2/circleSliceN;
+				vertexPosArray[i2]=Math.cos(angle);
+				vertexPosArray[i2+1]=Math.sin(angle);
+				vertexRelArray[i]=0;
+			}
+			else{ // center
+				vertexPosArray[i2]=0;
+				vertexPosArray[i2+1]=0;
+				vertexRelArray[i]=1;
+			}
+		}
 
 		// add the glsl codes inside a closure
 		const vCircleShaderSource=glsl` // vertex shader for drawing a circle
-			// circle id (not used) is the order of the circle to be drawn
-			// face id is the order of the triangle in the circle
-			// vertex id is the order of the vertex in a triangle (0,1,2)
-			// OpenGL guarantees the primitive rasterization order same as VBO
-			#define DBPI 6.2831853071795864769 // 2*PI
-
-			attribute float a_id; // vertex id: faceid*3+vertexid
+			attribute vec2 a_pos; // according to vertexPosArray
+			attribute float a_rel; // according to vertexRelArray
 
 			uniform vec2 u_res_tgt; // target canvas resolution
-			uniform float u_circle_slice_N; // slice number of a circle divided
-
 			uniform vec3 u_pos_tgt; // circle position (x,y,r) in pixels
+
 			varying float v_rel; // linear opacity interpolation
 			void main(){
-				vec2 d_pos;
-				if(mod(a_id,3.0)<0.5){ // 0' vertex
-					d_pos=vec2(0.0,0.0);
-					v_rel=1.0;
-				}
-				else{ // 1',2' vertex
-					float id=floor((a_id+1.1)/3.0);
-					float u=id/u_circle_slice_N; // 0~1
-					float angle=u*DBPI;
-					d_pos=vec2(cos(angle),sin(angle))*u_pos_tgt.z;
-					v_rel=0.0;
-				}
+				v_rel=a_rel;
+
+				vec2 d_pos=a_pos*u_pos_tgt.z;
 				vec2 pos=u_pos_tgt.xy+d_pos;
 				vec2 v_clip=(pos/u_res_tgt*2.0-1.0)*vec2(1.0,-1.0);
 				gl_Position=vec4(v_clip,0.0,1.0);
@@ -76,10 +82,12 @@ class GLRoundPencilRenderer{
 		// ================ Create buffer ================
 
 		// prepare vertices id array
-		const vertexIdArray=new Float32Array(circleSliceN*3);
-		vertexIdArray.forEach((v,i) => {vertexIdArray[i]=i;});
-		program.setAttribute("a_id",vertexIdArray,1);
-		program.setUniform("u_circle_slice_N",circleSliceN);
+		program.setAttribute("a_pos",vertexPosArray,2);
+		program.setAttribute("a_rel",vertexRelArray,1);
+	}
+
+	free(){
+		this.program.free();
 	}
 
 	render(target,brush,pos,prevPos,radius,colorRGB,opacity,pressure,isOpacityLocked,softRange){

@@ -70,15 +70,21 @@ class GLProgram {
 		const gl=this.gl;
 		const program=this.program;
 		if(!this.attributeMap[attribName]) { // attribute buffer not created yet
-			this.attributeMap[attribName]={buffer: gl.createBuffer()};
+			this.attributeMap[attribName]={
+				buffer: gl.createBuffer()
+			};
 		}
+		// else: use it directly
 
 		const attr=this.attributeMap[attribName];
 		attr.size=size; // set size
 		attr.turn=data.length/size; // how many turns to be executed in vertex shader
 		attr.location=gl.getAttribLocation(program,attribName);
 		gl.bindBuffer(gl.ARRAY_BUFFER,attr.buffer);
-		gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER,
+			data instanceof Float32Array?data:new Float32Array(data),
+			gl.STATIC_DRAW
+		);
 	}
 
 	/**

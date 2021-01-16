@@ -48,7 +48,8 @@ class MyForage{
 			else if(typeof(value)==="number"){
 				bytes+=8;
 			}
-			else if(typeof(value)==="object"&&!objectSet.has(value)){
+			else if(value&&typeof(value)==="object"&&!objectSet.has(value)){
+				// NOTE: typeof(null) is also "object"!
 				if(value instanceof Element||value instanceof HTMLElement){
 					continue; // do not count HTML element
 				}
