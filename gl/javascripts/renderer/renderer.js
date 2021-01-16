@@ -138,7 +138,6 @@ class BasicRenderer {
 			let na=(1-Math.pow(1-targetOpa,this._invQuality))*tHardness;
 
 			// calculate related params of a circle (brushtip)
-			const nsBezier=bc.getDir(t); // Calculate speed
 			if(brush.isScatter>0){ // scatter on size/opacity/position
 				// scatter radius
 				let dR=brush.scatRad*nr*Math.random(); // use unscattered nr
@@ -156,6 +155,7 @@ class BasicRenderer {
 				nr=nr*nrK;
 			}
 
+			const nsBezier=bc.getDir(t); // Calculate speed
 			const data=[nx,ny,nr,nd,null,na.clamp(0,1),nsBezier.x,nsBezier.y];
 			kPoints.push(data); // add one key point
 

@@ -248,9 +248,6 @@ class GLRenderer extends BasicRenderer {
 	 * [wL,wH,hL,hH] is the range of plates to be rendered, in paper coordinate *Note: may exceed canvas size range!
 	 * kPoints[v] = [x,y,r,a], (x,y):paper coord, *a in 0~1
 	 */
-	// @TODO: render circles according to the actual size & position of the texture
-	// @TODO: dynamically grow texture size to save graphics memory!
-	// Especially in large files
 	renderPoints(wL,wH,hL,hH,kPoints) {
 		const imgData=this.targetImageData;
 
@@ -258,29 +255,43 @@ class GLRenderer extends BasicRenderer {
 		let rgb=[this.rgb[0]/255,this.rgb[1]/255,this.rgb[2]/255]; // color to use: unmultiplied
 
 		// a soft edge with fixed pixel width (at most 2) for anti-aliasing
-		const fixedSoftEdge=this.antiAlias? Math.min((this.brush.size+1)/4,2):0;
+		const fixedSoftEdge=Math.min((this.brush.size+1)/4,2);
 		this.vramManager.verify(imgData);
+
+		const pointsInfo=[];
 		for(let k=0;k<kPoints.length;k++) { // each circle in sequence
 			const p=kPoints[k];
 			const lastP=this.lastCircleFromPrevStroke;
 			const prevP=k? kPoints[k-1]:lastP? lastP:p; // p as fallback
 			const plateOpa=p[5]; // plate opacity
-			const softRange=this.softness+fixedSoftEdge/p[2];
 			let rad=p[2];
-			if(this.antiAlias&&rad<2) {
+			/*if(this.antiAlias&&rad<2) {
 				rad=0.6+rad*0.7; // thickness compensation for thin stroke
-			}
-
-			const pressure=p[3]; // pressure considered sensitivity
+			}*/
+			//const softRange=this.softness+fixedSoftEdge/rad;
 
 			// set circle size and radius, adjust position according to the imgData, radius+0.1 for gl clipping
-			this.brushRenderer.render(
+			/*this.brushRenderer.render(
 				imgData,this.brush,
 				[p[0],p[1]],[prevP[0],prevP[1]],rad,
 				rgb,plateOpa,pressure,
 				this.isOpacityLocked,softRange
-			);
+			);*/
+			pointsInfo.push({
+				pos: [p[0],p[1]],
+				prevPos: [prevP[0],prevP[1]],
+				vel: [p[6],p[7]],
+				prevVel: [prevP[6],prevP[7]],
+				size: rad,
+				color: rgb,
+				pointOpacity: plateOpa,
+				pressure: p[3], // pressure considered sensitivity
+				softRange: this.softness,
+				aaRange: fixedSoftEdge/rad // anti-aliasing extra soft range
+			});
 		}
+
+		this.brushRenderer.renderPoints(imgData,this.brush,pointsInfo,this.isOpacityLocked);
 
 		// Adjusting valid area is done by this.brushRenderer.render
 

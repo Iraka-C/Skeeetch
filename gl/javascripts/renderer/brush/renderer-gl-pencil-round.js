@@ -2,18 +2,7 @@
  * Renderer for a round, solid brush with color, opacity, and edge softness
  */
 
-class GLRoundPencilRenderer{
-	/**
-	 * For rendering a round brushtip of a pencil
-	 */
-	constructor(brushRenderer){
-		this.brushRenderer=brushRenderer;
-		this.gl=brushRenderer.gl;
-		// do not need brushtip image data
-
-		this.initProgram();
-	}
-
+class GLRoundPencilRenderer extends GLGeneralBrushRenderer{
 	initProgram(){
 		// slice number of a circle divided. Does not quite related with rendering speed.
 		// 64 should be enough for an approximate circle
@@ -84,10 +73,6 @@ class GLRoundPencilRenderer{
 		// prepare vertices id array
 		program.setAttribute("a_pos",vertexPosArray,2);
 		program.setAttribute("a_rel",vertexRelArray,1);
-	}
-
-	free(){
-		this.program.free();
 	}
 
 	render(target,brush,pos,prevPos,radius,colorRGB,opacity,pressure,isOpacityLocked,softRange){
