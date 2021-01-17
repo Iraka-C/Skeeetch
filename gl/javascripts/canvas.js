@@ -317,14 +317,14 @@ CANVAS.refreshScreen=function() {
 	COMPOSITOR.recompositeLayers(null,CANVAS.dirtyArea); // recomposite from root.
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
 
-	const endT=window.performance.now();
-	console.log("Refresh Time = "+Math.round(endT-CANVAS.startT)+" ms");
-	CANVAS.startT=endT;
+	// const endT=window.performance.now();
+	// console.log("Refresh Time = "+Math.round(endT-CANVAS.startT)+" ms");
+	// CANVAS.startT=endT;
 
 	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
 	CANVAS.lastAARad=antiAliasRadius;
 }
-CANVAS.startT=0;
+// CANVAS.startT=0;
 CANVAS.lastAARad=0; // last AA radius when refreshed
 
 /**
