@@ -243,7 +243,7 @@ CURSOR.updateXYR=function() {
 
 CURSOR.updateColor=function(rgb) {
 	const colorString=PaletteSelector.getColorString(rgb);
-	const outerString=Math.max(...rgb)>150? "#00000033":"#ffffff33"; // @TODO: use luminosity instead?
+	const outerString=Math.max(...rgb)>150? "#00000022":"#ffffff22";
 	$("#brush-cursor-round").attr("stroke",colorString);
 	$("#brush-cursor-center").attr("fill",colorString);
 
