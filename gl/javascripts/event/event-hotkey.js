@@ -74,6 +74,7 @@ EVENTS.initHotKeys=function() {
 	$(window).on("copy",event=>{
 		if(EVENTS.key.space){ // copy all
 			CLIPBOARD.copy(LAYERS.layerTree.rawImageData);
+			// TODO: no width/height info
 		}
 		else{ // copy active layer
 			const activeNode=LAYERS.active;
