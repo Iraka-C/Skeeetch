@@ -41,6 +41,7 @@ This chapter lists the keyboard shortcuts (hotkeys) available in Skeeetch.
 | Shift+(Any number or letter key) | Bind a shortcut key to the current brush                     |
 | Shift+/                          | Unbind the shortcut key of the current brush                 |
 | Ctrl+C                           | Copy contents of the active layer or group to the clipboard  |
+| Ctrl+Space+C                     | Copy contents of the whole paper to the clipboard            |
 | Ctrl+V                           | Paste contents from the clipboard                            |
 | Ctrl+Space+V                     | Paste from the clipboard and replace contents in the active layer |
 | Ctrl+X                           | Cut contents of the active layer to the clipboard            |

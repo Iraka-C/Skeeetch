@@ -5,7 +5,7 @@
 "use strict";
 
 const ENV={}; // Environment
-ENV.version="20210106";
+ENV.version="20210117";
 
 //===================== Settings =====================
 

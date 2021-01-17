@@ -110,5 +110,5 @@ If you try to copy and paste a group with Skeeetch, only the combined result of 
 
 If you try to cut a locked layer, the action will be the same as copy.
 
-Meanwhile, Skeeetch supports `Ctrl+Space+V` shortcut to **paste and replace** the contents of the current layer (not group).
+Meanwhile, Skeeetch supports `Ctrl+Space+C` shortcut to copy the whole image on the paper into the clipboard, and `Ctrl+Space+V` shortcut to **paste and replace** the contents of the current layer (not group).
 
