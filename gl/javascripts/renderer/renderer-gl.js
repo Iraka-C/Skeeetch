@@ -265,18 +265,12 @@ class GLRenderer extends BasicRenderer {
 			const prevP=k? kPoints[k-1]:lastP? lastP:p; // p as fallback
 			const plateOpa=p[5]; // plate opacity
 			let rad=p[2];
-			/*if(this.antiAlias&&rad<2) {
+			if(this.antiAlias&&rad<2) {
 				rad=0.6+rad*0.7; // thickness compensation for thin stroke
-			}*/
+			}
 			//const softRange=this.softness+fixedSoftEdge/rad;
 
-			// set circle size and radius, adjust position according to the imgData, radius+0.1 for gl clipping
-			/*this.brushRenderer.render(
-				imgData,this.brush,
-				[p[0],p[1]],[prevP[0],prevP[1]],rad,
-				rgb,plateOpa,pressure,
-				this.isOpacityLocked,softRange
-			);*/
+			// set circle size and radius, adjust position according to the imgData
 			pointsInfo.push({
 				pos: [p[0],p[1]],
 				prevPos: [prevP[0],prevP[1]],
