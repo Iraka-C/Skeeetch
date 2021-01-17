@@ -226,7 +226,7 @@ class MyForage{
 		}
 	}
 
-	getItem(key){
+	getItem(key){ // can be safely called in worker: IDB will do all the queuing jobs
 		const itemName=this.storePrefix+key;
 		return this.storage.getItem(itemName);
 	}

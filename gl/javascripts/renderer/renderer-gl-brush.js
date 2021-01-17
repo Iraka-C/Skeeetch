@@ -9,7 +9,7 @@ class GLBrushRenderer {
 		// Init Programs
 
 		this._initBlendBrushtipProgram();
-		this.solidCircleRenderer=new GLRoundPencilRenderer(this);
+		this.solidCircleRenderer=new GLRoundPencilBlockRenderer(this); // use block renderer
 		this.samplingCircleRenderer=new GLRoundSmudgeRenderer(this);
 		this.colorSamplingCircleRenderer=new GLRoundPaintbrushRenderer(this);
 
@@ -104,27 +104,9 @@ class GLBrushRenderer {
 	 * @param {Boolean} isOpacityLocked 
 	 * @param {Number} softRange 
 	 */
-	render(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange) {
-		if(brush.brushtip){ // customized brushtip
-			// blabla...
-		}
-		else if(brush.blendMode==2){ // smudge
-			this.samplingCircleRenderer.render(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange);
-		}
-		else if(brush.blendMode==1){ // paint
-			this.colorSamplingCircleRenderer.render(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange);
-		}
-		else if(brush.blendMode<=0){ // erase, normal
-			this.solidCircleRenderer.render(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange);
-		}
-
-		target.validArea={ // round values
-			left: Math.floor(target.validArea.left),
-			top: Math.floor(target.validArea.top),
-			width: Math.ceil(target.validArea.width),
-			height: Math.ceil(target.validArea.height)
-		};
-	}
+	/*render(target,brush,pos,prevPos,radius,colorRGB,plateOpa,pressure,isOpacityLocked,softRange) {
+		// move render single circles to each brush renderer
+	}*/
 
 	/**
 	 * 
@@ -142,15 +124,26 @@ class GLBrushRenderer {
 	 * @param {Boolean} isOpacityLocked 
 	 */
 	renderPoints(target,brush,pointsInfo,isOpacityLocked){
-		for(const p of pointsInfo){
-			this.render(
-				target,brush,
-				p.pos,p.prevPos,p.size,
-				p.color,p.pointOpacity,p.pressure,
-				isOpacityLocked,
-				p.softRange+p.aaRange
-			);
+
+		if(brush.brushtip){ // customized brushtip
+			// blabla...
 		}
+		else if(brush.blendMode==2){ // smudge
+			this.samplingCircleRenderer.renderPoints(target,brush,pointsInfo,isOpacityLocked);
+		}
+		else if(brush.blendMode==1){ // paint
+			this.colorSamplingCircleRenderer.renderPoints(target,brush,pointsInfo,isOpacityLocked);
+		}
+		else if(brush.blendMode<=0){ // erase, normal
+			this.solidCircleRenderer.renderPoints(target,brush,pointsInfo,isOpacityLocked);
+		}
+
+		target.validArea={ // round values
+			left: Math.floor(target.validArea.left),
+			top: Math.floor(target.validArea.top),
+			width: Math.ceil(target.validArea.width),
+			height: Math.ceil(target.validArea.height)
+		};
 	}
 	
 	

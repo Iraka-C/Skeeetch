@@ -313,14 +313,18 @@ CANVAS.onRefresh=function() {
  */
 CANVAS.refreshScreen=function() {
 	if(!LAYERS.layerTree)return; // not valid layerTree
-	//const startT=window.performance.now();
 	const antiAliasRadius=ENV.getAARadius(); // calculate anti-alias filter radius
 	COMPOSITOR.recompositeLayers(null,CANVAS.dirtyArea); // recomposite from root.
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
-	//LOGGING&&console.log("Refresh Time = "+Math.round(window.performance.now()-startT)+" ms");
+
+	const endT=window.performance.now();
+	console.log("Refresh Time = "+Math.round(endT-CANVAS.startT)+" ms");
+	CANVAS.startT=endT;
+
 	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
 	CANVAS.lastAARad=antiAliasRadius;
 }
+CANVAS.startT=0;
 CANVAS.lastAARad=0; // last AA radius when refreshed
 
 /**
