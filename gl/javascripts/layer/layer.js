@@ -336,6 +336,7 @@ LAYERS.initLayerPanelButtons=function() {
 			newActive: layer.id
 		});
 		LAYERS.setActive(layer);
+		LAYERS.scrollTo(layer,true);
 		STORAGE.FILES.saveContentChanges(layer);
 		// No need to refresh canvas: a transparent layer
 	});
@@ -358,6 +359,7 @@ LAYERS.initLayerPanelButtons=function() {
 			newActive: group.id
 		});
 		LAYERS.setActive(group);
+		LAYERS.scrollTo(group,true);
 	});
 	EventDistributer.footbarHint($("#new-group-button"),() => Lang("Add a new layer group"));
 
@@ -382,6 +384,7 @@ LAYERS.initLayerPanelButtons=function() {
 				newActive: LAYERS.active.id
 			});
 		}
+		LAYERS.scrollTo(LAYERS.active,true);
 	});
 	EventDistributer.footbarHint($("#delete-button"),() => Lang("Delete current layer / group"));
 
@@ -403,6 +406,7 @@ LAYERS.initLayerPanelButtons=function() {
 		}
 		if(LAYERS.active instanceof LayerGroupNode) { // group: merge content
 			LAYERS.replaceGroupWithLayer(LAYERS.active);
+			LAYERS.scrollTo(LAYERS.active,true);
 		}
 		else { // canvas: clear image data
 			LAYERS.clearCurrentLayer();
@@ -420,6 +424,7 @@ LAYERS.initLayerPanelButtons=function() {
 	// Make a copy of the current layer/group button
 	EventDistributer.setClick($("#copy-button"),event => {
 		LAYERS.copyLayers();
+		LAYERS.scrollTo(LAYERS.active,true);
 	});
 	EventDistributer.footbarHint($("#copy-button"),() => Lang("Make a copy of the current layer / group"));
 

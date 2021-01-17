@@ -1,7 +1,6 @@
 "use strict";
 
 LAYERS.initScrollbar=function() {
-	// @TODO: scroll to active layer when add/delete
 	/**
 	 * When dragging in the layer list, it does not automatically scroll
 	 * Add two divs that controls scrolling up/down
