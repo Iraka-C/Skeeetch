@@ -192,7 +192,7 @@ LANG_EN={
 		This web app is designed and programmed by
 		<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C'>Iraka-C</a>.<br>
 		Distributed under <a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>.<br>
-		Star this project or give me some feedback!
+		<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/stargazers'>Star</a> this project or give me some feedback <a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/issues'>issues</a>!
 	`
 }
 LANG_EN._id={

@@ -21,10 +21,12 @@ COMPOSITOR.onUpdate=function(){
 		//throw new Error("Try to construct cache structure while there are invalid image data.");
 	}
 	/**
-	 * @TODO: update cache structure
+	 * @TODO- update cache structure
 	 * 1. determine the new cache structure
 	 * 2. determine which to freeze or restore
 	 * 3. composite while freezing/restoring
+	 * 
+	 * Now we have VRAMManager, so that do not need manual caching.
 	 */
 	// Presently, use the same function as CANVAS.refreshScreen
 	CANVAS.requestRefresh();
@@ -39,7 +41,7 @@ COMPOSITOR.onUpdate=function(){
  */
 COMPOSITOR.compileLayerTree=function(){
 	/**
-	 * @TODO:
+	 * @TODO-
 	 * Do this later.
 	 * Now most OS is equipped with automatic GPUMem <=> RAM <=> VirtualMem transfer.
 	 * 
@@ -57,7 +59,7 @@ COMPOSITOR.compileLayerTree=function(){
  * This is time consuming.
  * 
  * @param node a ContentNode to be recomposited
- * @TODO: implement dirty area recomposition
+ * @param dirtyArea the area that requires recomposition
  */
 COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 	node=node||LAYERS.layerTree; // init: root
@@ -142,16 +144,6 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 
 	}
 	node.isRawImageDataValid=true;
-
-	// Discard mask layer logic
-	/*if(!node.isMaskedImageDataValid) { // masked data needs recomposition
-		if(node.maskImageData) { // there is a mask in this layer
-			// @TODO: blend raw & mask ==> masked
-		}
-		// else: node.maskedImageData==node.rawImageData;
-		// do nothing
-	}
-	node.isMaskedImageDataValid=true;*/
 
 	if(!node.isImageDataValid) { // image data needs recomposition (with clip masks)
 		// @TODO: change condition to imagedata equal

@@ -40,7 +40,7 @@ ENV.displaySettings={ // These settings will be saved in localStorage
 	uiTheme: "light", // UI is the "light"/"dark" theme
 	uiFont: "monospace", // font used in all UI
 	isAutoSave: true, // Auto save files when modified in browser
-	maxFps: Infinity, // 12, 30, 60, Infinity
+	maxFps: 60, // 12, 30, 60, Infinity
 	maxVRAM: 4*1024*1024*1024 // 4GB VRAM init
 };
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100

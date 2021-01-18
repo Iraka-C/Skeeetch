@@ -294,7 +294,7 @@ LANG_ZH={
 	"About Skeeetch":"关于Skeeetch",
 	"about-skeeetch":`
 		Skeeetch是<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C'>Iraka-C</a>的个人作品，基于<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/blob/master/LICENSE.md'>Apache License 2.0</a>发布。<br>
-		在GitHub上Star这个项目，或者在Issue中提出一些反馈和建议吧！
+		在GitHub上<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/stargazers'>Star</a>这个项目，或者在<a target='_blank' rel='noopener noreferrer' href='https://github.com/Iraka-C/Skeeetch/issues'>Issue</a>中提出一些反馈和建议吧！
 	`
 };
 LANG_ZH._id={

@@ -5,8 +5,8 @@
 class GLRoundPencilBlockRenderer extends GLGeneralBrushRenderer{
 	initProgram(){
 		// slice number of a circle divided. Does not quite related with rendering speed.
-		// 64 should be enough for an approximate circle
-		const circleSliceN=64;
+		// 128 should be enough for an approximate circle with max radius 500
+		const circleSliceN=128;
 		const cN3=circleSliceN*3;
 
 		// pos array is the vertices on a r=1 circle centered at (0,0)
@@ -48,20 +48,17 @@ class GLRoundPencilBlockRenderer extends GLGeneralBrushRenderer{
 				v_color=a_color;
 				v_softness=a_softness;
 
-				vec2 pos=a_pos;
-				vec2 v_clip=(pos/u_res_tgt*2.0-1.0)*vec2(1.0,-1.0);
+				vec2 v_clip=(a_pos/u_res_tgt*2.0-1.0)*vec2(1.0,-1.0);
 				gl_Position=vec4(v_clip,0.0,1.0);
 			}
 		`;
 
 		const fCircleShaderSource=glsl`
 			precision mediump float;
-			//uniform vec4 u_color; // rgba
 			varying float v_rel; // distance to circle center
-			varying vec4 v_color; // pass color
+			varying vec4 v_color; // pass color, rgba
 			varying float v_softness; // circle edge softness
 			void main(){
-				//float opa=smoothstep(0.0,v_softness,v_rel); // sharper than following
 				if(v_rel>=v_softness){
 					gl_FragColor=v_color;
 				}
@@ -168,9 +165,10 @@ class GLRoundPencilBlockRenderer extends GLGeneralBrushRenderer{
 
 			const x=p.pos[0]-L;
 			const y=p.pos[1]-T;
+			const bias=i*M;
 
 			for(let j=0;j<M;j++){ // for each vertex (triangle*3)
-				const b=i*M+j;
+				const b=bias+j;
 				vPosArr[b*2]=this.vertexPosArray[j*2]*p.size+x;
 				vPosArr[b*2+1]=this.vertexPosArray[j*2+1]*p.size+y;
 				vRelArr[b]=this.vertexRelArray[j];
