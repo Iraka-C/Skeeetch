@@ -279,14 +279,15 @@ SettingHandler.initSystemSetting=function(sysParams) {
 
 	// fps limiter. It it impossible to measure rendering time in WebGL1.0 due to safety reasons
 	// see https://www.vusec.net/projects/glitch/
-	sys.addSwitch(Lang("sys-max-fps"),[Lang("sys-unlimited"),"60","30","12"],Lang("fps"),val => {
-		ENV.displaySettings.maxFps=[Infinity,60,30,12][val];
+	sys.addSwitch(Lang("sys-max-fps"),[Lang("sys-fps-auto"),Lang("sys-fps-unlimited"),"60","30","12"],Lang("fps"),val => {
+		ENV.displaySettings.maxFPS=[0,Infinity,60,30,12][val];
 	},() => {
-		const fps=ENV.displaySettings.maxFps;
-		if(fps==12)return 3;
-		if(fps==30)return 2;
-		if(fps==60)return 1;
-		return 0;
+		const fps=ENV.displaySettings.maxFPS;
+		if(fps==0)return 0;
+		if(fps==12)return 4;
+		if(fps==30)return 3;
+		if(fps==60)return 2;
+		return 1;
 	});
 
 	// ======================== Debugging Settings ===========================

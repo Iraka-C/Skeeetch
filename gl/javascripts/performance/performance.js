@@ -13,8 +13,7 @@ const PERFORMANCE={
 	},
 	idleTaskManager: null,
 	strokeFpsCounter: null,
-	animationFpsCounter: null,
-	isAnimLowFPSHint: false // is there already a hint on low animation fps shown
+	animationFpsCounter: null
 };
 
 class FPSCounter{
@@ -36,16 +35,28 @@ class FPSCounter{
 			this.intvPt=0;
 		}
 
+		let isLowInsert=false;
 		for(let i=0;i<this.lowList.length;i++){
 			if(this.fps<this.lowList[i]){ // to insert
 				this.lowList.splice(i,0,this.fps);
-				if(i>=8){ // above median
-					this.lowList.shift(); // discard a lowest value
-				}
-				else{ // insert
+				if(i<5){ // insert
 					this.lowList.pop(); // discard a highest value
 				}
+				else{ // above median
+					this.lowList.shift(); // discard a lowest value
+				}
+				isLowInsert=true;
 				break;
+			}
+		}
+		if(isLowInsert){ // new low fps value acquired
+			this.noLowInsertCount=0;
+		}
+		else{
+			this.noLowInsertCount++;
+			if(this.noLowInsertCount>10){ // one round
+				this.lowList.shift();
+				this.lowList.push(this.fps); // add the latest value
 			}
 		}
 	}
@@ -56,12 +67,13 @@ class FPSCounter{
 			intvList: new Array(N).fill(16), // init 16ms
 			intvSum: 16*N, // sum of intervals
 			intvPt: 0, // now head item in intvList
-			lowList: new Array(N).fill(60) // init 60fps
+			lowList: new Array(N).fill(60), // init 60fps
+			noLowInsertCount: 0 // how many times no low fps inserted
 		});
-		PERFORMANCE.isAnimLowFPSHint=false;
+		this.isAnimLowFPSHint=false;
 	}
 	getLowFPS(){
-		return this.lowList[8]; // median
+		return this.lowList[5]; // median
 	}
 }
 

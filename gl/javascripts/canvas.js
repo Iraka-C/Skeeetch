@@ -271,24 +271,25 @@ CANVAS.requestRefresh=function(targetArea) {
 	}
 	CANVAS.isRefreshRequested=true;
 
-	//const expectedFps=ENV.displaySettings.maxFps;
-	let expectedFps=PERFORMANCE.strokeFpsCounter?
-		PERFORMANCE.strokeFpsCounter.fps:ENV.displaySettings.maxFps;
-	if(expectedFps>60)expectedFps=Infinity; // no limit
-	if(expectedFps<12)expectedFps=12;
-
 	const reqFunc=()=>{
 		CANVAS.onRefresh(); // call refresh callback
 		CANVAS.isRefreshRequested=false;
 	};
 
-	if(isFinite(expectedFps)){ // refresh canvas at fixed interval
-		setTimeout(reqFunc,Math.max(1000/expectedFps-4,0)); // subtract setTimeout initial delay
+	let expectedFps;
+	if(!ENV.displaySettings.maxFPS){ // 0: auto
+		expectedFps=PERFORMANCE.strokeFpsCounter?
+			PERFORMANCE.strokeFpsCounter.fps:60; // 60 as init
+		if(expectedFps<12)expectedFps=12;
 	}
-	else{ // refresh canvas at screen refresh rate
+	else if(isFinite(ENV.displaySettings.maxFPS)){
+		expectedFps=ENV.displaySettings.maxFPS;
+	}
+	else{ // maximum
 		requestAnimationFrame(reqFunc);
+		return;
 	}
-
+	setTimeout(reqFunc,Math.max(1000/expectedFps-4,0)); // subtract setTimeout initial delay
 }
 
 /**
@@ -318,18 +319,24 @@ CANVAS.onRefresh=function() {
  */
 CANVAS.refreshScreen=function() {
 	if(!LAYERS.layerTree)return; // not valid layerTree
+	const startT=window.performance.now(); // start to measure
+
 	const antiAliasRadius=ENV.getAARadius(); // calculate anti-alias filter radius
 	COMPOSITOR.recompositeLayers(null,CANVAS.dirtyArea); // recomposite from root.
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
 
-	// const endT=window.performance.now();
-	// console.log("Refresh Time = "+Math.round(endT-CANVAS.startT)+" ms");
-	// CANVAS.startT=endT;
+	requestAnimationFrame(()=>{ // end measure
+		const endT=window.performance.now();
+		let dT=endT-startT;
+		if(dT<4)return; // do not report, as this may not be an interval between 2 busy draw calls
+		dT=dT.clamp(4,90); // at lease 12 fps, at most 240 fps
+		PERFORMANCE.strokeFpsCounter.submit(dT);
+		//console.log(PERFORMANCE.strokeFpsCounter.fps);
+	});
 
 	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
 	CANVAS.lastAARad=antiAliasRadius;
 }
-// CANVAS.startT=0;
 CANVAS.lastAARad=0; // last AA radius when refreshed
 
 /**

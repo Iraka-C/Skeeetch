@@ -96,18 +96,15 @@ EVENTS.init=function() {
 	let cntAfterUp=0; // Hysteresis of pointer up
 	let isStrokeEnded=true;
 	let forceTouchPressure=NaN; // force touch pressure for touch pad
-	let lastMoveTimestamp=-1;
 	function endStroke(){ // end a down-move-up sequence
 		EVENTS.isCursorInHysteresis=false; // cancel hysteresis count
 		forceTouchPressure=NaN;
 		isStrokeEnded=true;
 		cntAfterUp=0;
-		lastMoveTimestamp=-1;
 		CANVAS.strokeEnd();
 		eachMenuPanelFunc($el => $el.css("pointer-events","all")); // after stroke, enable menus
 	}
 
-	let lastPointerPos=[0,0];
 	const pointerMoveHandler=event=>{
 		const oE=event.originalEvent;
 		if(!event.buttons&&CURSOR.isDown){ // move button record show that mouse is up
@@ -134,21 +131,6 @@ EVENTS.init=function() {
 		CURSOR.setIsShown(true); // pen->mouse switching
 		CURSOR.updateAction(event); // still registering right button: change to movecursor?
 		CURSOR.moveCursor(oE); // may be stroke or pan
-		if(CURSOR.isDown){
-			if(lastMoveTimestamp>0){
-				const dx=oE.pageX-lastPointerPos[0];
-				const dy=oE.pageY-lastPointerPos[1];
-				if(dx*dx+dy*dy>20){ // fast moving
-					const dT=oE.timeStamp-lastMoveTimestamp;
-					if(dT<90){ // at least 12fps
-						PERFORMANCE.strokeFpsCounter.submit(dT);
-						console.log(PERFORMANCE.strokeFpsCounter.fps);
-					}
-				}
-			}
-			lastMoveTimestamp=oE.timeStamp;
-		}
-		lastPointerPos=[oE.pageX,oE.pageY];
 
 		if(EVENTS.isCursorInHysteresis){ // add a count
 			cntAfterUp++;

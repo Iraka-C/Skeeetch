@@ -43,9 +43,11 @@ LANG_EN={
 	"ui-left":"Left",
 	"ui-right":"Right",
 	"sys-lim":"Performance",
-	"sys-max-vram":"VRAM Limit",
-	"sys-unlimited":"---",
+	"sys-fps-auto":"Auto",
+	"sys-fps-unlimited":"Fast",
 	"sys-max-fps":"FPS Limit",
+
+	"sys-max-vram":"VRAM Limit",
 	"UI Theme":"Color Theme",
 	"UI Orientation":"UI Layout",
 	"ui-dark":"Dark",

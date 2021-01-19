@@ -5,7 +5,7 @@
 "use strict";
 
 const ENV={}; // Environment
-ENV.version="20210117";
+ENV.version="20210119";
 
 //===================== Settings =====================
 
@@ -40,7 +40,7 @@ ENV.displaySettings={ // These settings will be saved in localStorage
 	uiTheme: "light", // UI is the "light"/"dark" theme
 	uiFont: "monospace", // font used in all UI
 	isAutoSave: true, // Auto save files when modified in browser
-	maxFps: 60, // 12, 30, 60, Infinity
+	maxFPS: 0, // 12, 30, 60, Infinity(no limit), 0(auto)
 	maxVRAM: 4*1024*1024*1024 // 4GB VRAM init
 };
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
@@ -61,7 +61,6 @@ ENV.init=function() { // When the page is loaded
 		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
 		
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
-		ENV.displaySettings.maxFps=ENV.displaySettings.maxFps||Infinity; // default value that cannot be saved
 		ENV.setAntiAliasing(ENV.displaySettings.antiAlias); // set canvas css param
 		ENV.taskCounter.init();
 
@@ -256,9 +255,9 @@ ENV.refreshTransform=function() {
 			DRAG.updateUI();
 		}
 		const lowFPS=PERFORMANCE.animationFpsCounter.getLowFPS();
-		if(lowFPS<24&&!PERFORMANCE.isAnimLowFPSHint&&!ENV.taskCounter.isWorking()){
+		if(lowFPS<24&&!PERFORMANCE.animationFpsCounter.isAnimLowFPSHint&&!ENV.taskCounter.isWorking()){
 			// only stat when not working
-			PERFORMANCE.isAnimLowFPSHint=true;
+			PERFORMANCE.animationFpsCounter.isAnimLowFPSHint=true;
 			const animFPSReport={
 				title: Lang("anim-lowfps-report"),
 				items: [{
