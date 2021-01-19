@@ -271,7 +271,12 @@ CANVAS.requestRefresh=function(targetArea) {
 	}
 	CANVAS.isRefreshRequested=true;
 
-	const expectedFps=ENV.displaySettings.maxFps;
+	//const expectedFps=ENV.displaySettings.maxFps;
+	let expectedFps=PERFORMANCE.strokeFpsCounter?
+		PERFORMANCE.strokeFpsCounter.fps:ENV.displaySettings.maxFps;
+	if(expectedFps>60)expectedFps=Infinity; // no limit
+	if(expectedFps<12)expectedFps=12;
+
 	const reqFunc=()=>{
 		CANVAS.onRefresh(); // call refresh callback
 		CANVAS.isRefreshRequested=false;

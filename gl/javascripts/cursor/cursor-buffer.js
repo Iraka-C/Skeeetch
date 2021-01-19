@@ -70,11 +70,12 @@ CURSOR.BUFFER.updateCursor=function(point,isPointerDown,originalEvent){
 		pT.push(newP);
 
 		if(dis(newP,pC)>1){ // to interpolate new point more than 1px
+			const fps=Math.max(PERFORMANCE.strokeFpsCounter.fps*0.5,60);
 			CURSOR.BUFFER.timer=setTimeout(e=>{ // add new event after interval
 				CURSOR.BUFFER.timer=null; // already performed
 				//CURSOR.BUFFER.updateCursor(point,isPointerDown,originalEvent);
 				CURSOR.moveCursor(originalEvent);
-			},16); // mouse is normally captured at 60fps
+			},1000/fps); // fit in event with stroke fps
 		}
 	}
 	else{ // keep tracking the first several points

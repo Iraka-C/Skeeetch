@@ -70,10 +70,9 @@ class FPSCounter{
  */
 PERFORMANCE.init=function(maxVRAMSetting){
 	/**
-	 * PERFORMANCE.strokeFpsCounter is just a debugging object
-	 * At present, no method is provided to get WebGL1.0 render time
+	 * PERFORMANCE.strokeFpsCounter uses pointer event timestamp to decide stroke fps
 	 */
-	//PERFORMANCE.strokeFpsCounter=new FPSCounter(); // not useful at this moment
+	PERFORMANCE.strokeFpsCounter=new FPSCounter();
 	PERFORMANCE.animationFpsCounter=new FPSCounter();
 	PERFORMANCE.idleTaskManager=new IdleTaskManager();
 	if(maxVRAMSetting){
