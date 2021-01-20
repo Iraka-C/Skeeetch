@@ -305,6 +305,14 @@ SettingHandler.initSystemSetting=function(sysParams) {
 		}
 		CANVAS.requestRefresh(); // draw/erase the layer borders
 	}); // Off at first
+	sys.addSwitch(Lang("FPS Monitor"),[Lang("Off"),Lang("On")],null,val => {
+		if(val){ // on
+			PERFORMANCE.FPSMonitor.init();
+		}
+		else{ // off
+			PERFORMANCE.FPSMonitor.close();
+		}
+	}); // Off at first
 
 	// ================= Skeeetch info =================
 	sys.addSectionTitle(Lang("About Skeeetch"));

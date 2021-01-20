@@ -108,7 +108,7 @@ PERFORMANCE.init=function(maxVRAMSetting){
 		PERFORMANCE.maxMem.ram=PERFORMANCE.maxMem.gpu/2; // half-vram equivalent ram for history
 	}
 	PERFORMANCE.REPORTER.init();
-	PERFORMANCE.FPSMonitor.init();
+	//PERFORMANCE.FPSMonitor.init();
 	PERFORMANCE.checkWorkerSupport(); // after reporter init
 	PERFORMANCE.checkBitdepthSupport();
 }

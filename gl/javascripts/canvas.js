@@ -276,10 +276,9 @@ CANVAS.requestRefresh=function(targetArea) {
 		CANVAS.isRefreshRequested=false;
 	};
 
-	let expectedFps;
+	let expectedFps=60;
 	if(!ENV.displaySettings.maxFPS){ // 0: auto
-		expectedFps=PERFORMANCE.strokeFpsCounter?
-			PERFORMANCE.strokeFpsCounter.fps:60; // 60 as init
+		expectedFps=PERFORMANCE.strokeFpsCounter?PERFORMANCE.strokeFpsCounter.fps:60; // init 60fps
 		if(expectedFps<12)expectedFps=12;
 	}
 	else if(isFinite(ENV.displaySettings.maxFPS)){

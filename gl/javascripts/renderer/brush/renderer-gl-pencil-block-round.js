@@ -97,7 +97,7 @@ class GLRoundPencilBlockRenderer extends GLGeneralBrushRenderer{
 	}
 
 	_renderPointsBlock(target,mode,pointsInfo,isOpacityLocked){
-		if(!pointsInfo.length)return;
+		if(!pointsInfo.length)return {left:0,top:0,width:0,height:0};
 
 		const gl=this.gl;
 		const program=this.program;
@@ -124,6 +124,10 @@ class GLRoundPencilBlockRenderer extends GLGeneralBrushRenderer{
 
 		const W=R-L;
 		const H=B-T;
+
+		if(W<=0||H<=0){ // this block not in viewport
+			return {left:0,top:0,width:0,height:0};
+		}
 
 		program.setUniform("u_res_tgt",[W,H]); // minimum viewport required
 		program.setTargetTexture(target.data); // render directly to imageData target
