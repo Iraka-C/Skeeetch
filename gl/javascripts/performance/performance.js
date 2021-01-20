@@ -86,9 +86,10 @@ class FPSCounter{
  * init
  */
 PERFORMANCE.init=function(maxVRAMSetting){
-	/**
-	 * PERFORMANCE.strokeFpsCounter uses pointer event timestamp to decide stroke fps
-	 */
+	// auto fps controller for pen stroke
+	PERFORMANCE.fpsController=new FPSController();
+
+	// fps counter for UI and render
 	PERFORMANCE.strokeFpsCounter=new FPSCounter(fps=>{
 		PERFORMANCE.FPSMonitor.update(null,fps);
 	});

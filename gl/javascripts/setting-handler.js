@@ -305,12 +305,19 @@ SettingHandler.initSystemSetting=function(sysParams) {
 		}
 		CANVAS.requestRefresh(); // draw/erase the layer borders
 	}); // Off at first
-	sys.addSwitch(Lang("FPS Monitor"),[Lang("Off"),Lang("On")],null,val => {
-		if(val){ // on
+	sys.addSwitch(Lang("FPS Monitor"),[Lang("Off"),Lang("On"),Lang("EM Curve")],null,val => {
+		if(val==1){ // on
 			PERFORMANCE.FPSMonitor.init();
 		}
 		else{ // off
 			PERFORMANCE.FPSMonitor.close();
+		}
+
+		if(val==2){ // on
+			PERFORMANCE.fpsController.show();
+		}
+		else{ // off
+			PERFORMANCE.fpsController.hide();
 		}
 	}); // Off at first
 

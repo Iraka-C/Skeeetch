@@ -63,6 +63,7 @@ LANG_ZH={
 	"sys-fps-unlimited":"尽快",
 	"sys-max-fps":"刷新率",
 	"FPS Monitor":"刷新率监视器",
+	"EM Curve":"EM曲线",
 	"UI Theme":"界面主题",
 	"ui-dark":"深色",
 	"ui-light":"浅色",

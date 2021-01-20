@@ -278,18 +278,25 @@ CANVAS.requestRefresh=function(targetArea) {
 
 	let expectedFps=60;
 	if(!ENV.displaySettings.maxFPS){ // 0: auto
-		expectedFps=PERFORMANCE.strokeFpsCounter?PERFORMANCE.strokeFpsCounter.fps:60; // init 60fps
+		//expectedFps=PERFORMANCE.strokeFpsCounter?PERFORMANCE.strokeFpsCounter.fps:60; // init 60fps
+		if(PERFORMANCE.fpsController){
+			expectedFps=PERFORMANCE.fpsController.getOptimalFps();
+			expectedFps+=Math.random()*6-3; // allow searching around at a precision of 3fps
+		}
 		if(expectedFps<12)expectedFps=12;
 	}
 	else if(isFinite(ENV.displaySettings.maxFPS)){
 		expectedFps=ENV.displaySettings.maxFPS;
 	}
 	else{ // maximum
+		expectedFps=PERFORMANCE.strokeFpsCounter.fps; // measured value
 		requestAnimationFrame(reqFunc);
 		return;
 	}
 	setTimeout(reqFunc,Math.max(1000/expectedFps-4,0)); // subtract setTimeout initial delay
+	CANVAS.lastExpFps=expectedFps;
 }
+CANVAS.lastExpFps=60;
 
 /**
  * On refreshing canvas, after animation frame
@@ -328,9 +335,9 @@ CANVAS.refreshScreen=function() {
 		const endT=window.performance.now();
 		let dT=endT-startT;
 		if(dT<4)return; // do not report, as this may not be an interval between 2 busy draw calls
-		//dT=dT.clamp(4,90); // at lease 12 fps, at most 240 fps
 		PERFORMANCE.strokeFpsCounter.submit(dT);
-		//console.log(PERFORMANCE.strokeFpsCounter.fps);
+		// report the expected and measured fps
+		PERFORMANCE.fpsController.update(CANVAS.lastExpFps,PERFORMANCE.strokeFpsCounter.fps);
 	});
 
 	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};

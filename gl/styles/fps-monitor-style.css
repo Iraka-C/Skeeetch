@@ -9,3 +9,15 @@
 	top: 1em;
 	display: none;
 }
+
+#fps-curve-box{
+	pointer-events: none;
+	background-color: #00000088;
+	box-shadow: 0em 0em 1em #000000cc;
+	position: absolute;
+	width: 240px;
+	height: 240px;
+	left: 1em;
+	top: 1em;
+	display: none;
+}
