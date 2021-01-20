@@ -17,8 +17,9 @@ const PERFORMANCE={
 };
 
 class FPSCounter{
-	constructor(){
+	constructor(fpsCallback){
 		this.reset();
+		this.fpsCallback=fpsCallback;
 	}
 	submit(intv){ // interval in ms
 		intv=intv.clamp(1,1000); // 1~1000fps
@@ -59,6 +60,10 @@ class FPSCounter{
 				this.lowList.push(this.fps); // add the latest value
 			}
 		}
+
+		if(this.fpsCallback){
+			this.fpsCallback(this.fps);
+		}
 	}
 	reset(){
 		const N=10;
@@ -84,8 +89,12 @@ PERFORMANCE.init=function(maxVRAMSetting){
 	/**
 	 * PERFORMANCE.strokeFpsCounter uses pointer event timestamp to decide stroke fps
 	 */
-	PERFORMANCE.strokeFpsCounter=new FPSCounter();
-	PERFORMANCE.animationFpsCounter=new FPSCounter();
+	PERFORMANCE.strokeFpsCounter=new FPSCounter(fps=>{
+		PERFORMANCE.FPSMonitor.update(null,fps);
+	});
+	PERFORMANCE.animationFpsCounter=new FPSCounter(fps=>{
+		PERFORMANCE.FPSMonitor.update(fps,null);
+	});
 	PERFORMANCE.idleTaskManager=new IdleTaskManager();
 	if(maxVRAMSetting){
 		PERFORMANCE.maxMem.gpu=maxVRAMSetting; // saved info
@@ -99,6 +108,7 @@ PERFORMANCE.init=function(maxVRAMSetting){
 		PERFORMANCE.maxMem.ram=PERFORMANCE.maxMem.gpu/2; // half-vram equivalent ram for history
 	}
 	PERFORMANCE.REPORTER.init();
+	PERFORMANCE.FPSMonitor.init();
 	PERFORMANCE.checkWorkerSupport(); // after reporter init
 	PERFORMANCE.checkBitdepthSupport();
 }

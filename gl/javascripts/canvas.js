@@ -329,7 +329,7 @@ CANVAS.refreshScreen=function() {
 		const endT=window.performance.now();
 		let dT=endT-startT;
 		if(dT<4)return; // do not report, as this may not be an interval between 2 busy draw calls
-		dT=dT.clamp(4,90); // at lease 12 fps, at most 240 fps
+		//dT=dT.clamp(4,90); // at lease 12 fps, at most 240 fps
 		PERFORMANCE.strokeFpsCounter.submit(dT);
 		//console.log(PERFORMANCE.strokeFpsCounter.fps);
 	});

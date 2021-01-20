@@ -1,0 +1,7 @@
+#fps-monitor-box{
+	pointer-events: none;
+	background-color: #00000066;
+	position: absolute;
+	width: 200px;
+	height: 120px;
+}

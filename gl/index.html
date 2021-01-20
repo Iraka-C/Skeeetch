@@ -16,6 +16,7 @@
 	<link rel="alternate stylesheet" type="text/css" id="layer-panel-style-collapsed" href="./styles/layer-panel-style-collapsed.css" />
 	<!-- Additional stylesheet to collapse the layer panel -->
 	<link rel="stylesheet" type="text/css" href="./styles/canvas-area-style.css" />
+	<link rel="stylesheet" type="text/css" href="./styles/fps-monitor-style.css" />
 	<link rel="stylesheet" type="text/css" href="./styles/file-selector-style.css" />
 	<link rel="stylesheet" type="text/css" href="./styles/drag-selector-style.css" />
 	<link rel="stylesheet" type="text/css" href="./styles/guideline-style.css" />
@@ -26,7 +27,7 @@
 	<script src="./javascripts/library/jquery-3.4.1.min.js"></script>
 	<script type="text/javascript">
 		const glsl=s => s; // string conversion, for glsl tag linting.
-		const LOGGING=false; // logging switch & optimize unused console object
+		const LOGGING=true; // logging switch & optimize unused console object
 		$(e => ENV.init()); // Main program entrance
 	</script>
 
@@ -115,6 +116,7 @@
 	<script src="./javascripts/file/file-selector.js"></script>
 	<script src="./javascripts/performance/performance.js"></script>
 	<script src="./javascripts/performance/performance-reporter.js"></script>
+	<script src="./javascripts/performance/performance-fps-monitor.js"></script>
 
 	<!-- Drag selector -->
 	<script src="./javascripts/drag-selection/drag-selector.js"></script>
@@ -384,6 +386,27 @@
 					<div id="front-info-box">
 						DEBUG
 					</div>
+				</div>
+
+				<div id="fps-monitor-box">
+					<svg width="200px" height="120px" viewBox="0 0 200 120" id="fps-svg" xmlns="http://www.w3.org/2000/svg" version="1.1">
+						<g stroke="#ffffff66" stroke-width="1" fill="none">
+							<line x1="0" x2="200" y1="1" y2="1"/>
+							<line x1="0" x2="200" y1="30" y2="30"/>
+							<line x1="0" x2="200" y1="60" y2="60"/>
+							<line x1="0" x2="200" y1="90" y2="90"/>
+							<line x1="0" x2="200" y1="119" y2="119"/>
+						</g>
+						<g font-size="12px" fill="white">
+							<text x="0" y="12">120</text>
+							<text x="0" y="60">60</text>
+							<text x="0" y="120">0</text>
+						</g>
+						<g fill="none" stroke-width="2" stroke-linecap="round">
+							<polyline id="anim-fps-line" points="" stroke="#00ffff"/>
+							<polyline id="stroke-fps-line" points="" stroke="#ff0000"/>
+						</g>
+					</svg>
 				</div>
 			</div>
 		</div>
