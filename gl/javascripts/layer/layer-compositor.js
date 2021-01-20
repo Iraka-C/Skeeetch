@@ -138,7 +138,7 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 				targetArea: dirtyArea||null // default all area
 			}); // blend layer with backdrop
 			if(PERFORMANCE.debugger.isDrawingLayerBorder){ // For DEBUG: draw the edge of each layer
-				CANVAS.renderer.drawEdge(child.imageData,bg,dirtyArea);
+				CANVAS.renderer.drawEdge(child.imageData,bg);
 			}
 		}
 
@@ -197,4 +197,9 @@ COMPOSITOR.recompositeLayers=function(node,dirtyArea) {
 		// else: no children clipped==node.rawImageData
 	}
 	node.isImageDataValid=true;
+	
+	// update dirty area on root
+	if(node==LAYERS.layerTree&&PERFORMANCE.debugger.isDrawingLayerBorder&&dirtyArea){
+		CANVAS.renderer.drawEdge(dirtyArea,node.imageData);
+	}
 }

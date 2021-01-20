@@ -739,8 +739,18 @@ class GLRenderer extends BasicRenderer {
 
 	// debug: add wire frame
 	// draw a border wire frame of the source.color on the target
-	drawEdge(src,tgt,optArea) {
-		this.vramManager.verify(src);
+	/**
+	 * 
+	 * @param {imageData|{left,top,width,height}} src if is an imagedata, will draw area and valid area
+	 * else: only draw a thin border of color (r,g,b)=(0,1,1)
+	 * @param {imageData} tgt target to draw on
+	 */
+	drawEdge(src,tgt) {
+		if(!src.data){ // not an image data
+			this._drawThinEdge(src,tgt);
+			return;
+		}
+		this.vramManager.verify(src); // no need, only border info
 		this.vramManager.verify(tgt);
 		const WIDTH=4;
 		const VA_WIDTH=4;
@@ -787,6 +797,22 @@ class GLRenderer extends BasicRenderer {
 			gl.clear(gl.COLOR_BUFFER_BIT);
 		}
 
+		gl.disable(gl.SCISSOR_TEST);
+	}
+
+	_drawThinEdge(optArea,tgt) {
+		this.vramManager.verify(tgt);
+		const WIDTH=4;
+		const VA_WIDTH=4;
+		const gl=this.gl;
+		gl.enable(gl.SCISSOR_TEST);
+		gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuffer);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tgt.data,0);
+		gl.viewport(0,0,tgt.width,tgt.height);
+
+		const color=[0,1,1];
+		gl.clearColor(color[0],color[1],color[2],1);
+
 		if(optArea) { // Draw optional border
 			const O_WIDTH=Math.floor(WIDTH/2);
 			let L1=optArea.left-tgt.left;
@@ -804,6 +830,8 @@ class GLRenderer extends BasicRenderer {
 
 		gl.disable(gl.SCISSOR_TEST);
 	}
+
+	
 
 	/**
 	 * Get a brushtip image from src
