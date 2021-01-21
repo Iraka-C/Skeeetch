@@ -8,7 +8,7 @@ Skeeetch is available on the website without download:
 
 You can **save Skeeetch in Bookmark** to access it later.
 
-Current version: `Ver. 20210117`
+Current version: `Ver. 20210119`
 
 -----
 
