@@ -311,8 +311,10 @@ CANVAS.onRefresh=function() {
 				// cannot bind several textures at one time
 				// TODO: this is gl-specific
 				PERFORMANCE.reportLowVRAM();
+				return;
 			}
 		}
+		throw err; // continue
 	}
 }
 
@@ -329,7 +331,7 @@ CANVAS.refreshScreen=function() {
 
 	const antiAliasRadius=ENV.getAARadius(); // calculate anti-alias filter radius
 	COMPOSITOR.recompositeLayers(null,CANVAS.dirtyArea); // recomposite from root.
-	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius);
+	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius,CANVAS.dirtyArea);
 
 	requestAnimationFrame(()=>{ // end measure
 		const endT=window.performance.now();

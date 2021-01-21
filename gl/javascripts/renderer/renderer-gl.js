@@ -18,7 +18,8 @@ class GLRenderer extends BasicRenderer {
 
 		const gl=this.canvas.getContext("webgl",{
 			premultipliedAlpha: true, // premult: (r,g,b,a)->(ar,ag,ab,a)
-			antialias: true
+			antialias: true,
+			preserveDrawingBuffer: true // manual clear, nope as it waste the double-buffer?
 		}); // webgl context
 		this.canvas.addEventListener("webglcontextlost",e => {
 			// something catastrophic happened
@@ -150,7 +151,7 @@ class GLRenderer extends BasicRenderer {
 			uniform vec2 u_aa_stepv; // anti-alias pixel interval (x,y) in src validArea coordinate
 			uniform float u_aa_cnt; // how many steps to sample. compare to Gaussian, this is 2*sigma
 			varying highp vec2 v_pos;
-			varying highp vec2 v_posv;
+			varying highp vec2 v_posv; // only used for checking is pixel out of valid area
 
 			const float max_its=10.; // at least 10% zoom rate
 
@@ -297,7 +298,7 @@ class GLRenderer extends BasicRenderer {
 
 	// source is a texture
 	// the minimum scale is 0.1, at most 10px antialiasing (which is 21x merging)
-	drawCanvas(imgData,antiAliasRadius) {
+	drawCanvas(imgData,antiAliasRadius,dirtyArea) {
 		antiAliasRadius=antiAliasRadius||0; // 0px as default
 
 		const gl=this.gl;
@@ -306,13 +307,17 @@ class GLRenderer extends BasicRenderer {
 		const h=this.canvas.height;
 		// const iw=imgData.validArea.width;
 		// const ih=imgData.validArea.height;
-		const tA=GLProgram.borderIntersection(imgData.validArea,this.viewport); // area to draw
+		// area to draw
+		const tA=GLProgram.borderIntersection(dirtyArea||imgData.validArea,this.viewport);
 
 		const isToDraw=tA.width&&tA.height;
 		const tmp=this.tmpImageData;
+		tmp.left=0;
+		tmp.top=0;
 		// horizontal blur
 		const unitRect=GLProgram.getAttributeRect();
 		if(isToDraw) {
+			// clear tmp
 			this.vramManager.verify(imgData);
 			this.vramManager.verify(tmp);
 			program.setTargetTexture(tmp.data); // draw to temp data
@@ -320,39 +325,61 @@ class GLRenderer extends BasicRenderer {
 			gl.clearColor(0,0,0,0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 
-			// reset position to viewport
-			// Object.assign(tmp,this.viewport);
-			// Object.assign(tmp,this.viewport);
+			// calculate area to render
+			// vertically extend *2 AARad is for the following vertical AARad sampling
+			const tAW=GLProgram.borderIntersection({ // horizontal extend blur area
+				left: Math.floor(tA.left-antiAliasRadius),
+				top: Math.floor(tA.top-2*antiAliasRadius-1),
+				width: Math.ceil(tA.width+2*antiAliasRadius),
+				height: Math.ceil(tA.height+4*antiAliasRadius+2)
+			},this.viewport);
 
+			// suppose tmp is at viewport position (left, top are 0)
 			program.setSourceTexture("u_image",imgData.data);
-			program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tA,imgData),2);
-			program.setAttribute("a_src_posv",GLProgram.getAttributeRect(tA,imgData.validArea),2);
+			program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tAW,imgData),2);
+			program.setAttribute("a_src_posv",GLProgram.getAttributeRect(tAW,imgData.validArea),2);
 			program.setAttribute("a_dst_pos",unitRect,2);
 			program.setUniform("u_aa_step",[1/imgData.width,0]); // 1 pixel horizontal
 			program.setUniform("u_aa_stepv",[1/imgData.validArea.width,0]); // 1 pixel horizontal
 			program.setUniform("u_aa_cnt",antiAliasRadius);
-			gl.viewport(tA.left,h-tA.height-tA.top,tA.width,tA.height); // set viewport according to tA
+			gl.viewport(tAW.left,h-tAW.height-tAW.top,tAW.width,tAW.height); // set according to tAW
 			gl.blendFunc(this.gl.ONE,this.gl.ZERO); // copy
 			program.run();
 		}
 
 		// vertical blur
 		program.setTargetTexture(null); // draw to canvas
-		gl.viewport(0,0,w,h);
-		gl.clearColor(0,0,0,0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
 		if(!isToDraw) { // drawing an empty texture
+			gl.viewport(0,0,w,h);
+			gl.clearColor(0,0,0,0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
 			return;
 		}
 
-		// draw all tmp to canvas
+		// draw tAWH part to canvas
+		const tAWH=GLProgram.borderIntersection({ // hori/vert extend blur area
+			left: Math.floor(tA.left-antiAliasRadius),
+			top: Math.floor(tA.top-antiAliasRadius),
+			width: Math.ceil(tA.width+2*antiAliasRadius),
+			height: Math.ceil(tA.height+2*antiAliasRadius)
+		},this.viewport);
+
 		program.setSourceTexture("u_image",tmp.data);
-		program.setUniform("u_aa_step",[0,1/h]); // 1 pixel vertical
+		program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tAWH,tmp),2);
+		program.setAttribute("a_src_posv",GLProgram.getAttributeRect(tAWH,tmp),2);
+		program.setAttribute("a_dst_pos",unitRect,2);
+		program.setUniform("u_aa_step",[0,1/h]); // 1 pixel vertical, tmp size is (w,h)
 		program.setUniform("u_aa_stepv",[0,1/h]); // 1 pixel vertical
 		program.setUniform("u_aa_cnt",antiAliasRadius);
-		program.setAttribute("a_src_pos",unitRect,2);
-		program.setAttribute("a_src_posv",unitRect,2);
-		program.setAttribute("a_dst_pos",unitRect,2);
+		gl.viewport(tAWH.left,h-tAWH.height-tAWH.top,tAWH.width,tAWH.height); // set according to tAWH
+
+		// program.setSourceTexture("u_image",tmp.data);
+		// program.setUniform("u_aa_step",[0,1/h]); // 1 pixel vertical, tmp size is (w,h)
+		// program.setUniform("u_aa_stepv",[0,1/h]); // 1 pixel vertical
+		// program.setUniform("u_aa_cnt",antiAliasRadius);
+		// program.setAttribute("a_src_pos",unitRect,2);
+		// program.setAttribute("a_src_posv",unitRect,2);
+		// program.setAttribute("a_dst_pos",unitRect,2);
 		gl.blendFunc(this.gl.ONE,this.gl.ZERO); // copy
 		program.run();
 	}
