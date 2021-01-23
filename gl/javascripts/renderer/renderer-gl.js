@@ -19,7 +19,7 @@ class GLRenderer extends BasicRenderer {
 		const gl=this.canvas.getContext("webgl",{
 			premultipliedAlpha: true, // premult: (r,g,b,a)->(ar,ag,ab,a)
 			antialias: true,
-			//preserveDrawingBuffer: true // manual clear, nope as it waste the double-buffer?
+			preserveDrawingBuffer: true // manual clear, nope as it waste the double-buffer?
 		}); // webgl context
 		this.canvas.addEventListener("webglcontextlost",e => {
 			// something catastrophic happened
@@ -298,6 +298,7 @@ class GLRenderer extends BasicRenderer {
 
 	// source is a texture
 	// the minimum scale is 0.1, at most 10px antialiasing (which is 21x merging)
+	// TODO: buggy! if dirtyArea has 0 width or height, the whole canvas will be cleared
 	drawCanvas(imgData,antiAliasRadius,dirtyArea) {
 		antiAliasRadius=antiAliasRadius||0; // 0px as default
 
@@ -349,10 +350,13 @@ class GLRenderer extends BasicRenderer {
 
 		// vertical blur
 		program.setTargetTexture(null); // draw to canvas
-		if(!isToDraw) { // drawing an empty texture
-			gl.viewport(0,0,w,h);
-			gl.clearColor(0,0,0,0);
-			gl.clear(gl.COLOR_BUFFER_BIT);
+		if(!isToDraw) {
+			if(!dirtyArea){ // drawing an empty texture
+				gl.viewport(0,0,w,h);
+				gl.clearColor(0,0,0,0);
+				gl.clear(gl.COLOR_BUFFER_BIT);
+			}
+			// else: dirty area is 0, do not change
 			return;
 		}
 

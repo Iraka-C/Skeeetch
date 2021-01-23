@@ -328,11 +328,19 @@ CANVAS.onRefresh=function() {
  */
 CANVAS.refreshScreen=function() {
 	if(!LAYERS.layerTree)return; // not valid layerTree
+
+	const dirtyArea=CANVAS.dirtyArea;
+	if(dirtyArea){ // a dirty area specified to be updated
+		if(!dirtyArea.width||!dirtyArea.height){ // no width or height
+			return;
+		}
+	}
+
 	const startT=window.performance.now(); // start to measure
 
 	const antiAliasRadius=ENV.getAARadius(); // calculate anti-alias filter radius
-	COMPOSITOR.recompositeLayers(null,CANVAS.dirtyArea); // recomposite from root.
-	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius/*,CANVAS.dirtyArea*/);
+	COMPOSITOR.recompositeLayers(null,dirtyArea); // recomposite from root.
+	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius,dirtyArea);
 
 	requestAnimationFrame(()=>{ // end measure
 		const endT=window.performance.now();
