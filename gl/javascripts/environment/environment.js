@@ -40,7 +40,7 @@ ENV.displaySettings={ // These settings will be saved in localStorage
 	uiTheme: "light", // UI is the "light"/"dark" theme
 	uiFont: "monospace", // font used in all UI
 	isAutoSave: true, // Auto save files when modified in browser
-	maxFPS: 0, // 12, 30, 60, Infinity(no limit), 0(auto)
+	maxFPS: 0, // 12, 30, 60, 65536(no limit), 0(auto)
 	maxVRAM: 4*1024*1024*1024 // 4GB VRAM init
 };
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
@@ -61,6 +61,7 @@ ENV.init=function() { // When the page is loaded
 		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
 		
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
+		ENV.displaySettings.maxFPS=ENV.displaySettings.maxFPS||0; // init as soon as possible
 		ENV.setAntiAliasing(ENV.displaySettings.antiAlias); // set canvas css param
 		ENV.taskCounter.init();
 

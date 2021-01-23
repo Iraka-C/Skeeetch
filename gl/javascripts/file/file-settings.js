@@ -367,6 +367,10 @@ FILES.initImportDropHandler=function() {
 	});
 }
 
+/**
+ * isNewFile: if true, load as a new file in repo
+ * else, add a layer in the current file
+ */
 FILES.onFilesLoaded=function(files,isNewFile){
 	isNewFile=isNewFile||false;
 	const file=files[0]; // @TODO: open multiple files

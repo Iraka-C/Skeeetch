@@ -285,15 +285,16 @@ CANVAS.requestRefresh=function(targetArea) {
 		}
 		if(expectedFps<12)expectedFps=12;
 	}
-	else if(isFinite(ENV.displaySettings.maxFPS)){
+	else if(ENV.displaySettings.maxFPS<65535){ // limited
 		expectedFps=ENV.displaySettings.maxFPS;
 	}
 	else{ // maximum
-		expectedFps=PERFORMANCE.strokeFpsCounter.fps; // measured value
+		expectedFps=ENV.displaySettings.maxFPS; // max value
 		requestAnimationFrame(reqFunc);
 		return;
 	}
-	setTimeout(reqFunc,Math.max(1000/expectedFps-4,0)); // subtract setTimeout initial delay
+	const dT=Math.max(1000/expectedFps-4,0); // subtract setTimeout initial delay
+	setTimeout(reqFunc,dT);
 	CANVAS.lastExpFps=expectedFps;
 }
 CANVAS.lastExpFps=60;
@@ -331,7 +332,7 @@ CANVAS.refreshScreen=function() {
 
 	const antiAliasRadius=ENV.getAARadius(); // calculate anti-alias filter radius
 	COMPOSITOR.recompositeLayers(null,CANVAS.dirtyArea); // recomposite from root.
-	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius,CANVAS.dirtyArea);
+	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius/*,CANVAS.dirtyArea*/);
 
 	requestAnimationFrame(()=>{ // end measure
 		const endT=window.performance.now();

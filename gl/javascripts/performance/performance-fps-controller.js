@@ -11,7 +11,7 @@ class FPSController{
 		
 		// ideal 60Hz monitor: only accepts 60Hz or lower
 		for(let i=0;i<=60;i++){
-			fRel[i]=240;
+			fRel[i]=60;
 		}
 		for(let i=61;i<this.N;i++){
 			fRel[i]=0;

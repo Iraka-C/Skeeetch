@@ -19,7 +19,7 @@ class GLRenderer extends BasicRenderer {
 		const gl=this.canvas.getContext("webgl",{
 			premultipliedAlpha: true, // premult: (r,g,b,a)->(ar,ag,ab,a)
 			antialias: true,
-			preserveDrawingBuffer: true // manual clear, nope as it waste the double-buffer?
+			//preserveDrawingBuffer: true // manual clear, nope as it waste the double-buffer?
 		}); // webgl context
 		this.canvas.addEventListener("webglcontextlost",e => {
 			// something catastrophic happened
@@ -364,22 +364,15 @@ class GLRenderer extends BasicRenderer {
 			height: Math.ceil(tA.height+2*antiAliasRadius)
 		},this.viewport);
 
+		const srcPosRect=GLProgram.getAttributeRect(tAWH,tmp);
 		program.setSourceTexture("u_image",tmp.data);
-		program.setAttribute("a_src_pos",GLProgram.getAttributeRect(tAWH,tmp),2);
-		program.setAttribute("a_src_posv",GLProgram.getAttributeRect(tAWH,tmp),2);
+		program.setAttribute("a_src_pos",srcPosRect,2);
+		program.setAttribute("a_src_posv",srcPosRect,2);
 		program.setAttribute("a_dst_pos",unitRect,2);
 		program.setUniform("u_aa_step",[0,1/h]); // 1 pixel vertical, tmp size is (w,h)
 		program.setUniform("u_aa_stepv",[0,1/h]); // 1 pixel vertical
 		program.setUniform("u_aa_cnt",antiAliasRadius);
 		gl.viewport(tAWH.left,h-tAWH.height-tAWH.top,tAWH.width,tAWH.height); // set according to tAWH
-
-		// program.setSourceTexture("u_image",tmp.data);
-		// program.setUniform("u_aa_step",[0,1/h]); // 1 pixel vertical, tmp size is (w,h)
-		// program.setUniform("u_aa_stepv",[0,1/h]); // 1 pixel vertical
-		// program.setUniform("u_aa_cnt",antiAliasRadius);
-		// program.setAttribute("a_src_pos",unitRect,2);
-		// program.setAttribute("a_src_posv",unitRect,2);
-		// program.setAttribute("a_dst_pos",unitRect,2);
 		gl.blendFunc(this.gl.ONE,this.gl.ZERO); // copy
 		program.run();
 	}
