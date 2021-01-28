@@ -118,7 +118,7 @@ Skeeetch支持之前操作的撤销和在撤销之后的重做。在右下角的
 * [为什么Skeeetch占用的内存和显存这么多](./manual/QA.md#为什么skeeetch占用的内存和显存这么多)
 * [我的Skeeetch没有反应了/无法完整启动](./manual/QA.md#我的skeeetch没有反应了无法完整启动)
 * [Skeeetch相比Photoshop、CSP、SketchBook、SAI、Krita等绘画软件有什么优势吗](./manual/QA.md#skeeetch相比photoshopcspsketchbooksaikrita等绘画软件有什么优势吗)
-* [我可以多开Skeeetch标签页或者窗口吗](./manual/QA.md#我可以多开skeeetch标签页或者窗口吗)
+* [Skeeetch支持多开吗](./manual/QA.md#我可以多开skeeetch标签页或者窗口吗)
 * [我觉得这个破应用某个地方会出Bug，或者要是有某某功能就好了](./manual/QA.md#我觉得这个破应用某个地方会出bug或者要是有某某功能就好了)
 
 
