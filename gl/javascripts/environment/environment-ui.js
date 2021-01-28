@@ -144,3 +144,16 @@ ENV.showUIOrientationDialog=function(){
 	}]);
 	DIALOGBOX.show(dialog);
 }
+
+// ================== Other UIs ======================
+ENV.onMultipleTabs=function(){
+	$("#mask-item").html(Lang("multiple-tabs-hint"));
+	// $("#body-mask-panel").click(e=>{
+	// 	window.close();
+	// });
+}
+
+ENV.showUIs=function(){
+	$("#body-mask-panel").css("display","none");
+	$("#ui-panel").css("visibility","visible");
+}

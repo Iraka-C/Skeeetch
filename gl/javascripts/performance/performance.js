@@ -233,7 +233,12 @@ PERFORMANCE.reportUnsafeExit=function(){
 		content: Lang("unsafe-exit-hint"),
 		target: null
 	});
-	PERFORMANCE.REPORTER.report(loadReport);
+	PERFORMANCE.idleTaskManager.addTask(e=>{ // notify the user of unsafe exit
+		if(!SettingHandler.sysMenu.isExpanded()){ // open task report
+			SettingHandler.sysMenu.toggleExpand();
+			PERFORMANCE.REPORTER.report(loadReport);
+		}
+	});
 }
 
 // send a report on webgl context lost

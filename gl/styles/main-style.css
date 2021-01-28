@@ -35,6 +35,7 @@ div{ /* This will work */
 }
 
 body{
+	background-color: #ccc;
 	font-size: 100%;
 	width: 100%;
 	height: 100%;
@@ -71,6 +72,7 @@ body{
 	display: flex;
 	flex-direction: column;
 	/* invisible at first */
+	visibility: hidden;
 }
 
 #top-menu-panel{

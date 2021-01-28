@@ -298,7 +298,6 @@ class GLRenderer extends BasicRenderer {
 
 	// source is a texture
 	// the minimum scale is 0.1, at most 10px antialiasing (which is 21x merging)
-	// TODO: buggy! if dirtyArea has 0 width or height, the whole canvas will be cleared
 	drawCanvas(imgData,antiAliasRadius,dirtyArea) {
 		antiAliasRadius=antiAliasRadius||0; // 0px as default
 

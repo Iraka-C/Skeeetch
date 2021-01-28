@@ -50,14 +50,39 @@ ENV.fileID=""; // present working file ID
 
 // ========================= Functions ============================
 ENV.init=function() { // When the page is loaded
-	STORAGE.init(sysSettingParams => { // after loading all settings
-		const isLastSafe=ENV.checkSafeExit();
-
-		// Init language / browser environment
-		ENV.fileID=sysSettingParams.nowFileID; // get file ID
+	const isLastSafe=ENV.checkSafeExit();
+	let isMultipleTabs=false; // state: is there multiple tabs opened?
+	new Promise((resolve,reject)=>{
+		sysend.on("SYN",msg=>{
+			sysend.broadcast("ACK",null); // respond to SYN
+		});
+		sysend.on("ACK",msg=>{ // on receiving ACK, multiple tabs, reject
+			isMultipleTabs=true;
+			resolve(); // earlier than setTimeout
+		});
+		
+		if(!isLastSafe){ // either other tabs/pages' open or last page crashed
+			$("#mask-item").text("Verifying ...");
+			sysend.broadcast("SYN",null); // send a request asking if there is a live page
+			setTimeout(resolve,1000); // no response: last page is crashed. start init
+		}
+		else{ // last safe: directly start
+			resolve();
+		}
+		
+	})
+	.then(()=>new Promise(STORAGE.init)) // resolve with sysSettingParams
+	.then(sysSettingParams => { // after loading all settings, init language/browser environment
 		ENV.browserInfo=ENV.detectBrowser();
-
 		LANG.init(sysSettingParams); // set all doms after load?
+		if(isMultipleTabs){
+			throw new Error(); // for catch
+		}
+		ENV.showUIs(); // show each UI blocks, in env-ui.js
+		return Promise.resolve(sysSettingParams);
+	})
+	.then(sysSettingParams => { // Start init UI
+		ENV.fileID=sysSettingParams.nowFileID; // get file ID
 		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
 		
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
@@ -133,6 +158,9 @@ ENV.init=function() { // When the page is loaded
 		// check if there is a param at last
 		ENV.checkResetParams(sysSettingParams);
 		ENV.checkVersion(sysSettingParams);
+	})
+	.catch(()=>{ // Multiple tabs
+		ENV.onMultipleTabs(); // in env-ui.js
 	});
 };
 
@@ -157,11 +185,13 @@ ENV.detectBrowser=function(){
 	};
 }
 
-ENV.checkSafeExit=function(){ // return is safely exited last time
+// returns a promise resolved with boolean: is safely exited last time
+ENV.checkSafeExit=function(){
 	// Note that there may be several runs!
 	let isRunning=localStorage.getItem("is-run");
-	localStorage.setItem("is-run","true");
 	let isSafeExited=isRunning?isRunning=="false":true;
+	localStorage.setItem("is-run","true");
+
 
 	/**
 	 * start-report is: {
@@ -189,19 +219,22 @@ ENV.checkSafeExit=function(){ // return is safely exited last time
 	
 	return isSafeExited;
 }
-ENV.reportSafelyLoaded=function(){
-	// NOTE FIXME: the "run" might also be true if there are several opened windows!
-	console.log("report!");
-	let startReport=localStorage.getItem("start-report");
-	if(!startReport){
-		startReport={
+
+ENV.getStartReport=function(){
+	const startReportJSON=localStorage.getItem("start-report");
+	if(startReportJSON){
+		return JSON.parse(startReportJSON);
+	}
+	else{
+		return {
 			rnd: 0,
 			failedList: []
 		};
 	}
-	else{
-		startReport=JSON.parse(startReport);
-	}
+}
+ENV.reportSafelyLoaded=function(){
+	console.log("report!");
+	const startReport=ENV.getStartReport();
 
 	// record new status
 	if(startReport.failedList.length){

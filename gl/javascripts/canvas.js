@@ -334,7 +334,7 @@ CANVAS.refreshScreen=function() {
 		if(!dirtyArea.width||!dirtyArea.height){ // no width or height
 			return;
 		}
-	}
+	} // @TODO: even if no dirty area, the invalid imagedata should be set valid?
 
 	const startT=window.performance.now(); // start to measure
 

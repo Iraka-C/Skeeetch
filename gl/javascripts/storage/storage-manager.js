@@ -30,7 +30,6 @@ STORAGE.init=function(callback){
 		}).catch(err=>{
 			console.warn("Error when organizing database.");
 		}).finally(()=>{
-			$("#body-mask-panel").css("display","none"); // databse organized
 			callback(sysSettings);
 		});
 	})
@@ -41,5 +40,9 @@ STORAGE.saveOnExit=function(){ // This must be synced function
 		STORAGE.FILES.saveLayerTree();
 	}
 	STORAGE.SETTING.saveAllSettings();
+	// save start reports
+	const startReport=ENV.getStartReport();
+	startReport.failedList=[];
+	localStorage.setItem("start-report",JSON.stringify(startReport));
 	localStorage.setItem("is-run","false"); // last setting before exit
 };

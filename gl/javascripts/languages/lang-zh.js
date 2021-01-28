@@ -241,6 +241,7 @@ LANG_ZH={
 
 	"unsafe-exit-report":"意外退出",
 	"unsafe-exit-hint":"上次打开的文件未能正常关闭。可能导致内容丢失。",
+	"multiple-tabs-hint":"不可打开多个Skeeetch窗口<br>当前已有活动的Skeeetch页面",
 
 	// Task reports
 	"Task Report":"任务报告",

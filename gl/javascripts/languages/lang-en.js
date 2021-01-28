@@ -138,7 +138,8 @@ LANG_EN={
 	"layer-mask":" Mask",
 
 	"unsafe-exit-report":"Unexpected Exit",
-	"unsafe-exit-hint":"The file you opened last time didn't exit safely. This may cause incomplete contents.",
+	"unsafe-exit-hint":"The file you opened last time isn't closed safely. This may cause incomplete contents.",
+	"multiple-tabs-hint":"Unable to open multiple<br>Skeeetch instances.",
 
 	// Task reports
 	"open-psd-report":"Loading ",
