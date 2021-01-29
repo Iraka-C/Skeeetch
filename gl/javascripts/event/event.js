@@ -43,6 +43,9 @@ EVENTS.init=function() {
 			},1000); // make sure this will never be called if really unloaded
 		}
 	});
+	$(window).on("focus",e => {
+		$("#icon").attr("href","./resources/favicon.png");
+	});
 	$(window).on("beforeunload",e => {
 		isUnloadTriggered=true;
 		// see STORAGE.SETTING.saveAllSettings

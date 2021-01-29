@@ -22,6 +22,8 @@ This application is based on HTML5 web technologies. Skeeetch presently supports
 
 [ag-psd](https://github.com/Agamnentzar/ag-psd) under *MIT License*
 
+[SYSEND](https://github.com/jcubic/sysend.js) under MIT License
+
 ## License
 
 This project is licensed under the terms of the *Apache License 2.0*

@@ -52,24 +52,25 @@ ENV.fileID=""; // present working file ID
 ENV.init=function() { // When the page is loaded
 	const isLastSafe=ENV.checkSafeExit();
 	let isMultipleTabs=false; // state: is there multiple tabs opened?
-	new Promise((resolve,reject)=>{
-		sysend.on("SYN",msg=>{
-			sysend.broadcast("ACK",null); // respond to SYN
+	new Promise(resolve=>{
+		sysend.on("SYN",()=>{
+			// also set favicon to highlight
+			$("#icon").attr("href","./resources/favicon-hint.png");
+			sysend.broadcast("ACK"); // respond to SYN
 		});
-		sysend.on("ACK",msg=>{ // on receiving ACK, multiple tabs, reject
+		sysend.on("ACK",()=>{ // on receiving ACK, multiple tabs, reject
 			isMultipleTabs=true;
 			resolve(); // earlier than setTimeout
 		});
 		
 		if(!isLastSafe){ // either other tabs/pages' open or last page crashed
 			$("#mask-item").text("Verifying ...");
-			sysend.broadcast("SYN",null); // send a request asking if there is a live page
+			sysend.broadcast("SYN"); // send a request asking if there is a live page
 			setTimeout(resolve,1000); // no response: last page is crashed. start init
 		}
 		else{ // last safe: directly start
 			resolve();
 		}
-		
 	})
 	.then(()=>new Promise(STORAGE.init)) // resolve with sysSettingParams
 	.then(sysSettingParams => { // after loading all settings, init language/browser environment
