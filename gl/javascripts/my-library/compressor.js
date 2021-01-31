@@ -193,13 +193,13 @@ class Compressor{
 		}
 		encoded[pED++]=buf>>>24; // pad the tail
 
-		for(let i=0;i<256;i++){ // Stored as Hi(8),Lo(4)-Len(4)
+		for(let i=0;i<256;i++){ // Stored as Hi(8),Lo(4)-Len(4), big-endian
 			const id=totalLength+i*2;
 			encoded[id]=code256[i]>>>4; // high 8 bits
 			encoded[id+1]=(code256[i]<<4)&0xF0|dep256[i]&0xF; // low 4 bits + length 4 bits
 		}
 
-		const dLen=data.length;
+		const dLen=data.length; // big-endian
 		encoded[totalLength+512]=dLen>>24&0xFF; // note length
 		encoded[totalLength+513]=dLen>>16&0xFF;
 		encoded[totalLength+514]=dLen>>8&0xFF;
@@ -210,7 +210,7 @@ class Compressor{
 
 	static decodeHuffman(hfmData){
 		const totalLength=hfmData.length-516; // exclude dict padding
-		const dLen= // total decoded data length
+		const dLen= // total decoded data length, note: big-endian
 			(hfmData[totalLength+512]<<24)|
 			(hfmData[totalLength+513]<<16)|
 			(hfmData[totalLength+514]<<8)|

@@ -54,7 +54,7 @@ STORAGE.FILES.initLayerStorage=function(fileID) { // This is an async function (
 	
 	// if not in fileStore, blabla
 	const layerStore=new MyForage("img",fileID);
-	layerStore.init();
+	layerStore.init(); // FIXME: what??? an async function. How does initLayerStorage worked properly?!
 	STORAGE.FILES.layerStore=layerStore;
 
 	// update the contents in fileList and filesStore
