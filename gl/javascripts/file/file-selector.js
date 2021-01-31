@@ -149,23 +149,7 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 }
 
 FILES.fileSelector.openFileWithID=function(fileID) {
-	( // detect if is to save current file
-		ENV.displaySettings.isAutoSave||!STORAGE.FILES.isUnsaved()?
-		Promise.resolve(true):
-		FILES.showSaveFileDialogBox()
-	).then(isToSave=>{
-		if(isToSave){ // Save current first
-			const layerTreeStr=STORAGE.FILES.saveLayerTree();
-			STORAGE.FILES.updateCurrentThumb();
-			return Promise.all([ // save current contents
-				STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
-				STORAGE.FILES.saveAllContents()
-			]);
-		}
-		else{ // don't save
-			return Promise.resolve();
-		}
-	}).then(() => { // ready to open
+	STORAGE.FILES.getUnsavedCheckDialog().then(() => { // ready to open
 		const fileItem=STORAGE.FILES.filesStore.fileList[fileID];
 		// open fileID
 		ENV.fileID=fileID;

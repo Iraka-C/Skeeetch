@@ -545,7 +545,7 @@ STORAGE.FILES.onLayerTreeAborted=function(){
 	// use 256x256 as init, at most 1MB
 	FILES.tempPaperSize.width=256;
 	FILES.tempPaperSize.height=256;
-	FILES.newPaperAction(false,fileName+Lang("file-name-abort")); // DO NOT save, use a new paper instead
+	FILES.newPaperAction(fileName+Lang("file-name-abort")); // DO NOT save, use a new paper instead
 	STORAGE.FILES.updateThumbFromDatabase(fileID);
 
 	// draw a sign in the new paper
@@ -587,5 +587,27 @@ STORAGE.FILES.clearUnusedContents=function(layerStore) {
 		}
 	}).catch(function(err) { // get keys promise
 		console.log(err);
+	});
+}
+
+STORAGE.FILES.getUnsavedCheckDialog=function(){
+	// returns a promise: if there is unsaved content, resolve after a dialog box
+	// else, resolve directly
+	return ( // detect if is to save current file
+		ENV.displaySettings.isAutoSave||!STORAGE.FILES.isUnsaved()?
+		Promise.resolve(true):
+		FILES.showSaveFileDialogBox()
+	).then(isToSave=>{
+		if(isToSave){
+			const layerTreeStr=STORAGE.FILES.saveLayerTree();
+			STORAGE.FILES.updateCurrentThumb();
+			return Promise.all([ // save current contents
+				STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
+				STORAGE.FILES.saveAllContents()
+			]);
+		}
+		else{
+			return Promise.resolve();
+		}
 	});
 }

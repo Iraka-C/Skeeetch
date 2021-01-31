@@ -54,7 +54,7 @@ STORAGE.FILES.initLayerStorage=function(fileID) { // This is an async function (
 	
 	// if not in fileStore, blabla
 	const layerStore=new MyForage("img",fileID);
-	layerStore.init(); // FIXME: what??? an async function. How does initLayerStorage worked properly?!
+	const initPromise=layerStore.init(); // FIXME: what??? an async function. How does initLayerStorage worked properly?!
 	STORAGE.FILES.layerStore=layerStore;
 
 	// update the contents in fileList and filesStore
@@ -69,6 +69,7 @@ STORAGE.FILES.initLayerStorage=function(fileID) { // This is an async function (
 	};
 	STORAGE.FILES.filesStore.fileList[fileID]=fileContent;
 	STORAGE.FILES.filesStore.undroppedList[fileID]=true; // In fact not used at present.
+	return initPromise;
 }
 
 // ======================= File ID related ==========================
@@ -154,7 +155,7 @@ STORAGE.FILES.organizeDatabase=function(){
 		}
 	}*/
 	const fileList=STORAGE.FILES.filesStore.fileList;
-	//@TODO: add MyForage self-organization check
+	//@TODO-: add MyForage self-organization check
 	return MyForage.organizeStorage("img").then(()=>{
 		return MyForage.getStoreNames("img");
 	}).then(list=>{ // check if store name in file list

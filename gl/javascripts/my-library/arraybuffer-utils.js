@@ -50,10 +50,23 @@ class ArrayBufferReader{
 		return result;
 	}
 	readUInt8Array(length){
-		const end=this.offset+length;
-		const array=this.bufferView.subarray(this.offset,end);
-		this.offset=end;
-		return array;
+		const buffer=this.bufferView;
+		const arr=new Uint8Array(length);
+		for(let i=0,p=this.offset;i<length;i++,p++){
+			arr[i]=buffer[p];
+		}
+		//const array=this.bufferView.subarray(this.offset,end); // Nope
+		/**
+		 * Why not to use subarray:
+		 * When saving a subarray into IndexedDB, regardless of its length
+		 * the IndexedDB will store ALL of the underlying ArrayBuffer.
+		 * Which means even if only a small fraction of ArrayBuffer is used,
+		 * all of its contents will be stored.
+		 * If there are two independent views on this ArrayBuffer, and both are stored
+		 * then the ArrayBuffer will be stored TWICE.
+		 */
+		this.offset+=length;
+		return arr;
 	}
 	skip(length){
 		this.offset+=length;

@@ -122,12 +122,8 @@ FILES.initFileMenu=function() {
 	const cropDraggerUpdater=FILES.initCropDragger(widthUpdateFunc,heightUpdateFunc);
 
 	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
-		( // detect if is to save current file
-			ENV.displaySettings.isAutoSave||!STORAGE.FILES.isUnsaved()?
-			Promise.resolve(true):
-			FILES.showSaveFileDialogBox()
-		).then(isToSave=>{
-			FILES.newPaperAction(isToSave); // decide auto save
+		STORAGE.FILES.getUnsavedCheckDialog().then(()=>{
+			FILES.newPaperAction();
 			sizeChangeHint(false); // reset size change hint (resize)
 			fileManager.toggleExpand(); // close the file menu
 		});
@@ -274,43 +270,27 @@ FILES.initFileMenu=function() {
 }
 
 // ==================== Actions in setting ======================
-FILES.newPaperAction=function(isSavePresentContents,newFileName){
-	//if(ENV.taskCounter.isWorking()) return; // cannot create new when busy
-	// Save current layerTree and contents in files
-	const createNew=()=>{
-		// init a new storage space
-		ENV.fileID=STORAGE.FILES.generateFileID();
-		ENV.setFileTitle(newFileName||"Skeeetch");
-		STORAGE.FILES.initLayerStorage(ENV.fileID); // record new title and create storage
-		// Some works on new file
-		let w=FILES.tempPaperSize.width;
-		let h=FILES.tempPaperSize.height;
-		if(!(w&&h)){ // no temp size at present
-			w=ENV.paperSize.width;
-			h=ENV.paperSize.height;
-		}
-		ENV.setPaperSize(w,h);
-		LAYERS.initFirstLayer(); // also store the initial layer contents
-		FILES.fileSelector.addNewFileUIToSelector(ENV.fileID); // add the icon in selector
-
-		const $titleInput=$("#filename-input");
-		const ti=$titleInput[0];
-		$titleInput.focus(); // prompt the user to input the title
-		ti.selectionStart=ti.selectionEnd="Skeeetch".length;
-	};
-
-	if(isSavePresentContents){
-		const layerTreeStr=STORAGE.FILES.saveLayerTree();
-		STORAGE.FILES.updateCurrentThumb();
-		return Promise.all([
-			STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
-			STORAGE.FILES.saveAllContents()
-		]).then(createNew);
+FILES.newPaperAction=function(newFileName){
+	// Do not save existing changes to the files
+	// init a new storage space
+	ENV.fileID=STORAGE.FILES.generateFileID();
+	ENV.setFileTitle(newFileName||"Skeeetch");
+	STORAGE.FILES.initLayerStorage(ENV.fileID); // record new title and create storage
+	// Some works on new file
+	let w=FILES.tempPaperSize.width;
+	let h=FILES.tempPaperSize.height;
+	if(!(w&&h)){ // no temp size at present
+		w=ENV.paperSize.width;
+		h=ENV.paperSize.height;
 	}
-	else{
-		createNew();
-		return Promise.resolve();
-	}
+	ENV.setPaperSize(w,h);
+	LAYERS.initFirstLayer(); // also store the initial layer contents
+	FILES.fileSelector.addNewFileUIToSelector(ENV.fileID); // add the icon in selector
+
+	const $titleInput=$("#filename-input");
+	const ti=$titleInput[0];
+	$titleInput.focus(); // prompt the user to input the title
+	ti.selectionStart=ti.selectionEnd="Skeeetch".length;
 }
 
 FILES.savePaperAction=function(){ // saving in repository
@@ -389,7 +369,16 @@ FILES.onFilesLoaded=function(files,isNewFile){
 		}
 	}
 
-	if(file.type&&file.type.match(/image*/)) { // an image file
+	else if(file.name.endsWith(".skeeetch")){ // a skeeetch db file
+		EventDistributer.footbarHint.showInfo(Lang("Reading file contents")+" ...");
+		let reader=new FileReader();
+		reader.readAsArrayBuffer(file);
+		reader.onload=function() {
+			STORAGE.FILES.insertImgDB(this.result,file.name.slice(0,-9));
+		}
+	}
+
+	else if(file.type&&file.type.match(/image*/)) { // an image file
 		window.URL=window.URL||window.webkitURL;
 		const img=new Image();
 		img.src=window.URL.createObjectURL(file);
@@ -405,13 +394,8 @@ FILES.onFilesLoaded=function(files,isNewFile){
 				FILES.tempPaperSize.height=img.height;
 				const newName=file.name.slice(0,file.name.lastIndexOf("."));
 
-				( // detect if is to save current file
-					ENV.displaySettings.isAutoSave||!STORAGE.FILES.isUnsaved()?
-					Promise.resolve(true):
-					FILES.showSaveFileDialogBox()
-				).then(
-					isToSave=>FILES.newPaperAction(isToSave,newName)
-				).then(()=>{ // after creating new paper
+				STORAGE.FILES.getUnsavedCheckDialog().then(()=>{
+					FILES.newPaperAction(newName); // after creating new paper
 					const newFileID=ENV.fileID; // record here
 					FILES.loadAsImage(this,LAYERS.active);
 					// always save when loading

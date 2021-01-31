@@ -47,23 +47,7 @@ FILES.loadAsPSD=function(data,filename) {
 		FILES.loadPSDNodes(psdFile); // Start loading file contents
 	}
 
-	( // detect if is to save current file
-		ENV.displaySettings.isAutoSave||!STORAGE.FILES.isUnsaved()?
-		Promise.resolve(true):
-		FILES.showSaveFileDialogBox()
-	).then(isToSave=>{
-		if(isToSave){
-			const layerTreeStr=STORAGE.FILES.saveLayerTree();
-			STORAGE.FILES.updateCurrentThumb();
-			return Promise.all([ // save current contents
-				STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
-				STORAGE.FILES.saveAllContents()
-			]);
-		}
-		else{
-			return Promise.resolve();
-		}
-	}).then(() => { // after saving or giving up
+	STORAGE.FILES.getUnsavedCheckDialog().then(() => { // after saving or giving up
 		startLoadingPSD();
 	});
 }

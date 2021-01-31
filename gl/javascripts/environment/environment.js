@@ -124,7 +124,8 @@ ENV.init=function() { // When the page is loaded
 				 * Here, maybe the page will refresh BEFORE we can store the last layerTree to storage
 				 * This is up to the browser. We can do nothing.
 				 */
-				loadPaperPromise=FILES.newPaperAction(false); // create a NEW paper
+				FILES.newPaperAction(); // create a NEW paper
+				loadPaperPromise=Promise.resolve();
 			}
 			else{
 				loadPaperPromise=LAYERS.initFirstLayer(); // load all layers
