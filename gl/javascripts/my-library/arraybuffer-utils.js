@@ -176,7 +176,7 @@ class TypedWriter{
 			writer.writeUInt32(v.length);
 			writer.writeUTF16String(v);
 		}
-		else if(v instanceof Uint8Array){
+		else if(v instanceof Uint8Array||v instanceof Uint8ClampedArray){
 			writer.writeUInt8(3);
 			writer.writeUInt32(v.length);
 			writer.writeUInt8Array(v);
@@ -195,9 +195,9 @@ class TypedWriter{
 		if(typeof(v)=="string"){ // utf-16 string
 			return 5+v.length*2;
 		}
-		if(v instanceof Uint8Array){
+		if(v instanceof Uint8Array||v instanceof Uint8ClampedArray){
 			return 5+v.length;
 		}
-		throw new Error("Cannot write type",v);
+		throw new Error("Cannot write type "+v);
 	}
 }
