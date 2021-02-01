@@ -342,14 +342,17 @@ CANVAS.refreshScreen=function() {
 	COMPOSITOR.recompositeLayers(null,dirtyArea); // recomposite from root.
 	CANVAS.renderer.drawCanvas(LAYERS.layerTree.imageData,antiAliasRadius,dirtyArea);
 
-	requestAnimationFrame(()=>{ // end measure
-		const endT=window.performance.now();
-		let dT=endT-startT;
-		if(dT<4)return; // do not report, as this may not be an interval between 2 busy draw calls
-		PERFORMANCE.strokeFpsCounter.submit(dT);
-		// report the expected and measured fps
-		PERFORMANCE.fpsController.update(CANVAS.lastExpFps,PERFORMANCE.strokeFpsCounter.fps);
-	});
+	// only report when no heavy task, or the animation frames will be skipped
+	if(!ENV.taskCounter.isWorking()){
+		requestAnimationFrame(()=>{ // end measure
+			const endT=window.performance.now();
+			let dT=endT-startT;
+			if(dT<4)return; // do not report, as this may not be an interval between 2 busy draw calls
+			PERFORMANCE.strokeFpsCounter.submit(dT);
+			// report the expected and measured fps
+			PERFORMANCE.fpsController.update(CANVAS.lastExpFps,PERFORMANCE.strokeFpsCounter.fps);
+		});
+	}
 
 	CANVAS.dirtyArea={width:0,height:0,left:0,top:0};
 	CANVAS.lastAARad=antiAliasRadius;

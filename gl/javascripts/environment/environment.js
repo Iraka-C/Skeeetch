@@ -291,6 +291,7 @@ ENV.refreshTransform=function() {
 			DRAG.updateUI();
 		}
 		const lowFPS=PERFORMANCE.animationFpsCounter.getLowFPS();
+		// TODO: move isWorking check to report
 		if(lowFPS<24&&!PERFORMANCE.animationFpsCounter.isAnimLowFPSHint&&!ENV.taskCounter.isWorking()){
 			// only stat when not working
 			PERFORMANCE.animationFpsCounter.isAnimLowFPSHint=true;
