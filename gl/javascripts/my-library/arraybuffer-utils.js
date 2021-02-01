@@ -6,6 +6,8 @@
  */
 "use strict";
 
+// @TODO: Make these classes stronger to exceptions
+
 class ArrayBufferReader{
 	constructor(buffer){ // buffer is ArrayBuffer
 		this.bufferView=new Uint8Array(buffer); // a viewed buffer

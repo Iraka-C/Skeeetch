@@ -659,3 +659,25 @@ ENV.getSHA256Promise=function(item){ // item is a File or Blob, returns a promis
 		};
 	});
 }
+
+ENV.getTimeString=function(time){
+	const date=new Date(time);
+	/*const year=date.getFullYear();
+	const month=date.getMonth();
+	const day=date.getDate();
+
+	const hour=date.getHours();
+	const minute=date.getMinutes();
+	const second=date.getSeconds();
+	return `${year}-${month}-${day} ${hour}:${minute}:${second}`;*/
+	const dateOption={
+		dateStyle:"medium"
+	};
+	const timeOption={
+		timeStyle:"medium",
+		hourCycle:"h23"
+	};
+	const strDate=date.toLocaleString(LANG.nowLang,dateOption);
+	const strTime=date.toLocaleString(LANG.nowLang,timeOption);
+	return strDate+", "+strTime;
+}

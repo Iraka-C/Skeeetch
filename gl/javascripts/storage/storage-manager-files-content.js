@@ -530,10 +530,10 @@ STORAGE.FILES.onLayerTreeLoad=function(activeNode) {
 	PERFORMANCE.idleTaskManager.addTask(e=>{ // update all layer thumbs when idle
 		LAYERS.updateAllThumbs(); // update thumbs of every layer
 		STORAGE.FILES.updateCurrentThumb(); // update the thumb of this psd file
-		STORAGE.FILES.loadLayerTree._resolve(); // resolve loading
-		STORAGE.FILES.loadLayerTree._resolve=null;
-		STORAGE.FILES.loadLayerTree._reject=null;
 	});
+	STORAGE.FILES.loadLayerTree._resolve(); // resolve loading
+	STORAGE.FILES.loadLayerTree._resolve=null;
+	STORAGE.FILES.loadLayerTree._reject=null;
 }
 
 /**

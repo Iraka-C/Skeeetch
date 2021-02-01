@@ -532,7 +532,6 @@ FILES.showSaveFileDialogBox=function(){
 	 * return a Promise resolving true/false (is to save the file)
 	 */
 	return new Promise(resolve=>{
-		// TODO: language
 		const $text=DialogBoxItem.textBox({text: Lang("file-save-warning")});
 		const dialog=new DialogBoxItem([$text],[{
 			text: Lang("file-save-yes"),
@@ -547,5 +546,4 @@ FILES.showSaveFileDialogBox=function(){
 		}]);
 		DIALOGBOX.show(dialog);
 	});
-	
 }

@@ -141,6 +141,14 @@ LANG_EN={
 	"unsafe-exit-hint":"The file you opened last time isn't closed safely. This may cause incomplete contents.",
 	"multiple-tabs-hint":"Unable to open multiple<br>Skeeetch instances.",
 
+	// DB Operation
+	"file-overwrite-warning":(nHint,oHint,oName)=>`A same file "${oName}" is already in the repository. Do you want to overwrite the existing file${oHint} with the imported file${nHint}?`,
+	"file-overwrite-newer":" (newer)",
+	"file-overwrite-yes":"Yes. Overwrite.",
+	"file-overwrite-no":"No. Cancel.",
+	"file-overwrite-old":(oTS)=>`Existing file last modification:<br>&emsp;&emsp;&emsp;&emsp;${oTS}`,
+	"file-overwrite-new":(nTS)=>`Imported file last modification:<br>&emsp;&emsp;&emsp;&emsp;${nTS}`,
+
 	// Task reports
 	"open-psd-report":"Loading ",
 	"check-worker-report":"Web Worker",

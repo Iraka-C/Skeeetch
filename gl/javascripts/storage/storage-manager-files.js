@@ -110,8 +110,12 @@ STORAGE.FILES.saveFilesStore=function(){ // must be sync
 	// editing the now-editing file contents
 	const nowFileItem=STORAGE.FILES.filesStore.fileList[ENV.fileID];
 	nowFileItem.fileName=ENV.getFileTitle();
-	nowFileItem.lastModifiedDate=Date.now();
 	localStorage.setItem("files",JSON.stringify(STORAGE.FILES.filesStore)); // save
+}
+
+STORAGE.FILES.reportModifiedTime=function(){ // This function is managed by HISTORY.addHistory/undo/redo
+	const nowFileItem=STORAGE.FILES.filesStore.fileList[ENV.fileID];
+	nowFileItem.lastModifiedDate=Date.now();
 }
 
 STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monitoring
@@ -120,12 +124,9 @@ STORAGE.FILES.removeFileID=function(fileID){ // remove from STORAGE.FILES monito
 
 	//remove db contents first so it won't take up space even when drop failed
 	const db=new MyForage("img",fileID);
-	return db.init().then(()=>{
-		console.log("inited in STORAGE.FILES");
-		return db.drop();
-	}).then(()=>{ // dropped successfully
-		console.log("Deleted in STORAGE.FILES");
-		
+	return db.init()
+	.then(()=>db.drop()) // try to drop the store
+	.then(()=>{ // dropped successfully. @TODO: remove undroppedList logic
 		delete STORAGE.FILES.filesStore.undroppedList[fileID];
 	}).catch(err=>{
 		console.warn("Something happened when dropping "+fileID,err);

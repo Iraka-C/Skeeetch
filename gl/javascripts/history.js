@@ -130,6 +130,9 @@ HISTORY.init=function(){ // init anyways
 HISTORY.pendingHistoryCnt=0; // not added to list, waiting for idle task
 HISTORY.pendingImageDataChangeParam=new Map(); // pending during busy
 HISTORY.addHistory=function(param){ // see HistoryItem constructor for info structure
+	// set file modified
+	STORAGE.FILES.reportModifiedTime();
+
 	while(HISTORY.nowRAMUsage>PERFORMANCE.maxMem.ram // exceed max memory
 		||HISTORY.list.length>HISTORY.MAX_HISTORY){ // exceed max number
 		LOGGING&&console.log("Pop");
@@ -236,6 +239,7 @@ HISTORY.submitPropertyHistory=function(param){
  */
 HISTORY.undo=function(){ // undo 1 step
 	const undoInstant=item=>{
+		STORAGE.FILES.reportModifiedTime();
 		switch(item.type){ // different types
 		case "image-data":
 			HISTORY.undoImageDataChange(item);
@@ -282,6 +286,7 @@ HISTORY.redo=function(){ // redo 1 step
 	}
 
 	const redoInstant=item=>{
+		STORAGE.FILES.reportModifiedTime();
 		switch(item.type){ // different types
 		case "image-data":
 			HISTORY.redoImageDataChange(item);

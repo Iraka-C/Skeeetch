@@ -374,7 +374,7 @@ FILES.onFilesLoaded=function(files,isNewFile){
 		let reader=new FileReader();
 		reader.readAsArrayBuffer(file);
 		reader.onload=function() {
-			STORAGE.FILES.insertImgDB(this.result,file.name.slice(0,-9));
+			FILES.openDBFile(this.result,file.name.slice(0,-9));
 		}
 	}
 

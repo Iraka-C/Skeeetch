@@ -33,8 +33,15 @@ DIALOGBOX._change=function(dialogBoxItem){
 DIALOGBOX.clear=function(){
 	const $ui=$("#body-mask-panel");
 	$ui.fadeOut(400,e=>{
-		$ui.empty();
-		DIALOGBOX.nowItem=null;
+		const _next=DIALOGBOX.nowItem._next;
+		if(_next){ // append new dialog box after fade out starts
+			DIALOGBOX._change(_next);
+			$ui.fadeIn(250); // fade in after fade out
+		}
+		else{ // release
+			$ui.empty();
+			DIALOGBOX.nowItem=null;
+		}
 	});
 };
 
@@ -64,6 +71,7 @@ class DialogBoxItem{
 				}
 				if(this._next){ // there's another box, maybe AFTER callback
 					DIALOGBOX._change(this._next);
+					this._next=null; // release
 				}
 				else{
 					DIALOGBOX.clear();
@@ -111,7 +119,7 @@ class DialogBoxItem{
 
 	static textBox(option){
 		const $text=$("<div class='dialog-box-text'>");
-		$text.text(option.text);
+		$text.html(option.text);
 		return $text;
 	}
 

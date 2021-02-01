@@ -9,11 +9,11 @@ class FPSController{
 		const fRel=new Array(this.N);
 		this.fRel=fRel;
 		
-		// ideal 60Hz monitor: only accepts 60Hz or lower
-		for(let i=0;i<=60;i++){
-			fRel[i]=60;
+		// ideal 120Hz monitor: only accepts 120Hz or lower
+		for(let i=0;i<=120;i++){
+			fRel[i]=120;
 		}
-		for(let i=61;i<this.N;i++){
+		for(let i=121;i<this.N;i++){
 			fRel[i]=0;
 		}
 

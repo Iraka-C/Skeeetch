@@ -9,9 +9,18 @@ STORAGE.FILES.dumpImgDB=function(fileID){
 	if(!fileItem){
 		return Promise.reject("No fileID found"); // no such a file
 	}
+	
+	let saveLTPromise=Promise.resolve();
+	if(fileID==ENV.fileID){ // shall save current layer tree
+		const storageJSON=LAYERS.getStorageJSON();
+		saveLTPromise=STORAGE.FILES.saveLayerTreeInDatabase(storageJSON);
+	}
+
 	const layerStore=new MyForage("img",fileID);
-	return layerStore.init()
-	.then(()=>{
+	return saveLTPromise.then(()=>{ // first init
+		return layerStore.init();
+	})
+	.then(()=>{ // then get keys
 		return layerStore.keys();
 	})
 	.then(keys=>{ // when keys got
@@ -34,7 +43,14 @@ STORAGE.FILES.dumpImgDB=function(fileID){
 				kv[1]=JSON.stringify(kv[1]); // stringify normal objects
 			}
 		}
-		kvs.unshift(["hash",fileItem.hash||""]);
+		kvs.unshift([ // push header infos
+			"header",
+			JSON.stringify({
+				"hash": fileItem.hash,
+				"createdDate": fileItem.createdDate,
+				"lastModifiedDate": fileItem.lastModifiedDate
+			})
+		]);
 		const buffer=STORAGE.FILES._kvPairToArrayBuffer(kvs);
 		return Promise.resolve(buffer);
 	});
@@ -57,11 +73,12 @@ STORAGE.FILES._kvPairToArrayBuffer=function(kvs){
 }
 
 // =========================== Open File ==============================
-
-STORAGE.FILES._arrayBufferToKVPair=function(buffer){
+// kvCnt is how many pairs to be read from start
+STORAGE.FILES._arrayBufferToKVPair=function(buffer,kvCnt){
 	const kvs=[];
 	const reader=new TypedReader(buffer);
-	while(!reader.isEnd()){
+	kvCnt=kvCnt||Infinity;
+	for(let i=0;!reader.isEnd()&&i<kvCnt;i++){
 		const k=reader.read();
 		const v=reader.read();
 		kvs.push([k,v]);
@@ -69,36 +86,72 @@ STORAGE.FILES._arrayBufferToKVPair=function(buffer){
 	return kvs;
 }
 
-STORAGE.FILES.insertImgDB=function(buffer,filename){
-	const kvs=STORAGE.FILES._arrayBufferToKVPair(buffer);
-	const hashItem=kvs.shift();
-	if(hashItem[0]!="hash"){
-		console.warn("Not a legal skeeetch db file");
-		return;
-	}
+/**
+ * option: specify file info {
+ * fileName
+ * lastOpenedDate
+ * }
+ */
 
+STORAGE.FILES.insertImgDB=function(buffer,option){
+	const headerHV=STORAGE.FILES._arrayBufferToKVPair(buffer,1)[0]; // read header info
+	if(headerHV[0]!="header"){
+		console.warn("Not a legal skeeetch db file");
+		return Promise.reject("Unsupported file content.");
+	}
+	// To number of date
+	const headerJSON=JSON.parse(headerHV[1]);
+
+	let toLoadPromise=Promise.resolve(false);
+	let sameFileID=null;
 	for(const key in STORAGE.FILES.filesStore.fileList){
 		const item=STORAGE.FILES.filesStore.fileList[key];
-		console.log(item,hashItem[1]);
-		
-		if(item.hash==hashItem[1]){
-			console.warn("Duplicate hash code"); // need special treatment
-			return;
-			// break;
+		if(item.hash==headerJSON.hash){ // same hash
+			if(item.lastModifiedDate==headerJSON.lastModifiedDate){ // same file, no need to reload
+				return Promise.reject("File already in repository");
+			}
+			else{ // same file, one is newer
+				//console.log(item.lastModifiedDate,headerJSON.lastModifiedDate);
+				sameFileID=key;
+				toLoadPromise=STORAGE.FILES.confirmOverwriteDialog(
+					item.lastModifiedDate, // existing
+					headerJSON.lastModifiedDate, // importing
+					item.fileName
+				);
+				break;
+			}
 		}
 	}
 
-	// A new file
-	STORAGE.FILES.getUnsavedCheckDialog()
-	.then(() => { // after saving or giving up
+	return toLoadPromise.then(isToOverwrite=>{ // if confirm overwrite
+		if(isToOverwrite){ // delete existing first
+			const $uiList=FILES.fileSelector.$uiList;
+			const $ui=$uiList[sameFileID];
+			delete $uiList[sameFileID]; // remove from selector hash
+			$ui.remove(); // remove from selector panel
+			return STORAGE.FILES.removeFileID(sameFileID); // after removing file
+		}
+		// if not isToOverwrite, this is a new file
+		// if rejected, directly stop all following loading process
+	})
+	.then(()=>{ // if there is a same file, cleared.
 		// init a new storage space
 		ENV.fileID=STORAGE.FILES.generateFileID();
-		ENV.setFileTitle(filename); // set new title
 		const initPromise=STORAGE.FILES.initLayerStorage(ENV.fileID);
+
+		// modify file item info
+		const item=STORAGE.FILES.filesStore.fileList[ENV.fileID];
+		Object.assign(item,option);
+		Object.assign(item,headerJSON); // stored header info
+
 		FILES.fileSelector.addNewFileUIToSelector(ENV.fileID); // add the icon in selector
 		return initPromise;
 	})
-	.then(()=>{ // after init, fill in database
+	.then(()=>{ // write the file info into a new file
+		// read all contents now
+		const kvs=STORAGE.FILES._arrayBufferToKVPair(buffer);
+		kvs.shift(); // skip header
+
 		const layerStore=STORAGE.FILES.layerStore;
 		const taskList=[];
 		for(const kv of kvs){ // get k-v pairs
@@ -108,21 +161,33 @@ STORAGE.FILES.insertImgDB=function(buffer,filename){
 			taskList.push(layerStore.setItem(kv[0],kv[1]));
 		}
 		return Promise.all(taskList);
-	})
-	.then(()=>STORAGE.FILES.getLayerTreeFromDatabase()) // after database filled
-	.then(layerTree => { // after getting layer tree
-		localStorage.setItem("layer-tree",JSON.stringify(layerTree));
-		
-		// reset tempPaperSize
-		FILES.tempPaperSize={
-			width: layerTree.paperSize[0],
-			height: layerTree.paperSize[1],
-			left: 0,
-			top: 0
-		};
-		ENV.setPaperSize(...layerTree.paperSize); // set paper size and clear all contents
-		STORAGE.FILES.loadLayerTree(layerTree).catch(err=>{ // load contents
-			// error
-		});
+	});
+}
+
+STORAGE.FILES.confirmOverwriteDialog=function(originT,newT,originName){
+	const oTS="<span style='color:#fff'>"+ENV.getTimeString(originT)+"</span>";
+	const nTS="<span style='color:#fff'>"+ENV.getTimeString(newT)+"</span>";
+	const owNewerTag=Lang("file-overwrite-newer");
+	const owNewerTags=originT<newT?[owNewerTag,""]:["",owNewerTag];
+
+	return new Promise((resolve,reject)=>{
+		const $text=DialogBoxItem.textBox({text: Lang("file-overwrite-warning")(...owNewerTags,originName)});
+		const $textO=DialogBoxItem.textBox({text: Lang("file-overwrite-old")(oTS)});
+		const $textN=DialogBoxItem.textBox({text: Lang("file-overwrite-new")(nTS)});
+		$text.css("margin-bottom","1em");
+		$textO.css("font-size","80%");
+		$textN.css("font-size","80%");
+		const dialog=new DialogBoxItem([$text,$textO,$textN],[{
+			text: Lang("file-overwrite-yes"),
+			callback: e=>{
+				resolve(true); // need to overwrite
+			}
+		},{
+			text: Lang("file-overwrite-no"),
+			callback: e=>{
+				reject("file-name-abort");
+			}
+		}]);
+		DIALOGBOX.show(dialog,{abc:1});
 	});
 }

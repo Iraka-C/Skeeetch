@@ -243,6 +243,15 @@ LANG_ZH={
 	"unsafe-exit-hint":"上次打开的文件未能正常关闭。可能导致内容丢失。",
 	"multiple-tabs-hint":"不可打开多个Skeeetch窗口<br>当前已有活动的Skeeetch页面",
 
+	// DB Operation
+	"File already in repository":"库中已有该文件",
+	"file-overwrite-warning":(nHint,oHint,oName)=>`库中已有该文件 “${oName}”。是否用导入的文件${nHint}覆盖已有的文件${oHint}？`,
+	"file-overwrite-newer":"（较新）",
+	"file-overwrite-yes":"是，覆盖已有文件",
+	"file-overwrite-no":"否，放弃导入文件",
+	"file-overwrite-old":(oTS)=>`已有的文件修改时间：<br>&emsp;&emsp;&emsp;&emsp;${oTS}`,
+	"file-overwrite-new":(nTS)=>`导入的文件修改时间：<br>&emsp;&emsp;&emsp;&emsp;${nTS}`,
+
 	// Task reports
 	"Task Report":"任务报告",
 	"open-psd-report":"加载 ",
