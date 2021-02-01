@@ -4,8 +4,15 @@
 
 // File Generation
 FILES.saveAsDBFile=function(fileID){
-	// TODO: check current file is saved
-	return STORAGE.FILES.dumpImgDB(fileID).then(buffer=>{
+	let savePromise=Promise.resolve();
+	if(fileID==ENV.fileID){ // if is trying to dump current file
+		savePromise=STORAGE.FILES.getUnsavedCheckDialog();
+	}
+
+	return savePromise.then(()=>{ // after saving
+		return STORAGE.FILES.dumpImgDB(fileID);
+	})
+	.then(buffer=>{ // after DB dumped
 		const blob=new Blob([buffer],{type: "application/octet-stream"});
 		const filename=STORAGE.FILES.filesStore.fileList[fileID].fileName;
 		FILES.downloadBlob(filename+".skeeetch",blob);

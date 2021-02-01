@@ -102,7 +102,7 @@ STORAGE.FILES.insertImgDB=function(buffer,option){
 	// To number of date
 	const headerJSON=JSON.parse(headerHV[1]);
 
-	let toLoadPromise=Promise.resolve(false);
+	let toLoadPromise=Promise.resolve(0); // 0: no existing file, new file
 	let sameFileID=null;
 	for(const key in STORAGE.FILES.filesStore.fileList){
 		const item=STORAGE.FILES.filesStore.fileList[key];
@@ -124,12 +124,15 @@ STORAGE.FILES.insertImgDB=function(buffer,option){
 	}
 
 	return toLoadPromise.then(isToOverwrite=>{ // if confirm overwrite
-		if(isToOverwrite){ // delete existing first
+		if(isToOverwrite==1){ // delete existing first
 			const $uiList=FILES.fileSelector.$uiList;
 			const $ui=$uiList[sameFileID];
 			delete $uiList[sameFileID]; // remove from selector hash
 			$ui.remove(); // remove from selector panel
 			return STORAGE.FILES.removeFileID(sameFileID); // after removing file
+		}
+		else if(isToOverwrite==2){ // open as new file
+			headerJSON.hash=STORAGE.FILES.generateFileHash(); // new hash code
 		}
 		// if not isToOverwrite, this is a new file
 		// if rejected, directly stop all following loading process
@@ -177,12 +180,17 @@ STORAGE.FILES.confirmOverwriteDialog=function(originT,newT,originName){
 		$text.css("margin-bottom","1em");
 		$textO.css("font-size","80%");
 		$textN.css("font-size","80%");
-		const dialog=new DialogBoxItem([$text,$textO,$textN],[{
+		const dialog=new DialogBoxItem([$text,$textO,$textN],[{ // overwrite
 			text: Lang("file-overwrite-yes"),
 			callback: e=>{
-				resolve(true); // need to overwrite
+				resolve(1); // need to overwrite
 			}
-		},{
+		},{ // do not overwrite, save as new
+			text: Lang("file-overwrite-newfile"),
+			callback: e=>{
+				resolve(2); // save as new
+			}
+		},{ // reject: abort loading
 			text: Lang("file-overwrite-no"),
 			callback: e=>{
 				reject("file-name-abort");

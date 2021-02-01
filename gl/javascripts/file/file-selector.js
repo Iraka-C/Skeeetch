@@ -27,6 +27,11 @@ FILES.fileSelector.$newUI=function() {
 	let $nameLabel=$("<div class='file-ui-name-label'>");
 	let $buttons=$("<div class='file-ui-buttons'>");
 	let infoBlock=$("<div class='file-ui-info'>");
+	let dumpDBButton=$("<div class='file-ui-dump-button'>").append(
+		$("<img src='./resources/file-dump.svg'/>") // delete button svg
+	);
+	infoBlock.append(dumpDBButton);
+
 	let deleteButtonOuter=$("<div class='file-ui-delete-button-outer'>"); // for reconfirm the deletion
 	let deleteButton=$("<div class='file-ui-delete-button'>").append(
 		$("<img src='./resources/file-delete.svg'/>") // delete button svg
@@ -35,7 +40,7 @@ FILES.fileSelector.$newUI=function() {
 	EventDistributer.footbarHint(deleteButtonOuter,() => Lang("delete-file"));
 	$buttons.append($("<table>").append( // file ui button table 2x1
 		$("<tr>").append(
-			//$("<td>").append(infoBlock),
+			$("<td>").append(infoBlock),
 			$("<td>").append(deleteButtonOuter)
 		)
 	));
@@ -146,6 +151,12 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 		+fileItem.fileName
 		+Lang("delete-file-confirm-suffix")
 	);
+
+	const dumpButton=$ui.find(".file-ui-dump-button");
+	dumpButton.on("click",event=>{ // try to dump db and download
+		FILES.saveAsDBFile(fileID);
+	});
+	EventDistributer.footbarHint(dumpButton,()=>Lang("dump-db-hint"));
 }
 
 FILES.fileSelector.openFileWithID=function(fileID) {
