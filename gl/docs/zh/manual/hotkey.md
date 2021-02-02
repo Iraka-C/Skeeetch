@@ -54,7 +54,7 @@
 | ]                      | 增大画笔尺寸                     |
 | Home                   | 还原画纸位置                     |
 | Ctrl+S                 | 在库中保存                       |
-| Ctrl+Shift+S           | 导出当前文档为`.psd`文件         |
+| Ctrl+Shift+S           | 导出当前画纸为`.skeeetch`文件    |
 | Ctrl+Shift+K           | 其他显示设置菜单                 |
 | Tab or Pagedown        | 下一图层                         |
 | Shift+Tab or Pageup    | 上一图层                         |

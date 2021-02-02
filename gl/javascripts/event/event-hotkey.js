@@ -30,14 +30,8 @@ EVENTS.initHotKeys=function() {
 	EventDistributer.key.addListener("ctrl+KeyS",e => { // Save in browser
 		FILES.savePaperAction();
 	});
-	EventDistributer.key.addListener("ctrl+shift+KeyS",e => { // Save as psd
-		EventDistributer.footbarHint.showInfo("Rendering ...");
-		ENV.taskCounter.startTask(1); // start PSD task
-		setTimeout(e=>{
-			FILES.saveAsPSD().then(isSuccess=>{
-				ENV.taskCounter.finishTask(1); // finish PSD task
-			})
-		},500); // for animation
+	EventDistributer.key.addListener("ctrl+shift+KeyS",e => { // Save as .skeeetch
+		FILES.saveAsDBFile(ENV.fileID);
 	});
 
 	// Layers

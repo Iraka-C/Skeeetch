@@ -4,6 +4,7 @@
 
 // File Generation
 FILES.saveAsDBFile=function(fileID){
+	ENV.taskCounter.startTask(1); // start save task
 	let savePromise=Promise.resolve();
 	if(fileID==ENV.fileID){ // if is trying to dump current file
 		savePromise=STORAGE.FILES.getUnsavedCheckDialog();
@@ -16,6 +17,7 @@ FILES.saveAsDBFile=function(fileID){
 		const blob=new Blob([buffer],{type: "application/octet-stream"});
 		const filename=STORAGE.FILES.filesStore.fileList[fileID].fileName;
 		FILES.downloadBlob(filename+".skeeetch",blob);
+		ENV.taskCounter.finishTask(1); // end save task
 	});
 }
 
