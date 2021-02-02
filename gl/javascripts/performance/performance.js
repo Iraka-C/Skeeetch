@@ -22,6 +22,9 @@ class FPSCounter{
 		this.fpsCallback=fpsCallback;
 	}
 	submit(intv){ // interval in ms
+		if(ENV.taskCounter.isWorking()){ // fps measured with task is not accurate
+			return;
+		}
 		intv=intv.clamp(1,1000); // 1~1000fps
 		
 		const list=this.intvList;

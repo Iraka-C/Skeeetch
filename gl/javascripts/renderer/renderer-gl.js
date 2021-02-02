@@ -349,15 +349,14 @@ class GLRenderer extends BasicRenderer {
 
 		// vertical blur
 		program.setTargetTexture(null); // draw to canvas
-		if(!dirtyArea||!isToDraw){
+		if(!dirtyArea){
 			// 1. ready to draw the whole valid area (nothing outside)
 			// 2. drawing an texture of no width/height
 			gl.viewport(0,0,w,h);
 			gl.clearColor(0,0,0,0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 		}
-		if(!isToDraw) {
-			// else: dirty area is 0, do not change
+		if(!isToDraw){ // nothing to draw, do not change
 			return;
 		}
 
