@@ -246,13 +246,13 @@ LANG_ZH={
 	// DB Operation
 	"dump-db-hint":"导出画纸",
 	"File already in repository":"库中已有该文件",
-	"file-overwrite-warning":(nHint,oHint,oName)=>`库中已有该文件 “${oName}”。是否用导入的文件${nHint}覆盖已有的文件${oHint}？`,
-	"file-overwrite-newer":"（较新）",
-	"file-overwrite-yes":"是，覆盖已有文件",
-	"file-overwrite-no":"否，放弃导入文件",
+	"file-overwrite-warning":(oName)=>`库中已有该文件 “${oName}”。您希望如何操作？`,
+	"file-overwrite-newer":"(较新)",
+	"file-overwrite-yes":"覆盖已有文件",
+	"file-overwrite-no":"放弃导入文件",
 	"file-overwrite-newfile":"打开为新文件",
-	"file-overwrite-old":(oTS)=>`已有的文件修改时间：<br>&emsp;&emsp;&emsp;&emsp;${oTS}`,
-	"file-overwrite-new":(nTS)=>`导入的文件修改时间：<br>&emsp;&emsp;&emsp;&emsp;${nTS}`,
+	"file-overwrite-old":(oTS,oTag)=>`已有的文件修改时间：${oTag}<br>&emsp;&emsp;&emsp;&emsp;${oTS}`,
+	"file-overwrite-new":(nTS,nTag)=>`导入的文件修改时间：${nTag}<br>&emsp;&emsp;&emsp;&emsp;${nTS}`,
 
 	// Task reports
 	"Task Report":"任务报告",

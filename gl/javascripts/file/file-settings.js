@@ -228,13 +228,12 @@ FILES.initFileMenu=function() {
 			})
 		},1000);
 	});
-	EventDistributer.footbarHint(psdButtonFunc(),() => Lang("Save as PSD")+" (Ctrl+Shift+S)");
 
 	fileManager.addButton(Lang("Save as PNG"),e => {
 		EventDistributer.footbarHint.showInfo(Lang("Saving")+" ...");
 		fileManager.toggleExpand();
 		ENV.taskCounter.startTask(1); // save PNG task
-		setTimeout(FILES.saveAsPNG,1000);
+		setTimeout(FILES.saveAsPNG,500);
 	});
 	
 	fileManager.addSectionTitle(Lang("Repository"));

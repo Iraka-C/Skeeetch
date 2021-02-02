@@ -170,13 +170,13 @@ STORAGE.FILES.insertImgDB=function(buffer,option){
 STORAGE.FILES.confirmOverwriteDialog=function(originT,newT,originName){
 	const oTS="<span style='color:#fff'>"+ENV.getTimeString(originT)+"</span>";
 	const nTS="<span style='color:#fff'>"+ENV.getTimeString(newT)+"</span>";
-	const owNewerTag=Lang("file-overwrite-newer");
-	const owNewerTags=originT<newT?[owNewerTag,""]:["",owNewerTag];
+	const owNewerTag="<span style='color:#fff'>"+Lang("file-overwrite-newer")+"</span>";
+	const owNewerTags=originT>newT?[owNewerTag,""]:["",owNewerTag];
 
 	return new Promise((resolve,reject)=>{
-		const $text=DialogBoxItem.textBox({text: Lang("file-overwrite-warning")(...owNewerTags,originName)});
-		const $textO=DialogBoxItem.textBox({text: Lang("file-overwrite-old")(oTS)});
-		const $textN=DialogBoxItem.textBox({text: Lang("file-overwrite-new")(nTS)});
+		const $text=DialogBoxItem.textBox({text: Lang("file-overwrite-warning")(originName)});
+		const $textO=DialogBoxItem.textBox({text: Lang("file-overwrite-old")(oTS,owNewerTags[0])});
+		const $textN=DialogBoxItem.textBox({text: Lang("file-overwrite-new")(nTS,owNewerTags[1])});
 		$text.css("margin-bottom","1em");
 		$textO.css("font-size","80%");
 		$textN.css("font-size","80%");

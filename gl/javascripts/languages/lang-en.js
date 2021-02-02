@@ -30,7 +30,7 @@ LANG_EN={
 	"sys-mem":"RAM Usage",
 	"sys-gpumem":"VRAM Usage",
 	"sys-disk":"Drive Usage",
-	"workspace-hint-1":"Resizing paper clears all histories and the pixels out-of-bound!",
+	"workspace-hint-1":"Resizing paper may clear all pixels out-of-border!",
 	"workspace-title":"Paper",
 	"display-hint-1":"These settings does not affect rendering results.",
 	"toggle-fullscreen":"Toggle Fullscreen",
@@ -143,13 +143,13 @@ LANG_EN={
 
 	// DB Operation
 	"dump-db-hint":"Export paper",
-	"file-overwrite-warning":(nHint,oHint,oName)=>`The same file "${oName}" is already in the repository. Do you want to overwrite the existing file${oHint} with the imported file${nHint}?`,
-	"file-overwrite-newer":" (newer)",
-	"file-overwrite-yes":"Yes. Overwrite.",
-	"file-overwrite-no":"No. Cancel.",
-	"file-overwrite-newfile":"Open as new file.",
-	"file-overwrite-old":(oTS)=>`Existing file last modification:<br>&emsp;&emsp;&emsp;&emsp;${oTS}`,
-	"file-overwrite-new":(nTS)=>`Imported file last modification:<br>&emsp;&emsp;&emsp;&emsp;${nTS}`,
+	"file-overwrite-warning":(oName)=>`The same file "${oName}" is already in the repository. How would you like to do?`,
+	"file-overwrite-newer":"(newer)",
+	"file-overwrite-yes":"Overwrite existing file",
+	"file-overwrite-no":"Cancel import",
+	"file-overwrite-newfile":"Open as new file",
+	"file-overwrite-old":(oTS,oTag)=>`Existing file last modification:<br>&emsp;&emsp;&emsp;&emsp;${oTS}&nbsp;${oTag}`,
+	"file-overwrite-new":(nTS,nTag)=>`Imported file last modification:<br>&emsp;&emsp;&emsp;&emsp;${nTS}&nbsp;${nTag}`,
 
 	// Task reports
 	"open-psd-report":"Loading ",
