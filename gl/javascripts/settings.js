@@ -73,11 +73,9 @@ class SettingManager{
 // ====================== UI Management ========================
 	// Add a section with the name title
 	addSectionTitle(title){
-		this.$frame.find("tbody").append(
-			$("<tr>").append(
-				$("<td colspan='4' class='section-title'>"+title+"</td>")
-			)
-		);
+		const $block=$("<td colspan='4' class='section-title'>"+title+"</td>");
+		this.$frame.find("tbody").append($("<tr>").append($block));
+		return $block;
 	}
 	// Add a numerical setting item where it calls callback instantly on changing the value
 	// checkFunction returns true for success, or a string for warning
@@ -355,6 +353,30 @@ class SettingManager{
 				$row.css("display","none");
 			}
 		};
+	}
+
+	/**
+	 * add a row of buttons
+	 * @param {Array} option an array of
+	 * {
+	 *    $element {String}: button content (jQuery element)
+	 *    callback {Function}: callback function when clicked
+	 * }
+	 */
+	addButtonRow(option){
+		// the area to place buttons
+		const $contents=$("<div class='setting-row'>");
+		const $rowField=$("<td colspan='4' class='setting-row-field'>").append($contents);
+
+		const N=option.length; // button number
+		for(let i=0;i<N;i++){
+			const $button=$("<div class='setting-row-button'>");
+			$button.append(option[i].$element);
+			$button.on("click",option[i].callback);
+			$contents.append($button);
+		}
+
+		this.$frame.find("tbody").append($("<tr>").append($rowField));
 	}
 
 	// @TODO: API detail design

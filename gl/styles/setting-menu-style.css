@@ -1,0 +1,187 @@
+
+/* ================ Setting menu styles ================= */
+#left-menu-panels{
+	position: absolute;
+	height: 100%;
+}
+#right-menu-panels{
+	position: absolute;
+	right: 0em;
+	height: 100%;
+	display: flex;
+	flex-direction: row;
+}
+
+.setting-panel{
+	position: relative;
+	pointer-events: all; /* Clickable */
+	overflow: hidden;
+	width: var(--menu-width);
+	transition-property: width;
+	transition-duration: 0.5s;
+	transition-timing-function: ease;
+	cursor: auto;
+
+	height: 100%;
+	background: #000000aa;
+	/*box-shadow: 0em 0em 3em #222 inset;*/
+	color: #fff;
+}
+.setting-panel-collapsed{
+	width: 0em;
+}
+.menu-scroll-wrapper, .left-menu-scroll-wrapper{
+	position: absolute;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	top: 0px;
+	bottom: 0px;
+	right: -100px; /* hide scroll bar */
+	touch-action: pan-y;
+}
+.menu-scroll-wrapper{
+	left: 0px;
+}
+.left-menu-scroll-wrapper{
+	width: calc(var(--menu-width) + 100px); /* stick to right */
+}
+.setting-table-container{
+	position: absolute;
+	margin: var(--menu-margin);
+}
+/* ===================== General setting styles ======================= */
+
+table{
+	border-spacing: 0px;
+	border-collapse: collapse;
+}
+.setting-table{
+	margin: 0em;
+	table-layout: fixed;
+	width: calc(var(--menu-width) - 2 * var(--menu-margin));
+	/* display: table doesn't accept normal width value */
+}
+.setting-table th{
+	font-size: 125%;
+	font-weight: normal;
+}
+.setting-table .section-title{
+	padding-top: 1em;
+	border-bottom: 0.05em solid #ffffffcc;
+	color: #fff;
+	font-weight: normal;
+}
+.setting-table .hoverable{
+	transition: box-shadow 0.25s, color 0.25s;
+	color: #ddd;
+}
+.setting-table .hoverable:hover{
+	/*box-shadow: 0em 0em 0.5em #00000088;*/
+	color: #fff;
+}
+.setting-table tr td{
+	padding: 0.2em 0.1em;
+	text-overflow: ellipsis;
+}
+.setting-table .setting-hint{
+	padding: 0.5em;
+	font-size: 80%;
+	background: #00000055;
+	color: #ccc;
+}
+
+/* Hard-coded */
+.setting-item-name{
+	width: 8em;
+}
+.setting-item-value{
+	width: 4em;
+}
+.setting-item-unit{
+	width: 1.5em; /* 3 alphabets */
+}
+.setting-table .value{
+	text-align: right;
+	padding-right: 0.2em;
+}
+.setting-table .value-container{
+	text-align: right;
+}
+.setting-table .unit{
+	font-size: 80%;
+}
+
+.setting-table input{
+	color: #ddd;
+	transition: background 0.5s;
+}
+.setting-table input:focus{
+	background: #00000055;
+}
+.setting-table input:hover{
+	background: #00000055;
+}
+.setting-table input::selection{
+	background: #00000000;
+}
+
+.setting-value-invalid{
+	color: #f00 !important;
+}
+
+.setting-button-container{
+	text-align: right;
+}
+.setting-table .setting-button{
+	display: inline-block;
+	border: 1.5px solid #ccc;
+	border-radius: 1.4em;
+	padding: 0.15em 0.6em;
+	text-align: center;
+	transition: background 0.3s, box-shadow 0.2s;
+}
+
+.setting-table .setting-row{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+.setting-table .setting-row-button{
+	flex: 1;
+	text-align: center;
+}
+
+/* File Menu */
+#file-menu-panel{
+	background: #000000cc;
+}
+#file-menu-panel-mask{
+	width: var(--menu-width);
+	overflow-y: hidden;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	pointer-events: none;
+	background-color: #ffffff88;
+	opacity: 0;
+	transition: opacity 0.4s;
+}
+#file-menu-panel-hint{
+	color: #00000099;
+	font-weight: bold;
+	font-size: 400%;
+}
+
+.files-row-button{
+	font-size: 80%;
+	padding: 0.5em;
+	opacity: 0.8;
+	transition: background 0.5s, box-shadow 0.2s, opacity 0.5s;
+}
+.files-row-button:hover{
+	opacity: 1;
+}
+.files-row-button img{
+	width: 3em;
+	filter: invert(100%);
+}

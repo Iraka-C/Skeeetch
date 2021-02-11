@@ -115,63 +115,11 @@ FILES.initFileMenu=function() {
 		cropDraggerUpdater(true);
 		sizeChangeHint(true);
 	});
-	const sizeChangeHint=fileManager.addHint(Lang("workspace-hint-1"));
-	sizeChangeHint(false);
 
 	// The function used to update the dragger interface
 	const cropDraggerUpdater=FILES.initCropDragger(widthUpdateFunc,heightUpdateFunc);
-
-	fileManager.addButton(Lang("New Paper"),() => { // clear all, reinit
-		STORAGE.FILES.getUnsavedCheckDialog().then(()=>{
-			FILES.newPaperAction();
-			sizeChangeHint(false); // reset size change hint (resize)
-			fileManager.toggleExpand(); // close the file menu
-		});
-	});
-	fileManager.addButton(Lang("Change Paper Size"),() => {
-		const [w,h,l,t]=[
-			FILES.tempPaperSize.width,
-			FILES.tempPaperSize.height,
-			FILES.tempPaperSize.left,
-			FILES.tempPaperSize.top
-		];
-		if(w!=ENV.paperSize.width||h!=ENV.paperSize.height||l||t) { // size changed
-			// preserve contents
-			const histItem={ // Remember History
-				type: "bundle",
-				children: []
-			}
-			if(l||t){ // cropped, needs panning
-				for(const item of LAYERS.layerTree.children){ // all root nodes
-					CANVAS.panLayer(item,-l,-t,false);
-					histItem.children.push({
-						type: "node-pan",
-						id: item.id,
-						dx: -l,
-						dy: -t
-					});
-				}
-			}
-			histItem.children.push({
-				type: "paper-size",
-				prevSize: [ENV.paperSize.width,ENV.paperSize.height],
-				nowSize: [w,h]
-			});
-			HISTORY.addHistory(histItem); // submit history
-			ENV.setPaperSize(w,h,true);
-		}
-		sizeChangeHint(false);
-		fileManager.toggleExpand();
-	});
-
-	const $fileInput=$("<input type='file' style='display:none;position:fixed;top:-1000px'/>");
-	$fileInput.on("change",e => { // file selected
-		FILES.onFilesLoaded($fileInput[0].files,true);
-	});
-	fileManager.addButton(Lang("Open File"),() => {
-		$fileInput[0].click();
-		fileManager.toggleExpand();
-	});
+	const sizeChangeHint=fileManager.addHint(Lang("workspace-hint-1"));
+	FILES.initNewButtons(fileManager,sizeChangeHint);
 
 	// ==================== Export action =====================
 	fileManager.addSectionTitle(Lang("Save Content"));
@@ -188,53 +136,9 @@ FILES.initFileMenu=function() {
 	EventDistributer.footbarHint(autoSaveButtonFunc(),() => Lang("Save in browser")+" (Ctrl+S)");
 	autoSaveButtonFunc(!ENV.displaySettings.isAutoSave); // init when loading
 
-	fileManager.addButton(Lang("Save as new file"),e => {
-		let newName=ENV.getFileTitle(); // current name
-		if(newName.length>240){ // too long, cut it
-			newName=newName.slice(0,240)+"..."+Lang("node-copy-suffix");
-		}
-		else{
-			newName+=Lang("node-copy-suffix");
-		}
-		function toSaveAsNew(){ // save as new file operation
-			ENV.setFileTitle(newName);
-			STORAGE.FILES.saveCurrentOpenedFileAs();
-		}
-		EventDistributer.footbarHint.showInfo(Lang("Saving")+" ...",3000);
-		if(ENV.displaySettings.isAutoSave){ // shall save present before switching to a new file
-			const layerTreeStr=STORAGE.FILES.saveLayerTree();
-			STORAGE.FILES.updateCurrentThumb(); // maybe a draw after open file menu
-			Promise.all([
-				STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
-				STORAGE.FILES.saveAllContents()
-			]).then(()=>{
-				toSaveAsNew();
-			});
-		}
-		else{ // directly save as new, discard changes to the old one TODO: auto save logic
-			STORAGE.FILES.updateThumbFromDatabase(ENV.fileID); // reload saved thumb
-			toSaveAsNew();
-		}
-		
-	});
-
-	const psdButtonFunc=fileManager.addButton(Lang("Save as PSD"),e => {
-		EventDistributer.footbarHint.showInfo(Lang("Rendering")+" ...");
-		fileManager.toggleExpand();
-		ENV.taskCounter.startTask(1); // start PSD task
-		setTimeout(e=>{
-			FILES.saveAsPSD().then(isSuccess=>{
-				ENV.taskCounter.finishTask(1); // finish PSD task
-			})
-		},1000);
-	});
-
-	fileManager.addButton(Lang("Save as PNG"),e => {
-		EventDistributer.footbarHint.showInfo(Lang("Saving")+" ...");
-		fileManager.toggleExpand();
-		ENV.taskCounter.startTask(1); // save PNG task
-		setTimeout(FILES.saveAsPNG,500);
-	});
+	FILES.initSaveButtons(fileManager);
+	
+	FILES.CLOUD.init(fileManager);
 	
 	fileManager.addSectionTitle(Lang("Repository"));
 	FILES.fileSelector.init(fileManager);
@@ -266,6 +170,163 @@ FILES.initFileMenu=function() {
 		cropDraggerUpdater(false);
 		sizeChangeHint(false);
 	});
+}
+
+// ===================Initializations =====================
+FILES._createTextButtons=function(text,imgUrl){
+	return $("<div class='files-row-button'>").append(
+		$("<img>").attr("src",imgUrl),
+		$("<div>").html(text)
+	);
+}
+FILES.initNewButtons=function(fileManager,sizeChangeHint){
+	sizeChangeHint(false);
+
+	const newPaperFunc=()=>{ // clear all, reinit
+		STORAGE.FILES.getUnsavedCheckDialog().then(()=>{
+			FILES.newPaperAction();
+			sizeChangeHint(false); // reset size change hint (resize)
+			fileManager.toggleExpand(); // close the file menu
+		});
+	};
+
+	const changeSizeFunc=()=>{
+		const [w,h,l,t]=[
+			FILES.tempPaperSize.width,
+			FILES.tempPaperSize.height,
+			FILES.tempPaperSize.left,
+			FILES.tempPaperSize.top
+		];
+		if(w!=ENV.paperSize.width||h!=ENV.paperSize.height||l||t) { // size changed
+			// preserve contents
+			const histItem={ // Remember History
+				type: "bundle",
+				children: []
+			}
+			if(l||t){ // cropped, needs panning
+				for(const item of LAYERS.layerTree.children){ // all root nodes
+					CANVAS.panLayer(item,-l,-t,false);
+					histItem.children.push({
+						type: "node-pan",
+						id: item.id,
+						dx: -l,
+						dy: -t
+					});
+				}
+			}
+			histItem.children.push({
+				type: "paper-size",
+				prevSize: [ENV.paperSize.width,ENV.paperSize.height],
+				nowSize: [w,h]
+			});
+			HISTORY.addHistory(histItem); // submit history
+			ENV.setPaperSize(w,h,true);
+			fileManager.toggleExpand();
+		}
+		else{
+			EventDistributer.footbarHint.showInfo(Lang("resize-wh-hint"));
+		}
+		sizeChangeHint(false);
+	};
+
+	const $fileInput=$("<input type='file' style='display:none;position:fixed;top:-1000px'/>");
+	$fileInput.on("change",e => { // file selected
+		FILES.onFilesLoaded($fileInput[0].files,true);
+	});
+	const openFileFunc=()=>{
+		$fileInput[0].click();
+		fileManager.toggleExpand();
+	};
+
+	
+	fileManager.addButtonRow([{
+		$element: FILES._createTextButtons(
+			Lang("New Paper"),
+			"./resources/menu-button/new-paper.svg"
+		),
+		callback: newPaperFunc
+	},{
+		$element: FILES._createTextButtons(
+			Lang("Change Paper Size"),
+			"./resources/menu-button/resize-paper.svg"
+		),
+		callback: changeSizeFunc
+	},{
+		$element: FILES._createTextButtons(
+			Lang("Open File"),
+			"./resources/menu-button/open-file.svg"
+		),
+		callback: openFileFunc
+	}]);
+}
+
+FILES.initSaveButtons=function(fileManager){
+	const copyFunc=()=>{
+		let newName=ENV.getFileTitle(); // current name
+		if(newName.length>240){ // too long, cut it
+			newName=newName.slice(0,240)+"..."+Lang("node-copy-suffix");
+		}
+		else{
+			newName+=Lang("node-copy-suffix");
+		}
+		function toSaveAsNew(){ // save as new file operation
+			ENV.setFileTitle(newName);
+			STORAGE.FILES.saveCurrentOpenedFileAs();
+		}
+		EventDistributer.footbarHint.showInfo(Lang("Saving")+" ...",3000);
+		if(ENV.displaySettings.isAutoSave){ // shall save present before switching to a new file
+			const layerTreeStr=STORAGE.FILES.saveLayerTree();
+			STORAGE.FILES.updateCurrentThumb(); // maybe a draw after open file menu
+			Promise.all([
+				STORAGE.FILES.saveLayerTreeInDatabase(layerTreeStr),
+				STORAGE.FILES.saveAllContents()
+			]).then(()=>{
+				toSaveAsNew();
+			});
+		}
+		else{ // directly save as new, discard changes to the old one TODO: auto save logic
+			STORAGE.FILES.updateThumbFromDatabase(ENV.fileID); // reload saved thumb
+			toSaveAsNew();
+		}	
+	};
+
+	const psdFunc=()=>{
+		EventDistributer.footbarHint.showInfo(Lang("Rendering")+" ...");
+		fileManager.toggleExpand();
+		ENV.taskCounter.startTask(1); // start PSD task
+		setTimeout(e=>{
+			FILES.saveAsPSD().then(isSuccess=>{
+				ENV.taskCounter.finishTask(1); // finish PSD task
+			})
+		},1000);
+	};
+
+	const pngFunc=()=>{
+		EventDistributer.footbarHint.showInfo(Lang("Saving")+" ...");
+		fileManager.toggleExpand();
+		ENV.taskCounter.startTask(1); // save PNG task
+		setTimeout(FILES.saveAsPNG,500);
+	};
+
+	fileManager.addButtonRow([{
+		$element: FILES._createTextButtons(
+			Lang("Save as new file"),
+			"./resources/menu-button/copy-paper.svg"
+		),
+		callback: copyFunc
+	},{
+		$element: FILES._createTextButtons(
+			Lang("Save as PSD"),
+			"./resources/menu-button/save-psd.svg"
+		),
+		callback: psdFunc
+	},{
+		$element: FILES._createTextButtons(
+			Lang("Save as PNG"),
+			"./resources/menu-button/save-png.svg"
+		),
+		callback: pngFunc
+	}]);
 }
 
 // ==================== Actions in setting ======================

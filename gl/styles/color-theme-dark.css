@@ -163,3 +163,12 @@ input:disabled {
 .setting-table .setting-hint{
 	background: #ffffff33;
 }
+
+
+.files-row-button:hover{
+	background: #ffffff22;
+}
+.files-row-button:active{
+	box-shadow: 0em 0em 1em #ffffff88;
+	background: #ffffff44;
+}

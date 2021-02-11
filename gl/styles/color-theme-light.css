@@ -141,3 +141,10 @@ input:disabled {
 .setting-table .setting-button:active{
 	box-shadow: 0px 0px 10px #ffffff88;
 }
+
+.files-row-button:hover{
+	background: #00000055;
+}
+.files-row-button:active{
+	box-shadow: 0em 0em 1em #ffffff44;
+}

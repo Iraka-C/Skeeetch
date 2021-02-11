@@ -134,6 +134,7 @@ LANG_EN={
 	"file-save-warning":"There are changes in this paper. Do you want to save them?",
 	"file-save-yes":"Yes, save them.",
 	"file-save-no":"No, discard them.",
+	"resize-wh-hint":"Please specify a different width / height first!",
 
 	"layer-mask":" Mask",
 
