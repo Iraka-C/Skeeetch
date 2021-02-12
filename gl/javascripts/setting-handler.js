@@ -244,16 +244,16 @@ SettingHandler.initSystemSetting=function(sysParams) {
 	sys.addSectionTitle(Lang("sys-info"));
 	sys.addInfo(Lang("sys-mem"),"MB",() => {
 		const mem=PERFORMANCE.getRAMEstimation();
-		return mem.toFixed(mem>2000? 0:1);
+		return mem.toFixed(mem>=1000? 0:1);
 	});
 	sys.addInfo(Lang("sys-gpumem"),"MB",() => {
 		const mem=PERFORMANCE.getGPUMemEstimation();
-		return mem.toFixed(mem>2000? 0:1);
+		return mem.toFixed(mem>=1000? 0:1);
 	});
 	sys.addInfo(Lang("sys-disk"),"MB",callback => {
 		PERFORMANCE.getDriveEstimation().then(val => {
 			const usage=val/1024/1024;
-			callback(usage.toFixed(usage>2000? 0:1));
+			callback(usage.toFixed(usage>=1000? 0:1));
 		});
 	});
 	// ===================== System Limits =======================

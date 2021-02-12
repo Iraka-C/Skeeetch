@@ -26,7 +26,9 @@ EventDistributer.wheel={
 				 */
 			}
 		},{passive:false});
+		EventDistributer.wheel.lineHeight=16; // default 16px per line
 		EventDistributer.wheel.threshold=10;//ENV.browserInfo.macOS?5:1;
+		EventDistributer.wheel.calcLineHeight(); // calculate once
 
 		// scroll speed monitor
 		let lastWheelTime=0;
@@ -82,15 +84,22 @@ EventDistributer.wheel={
 	_overSpeedStart: [Infinity,Infinity],
 	overSpeedInterval: [0,0],
 	_onwheel:function(e){ // wheel handler
+
 		if(EventDistributer.wheel._nowListener&&EventDistributer.wheel._nowFunction){
 			const cnt=EventDistributer.wheel.scrollCnt;
+			let deltaX=e.deltaX,deltaY=e.deltaY;
+			if(e.deltaMode){
+				const lH=EventDistributer.wheel.lineHeight;
+				deltaX*=lH;
+				deltaY*=lH;
+			}
 			if(e.webkitDirectionInvertedFromDevice){ // On safari: natural on
-				cnt[0]+=e.deltaX;
-				cnt[1]+=e.deltaY;
+				cnt[0]+=deltaX;
+				cnt[1]+=deltaY;
 			}
 			else{ // Win or natural scroll off
-				cnt[0]-=e.deltaX;
-				cnt[1]-=e.deltaY;
+				cnt[0]-=deltaX;
+				cnt[1]-=deltaY;
 			}
 
 			const threshold=EventDistributer.wheel.threshold;
@@ -107,6 +116,20 @@ EventDistributer.wheel={
 			}
 			//e.stopPropagation();
 			// propagate this event to window so that it can prevent window default action
+		}
+	},
+	calcLineHeight:function(){
+		const el=document.createElement("div");
+		Object.assign(el.style,{ // invisible DOM element
+			position: "absolute",
+			fontSize: "initial", // Supported unless IE
+			display: "none"
+		});
+		document.body.appendChild(el);
+		const fontSize=getComputedStyle(el).fontSize;
+		document.body.removeChild(el);
+		if(fontSize){ // update
+			EventDistributer.wheel.lineHeight=parseInt(fontSize);
 		}
 	}
 };

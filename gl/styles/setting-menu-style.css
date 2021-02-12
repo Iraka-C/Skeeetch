@@ -95,7 +95,7 @@ table{
 	width: 8em;
 }
 .setting-item-value{
-	width: 4em;
+	width: 3em;
 }
 .setting-item-unit{
 	width: 1.5em; /* 3 alphabets */
@@ -103,12 +103,15 @@ table{
 .setting-table .value{
 	text-align: right;
 	padding-right: 0.2em;
+	width: 3em; /* again */
 }
 .setting-table .value-container{
 	text-align: right;
 }
 .setting-table .unit{
 	font-size: 80%;
+	width: 1.5em; /* again */
+	padding-left: 0.5em;
 }
 
 .setting-table input{
@@ -134,7 +137,7 @@ table{
 }
 .setting-table .setting-button{
 	display: inline-block;
-	border: 1.5px solid #ccc;
+	border: 1.6px solid #ccc; /* 1.6PX will be rendered thicker on 100% */
 	border-radius: 1.4em;
 	padding: 0.15em 0.6em;
 	text-align: center;

@@ -78,10 +78,13 @@ EVENTS.init=function() {
 	 * Window resize handler
 	 */
 	$(window).on("resize",event => {
+		console.log("Resize");
+		
 		ENV.window.SIZE.width=$canvasWindow.width();
 		ENV.window.SIZE.height=$canvasWindow.height();
 		ENV.refreshTransform();
 		PALETTE.refreshUIParam(); // for palette selector
+		EventDistributer.wheel.calcLineHeight(); // for wheel
 	});
 
 	// Tidy the logic here: better if only use over/move/out. Do not use down/up
