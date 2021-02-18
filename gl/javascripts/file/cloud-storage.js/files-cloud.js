@@ -282,6 +282,7 @@ FILES.CLOUD.sync=function(){
 		for(const hash of nonExistHashes){ // removed non-existing files
 			delete cloudList[hash];
 		}
+		LOGGING&&console.log("cloudList after cleaning",cloudList);
 		
 		/**
 		 * format of item in cloudList should be hash -> {

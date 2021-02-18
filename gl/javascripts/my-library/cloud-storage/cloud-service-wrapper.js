@@ -7,7 +7,7 @@
 
 class CloudServiceWrapper{
 	constructor(){
-		$.ajaxSetup({timeout:50000});
+		$.ajaxSetup({timeout:50000,cache:false});
 		/**
 		 * Must implement:
 		 * this.smallFileThreshold (can be 0 or Infinity)
