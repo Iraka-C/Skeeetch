@@ -255,6 +255,18 @@ LANG_ZH={
 	"file-overwrite-old":(oTS,oTag)=>`已有的文件修改时间：${oTag}<br>&emsp;&emsp;&emsp;&emsp;${oTS}`,
 	"file-overwrite-new":(nTS,nTag)=>`导入的文件修改时间：${nTag}<br>&emsp;&emsp;&emsp;&emsp;${nTS}`,
 
+	// cloud
+	"cloud-login":"登录云储存",
+	"cloud-login-failed":"登录云储存失败，请重试",
+	"cloud-logout":"注销云储存",
+	"cloud-logout-complete":"已注销",
+	"cloud-sync":"云同步",
+	"cloud-sync-complete":"同步完毕",
+	"cloud-sync-fail":"云同步过程中发生错误，可能留有未完全同步的内容",
+
+	"cloud-service-select-page":"选择云储存服务",
+	"cloud-onedrive":"OneDrive",
+
 	// Task reports
 	"Task Report":"任务报告",
 	"open-psd-report":"加载 ",

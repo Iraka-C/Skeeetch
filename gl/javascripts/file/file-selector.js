@@ -165,8 +165,8 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID,order) {
 			Promise.all([STORAGE.FILES.removeFileID(fileID),cloudPromise]).then(()=>{
 				EventDistributer.footbarHint.showInfo(fileName+" "+(
 					FILES.CLOUD.storage?
-					Lang("file-deleted"):
-					Lang("file-cloud-deleted")
+					Lang("file-cloud-deleted"):
+					Lang("file-deleted")
 				));
 			});
 

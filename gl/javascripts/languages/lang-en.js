@@ -152,6 +152,18 @@ LANG_EN={
 	"file-overwrite-old":(oTS,oTag)=>`Existing file last modification:<br>&emsp;&emsp;&emsp;&emsp;${oTS}&nbsp;${oTag}`,
 	"file-overwrite-new":(nTS,nTag)=>`Imported file last modification:<br>&emsp;&emsp;&emsp;&emsp;${nTS}&nbsp;${nTag}`,
 
+	// cloud
+	"cloud-login":"Cloud service login",
+	"cloud-login-failed":"Failed to log in to cloud service.",
+	"cloud-logout":"Cloud service logout",
+	"cloud-logout-complete":"Logged out from cloud service.",
+	"cloud-sync":"Cloud Sync",
+	"cloud-sync-complete":"Storage synchronized.",
+	"cloud-sync-fail":"Synchronization failed. There might be contents out of sync.",
+
+	"cloud-service-select-page":"Choose a cloud service:",
+	"cloud-onedrive":"OneDrive",
+
 	// Task reports
 	"open-psd-report":"Loading ",
 	"check-worker-report":"Web Worker",

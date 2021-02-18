@@ -24,6 +24,9 @@ STORAGE.FILES.updateThumb=function(fileID,imgSrc,isToSaveInDatabase){
 	}
 	isToSaveInDatabase=isToSaveInDatabase||false; // default not save in database
 	const $ui=FILES.fileSelector.$uiList[fileID];
+	if(!$ui){ // ui do not exist
+		return;
+	}
 	const $cv=$ui.children(".file-ui-canvas-container").children("canvas");
 	const w=imgSrc.width,h=imgSrc.height;
 	if(!(w&&h)) { // no image data content, also clear the content of cv
@@ -96,6 +99,14 @@ STORAGE.FILES.updateThumb=function(fileID,imgSrc,isToSaveInDatabase){
 		ctx2d.putImageData(imgSrc,0,0);
 		imgSrc=canvas; // change reference to canvas
 	}
+	else if(imgSrc instanceof HTMLImageElement){ // <img> type
+		const canvas=document.createElement("canvas");
+		canvas.width=w;
+		canvas.height=h;
+		const ctx2d=canvas.getContext("2d");
+		ctx2d.drawImage(imgSrc,0,0); // put img on to ctx2d
+		imgSrc=canvas; // change reference to canvas
+	}
 
 	// imgSrc is always a canvas now
 	// draw contents
@@ -119,15 +130,20 @@ STORAGE.FILES.updateCurrentThumb=function(){
 
 // ======================== Read From ========================
 
-STORAGE.FILES.updateThumbFromDatabase=function(fileID){
+STORAGE.FILES.getThumbImageData=function(fileID){
 	return STORAGE.FILES.thumbStore.getItem(fileID).then(imgSrc => {
-		if(imgSrc){ // fetched, type=="RAMBuf8"
-			imgSrc.data=Compressor.decode(imgSrc.data); // decode
-			STORAGE.FILES.updateThumb(fileID,imgSrc);
-		}
-		else{
-			STORAGE.FILES.updateThumb(fileID,null); // failed
-		}
+		if(!imgSrc)throw new Error("No thumb in db");
+		// fetched, type=="RAMBuf8"
+		imgSrc.data=Compressor.decode(imgSrc.data); // decode
+		return imgSrc;
+	});
+}
+
+STORAGE.FILES.updateThumbFromDatabase=function(fileID){
+	return STORAGE.FILES.getThumbImageData(fileID).then(imgSrc=>{
+		STORAGE.FILES.updateThumb(fileID,imgSrc);
+	}).catch(err=>{
+		// no thumb, do nothing
 	});
 }
 
@@ -140,7 +156,7 @@ STORAGE.FILES.loadAllFileThumbs=function(){
 	for(const fileID in STORAGE.FILES.filesStore.fileList) {
 		if(fileID!=ENV.fileID){ // not opened
 			ENV.taskCounter.startTask(); // start load thumb task
-			STORAGE.FILES.updateThumbFromDatabase(fileID).then(()=>{
+			STORAGE.FILES.updateThumbFromDatabase(fileID).finally(()=>{
 				ENV.taskCounter.finishTask(); // finish load thumb task
 			});
 		}

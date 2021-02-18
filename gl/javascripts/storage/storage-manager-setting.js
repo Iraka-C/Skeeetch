@@ -41,6 +41,7 @@ STORAGE.SETTING.init=function(){ // async! returns a Promise
 	if(windowParams.query["reset"]){
 		localStorage.removeItem("is-run");
 		localStorage.removeItem("start-report");
+		localStorage.removeItem("oauth-login-info"); // for cloud storage login
 	}
 	else{
 		try{

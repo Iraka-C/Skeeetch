@@ -443,7 +443,7 @@ FILES.onFilesLoaded=function(files,isNewFile){
 	else if(file.type&&file.type.match(/image*/)) { // an image file
 		window.URL=window.URL||window.webkitURL;
 		const img=new Image();
-		img.src=window.URL.createObjectURL(file);
+		img.src=window.URL.createObjectURL(file); // @TODO: remove url after load;
 		img.filename=file.name;
 		img.onload=function(e) {
 			if(img.width>ENV.maxPaperSize||img.height>ENV.maxPaperSize){

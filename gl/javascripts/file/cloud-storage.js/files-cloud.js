@@ -84,7 +84,12 @@ FILES.CLOUD.initUI=function(){
 	const $buttonPanel=$("<div id='cloud-button-panel'>");
 	const $syncButton=$("<div id='cloud-button-sync' class='cloud-click'>");
 	$syncButton.append($("<img src='./resources/cloud/arrow-repeat.svg'>"));
+
+	let isSyncing=false;
 	$syncButton.click(()=>{
+		if(isSyncing)return; // check and set flag
+		isSyncing=true;
+
 		let saveContentPromise;
 		$syncButton.addClass("sync-rotate"); // animation effect
 		// check auto-save before sync
@@ -96,14 +101,19 @@ FILES.CLOUD.initUI=function(){
 		}
 
 		saveContentPromise.then(()=>{
-			return FILES.CLOUD.sync().catch(err=>{
+			return FILES.CLOUD.sync().then(()=>{
+				EventDistributer.footbarHint.showInfo(Lang("cloud-sync-complete"));
+			}).catch(err=>{
+				EventDistributer.footbarHint.showInfo(Lang("cloud-sync-fail"));
 				console.warn("Error during sync:",err);
 			})
 		}).finally(()=>{
 			$syncButton.removeClass("sync-rotate");
+			isSyncing=false; // cancel flag
 			console.log("Sync complete");
 		});
 	});
+	EventDistributer.footbarHint($syncButton,()=>Lang("cloud-sync"));
 	$buttonPanel.append($syncButton);
 
 	$cloudDiv.append($iconDiv,$infoPanel,$buttonPanel);
@@ -123,6 +133,7 @@ FILES.CLOUD.initEnableCloudButton=function($repoTitle){
 			FILES.CLOUD.startCloudService();
 		}
 	});
+	EventDistributer.footbarHint($button,()=>Lang(FILES.CLOUD.storage?"cloud-logout":"cloud-login"));
 }
 
 FILES.CLOUD.setQuotaUI=function(used,total){ // in bytes
@@ -170,6 +181,7 @@ FILES.CLOUD.stopCloudService=function(){
 		$("#cloud-button").children("img").attr("src","./resources/cloud/cloud-plus.svg");
 		FILES.CLOUD.storage=null;
 		localStorage.removeItem("oauth-login-info"); // remove login info
+		EventDistributer.footbarHint.showInfo(Lang("cloud-logout-complete"));
 	});
 }
 
@@ -206,6 +218,7 @@ FILES.CLOUD.initCloudStorage=function(cloudService,options){
 	})
 	.catch(err=>{ // login error here
 		console.warn("Login Failed",err);
+		EventDistributer.footbarHint.showInfo(Lang("cloud-login-failed"));
 		// and do nothing when failed
 		FILES.CLOUD.storage=null;
 		localStorage.removeItem("oauth-login-info");
@@ -245,8 +258,8 @@ FILES.CLOUD.sync=function(){
 		return emptyList; // empty @TODO: manually count from data? for robustness
 	}).then(list=>{ // file list acquired
 		const cloudList=list.cloudList;
-		console.log("cloudList",cloudList);
-		console.log("itemList",list.itemList);
+		//console.log("cloudList",cloudList);
+		//console.log("itemList",list.itemList);
 		
 		/**
 		 * format of item in cloudList should be hash -> {
@@ -294,8 +307,8 @@ FILES.CLOUD.sync=function(){
 				uploadList.push(item.fileID);
 			}
 		}
-		console.log("Maps",cloudHashMap,localHashMap);
-		console.log("Lists",downloadList,uploadList);
+		//console.log("Maps",cloudHashMap,localHashMap);
+		//console.log("Lists",downloadList,uploadList);
 		
 		// first download, then upload
 		return FILES.CLOUD.downloadByHashList(
@@ -357,6 +370,8 @@ FILES.CLOUD.uploadByFileIDList=function(fileIDList,localHashMap){
 				FILES.fileSelector.setProgressIndicator(fileID);
 			});
 			uploadTasks.push(task);
+			// upload thumb BTW
+			uploadTasks.push(FILES.CLOUD.uploadThumbByFileID(fileID,hash+".png"));
 			// upload flow ends here
 		}).catch(err=>{
 			console.warn(err);
@@ -381,6 +396,41 @@ FILES.CLOUD.uploadByFileIDList=function(fileIDList,localHashMap){
 				FILES.fileSelector.setProgressIndicator(fileID);
 			}
 		});
+	});
+}
+
+/**
+ * upload the thumb of fileID
+ * if there is no thumb, then do not upload
+ */
+FILES.CLOUD.uploadThumbByFileID=function(fileID,filename){ // not certainly successful
+	return STORAGE.FILES.getThumbImageData(fileID).then(imgSrc=>{ // RAMBuf8 type
+		const w=imgSrc.width;
+		const h=imgSrc.height;
+		if(!(w&&h)){ // zero content
+			throw new Error("Empty thumb");
+		}
+		// put imgdata into canvas
+		const canvas=document.createElement("canvas");
+		canvas.width=w;
+		canvas.height=h;
+		const ctx2d=canvas.getContext("2d");
+		const imgData2D=ctx2d.createImageData(w,h);
+		imgData2D.data.set(imgSrc.data); // copy the contents of imgSrc into canvas
+		ctx2d.putImageData(imgData2D,0,0);
+		// export canvas into arraybuffer from blob (png file)
+		return new Promise(resolve=>{
+			canvas.toBlob(blob=>{
+				blob.arrayBuffer().then(buffer=>{
+					resolve(buffer);
+				})
+			},"image/png");
+		})
+	}).then(buffer=>{ // png buffer, upload this
+		return FILES.CLOUD.storage.uploadFile(["Skeeetch","stores",filename],buffer);
+	}).catch(err=>{ // thumb not found
+		// directly catch: if failed, no need to redo
+		console.warn(err);
 	});
 }
 
@@ -438,6 +488,31 @@ FILES.CLOUD.downloadByHashList=function(hashList,itemList,localHashMap,cloudHash
 		}
 
 		FILES.fileSelector.setProgressIndicator(fileID,0);
+
+		// thumb download
+		if(thumbIndex>=0){ // thumb found
+			storage.downloadFile(itemList[thumbIndex]).then(data=>{
+				const file=new File([data],"",{type:"image/png"});
+				const img=new Image();
+				img.src=URL.createObjectURL(file); // @TODO: remove url after load;
+				img.filename=file.name;
+				return new Promise((res,rej)=>{
+					img.onload=e=>{ // convert img into ImageData 2D
+						const isToSaveThumb=(fileID!=ENV.fileID); // if not currently opened, save
+						STORAGE.FILES.updateThumb(fileID,img,isToSaveThumb); // load into thumb and save it
+						URL.revokeObjectURL(img.src);
+						res();
+					};
+					img.onerror=err=>{
+						rej(err);
+					}
+				});
+			}).catch(err=>{ // download failed: do nothing
+				console.warn(err);
+			});
+		}
+
+		// db download
 		return storage.downloadFile(itemList[itemIndex],progress=>{
 			FILES.fileSelector.setProgressIndicator(fileID,progress);
 		}).then(data=>{
