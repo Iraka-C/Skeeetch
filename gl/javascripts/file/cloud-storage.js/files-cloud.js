@@ -1,6 +1,7 @@
 "use strict";
 FILES.CLOUD={
-	storage: null
+	storage: null,
+	loginInfo: null
 };
 
 /**
@@ -16,6 +17,26 @@ FILES.CLOUD.init=function(fileManager){
 	FILES.CLOUD.$container=$container;
 	FILES.CLOUD.fileManager=fileManager;
 	FILES.CLOUD.initUI();
+
+	// test if there is already a login info
+	try{
+		const loginInfo=JSON.parse(localStorage.getItem("oauth-login-info"))||{};
+		let service=null;
+		let defaultAvatar=null;
+		switch(loginInfo.serviceName){ // select service type
+		case "OneDriveService":
+			service=new OneDriveService();
+			defaultAvatar="./resources/cloud/onedrive.svg";
+			break;
+		}
+		if(service){ // there is an available service
+			$("#cloud-icon").css("background-image","url('"+defaultAvatar+"')");
+			FILES.CLOUD.initCloudStorage(service,loginInfo); // login with loginInfo
+		}
+
+	}catch{
+		// any parsing fault, do nothing
+	}
 }
 
 FILES.CLOUD.initUI=function(){
@@ -148,6 +169,7 @@ FILES.CLOUD.stopCloudService=function(){
 		$("#cloud-info-service").text("Cloud");
 		$("#cloud-button").children("img").attr("src","./resources/cloud/cloud-plus.svg");
 		FILES.CLOUD.storage=null;
+		localStorage.removeItem("oauth-login-info"); // remove login info
 	});
 }
 
@@ -160,8 +182,7 @@ FILES.CLOUD.initCloudStorage=function(cloudService,options){
 	FILES.CLOUD.storage=storage;
 
 	const $container=FILES.CLOUD.$container;
-
-	storage.init(/*...*/).then(data=>{ // login data
+	storage.init(options).then(data=>{ // login data
 		$container.css("display","block");
 		$("#cloud-info-username").text(data.name); // setup username
 
@@ -179,11 +200,15 @@ FILES.CLOUD.initCloudStorage=function(cloudService,options){
 		}).catch(err=>{ // quota error here
 			console.log("Quota failed",err);
 		});
+
+		// set info
+		localStorage.setItem("oauth-login-info",JSON.stringify(storage.getLoginInfo()));
 	})
 	.catch(err=>{ // login error here
 		console.warn("Login Failed",err);
 		// and do nothing when failed
 		FILES.CLOUD.storage=null;
+		localStorage.removeItem("oauth-login-info");
 	});
 }
 
@@ -279,6 +304,9 @@ FILES.CLOUD.sync=function(){
 			return FILES.CLOUD.uploadByFileIDList(uploadList,localHashMap);
 		});
 	}).then(()=>{ // after uploading, a separate flow
+		// refresh login info
+		localStorage.setItem("oauth-login-info",JSON.stringify(storage.getLoginInfo()));
+
 		storage.getStorageQuota().then(quota=>{ // after sync, get quota
 			FILES.CLOUD.setQuotaUI(quota.total-quota.remain,quota.total);
 		}).catch(err=>{ // quota error here
@@ -297,6 +325,10 @@ FILES.CLOUD.uploadByFileIDList=function(fileIDList,localHashMap){
 	let quotaFuse=false; // if quotaFuse is set true, quota exceeded, halt.
 	const uploadTasks=[];
 
+	for(const fileID of fileIDList){ // init all indicator
+		FILES.fileSelector.setProgressIndicator(fileID,0);
+	}
+
 	const uploadItem=(i)=>{
 		if(i>=fileIDList.length){ // all uploaded
 			return Promise.resolve();
@@ -305,7 +337,6 @@ FILES.CLOUD.uploadByFileIDList=function(fileIDList,localHashMap){
 			return Promise.reject("Quota exceeded.");
 		}
 		const fileID=fileIDList[i];
-		FILES.fileSelector.setProgressIndicator(fileID,0);
 
 		return STORAGE.FILES.dumpImgDB(fileID).then(buffer=>{
 			const hash=localList[fileID].hash;
@@ -344,8 +375,13 @@ FILES.CLOUD.uploadByFileIDList=function(fileIDList,localHashMap){
 		const buffer=stringToArrayBuffer(JSON.stringify(newCloudList));
 		uploadTasks.push(storage.uploadFile(["Skeeetch","stores",".filelist"],buffer));
 	}).then(()=>{ // wait for all tasks to complete
-		return Promise.all(uploadTasks);
-	})
+		return Promise.all(uploadTasks).then(()=>{
+			for(const fileID of fileIDList){
+				// clear all indicator (even if they aren't uploaded)
+				FILES.fileSelector.setProgressIndicator(fileID);
+			}
+		});
+	});
 }
 
 /**

@@ -109,6 +109,7 @@ class CloudStorage{
 
 	getLoginInfo(){ // sync!
 		return {
+			serviceName: this.service.constructor.name,
 			name: this.username,
 			accessToken: this.service.accessToken,
 			refreshToken: this.service.refreshToken
