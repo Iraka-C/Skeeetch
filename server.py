@@ -29,7 +29,7 @@ def main():
 if __name__ == "__main__":
 	main()
 	def threadApp():
-		app.run(host="0.0.0.0")
+		app.run(host="0.0.0.0", port=3030)
 	t1 = threading.Thread(target=threadApp)
 	t1.setDaemon(True)
 	t1.start()
