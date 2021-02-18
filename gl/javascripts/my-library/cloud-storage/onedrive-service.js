@@ -1,5 +1,5 @@
 class OneDriveService extends CloudServiceWrapper{
-	constructor(){
+	constructor(redirectURI){
 		/**
 		 * Must implement:
 		 * this.smallFileThreshold (can be 0 or Infinity)
@@ -9,7 +9,7 @@ class OneDriveService extends CloudServiceWrapper{
 		super();
 		this.smallFileThreshold=1024*1024*4; // 4MB limit for OneDrive
 		this.appID="6b5feae2-0f13-43d0-98fb-165096a7e7c2";
-		this.redirectURI="http://localhost:3030/oauth-login.html";
+		this.redirectURI=redirectURI||"https://iraka-c.github.io/Skeeetch/gl/index.html";
 		this.privilege="files.readwrite offline_access User.Read";
 	}
 
