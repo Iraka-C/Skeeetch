@@ -9,7 +9,7 @@ class OneDriveService extends CloudServiceWrapper{
 		super();
 		this.smallFileThreshold=1024*1024*4; // 4MB limit for OneDrive
 		this.appID="6b5feae2-0f13-43d0-98fb-165096a7e7c2";
-		this.redirectURI=redirectURI||"https://iraka-c.github.io/Skeeetch/gl/index.html";
+		this.redirectURI=redirectURI||"https://iraka-c.github.io/Skeeetch/gl/oauth-login.html";
 		this.privilege="files.readwrite offline_access User.Read";
 	}
 
