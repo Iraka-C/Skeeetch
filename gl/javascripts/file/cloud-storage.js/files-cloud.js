@@ -260,6 +260,10 @@ FILES.CLOUD.sync=function(){
 		const cloudList=list.cloudList;
 		LOGGING&&console.log("cloudList",cloudList);
 		LOGGING&&console.log("itemList",list.itemList);
+
+		// @TODO: check if every file in cloudList really exist
+		// @TODO: and check if every file in itemList is in cloudList (optional)
+		
 		
 		/**
 		 * format of item in cloudList should be hash -> {
@@ -364,7 +368,7 @@ FILES.CLOUD.uploadByFileIDList=function(fileIDList,localHashMap){
 					quotaFuse=true; // enable fuse, halt the upload flow
 				}
 				else{
-					throw err;
+					console.warn(err);
 				}
 			}).finally(()=>{
 				FILES.fileSelector.setProgressIndicator(fileID);
