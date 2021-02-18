@@ -5,6 +5,7 @@
 * [调色盘](./palette.md)
 * [图层管理](./layers.md)
 * [本机文件](./pc-files.md)
+* [云储存](./cloud.md)
 * [快捷键和鼠标组合键](./hotkey.md)
 
 [回到简介](../readme.md)
