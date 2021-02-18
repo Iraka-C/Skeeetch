@@ -307,8 +307,8 @@ FILES.CLOUD.sync=function(){
 				uploadList.push(item.fileID);
 			}
 		}
-		//console.log("Maps",cloudHashMap,localHashMap);
-		//console.log("Lists",downloadList,uploadList);
+		console.log("Maps",cloudHashMap,localHashMap);
+		console.log("Lists",downloadList,uploadList);
 		
 		// first download, then upload
 		return FILES.CLOUD.downloadByHashList(
@@ -545,6 +545,9 @@ FILES.CLOUD.downloadByHashList=function(hashList,itemList,localHashMap,cloudHash
 FILES.CLOUD.deleteByHash=function(hash){
 	const storage=FILES.CLOUD.storage;
 	const filename=hash+".skeeetch";
+	const thumbname=hash+".png";
+	storage.deleteFile(["Skeeetch","stores",thumbname]).catch(err=>{}); // do nothing now
+
 	return storage.deleteFile(["Skeeetch","stores",filename]).then(()=>{
 		// after deletion, upload .filelist
 		const newCloudList={}; // create file contents (hash->item)
