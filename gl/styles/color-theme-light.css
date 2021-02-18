@@ -148,3 +148,17 @@ input:disabled {
 .files-row-button:active{
 	box-shadow: 0em 0em 1em #ffffff44;
 }
+
+#cloud-div{
+	background: #00000088;
+	box-shadow: 0em 0em 1em #00000088;
+}
+.file-ui-indc{
+	background: #ffffff88;
+}
+.file-ui-indc svg .file-indicator-bg{
+	stroke: #00000033;
+}
+.file-ui-indc svg .file-indicator-arc{
+	stroke: #666666;
+}

@@ -140,7 +140,9 @@ FILES.initFileMenu=function() {
 	
 	FILES.CLOUD.init(fileManager);
 	
-	fileManager.addSectionTitle(Lang("Repository"));
+	const $repoTitle=fileManager.addSectionTitle(Lang("Repository"));
+	FILES.CLOUD.initEnableCloudButton($repoTitle); // "start cloud" button
+
 	FILES.fileSelector.init(fileManager);
 
 	// ============== open action ===============

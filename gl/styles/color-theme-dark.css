@@ -172,3 +172,11 @@ input:disabled {
 	box-shadow: 0em 0em 1em #ffffff88;
 	background: #ffffff44;
 }
+
+#cloud-div{
+	background: #00000066;
+	box-shadow: 0em 0em 1em #00000088;
+}
+.file-ui-indc{
+	background: #00000088;
+}

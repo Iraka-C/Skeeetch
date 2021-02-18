@@ -22,6 +22,13 @@ FILES.fileSelector.$newUI=function() {
 	$cvContainer.append($cvBackground,$cv);
 
 	let $mask=$("<div class='file-ui-mask'>");
+	let $indicator=$("<div class='file-ui-indc'>");
+	$indicator.append($(`
+		<svg viewBox="0 0 100 100" shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" version="1.1">
+			<circle class="file-indicator-bg" cx="50" cy="50" r="40" stroke="#ffffff44" fill="none" stroke-width="10" />
+			<path class="file-indicator-arc" stroke="#cccccc" fill="none" stroke-width="10" stroke-linecap="round" />
+		</svg>
+	`));
 
 	// name display
 	let $nameLabel=$("<div class='file-ui-name-label'>");
@@ -50,7 +57,7 @@ FILES.fileSelector.$newUI=function() {
 	});
 
 	// all add to $ui
-	$ui.append($cvContainer,$mask,$nameLabel,$buttons);
+	$ui.append($cvContainer,$mask,$nameLabel,$buttons,$indicator);
 	/** file seletor pen down won't influence dragging (there's no dragging) */
 	// $ui.on("pointerdown",event => {
 	// 	if(event.originalEvent.pointerType=="pen") { // "drag" doesn't support pointer type
@@ -192,4 +199,26 @@ FILES.fileSelector.changeFileNameByFileID=function(fileID,newName) {
 	const $ui=FILES.fileSelector.$uiList[fileID];
 	fileItem.fileName=newName;
 	$ui.children(".file-ui-name-label").text(newName);
+}
+
+/**
+ * Set the progress indicator of el (if el is a $ui)
+ * or the indicator of fileID el (if el is a string)
+ * progress 0~1. if undefined, hide the indicator
+ */
+FILES.fileSelector.setProgressIndicator=function(el,progress){
+	if(typeof(el)=="string"){ // get the $ui
+		el=FILES.fileSelector.$uiList[el];
+	}
+	const $indcDiv=el.children(".file-ui-indc");
+	if(typeof(progress)!="number"){ // hide
+		$indcDiv.css("display","none");
+		return;
+	}
+	$indcDiv.css("display","flex");
+	const $indc=$indcDiv.find(".file-indicator-arc");
+	console.log($indc);
+	
+	const angle=progress*359.9;
+	$indc.attr("d",describeSVGArc(50,50,40,0,angle));
 }
