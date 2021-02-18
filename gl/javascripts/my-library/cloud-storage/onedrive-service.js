@@ -14,6 +14,12 @@ class OneDriveService extends CloudServiceWrapper{
 		const pLastSlash=path.lastIndexOf("/");
 		this.redirectURI=path.substring(0,pLastSlash)+"/oauth-login.html";
 		this.privilege="files.readwrite offline_access User.Read";
+
+		/**
+		 * for login
+		 */
+		this.displayName="OneDrive";
+		this.defaultAvatar="./resources/cloud/onedrive.svg";
 	}
 
 	/**

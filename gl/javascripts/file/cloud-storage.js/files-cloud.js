@@ -22,15 +22,10 @@ FILES.CLOUD.init=function(fileManager){
 	try{
 		const loginInfo=JSON.parse(localStorage.getItem("oauth-login-info"))||{};
 		let service=null;
-		let defaultAvatar=null;
 		switch(loginInfo.serviceName){ // select service type
-		case "OneDriveService":
-			service=new OneDriveService();
-			defaultAvatar="./resources/cloud/onedrive.svg";
-			break;
+		case "OneDriveService": service=new OneDriveService();break;
 		}
 		if(service){ // there is an available service
-			$("#cloud-icon").css("background-image","url('"+defaultAvatar+"')");
 			FILES.CLOUD.initCloudStorage(service,loginInfo); // login with loginInfo
 		}
 
@@ -140,7 +135,7 @@ FILES.CLOUD.setQuotaUI=function(used,total){ // in bytes
 	used/=1024*1024; // MB
 	total/=1024*1024; // MB
 
-	const bytesToStr=bytes=>{
+	const bytesToStr=bytes=>{ // TODO: better K/M/G/T sign
 		return bytes>=900?
 			(bytes/1024).toFixed(1)+"G":
 			bytes>=100?
@@ -163,9 +158,7 @@ FILES.CLOUD.startCloudService=function(){
 	const dialog=new DialogBoxItem([$title],[{
 		text: Lang("cloud-onedrive"), // OneDrive service
 		callback: e=>{
-			$("#cloud-info-service").text("OneDrive");
-			$("#cloud-icon").css("background-image","url('./resources/cloud/onedrive.svg')");
-			FILES.CLOUD.initCloudStorage(new OneDriveService());
+			FILES.CLOUD.initCloudStorage(new OneDriveService()); // no option
 		}
 	},{ // nothing
 		text: Lang("Cancel")
@@ -190,6 +183,11 @@ FILES.CLOUD.stopCloudService=function(){
  * options: login infos
  */
 FILES.CLOUD.initCloudStorage=function(cloudService,options){
+	// set display and avatar
+	$("#cloud-info-service").text(cloudService.displayName);
+	$("#cloud-icon").css("background-image","url('"+cloudService.defaultAvatar+"')");
+
+	// init cloud storage
 	const storage=new CloudStorage(cloudService);
 	FILES.CLOUD.storage=storage;
 
