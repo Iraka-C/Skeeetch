@@ -88,8 +88,9 @@ STORAGE.FILES._arrayBufferToKVPair=function(buffer,kvCnt){
 
 /**
  * option: specify file info {
- * fileName
- * lastOpenedDate
+ *   fileName
+ *   lastOpenedDate
+ *   fileID (if this is provided, then force update the DB without warning)
  * }
  */
 
@@ -104,21 +105,25 @@ STORAGE.FILES.insertImgDB=function(buffer,option){
 
 	let toLoadPromise=Promise.resolve(0); // 0: no existing file, new file
 	let sameFileID=null;
-	for(const key in STORAGE.FILES.filesStore.fileList){
-		const item=STORAGE.FILES.filesStore.fileList[key];
-		if(item.hash==headerJSON.hash){ // same hash
-			if(item.lastModifiedDate==headerJSON.lastModifiedDate){ // same file, no need to reload
-				return Promise.reject("File already in repository");
-			}
-			else{ // same file, one is newer
-				//console.log(item.lastModifiedDate,headerJSON.lastModifiedDate);
-				sameFileID=key;
-				toLoadPromise=STORAGE.FILES.confirmOverwriteDialog(
-					item.lastModifiedDate, // existing
-					headerJSON.lastModifiedDate, // importing
-					item.fileName
-				);
-				break;
+
+	if(!option.fileID){ // not a force update: ask if needed
+		for(const key in STORAGE.FILES.filesStore.fileList){
+			const item=STORAGE.FILES.filesStore.fileList[key];
+			if(item.hash==headerJSON.hash){ // same hash
+				if(item.lastModifiedDate==headerJSON.lastModifiedDate){
+					// same file, no need to reload
+					return Promise.reject("File already in repository");
+				}
+				else{ // same file, one is newer
+					//console.log(item.lastModifiedDate,headerJSON.lastModifiedDate);
+					sameFileID=key;
+					toLoadPromise=STORAGE.FILES.confirmOverwriteDialog(
+						item.lastModifiedDate, // existing
+						headerJSON.lastModifiedDate, // importing
+						item.fileName
+					);
+					break;
+				}
 			}
 		}
 	}
@@ -138,24 +143,40 @@ STORAGE.FILES.insertImgDB=function(buffer,option){
 		// if rejected, directly stop all following loading process
 	})
 	.then(()=>{ // if there is a same file, cleared.
-		// init a new storage space
-		ENV.fileID=STORAGE.FILES.generateFileID();
-		const initPromise=STORAGE.FILES.initLayerStorage(ENV.fileID);
+		if(option.fileID){ // update existing db item
+			const fileID=option.fileID;
+			const item=STORAGE.FILES.filesStore.fileList[fileID];
+			Object.assign(item,option);
+			Object.assign(item,headerJSON); // stored header info
+			delete item.fileID; // useless
 
-		// modify file item info
-		const item=STORAGE.FILES.filesStore.fileList[ENV.fileID];
-		Object.assign(item,option);
-		Object.assign(item,headerJSON); // stored header info
-
-		FILES.fileSelector.addNewFileUIToSelector(ENV.fileID); // add the icon in selector
-		return initPromise;
+			const layerStore=new MyForage("img",fileID);
+			return layerStore.init().then(()=>{
+				return layerStore.clear(); // clear existing items first
+			}).then(()=>{
+				return layerStore;
+			});
+		}
+		else{ // init a new storage space, using ENV.fileID
+			ENV.fileID=STORAGE.FILES.generateFileID();
+			const initPromise=STORAGE.FILES.initLayerStorage(ENV.fileID);
+			// modify file item info
+			const item=STORAGE.FILES.filesStore.fileList[ENV.fileID];
+			Object.assign(item,option);
+			Object.assign(item,headerJSON); // stored header info
+			// add the icon in selector
+			FILES.fileSelector.addNewFileUIToSelector(ENV.fileID);
+			return initPromise.then(()=>{ // use default layerstore
+				return STORAGE.FILES.layerStore;
+			});
+		}
+		
 	})
-	.then(()=>{ // write the file info into a new file
+	.then(layerStore=>{ // write the file info into a new file
 		// read all contents now
 		const kvs=STORAGE.FILES._arrayBufferToKVPair(buffer);
 		kvs.shift(); // skip header
 
-		const layerStore=STORAGE.FILES.layerStore;
 		const taskList=[];
 		for(const kv of kvs){ // get k-v pairs
 			if(typeof(kv[1])=="string"){

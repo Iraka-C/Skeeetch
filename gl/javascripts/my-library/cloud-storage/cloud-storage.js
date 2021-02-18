@@ -208,4 +208,14 @@ class CloudStorage{
 			return this._catchAuthenticationError.call(this,err);
 		});
 	}
+
+	/**
+	 * delete a file from the cloud storage
+	 * @param {[dir]} dirArray the directory and name to the file
+	 */
+	deleteFile(dirArray){
+		return this.service.deleteFile(dirArray).catch(err=>{
+			return this._catchAuthenticationError.call(this,err);
+		});
+	}
 }

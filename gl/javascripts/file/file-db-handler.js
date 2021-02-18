@@ -31,9 +31,25 @@ FILES.openDBFile=function(buffer,filename){
 		});
 	})
 	.then(()=>{ // after database filled
-		return STORAGE.FILES.getLayerTreeFromDatabase();
+		return FILES.reloadCurrentFileFromStorage(filename);
 	})
-	.then(layerTree => { // after getting layer tree, load contents
+	.catch(err=>{
+		console.warn(err);
+		if(typeof(err)=="string"){
+			console.log(err);
+			EventDistributer.footbarHint.showInfo(Lang(err),2000);
+		}
+	})
+	.finally(()=>{ // after loading
+		ENV.taskCounter.finishTask(1); // end open task
+	});
+}
+
+FILES.reloadCurrentFileFromStorage=function(filename){
+	filename=filename||ENV.getFileTitle();
+
+	return STORAGE.FILES.getLayerTreeFromDatabase().then(layerTree => {
+		// after getting layer tree, load contents
 		localStorage.setItem("layer-tree",JSON.stringify(layerTree));
 		const paperSize=layerTree.paperSize;
 		
@@ -48,14 +64,4 @@ FILES.openDBFile=function(buffer,filename){
 		ENV.setPaperSize(...paperSize); // set paper size and clear all contents
 		return STORAGE.FILES.loadLayerTree(layerTree);
 	})
-	.catch(err=>{
-		console.warn(err);
-		if(typeof(err)=="string"){
-			console.log(err);
-			EventDistributer.footbarHint.showInfo(Lang(err),2000);
-		}
-	})
-	.finally(()=>{ // after loading
-		ENV.taskCounter.finishTask(1); // end open task
-	});
 }

@@ -201,3 +201,32 @@ class TypedWriter{
 		throw new Error("Cannot write type "+v);
 	}
 }
+
+function arraybufferToString(buffer){
+	const bufferView=new Uint8Array(buffer);
+	const CHUNK=16384;
+	// assume buffer.length%2==0
+	const resArr=new Array(CHUNK);
+	let result="";
+	let p=0; // pointer in resArr
+	for(let i=0;i<bufferView.length;i+=2){
+		if(p==CHUNK){ // deal with 1 batch
+			result+=String.fromCharCode.apply(null,resArr);
+			p=0; // reset counter
+		}
+		resArr[p++]=(bufferView[i]<<8)|(bufferView[i+1]); // uint16 from big endian
+	}
+	result+=String.fromCharCode.apply(null,resArr.slice(0,p)); // last chunk
+	return result;
+}
+
+function stringToArrayBuffer(str){
+	const buffer=new ArrayBuffer(str.length*2);
+	const bufferView=new Uint8Array(buffer);
+	for(let i=0,p=0;i<str.length;i++,p+=2){
+		const val=str.charCodeAt(i);
+		bufferView[p]=val>>8&0xFF; // write uint16 in big-endian
+		bufferView[p+1]=val&0xFF;
+	}
+	return buffer;
+}

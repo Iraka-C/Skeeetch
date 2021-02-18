@@ -112,7 +112,8 @@ FILES.fileSelector.initSelectorUI=function() {
 // insert a fileItem UI in FILES.fileSelector.$container (at the front aka. prepend)
 // the fileID must be in the STORAGE.FILES.filesStore.fileList
 // This function does not care about the thumb canvas update
-FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
+// order is the order in the selector.
+FILES.fileSelector.addNewFileUIToSelector=function(fileID,order) {
 	const fileItem=STORAGE.FILES.filesStore.fileList[fileID];
 	const $ui=FILES.fileSelector.$newUI();
 	FILES.fileSelector.$uiList[fileID]=$ui; // record corresponding $ui element
@@ -120,7 +121,12 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 	// const lastOpen=new Date();
 	// lastOpen.setTime(fileItem.lastOpenedDate);
 	// $ui.find(".file-ui-info").text(lastOpen.toLocaleDateString());
-	FILES.fileSelector.$container.prepend($ui);
+	if(!order){ // 0 or not specified
+		FILES.fileSelector.$container.prepend($ui);
+	}
+	else{
+		FILES.fileSelector.$container.children().eq(order-1).after($ui);
+	}
 
 	EventDistributer.footbarHint($ui,() => EVENTS.key.shift?fileID: // press shift for fileID
 		fileID==ENV.fileID?"": // Already opened
@@ -140,24 +146,42 @@ FILES.fileSelector.addNewFileUIToSelector=function(fileID) {
 	deleteButton.on("click",event=>{ // try to delete this
 		event.stopPropagation(); // do not click on $ui
 		if(fileID!=ENV.fileID){ // current not opening
-			const fileName=STORAGE.FILES.filesStore.fileList[fileID].fileName;
-			EventDistributer.footbarHint.showInfo(Lang("file-delete-prefix")+fileName+Lang("file-delete-suffix")+" ...");
+			const item=STORAGE.FILES.filesStore.fileList[fileID];
+			const fileName=item.fileName;
+			EventDistributer.footbarHint.showInfo(Lang("file-deleting")(fileName));
 			delete FILES.fileSelector.$uiList[fileID]; // remove from selector hash
 			$ui.remove(); // remove from selector panel
+			
+			let cloudPromise;
+			if(FILES.CLOUD.storage){ // there is a cloud storage available
+				cloudPromise=FILES.CLOUD.deleteByHash(item.hash).catch(err=>{ // 404 or ...
+					console.warn(err);
+				});
+			}
+			else{
+				cloudPromise=Promise.resolve();
+			}
 			// remove from storage
-			STORAGE.FILES.removeFileID(fileID).then(()=>{
-				EventDistributer.footbarHint.showInfo(fileName+" "+Lang("file-deleted"));
+			Promise.all([STORAGE.FILES.removeFileID(fileID),cloudPromise]).then(()=>{
+				EventDistributer.footbarHint.showInfo(fileName+" "+(
+					FILES.CLOUD.storage?
+					Lang("file-deleted"):
+					Lang("file-cloud-deleted")
+				));
 			});
 
 			// The thumb image of this file will be deleted at the next startup.
 			// in STORAGE.FILES.loadAllFileThumbs()
 		}
 	});
-	EventDistributer.footbarHint(deleteButton,() =>
-		Lang("delete-file-confirm-prefix")
-		+fileItem.fileName
-		+Lang("delete-file-confirm-suffix")
-	);
+	EventDistributer.footbarHint(deleteButton,() =>{
+		if(FILES.CLOUD.storage){
+			return Lang("delete-cloud-file-confirm")(fileItem.fileName);
+		}
+		else{
+			return Lang("delete-file-confirm")(fileItem.fileName);
+		}
+	});
 
 	const dumpButton=$ui.find(".file-ui-dump-button");
 	dumpButton.on("click",event=>{ // try to dump db and download
@@ -207,6 +231,7 @@ FILES.fileSelector.changeFileNameByFileID=function(fileID,newName) {
  * progress 0~1. if undefined, hide the indicator
  */
 FILES.fileSelector.setProgressIndicator=function(el,progress){
+	//console.log("To set indic",el);
 	if(typeof(el)=="string"){ // get the $ui
 		el=FILES.fileSelector.$uiList[el];
 	}
@@ -215,10 +240,14 @@ FILES.fileSelector.setProgressIndicator=function(el,progress){
 		$indcDiv.css("display","none");
 		return;
 	}
+
 	$indcDiv.css("display","flex");
 	const $indc=$indcDiv.find(".file-indicator-arc");
-	console.log($indc);
-	
-	const angle=progress*359.9;
-	$indc.attr("d",describeSVGArc(50,50,40,0,angle));
+	if(progress==0){
+		$indc.attr("d",""); // hide
+	}
+	else{
+		const angle=progress*359.9;
+		$indc.attr("d",describeSVGArc(50,50,40,0,angle));
+	}
 }

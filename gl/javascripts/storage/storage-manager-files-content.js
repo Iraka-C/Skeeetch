@@ -152,7 +152,10 @@ STORAGE.FILES.requestSaveContentChanges=function() {
 	if(!STORAGE.FILES.isNowActiveLayerSaved
 		&&CANVAS.nowLayer
 		&&!STORAGE.FILES.savingList.has(CANVAS.nowLayer.id)) {
-		STORAGE.FILES.saveContentChanges(CANVAS.nowLayer);
+		return STORAGE.FILES.saveContentChanges(CANVAS.nowLayer);
+	}
+	else{
+		return Promise.resolve();
 	}
 }
 

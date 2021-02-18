@@ -161,7 +161,7 @@ class OneDriveService extends CloudServiceWrapper{
 				},
 				type: "GET",
 				success: (data,status)=>{
-					console.log("User",data);
+					// console.log("User",data);
 					res({name:data["displayName"]});
 				},
 				error: (xhr,text,err)=>{
@@ -197,7 +197,6 @@ class OneDriveService extends CloudServiceWrapper{
 				},
 				type: "GET",
 				success: (data,status)=>{
-					console.log("Drive",data);
 					const quota=data.value[0].quota;
 					res({
 						total: quota.total,
@@ -222,7 +221,6 @@ class OneDriveService extends CloudServiceWrapper{
 				},
 				type: "GET",
 				success: (data,status)=>{
-					console.log("Skeeetch folder",data);
 					const fileList=[]; // tidied file contents
 					for(const item of data.value){
 						fileList.push({
@@ -268,7 +266,6 @@ class OneDriveService extends CloudServiceWrapper{
 				contentType: "application/json",
 				type: "POST",
 				success: (data,status)=>{
-					console.log("Created "+dirArray[N1],data);
 					res();
 				},
 				error: (xhr,text,err)=>{
@@ -319,7 +316,6 @@ class OneDriveService extends CloudServiceWrapper{
 				const nowT=Date.now();
 				callback(end/dataLength,(end-start)*1000/(nowT-startT));
 				if(!nextInfo.nextExpectedRanges){ // uploaded
-					console.log("Upload successful");
 					return Promise.resolve(nextInfo); // file info now
 				}
 
@@ -327,7 +323,6 @@ class OneDriveService extends CloudServiceWrapper{
 				const nextRange=nextInfo.nextExpectedRanges[0].split("-");
 				const nextStart=Number.parseInt(nextRange[0]);
 				const nextEnd=nextRange[1]?Number.parseInt(nextRange[1])+1:dataLength;
-				console.log("Next fragment "+nextStart+"-"+nextEnd);
 				return uploadRange(info,nextStart,Math.min(nextStart+FRAGMENT_SIZE,nextEnd));
 			});
 		};
