@@ -258,8 +258,8 @@ FILES.CLOUD.sync=function(){
 		return emptyList; // empty @TODO: manually count from data? for robustness
 	}).then(list=>{ // file list acquired
 		const cloudList=list.cloudList;
-		//console.log("cloudList",cloudList);
-		//console.log("itemList",list.itemList);
+		LOGGING&&console.log("cloudList",cloudList);
+		LOGGING&&console.log("itemList",list.itemList);
 		
 		/**
 		 * format of item in cloudList should be hash -> {
@@ -307,8 +307,8 @@ FILES.CLOUD.sync=function(){
 				uploadList.push(item.fileID);
 			}
 		}
-		console.log("Maps",cloudHashMap,localHashMap);
-		console.log("Lists",downloadList,uploadList);
+		LOGGING&&console.log("Maps",cloudHashMap,localHashMap);
+		LOGGING&&console.log("Lists",downloadList,uploadList);
 		
 		// first download, then upload
 		return FILES.CLOUD.downloadByHashList(
