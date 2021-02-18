@@ -258,12 +258,30 @@ FILES.CLOUD.sync=function(){
 		return emptyList; // empty @TODO: manually count from data? for robustness
 	}).then(list=>{ // file list acquired
 		const cloudList=list.cloudList;
+		const itemList=list.itemList;
 		LOGGING&&console.log("cloudList",cloudList);
-		LOGGING&&console.log("itemList",list.itemList);
+		LOGGING&&console.log("itemList",itemList);
 
-		// @TODO: check if every file in cloudList really exist
+		// check if every file in cloudList really exist
 		// @TODO: and check if every file in itemList is in cloudList (optional)
-		
+		const nonExistHashes=[];
+		for(const hash in cloudList){
+			let foundFlag=false;
+			const filename=hash+".skeeetch";
+			for(let i=0;i<itemList.length;i++){ // find the file item in cloud storage
+				const item=itemList[i];
+				if(item.name==filename){ // db file found
+					foundFlag=true; // found
+					break;
+				}
+			}
+			if(!foundFlag){
+				nonExistHashes.push(hash);
+			}
+		}
+		for(const hash of nonExistHashes){ // removed non-existing files
+			delete cloudList[hash];
+		}
 		
 		/**
 		 * format of item in cloudList should be hash -> {
@@ -316,7 +334,7 @@ FILES.CLOUD.sync=function(){
 		
 		// first download, then upload
 		return FILES.CLOUD.downloadByHashList(
-			downloadList,list.itemList,localHashMap,cloudHashMap).then(()=>{
+			downloadList,itemList,localHashMap,cloudHashMap).then(()=>{
 			// downloaded, to upload
 			return FILES.CLOUD.uploadByFileIDList(uploadList,localHashMap);
 		});
