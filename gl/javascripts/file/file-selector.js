@@ -218,10 +218,14 @@ FILES.fileSelector.openFileWithID=function(fileID) {
 }
 
 // ================ Operation On UI =================
-FILES.fileSelector.changeFileNameByFileID=function(fileID,newName) {
+/**
+ * renameDate is optional: when did this file get this name
+ */
+FILES.fileSelector.changeFileNameByFileID=function(fileID,newName,renameDate) {
 	const fileItem=STORAGE.FILES.filesStore.fileList[fileID];
 	const $ui=FILES.fileSelector.$uiList[fileID];
 	fileItem.fileName=newName;
+	fileItem.lastRenameDate=renameDate||Date.now();
 	$ui.children(".file-ui-name-label").text(newName);
 }
 

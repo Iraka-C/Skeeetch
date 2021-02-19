@@ -306,19 +306,37 @@ FILES.CLOUD.sync=function(){
 		const downloadList=[]; // contains hash
 		const uploadList=[]; // contains fileID
 
-		for(const [hash,item] of cloudHashMap){
+		for(const [hash,item] of cloudHashMap){ // Search files to be downloaded
 			if(!localHashMap.has(hash)){ // not in local db, to be downloaded
 				downloadList.push(hash);
 				continue;
 			}
-			const cloudModDate=item.lastModifiedDate;
-			const localModDate=localHashMap.get(hash).lastModifiedDate;
+			const cloudModDate=item.lastModifiedDate; // item is a cloud item
+			const localItem=localHashMap.get(hash);
+			const localModDate=localItem.lastModifiedDate;
 			if(localModDate<cloudModDate){ // cloud file newer: download
 				downloadList.push(hash);
 			}
+			else if(localModDate==cloudModDate){ // file not modified, but filename may be changed
+				// change the file names directly here
+				if(localItem.lastRenameDate<item.lastRenameDate){ // cloud item has newer name
+					// rename local file
+					const localID=localItem.fileID
+					FILES.fileSelector.changeFileNameByFileID(localID,item.fileName,item.lastRenameDate);
+					if(localID==ENV.fileID){ // currently opened, change title block
+						ENV.setFileTitle(item.fileName);
+					}
+				}
+			}
 		}
-		for(const [hash,item] of localHashMap){
+		for(const [hash,item] of localHashMap){ // Search files to be uploaded
 			if(!cloudHashMap.has(hash)){ // not in cloud, to be uploaded
+				// check if the current item is changed.
+				// If the current item is a blank paper without modification, do not upload
+				if(item.createdDate==item.lastModifiedDate&&item.createdDate==item.lastRenameDate){
+					// not changed at all
+					continue;
+				}
 				uploadList.push(item.fileID);
 				continue;
 			}

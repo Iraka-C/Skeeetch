@@ -65,6 +65,7 @@ STORAGE.FILES.initLayerStorage=function(fileID) { // This is an async function (
 		createdDate: oldContent.createdDate||time,
 		lastModifiedDate: oldContent.lastModifiedDate||time, // if no last modified, set it as now
 		lastOpenedDate: time, // now
+		lastRenameDate: oldContent.lastRenameDate||time,
 		hash: oldContent.hash||STORAGE.FILES.generateFileHash() // length 48 hash code
 	};
 	STORAGE.FILES.filesStore.fileList[fileID]=fileContent;
