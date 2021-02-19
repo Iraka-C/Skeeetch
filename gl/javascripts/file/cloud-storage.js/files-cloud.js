@@ -132,23 +132,25 @@ FILES.CLOUD.initEnableCloudButton=function($repoTitle){
 }
 
 FILES.CLOUD.setQuotaUI=function(used,total){ // in bytes
-	used/=1024*1024; // MB
-	total/=1024*1024; // MB
-
-	const bytesToStr=bytes=>{ // TODO: better K/M/G/T sign
-		return bytes>=900?
-			(bytes/1024).toFixed(1)+"G":
-			bytes>=100?
-				Math.round(bytes)+"M":
-				bytes.toFixed(1)+"M";
+	const bytesToStr=bytes=>{
+		let unitCnt=0;
+		for(let i=0;i<4;i++){ // count unit, B,K,M,G,T
+			if(bytes>=900){
+				bytes/=1024;
+				unitCnt++;
+			}
+			else{
+				break;
+			}
+		}
+		return (bytes>=100?Math.round(bytes):bytes.toFixed(1))+"BKMGT".charAt(unitCnt);
 	};
-	const usedStr=bytesToStr(used);
-	const totalStr=bytesToStr(total);
-	const displayStr=usedStr+"/"+totalStr;
+	const displayStr=bytesToStr(used)+"/"+bytesToStr(total);
 	$("#cloud-info-quota-text").text(displayStr);
 
-	const perc=used/total;
-	$("#cloud-info-quota-rect").css("width",perc*100+"%");
+	const perc=used/total*100;
+	const displayPerc=perc<0.1?0:Math.max(perc,2); // low: still display some.
+	$("#cloud-info-quota-rect").css("width",displayPerc+"%");
 }
 
 // ======================= Service related ===========================
@@ -333,10 +335,11 @@ FILES.CLOUD.sync=function(){
 			if(!cloudHashMap.has(hash)){ // not in cloud, to be uploaded
 				// check if the current item is changed.
 				// If the current item is a blank paper without modification, do not upload
-				if(item.createdDate==item.lastModifiedDate&&item.createdDate==item.lastRenameDate){
-					// not changed at all
-					continue;
-				}
+				// @FIXME: imported file / duplicated file also satisfy the following standard
+				// if(item.createdDate==item.lastModifiedDate&&item.createdDate==item.lastRenameDate){
+				// 	// not changed at all
+				// 	continue;
+				// }
 				uploadList.push(item.fileID);
 				continue;
 			}
