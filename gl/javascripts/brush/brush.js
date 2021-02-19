@@ -30,7 +30,7 @@ BrushManager.brushes=[
 		randRot: 0.5, // random rotation, unit as 1 full circle
 		randOpa: 0.5, // random opacity, unit same as minAlpha
 		interval: 0.02, // auto when round & no scatter
-		hotKey: "N", // default hotkey
+		hotKey: "n", // default hotkey, lower case
 		icon: "./resources/brush-icon/pencil.svg"
 	},
 	{
@@ -48,7 +48,7 @@ BrushManager.brushes=[
 		extension: 0.8, // how much color to pick from sampler
 		isScatter: 0,
 		interval: 0.02, // auto when round & no scatter
-		hotKey: "V",
+		hotKey: "v",
 		icon: "./resources/brush-icon/brush.svg"
 	},
 	{
@@ -87,7 +87,7 @@ BrushManager.brushes=[
 		blendMode:-1,
 		isScatter: 0,
 		interval: 0.02, // auto when round & no scatter
-		hotKey: "E",
+		hotKey: "e",
 		icon: "./resources/brush-icon/eraser-fill.svg"
 	}
 ];
