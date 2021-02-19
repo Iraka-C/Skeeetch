@@ -4,7 +4,7 @@
 
 **没有。**
 
-虽然Skeeetch是基于网页的应用，但是Skeeetch的所有内容是基于浏览器的[IndexedDB](https://developer.mozilla.org/zh-CN/docs/Glossary/IndexedDB)技术保存在本机硬盘里的，并没有上传到网上。
+虽然Skeeetch是基于网页的应用，但是Skeeetch的所有内容是安全地保存在本机硬盘里的，并没有上传到网上。
 
 这意味着他人无法通过网络访问到你在Skeeetch中创作的内容——包括你自己。在一台电脑、一个浏览器中保存的内容无法通过其他电脑、浏览器获取到。
 

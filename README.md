@@ -10,7 +10,13 @@ You can try it [here](https://iraka-c.github.io/Skeeetch/index.html).
 
 ## Introduction
 
-This application is based on HTML5 web technologies. Skeeetch presently supports basic brush stroke and eraser, colorpicker, PhotoShop/SAI like layer management and composition, bitmap image and `.PSD` file import/export.
+This application is based on HTML5 web technologies. Skeeetch presently supports:
+
+* Basic brush stroke and eraser, color picker.
+* Photoshop/SAI like layer management and composition.
+* Bitmap image and `.PSD` file import/export.
+* Cloud (OneDrive) file sync.
+* ... and many others. Please refer to the tutorial above!
 
 ## Third Party Libraries
 

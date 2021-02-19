@@ -19,9 +19,7 @@ EVENTS.init=function() {
 	 */
 
 	// also disable pen long press => context menu
-	if(!LOGGING){
-		$(window).on("contextmenu",e => false);
-	}
+	$(window).on("contextmenu",()=>LOGGING); // if not logging, prevent context menu
 
 	// ============ Auto File saving related ==============
 	let isNotSavedOnExit=false;

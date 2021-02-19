@@ -97,9 +97,9 @@ FILES.CLOUD.initUI=function(){
 
 		saveContentPromise.then(()=>{
 			return FILES.CLOUD.sync().then(()=>{
-				EventDistributer.footbarHint.showInfo(Lang("cloud-sync-complete"));
+				EventDistributer.footbarHint.showInfo(Lang("cloud-sync-complete"),2000);
 			}).catch(err=>{
-				EventDistributer.footbarHint.showInfo(Lang("cloud-sync-fail"));
+				EventDistributer.footbarHint.showInfo(Lang("cloud-sync-fail"),2000);
 				console.warn("Error during sync:",err);
 			})
 		}).finally(()=>{
@@ -218,7 +218,7 @@ FILES.CLOUD.initCloudStorage=function(cloudService,options){
 	})
 	.catch(err=>{ // login error here
 		console.warn("Login Failed",err);
-		EventDistributer.footbarHint.showInfo(Lang("cloud-login-failed"));
+		EventDistributer.footbarHint.showInfo(Lang("cloud-login-failed"),2000);
 		// and do nothing when failed
 		FILES.CLOUD.storage=null;
 		localStorage.removeItem("oauth-login-info");
