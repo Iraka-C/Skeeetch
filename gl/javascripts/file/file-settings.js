@@ -443,9 +443,10 @@ FILES.onFilesLoaded=function(files,isNewFile){
 	else if(file.type&&file.type.match(/image*/)) { // an image file
 		window.URL=window.URL||window.webkitURL;
 		const img=new Image();
-		img.src=window.URL.createObjectURL(file); // @TODO: remove url after load;
+		img.src=window.URL.createObjectURL(file);
 		img.filename=file.name;
 		img.onload=function(e) {
+			window.URL.revokeObjectURL(img.src); // release after use
 			if(img.width>ENV.maxPaperSize||img.height>ENV.maxPaperSize){
 				// larger than maximum paper size
 				EventDistributer.footbarHint.showInfo(Lang("error-oversize")+ENV.maxPaperSize+Lang("pix"),2000);

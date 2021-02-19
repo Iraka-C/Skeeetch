@@ -1,30 +1,42 @@
 "use strict";
 BrushManager.initBrushAccessories=function($defTable){
-	const $expandButton=$("<div id='brush-expand-button'>").text(">");
-	const $title=$("<div id='brush-expand-title'>").text(Lang("button-tools"));
+	
+	const $icon=$("<td id='brush-expand-button' class='brush-selector-icon'>");
+	$icon.append($("<div>").text(">"));
 
-	const $blockTitle=$("<div id='block-accessories-title'>");
-	$blockTitle.append($expandButton,$title);
+	// const $blockTitle=$("<div id='block-accessories-title'>");
+	// $blockTitle.append($expandButton,$title);
 
-	const $blockContainer=$("<div id='block-accessories-container'>");
 
 	const $block=$("<td id='brush-accessories-block' class='brush-selector-item brush-notrans'>");
+	const $blockTitle=$("<div id='block-accessories-title'>");
+	$blockTitle.text(Lang("button-tools"));
+	const $blockContainer=$("<div id='block-accessories-container'>");
+
 	$block.append($blockTitle,$blockContainer);
 	//$block.text(Lang("color-to-opacity"));
-	const $row=$("<tr>").append($block);
+	const $row=$("<tr>").append($icon,$block);
+	$row.css("vertical-align","top");
+
+	$defTable.append($row);
 
 	//brush.$row=$row; // backward ref
 	let isExpanded=false;
+
 	const updateExpanded=()=>{
 		if(isExpanded){
-			$expandButton.addClass("brush-expanded");
+			$icon.addClass("brush-expanded");
 			$blockContainer.slideDown(250);
 		}
 		else{
-			$expandButton.removeClass("brush-expanded");
+			$icon.removeClass("brush-expanded");
 			$blockContainer.slideUp(250);
 		}
 	};
+	$icon.click(event => {
+		isExpanded=!isExpanded;
+		updateExpanded();
+	});
 	$blockTitle.click(event => {
 		isExpanded=!isExpanded;
 		updateExpanded();
@@ -33,8 +45,6 @@ BrushManager.initBrushAccessories=function($defTable){
 		isExpanded=false;
 		updateExpanded();
 	});
-	
-	$defTable.append($row);
 
 	// init accessories
 

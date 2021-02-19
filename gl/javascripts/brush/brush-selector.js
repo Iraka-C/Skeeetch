@@ -3,10 +3,17 @@ BrushManager.initBrushSelector=function(customBrushes) {
 	// Default brush table
 	const $defTable=$("<table class='default-brush-table'>");
 	for(let i=0;i<BrushManager.brushes.length;i++) {
-		const brush=BrushManager.brushes[i];
+		const brush=BrushManager.brushes[BrushManager.defaultBrushOrder[i]];
+
 		const $block=$("<td class='brush-selector-item'>");
-		$block.text(brush.name);//.attr("id","default-brush-"+i);
-		const $row=$("<tr>").append($block);
+		$block.text(brush.name);
+
+		const $icon=$("<td class='brush-selector-icon'>");
+		$icon.append($("<img>").attr("src",brush.icon));
+		//const $name=$("<div>").text(brush.name); // already translated when start
+		//$block.append($icon,$name);//.attr("id","default-brush-"+i);
+		//$block.text(brush.name);
+		const $row=$("<tr>").append($icon,$block);
 		brush.$row=$row; // backward ref
 		$row.click(event => {
 			BrushManager.setActiveBrush(brush);
@@ -45,6 +52,10 @@ BrushManager.initBrushSelector=function(customBrushes) {
  * Append a brush block to selector
  */
 BrushManager.addCustomizedBrush=function(brush){
+	
+	const $icon=$("<td class='brush-selector-icon'>");
+	$icon.append($("<img>").attr("src",brush.icon));
+
 	// add clickable block of one brush
 	const $block=$("<td class='brush-selector-custom-item'>");
 	const $blockInput=$("<input class='custom-brush-name-label'>");
@@ -66,7 +77,7 @@ BrushManager.addCustomizedBrush=function(brush){
 	);
 
 	// add a row in selector
-	const $row=$("<tr>").append($block,$brushtipCanvasBlock);
+	const $row=$("<tr>").append($icon,$block,$brushtipCanvasBlock);
 	brush.$row=$row; // backward ref
 	$row.click(() => {
 		BrushManager.setActiveBrush(brush);

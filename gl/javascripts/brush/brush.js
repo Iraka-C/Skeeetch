@@ -5,7 +5,7 @@
 const BrushManager={};
 BrushManager.brushes=[
 	{
-		proto:0, // a prototype id indicating the type of brush, also the order in brushes
+		proto:0, // a prototype id indicating the type of brush, also the order in BrushManager.brushes
 		// Of course you can assign proto with for loop. Write it here for clearance.
 		name:"pencil",
 		size:20, // diameter in sizeList[size]
@@ -30,7 +30,8 @@ BrushManager.brushes=[
 		randRot: 0.5, // random rotation, unit as 1 full circle
 		randOpa: 0.5, // random opacity, unit same as minAlpha
 		interval: 0.02, // auto when round & no scatter
-		hotKey: null
+		hotKey: "N", // default hotkey
+		icon: "./resources/brush-icon/pencil.svg"
 	},
 	{
 		proto:1,
@@ -47,7 +48,8 @@ BrushManager.brushes=[
 		extension: 0.8, // how much color to pick from sampler
 		isScatter: 0,
 		interval: 0.02, // auto when round & no scatter
-		hotKey: null
+		hotKey: "V",
+		icon: "./resources/brush-icon/brush.svg"
 	},
 	{
 		proto:2,
@@ -69,7 +71,8 @@ BrushManager.brushes=[
 		// doesn't allow scatter
 		isScatter: -1, // -1 for not allowed
 		// fixed density
-		hotKey: null
+		hotKey: null,
+		icon: "./resources/brush-icon/droplet-half.svg"
 	},
 	{
 		proto:3,
@@ -84,9 +87,12 @@ BrushManager.brushes=[
 		blendMode:-1,
 		isScatter: 0,
 		interval: 0.02, // auto when round & no scatter
-		hotKey: null
+		hotKey: "E",
+		icon: "./resources/brush-icon/eraser-fill.svg"
 	}
 ];
+// The order of default brushes displayed in menu
+BrushManager.defaultBrushOrder=[0,3,1,2];
 /**
  * Customized brushes
  * BrushManager.customBrushes[i] has property brush.isCustom == true
