@@ -36,6 +36,7 @@ PERFORMANCE.UTILS.sendReport=function(message){
 
 /**
  * returns a promise resolved with network conditions
+ * Use several external sites to decice the ping status.
  */
 PERFORMANCE.UTILS.checkNetwork=function(name){
 	if(!name){
@@ -67,6 +68,15 @@ PERFORMANCE.UTILS.checkNetwork=function(name){
 		if(!data.ip){ // no address
 			return Promise.reject("No address");
 		}
+		return data;
+	}).then(data=>{ // address get, fill in geo info
+		if(data.coordinate){
+			return data;
+		}
+		return PERFORMANCE.UTILS.addrToGeoloc(data.ip).catch(err=>{ // failed to get geo info
+			return data; // return original info
+		});
+	}).then(data=>{ // additional info
 		return Object.assign(data,{
 			"service": name,
 			"timestamp": Date.now()
@@ -79,6 +89,23 @@ PERFORMANCE.UTILS.printNetwork=function(){
 		console.log(data);
 	}).catch(err=>{
 		console.warn(err);
+	});
+}
+
+PERFORMANCE.UTILS.addrToGeoloc=function(addr){
+	return new Promise((res,rej)=>{
+		$.ajax({
+			url: "https://json.geoiplookup.io/"+addr,
+			type: "GET",
+			timeout: 10000,
+			dataType: "json",
+			success: data=>res({
+				ip: addr,
+				location: `${data["country_code"]}/${data.region}/${data.city}`,
+				coordinate: [data.latitude,data.longitude] // NS, EW
+			}),
+			error: xhr=>rej(xhr)
+		});
 	});
 }
 
@@ -104,7 +131,7 @@ PERFORMANCE.UTILS.networkSupportList={
 			return {
 				ip: data.ip,
 				location: `${data.country}/${data.region}/${data.city}`,
-				coordinate: [data.latitude,data.longitude]
+				coordinate: [data.latitude,data.longitude] // NS, EW
 			};
 		}
 	},
@@ -122,6 +149,17 @@ PERFORMANCE.UTILS.networkSupportList={
 		}
 	}
 };
+
+PERFORMANCE.UTILS.RTCStatus=function(url){
+	// @TODO: check what urls are valid
+	// see list of available service. default: stun.l.google.com:19302
+	return getNetworkAddress("stun:"+url).then(data=>{
+		if(data[0]){ // there is a valid address
+			return {ip: data[0]};
+		}
+		return Promise.reject("No address");
+	});
+}
 
 // ==================== helpers ======================
 PERFORMANCE.UTILS.toBinary=function(string){
