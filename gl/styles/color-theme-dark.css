@@ -163,6 +163,13 @@ input:disabled {
 .setting-table .setting-hint{
 	background: #ffffff33;
 }
+.setting-table input:focus{
+	background: #ffffff33;
+	box-shadow: 0px 0px 1em #000000cc;
+}
+.setting-table input:hover{
+	background: #ffffff33;
+}
 
 
 .files-row-button:hover{
@@ -175,7 +182,7 @@ input:disabled {
 
 #cloud-div{
 	background: #222222cc;
-	box-shadow: 0em 0em 1em #00000066;
+	box-shadow: 0em 0em 1em #00000033;
 }
 .file-ui-indc{
 	background: #00000088;

@@ -116,10 +116,11 @@ table{
 
 .setting-table input{
 	color: #ddd;
-	transition: background 0.5s;
+	transition: background 0.5s, box-shadow 0.3s;
 }
 .setting-table input:focus{
 	background: #00000055;
+	box-shadow: 0px 0px 0.5em #00000088;
 }
 .setting-table input:hover{
 	background: #00000055;
