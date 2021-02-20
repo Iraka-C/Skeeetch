@@ -10,7 +10,7 @@ DIALOGBOX.init=function(){
 
 DIALOGBOX.show=function(dialogBoxItem,defaultForm){
 	if(defaultForm){
-		dialogBoxItem._defaultForm=defaultForm;
+		dialogBoxItem._defaultForm=defaultForm; // @FIXME: default form should be bound with dialogbox
 	}
 	if(DIALOGBOX.nowItem){ // chain this box
 		DIALOGBOX.nowItem.append(dialogBoxItem);
@@ -20,9 +20,8 @@ DIALOGBOX.show=function(dialogBoxItem,defaultForm){
 	const $ui=$("#body-mask-panel");
 	$ui.append(dialogBoxItem.$ui);
 	DIALOGBOX.nowItem=dialogBoxItem;
-	$ui.fadeIn(250,e=>{
-		$("#ui-panel").addClass("ui-blur"); // after, to save animation
-	});
+	$("#ui-panel").addClass("ui-blur");
+	$ui.fadeIn(250);
 };
 
 DIALOGBOX._change=function(dialogBoxItem){
@@ -34,20 +33,19 @@ DIALOGBOX._change=function(dialogBoxItem){
 
 DIALOGBOX.clear=function(){
 	const $ui=$("#body-mask-panel");
+	$("#ui-panel").removeClass("ui-blur");
 	$ui.fadeOut(400,e=>{
 		const _next=DIALOGBOX.nowItem._next;
 		if(_next){ // append new dialog box after fade out starts
 			DIALOGBOX._change(_next);
-			$ui.fadeIn(250,e=>{ // fade in after fade out
-				$("#ui-panel").addClass("ui-blur"); // after, to save animation
-			});
+			$("#ui-panel").addClass("ui-blur");
+			$ui.fadeIn(250); // fade in after fade out
 		}
 		else{ // release
 			$ui.empty();
 			DIALOGBOX.nowItem=null;
 		}
 	});
-	$("#ui-panel").removeClass("ui-blur");
 };
 
 /**
