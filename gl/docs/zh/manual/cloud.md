@@ -18,11 +18,31 @@ Skeeetch现在支持使用云储存服务对画纸进行同步。云储存使得
 
 点击服务后会进入登录流程。Skeeetch使用OAuth流程登录，因此<u>并不会储存或者泄露</u>您的用户名和密码。但是为了让Skeeetch的同步服务正常工作需要一些特别的权限，包括访问云储存空间以及获取用户信息。
 
-> 如果浏览器提示有**弹出式窗口**被拦截，请允许其弹出：为保证安全性，OAuth登录仅可在弹出式窗口中完成！
+> 如果浏览器提示有**弹出式窗口**被拦截，请**允许**其弹出并**重新登录**：为保证安全性，OAuth登录仅可在弹出式窗口中完成！
 >
-> 第一次登录时会提示Skeeetch应用将访问储存和用户信息，请允许这些权限。
+> 
+>
+> <img src="./images/cloud-popup-1.png" width="300"/>
+>
+> -----
+>
+> <img src="./images/cloud-popup-safari-1.png" width="300"/>
+>
+> -----
+>
+> <img src="./images/cloud-popup-firefox-1.png" width="300"/>
+>
+> 有些浏览器地址栏中可能会出现上述提示（图为Chrome, Safari, Firefox）。请点击相应图标并选择允许。弹出窗口是安全进行OAuth登录的必要步骤。弹出的窗口将引导您前往相应的登录页面。
+>
+> <img src="./images/cloud-popup-2.png" width="400"/>
+>
+> <img src="./images/cloud-popup-firefox-2.png" width="400"/>
+>
+> 第一次登录时会提示Skeeetch应用将访问**储存**和**用户信息**，请允许这些权限。
 
-<img src="./images/cloud-ui-login.png" width="400"/>
+根据账户类型不同可能有不同的登录流程。如果没有账户也可以在窗口中注册您的账户。
+
+<img src="./images/cloud-ui-login.png" height="400"/><img src="./images/cloud-popup-safari-2.png" height="400"/>
 
 刷新网页或重新启动Skeeetch后，会自动重新登录这个云储存账户。如果太长时间没有登陆过，可能会需要重新登录。
 

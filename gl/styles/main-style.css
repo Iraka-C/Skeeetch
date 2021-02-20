@@ -73,6 +73,11 @@ body{
 	flex-direction: column;
 	/* invisible at first */
 	visibility: hidden;
+	/* transition: filter 0.1s; */
+}
+
+.ui-blur{
+	filter: blur(10px);
 }
 
 #top-menu-panel{

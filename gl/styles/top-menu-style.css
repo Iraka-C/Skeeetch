@@ -89,6 +89,9 @@
 	opacity: 0;
 	transition: opacity 0.5s;
 	overflow: hidden;
+	/* This implementation is buggy over browsers */
+	/* backdrop-filter: blur(0.5em); */
+	box-shadow: 0em 1em 2em -0.5em #000000;
 }
 
 #brush-selector-panel:hover > #brush-selector-menu{
