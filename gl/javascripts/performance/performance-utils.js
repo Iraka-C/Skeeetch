@@ -48,7 +48,7 @@ PERFORMANCE.UTILS.sendReportToServer=function(rawdata){
 	const data={"hash":btoa(PERFORMANCE.UTILS.toBinary(JSON.stringify(rawdata)))};
 	const serverOrigin="http://13.113.190.133:8765";
 	// Use postMessage to perform CORS communication
-	const reporter=window.open(serverOrigin+"/","","menubar=0,location=0,resizable=0,toolbar=0,status=0,scrollbars=0,status=0,titlebar=0,width=100,height=100,left="+window.screenLeft+",top="+window.screenTop);
+	const reporter=window.open(serverOrigin+"/?timestamp="+Date.now()/*,"","menubar=0,location=0,resizable=0,toolbar=0,status=0,scrollbars=0,status=0,titlebar=0,width=100,height=100,left="+window.screenLeft+",top="+window.screenTop*/);
 	if(!reporter){ // not opened
 		return Promise.reject();
 	}

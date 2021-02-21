@@ -157,13 +157,3 @@ ENV.showUIs=function(){
 	$("#body-mask-panel").css("display","none");
 	$("#ui-panel").css("visibility","visible");
 }
-
-ENV.setPixel=function(){
-	const $img=$("<img>",{
-		src: "http://13.113.190.133:8765/favicon.png?timestamp="+Date.now()
-	})
-	$("body").append($img);
-	$img.on("load",e=>{
-		$img.remove();
-	});
-}

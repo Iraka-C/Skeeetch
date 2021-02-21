@@ -58,6 +58,8 @@ LANG_EN={
 	"system-font-ss":"Sans-Serif",
 	"system-font-mono":"Monospace",
 
+	"env-report":"Report Env.",
+
 	"anim-lowfps-report":"Low FPS",
 	"anim-lowfps-info1":"The refresh rate is low. Current lowest rate is ",
 	"anim-lowfps-info2":"Try turn off transform animation.",

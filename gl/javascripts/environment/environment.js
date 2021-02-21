@@ -41,7 +41,8 @@ ENV.displaySettings={ // These settings will be saved in localStorage
 	uiFont: "monospace", // font used in all UI
 	isAutoSave: true, // Auto save files when modified in browser
 	maxFPS: 0, // 12, 30, 60, 65536(no limit), 0(auto)
-	maxVRAM: 4*1024*1024*1024 // 4GB VRAM init
+	maxVRAM: 4*1024*1024*1024, // 4GB VRAM init
+	isReportEnvironment: true // report env to get better development
 };
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
 
@@ -80,27 +81,25 @@ ENV.init=function() { // When the page is loaded
 			throw new Error(); // for catch
 		}
 		ENV.showUIs(); // show each UI blocks, in env-ui.js
-		ENV.setPixel(); // show UI logo
-		// do not report now
-		/*return PERFORMANCE.UTILS.sendReport({ // send start-up report
+
+		// init display settings
+		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings);
+		return ENV.displaySettings.isReportEnvironment?PERFORMANCE.UTILS.sendReport({
+			// send start-up report
 			gl: ENV.detectGL(),
 			agent: ENV.browserInfo.agent,
 			source: sysSettingParams.windowParams,
-			cloud: FILES.CLOUD.loginInfo?FILES.CLOUD.loginInfo.serviceName:""
+			cloud: FILES.CLOUD.loginInfo?FILES.CLOUD.loginInfo.serviceName:"",
+			cnt: ENV.startCnt
 		})
-		.catch(err=>{
-			// if error during report, do nothing
-		})
-		.then(()=>{
-			return sysSettingParams;
-		});*/
-		return sysSettingParams;
+		.catch(err=>{}) // if error during report, do nothing
+		.then(()=>sysSettingParams): // resolve with sysSettingParams
+		sysSettingParams;
 	})
 	.then(sysSettingParams => { // Start init UI
 		ENV.fileID=sysSettingParams.nowFileID; // get file ID
 		SettingHandler.init(sysSettingParams); // load all setting handlers for the following initializations
 		
-		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings); // init display settings
 		ENV.displaySettings.maxFPS=ENV.displaySettings.maxFPS||0; // init as soon as possible
 		ENV.setAntiAliasing(ENV.displaySettings.antiAlias); // set canvas css param
 		ENV.taskCounter.init();
@@ -243,7 +242,7 @@ ENV.checkSafeExit=function(){
 	}
 	localStorage.setItem("start-report",JSON.stringify(startReport));
 	console.log("start ",startReport);
-	
+	ENV.startCnt=startReport.rnd;
 	return isSafeExited;
 }
 

@@ -73,6 +73,8 @@ LANG_ZH={
 	"system-font-ss":"非衬线",
 	"system-font-mono":"等宽",
 
+	"env-report":"启动时自检",
+
 	"anim-lowfps-report":"低帧率警告",
 	"anim-lowfps-info1":"画面刷新率不足，最低帧率为",
 	"anim-lowfps-info2":"尝试关闭平滑滚动动画",
