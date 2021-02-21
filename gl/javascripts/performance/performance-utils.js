@@ -13,9 +13,8 @@ PERFORMANCE.UTILS.startImageReport=function(){}
  * message is an extra message
  */
 PERFORMANCE.UTILS.sendReport=function(message){
-	message=message||""; // default send nothing
 	return PERFORMANCE.UTILS.makeReport().then(report=>{
-		report.message=message;
+		report.message=message||{}; // default send nothing
 		return PERFORMANCE.UTILS.sendReportToServer(report);
 	});
 }
@@ -44,9 +43,32 @@ PERFORMANCE.UTILS.makeReport=function(){
 	});
 }
 
+/**
+ * Simple ajax directly send json to server
+ * @param {Object} rawdata json data to be sent
+ */
 PERFORMANCE.UTILS.sendReportToServer=function(rawdata){
 	const data={"hash":btoa(PERFORMANCE.UTILS.toBinary(JSON.stringify(rawdata)))};
-	const serverOrigin="http://13.113.190.133:8765";
+	return new Promise((res,rej)=>{
+		const req=new XMLHttpRequest();
+		req.open("POST","https://el4ht92mzk.execute-api.ap-northeast-1.amazonaws.com/report");
+		//req.open("POST","http://192.168.3.10:8765/report");
+		req.setRequestHeader("Content-Type","application/json");
+		req.timeout=10000; // 10s
+		req.onload=()=>res(req.response);
+		req.ontimeout=()=>rej("Timeout");
+		req.onerror=()=>rej(req);
+		req.send(JSON.stringify(data));
+	});
+}
+
+/**
+ * use proxy page to send HTTP request over HTTPS
+ * @param {Object} rawdata json data to be sent
+ */
+PERFORMANCE.UTILS.sendReportToServerHTTP=function(rawdata){
+	const data={"hash":btoa(PERFORMANCE.UTILS.toBinary(JSON.stringify(rawdata)))};
+	// const serverOrigin="http://13.113.190.133:8765";
 	// Use postMessage to perform CORS communication
 	const reporter=window.open(serverOrigin+"/?timestamp="+Date.now()/*,"","menubar=0,location=0,resizable=0,toolbar=0,status=0,scrollbars=0,status=0,titlebar=0,width=100,height=100,left="+window.screenLeft+",top="+window.screenTop*/);
 	if(!reporter){ // not opened
