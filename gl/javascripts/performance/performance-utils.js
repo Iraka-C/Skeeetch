@@ -6,6 +6,10 @@
 
 PERFORMANCE.UTILS={};
 
+PERFORMANCE.UTILS.startImageReport=function(){
+
+}
+
 /**
  * send a report daily
  */
@@ -34,11 +38,59 @@ PERFORMANCE.UTILS.sendReport=function(message){
 	});
 }
 
-PERFORMANCE.UTILS.sendReportToStatServer=function(data){
+PERFORMANCE.UTILS.sendReportToServer=function(data){
 	const serverOrigin="http://13.113.190.133:8765";
 	// Use postMessage to perform CORS communication
-	const reporter=window.open(serverOrigin);
-	reporter.postMessage(data,serverOrigin,);
+	const reporter=window.open(serverOrigin+"/");
+	
+	if(!reporter){ // not opened
+		return Promise.reject();
+	}
+
+	return new Promise((res,rej)=>{
+		let pollTimer=0;
+		let timeoutTimer=0;
+
+		const clearTimers=()=>{
+			if(pollTimer)clearInterval(pollTimer); // remove polling
+			if(timeoutTimer)clearTimeout(timeoutTimer); // remove timeout abort
+			pollTimer=0;
+			timeoutTimer=0;
+		};
+		// setup message listener
+		const messageListener=event=>{
+			console.log("Res",event.data);
+			if(event.data=="ACK"){ // proxy loaded, post real data
+				if(pollTimer){ // stop polling
+					clearInterval(pollTimer);
+					pollTimer=0;
+				}
+				reporter.postMessage(data,serverOrigin);
+			}
+			else if(event.data.postStatus){ // responded, send successful. remove everything
+				window.removeEventListener("message",messageListener,false); // remove listener
+				reporter.close(); // close proxy
+				clearTimers(); // clear timer
+				if(event.data.postStatus=="success"){
+					res(event.data.data);
+				}
+				else{ // proxy failed
+					rej(event.data.data);
+				}
+			}
+		};
+		window.addEventListener("message",messageListener,false);
+
+		pollTimer=setInterval(()=>{ // start polling for ACK
+			reporter.postMessage("SYN",serverOrigin);
+		},250);
+		timeoutTimer=setInterval(()=>{
+			window.removeEventListener("message",messageListener,false); // remove listener
+			reporter.close(); // close proxy
+			clearTimers(); // clear timer
+			rej("timeout");
+		},10000); // wait for 10s
+	});
 }
 
 /**
