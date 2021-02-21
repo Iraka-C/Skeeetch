@@ -80,8 +80,9 @@ ENV.init=function() { // When the page is loaded
 			throw new Error(); // for catch
 		}
 		ENV.showUIs(); // show each UI blocks, in env-ui.js
-		
-		return PERFORMANCE.UTILS.sendReport({ // send start-up report
+		ENV.setPixel(); // show UI logo
+		// do not report now
+		/*return PERFORMANCE.UTILS.sendReport({ // send start-up report
 			gl: ENV.detectGL(),
 			agent: ENV.browserInfo.agent,
 			source: sysSettingParams.windowParams,
@@ -92,7 +93,8 @@ ENV.init=function() { // When the page is loaded
 		})
 		.then(()=>{
 			return sysSettingParams;
-		});
+		});*/
+		return sysSettingParams;
 	})
 	.then(sysSettingParams => { // Start init UI
 		ENV.fileID=sysSettingParams.nowFileID; // get file ID
