@@ -41,8 +41,7 @@ ENV.displaySettings={ // These settings will be saved in localStorage
 	uiFont: "monospace", // font used in all UI
 	isAutoSave: true, // Auto save files when modified in browser
 	maxFPS: 0, // 12, 30, 60, 65536(no limit), 0(auto)
-	maxVRAM: 4*1024*1024*1024, // 4GB VRAM init
-	isReportEnvironment: true // report env to get better development
+	maxVRAM: 4*1024*1024*1024 // 4GB VRAM init
 };
 ENV.maxPaperSize=5600; // needn't save. Larger value cannot be represented by mediump in GLSL100
 
@@ -84,7 +83,7 @@ ENV.init=function() { // When the page is loaded
 
 		// init display settings
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings);
-		return ENV.displaySettings.isReportEnvironment?PERFORMANCE.UTILS.sendReport({
+		return PERFORMANCE.UTILS.sendReport({
 			// send start-up report
 			gl: ENV.detectGL(),
 			agent: ENV.browserInfo.agent,
@@ -93,8 +92,7 @@ ENV.init=function() { // When the page is loaded
 			cnt: ENV.startCnt
 		})
 		.catch(err=>{}) // if error during report, do nothing
-		.then(()=>sysSettingParams): // resolve with sysSettingParams
-		sysSettingParams;
+		.then(()=>sysSettingParams); // resolve with sysSettingParams
 	})
 	.then(sysSettingParams => { // Start init UI
 		ENV.fileID=sysSettingParams.nowFileID; // get file ID

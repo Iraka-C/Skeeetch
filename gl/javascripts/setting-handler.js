@@ -293,12 +293,6 @@ SettingHandler.initSystemSetting=function(sysParams) {
 
 	// ======================== Debugging Settings ===========================
 	sys.addSectionTitle(Lang("Developers"));
-	sys.addSwitch(Lang("env-report"),[Lang("Off"),Lang("On")],null,val => {
-		switch(val) {
-			case 1: ENV.displaySettings.isReportEnvironment=true; break;
-			default: ENV.displaySettings.isReportEnvironment=false; break;
-		}
-	},()=>ENV.displaySettings.isReportEnvironment?1:0);
 	sys.addSwitch(Lang("Draw Layer Border"),[Lang("Off"),Lang("On")],null,val => {
 		switch(val) {
 			case 1: PERFORMANCE.debugger.isDrawingLayerBorder=true; break;
