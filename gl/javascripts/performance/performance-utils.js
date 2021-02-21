@@ -48,18 +48,18 @@ PERFORMANCE.UTILS.sendReportToServer=function(rawdata){
 	const data={"hash":btoa(PERFORMANCE.UTILS.toBinary(JSON.stringify(rawdata)))};
 	const serverOrigin="http://13.113.190.133:8765";
 	// Use postMessage to perform CORS communication
-	//const reporter=window.open(serverOrigin+"/"); // do not use open window
-	const $proxyIframe=$("<iframe>",{src: serverOrigin+"/"});
-	$proxyIframe.css({ // invisible
-		"visibility": "hidden",
-		"width": 0,
-		"height": 0,
-		"border": 0,
-		"position": "absolute"
-	});
-	$proxyIframe.appendTo($("body"));
+	const reporter=window.open(serverOrigin+"/"); // do not use open window
+	// const $proxyIframe=$("<iframe>",{src: serverOrigin+"/"});
+	// $proxyIframe.css({ // invisible
+	// 	"visibility": "hidden",
+	// 	"width": 0,
+	// 	"height": 0,
+	// 	"border": 0,
+	// 	"position": "absolute"
+	// });
+	// $proxyIframe.appendTo($("body"));
 
-	const reporter=$proxyIframe[0].contentWindow;
+	//const reporter=$proxyIframe[0].contentWindow;
 	if(!reporter){ // not opened
 		return Promise.reject();
 	}
@@ -76,7 +76,8 @@ PERFORMANCE.UTILS.sendReportToServer=function(rawdata){
 		};
 		const clearEnv=()=>{
 			window.removeEventListener("message",messageListener,false); // remove listener
-			$proxyIframe.remove(); // close proxy
+			//$proxyIframe.remove(); // close proxy
+			reporter.close();
 			clearTimers(); // clear timer
 		};
 		// setup message listener
