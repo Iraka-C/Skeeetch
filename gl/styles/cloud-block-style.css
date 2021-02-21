@@ -112,4 +112,8 @@
 #cloud-button img{
 	height: 1.5em;
 	filter: invert(100%);
+	transition: filter 0.3s;
+}
+#cloud-button.cloud-button-slash:hover img{
+	filter: invert(20%) sepia(100%) saturate(4000%) brightness(150%);
 }

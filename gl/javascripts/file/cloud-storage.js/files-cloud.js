@@ -173,6 +173,7 @@ FILES.CLOUD.stopCloudService=function(){
 		FILES.CLOUD.$container.css("display","none");
 		$("#cloud-info-username").text("----");
 		$("#cloud-info-service").text("Cloud");
+		$("#cloud-button").removeClass("cloud-button-slash");
 		$("#cloud-button").children("img").attr("src","./resources/cloud/cloud-plus.svg");
 		FILES.CLOUD.storage=null;
 		localStorage.removeItem("oauth-login-info"); // remove login info
@@ -205,6 +206,7 @@ FILES.CLOUD.initCloudStorage=function(cloudService,options){
 			console.log("No avatar received");
 		});
 
+		$("#cloud-button").addClass("cloud-button-slash");
 		$("#cloud-button").children("img").attr("src","./resources/cloud/cloud-slash.svg");
 		storage.getStorageQuota().then(quota=>{ // after logging in, get quota
 			// only provided remain (except used and recycled)
