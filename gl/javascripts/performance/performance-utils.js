@@ -34,6 +34,13 @@ PERFORMANCE.UTILS.sendReport=function(message){
 	});
 }
 
+PERFORMANCE.UTILS.sendReportToStatServer=function(data){
+	const serverOrigin="http://13.113.190.133:8765";
+	// Use postMessage to perform CORS communication
+	const reporter=window.open(serverOrigin);
+	reporter.postMessage(data,serverOrigin,);
+}
+
 /**
  * returns a promise resolved with network conditions
  * Use several external sites to decice the ping status.
