@@ -133,8 +133,16 @@ ENV.init=function() { // When the page is loaded
 		}
 		loadPaperPromise.catch(err=>{ // loading paper failed
 			// do sth
-		}).finally(()=>{
-			setTimeout(ENV.reportSafelyLoaded,1000); // make sure it is safe after 1s
+		}).finally(()=>{ // all loaded
+			setTimeout(()=>{
+				PERFORMANCE.UTILS.sendReport({
+					gl: ENV.detectGL(),
+					agent: ENV.browserInfo.agent,
+					source: sysSettingParams.windowParams,
+					cloud: FILES.CLOUD.loginInfo?FILES.CLOUD.loginInfo.serviceName:""
+				}).catch(err=>{}); // if error, do nothing
+				ENV.reportSafelyLoaded();
+			},1000); // make sure it is safe after 1s
 		});
 
 		// init accessories
@@ -168,9 +176,9 @@ ENV.init=function() { // When the page is loaded
 
 ENV.detectBrowser=function(){
 	const u=window.navigator.userAgent;
-	const platform=window.navigator.platform;
 	const app=window.navigator.appVersion;
 	return{
+		agent:   u,
 		macOS:   app.indexOf('Mac') > -1,                             // MacOS system
 		win:     app.indexOf('Win') > -1,                             // Windows system
 		trident: u.indexOf('Trident') > -1,                           // IE core

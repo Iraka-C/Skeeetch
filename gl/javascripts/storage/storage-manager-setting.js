@@ -107,7 +107,9 @@ STORAGE.SETTING.initWindowParams=function(){
 	return {
 		query: urlParamsToObject(query),
 		hash: hash,
-		lang: lang
+		lang: lang,
+		href: window.location.href,
+		host: window.location.host
 	};
 }
 

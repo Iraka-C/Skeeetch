@@ -21,6 +21,7 @@ FILES.CLOUD.init=function(fileManager){
 	// test if there is already a login info
 	try{
 		const loginInfo=JSON.parse(localStorage.getItem("oauth-login-info"))||{};
+		FILES.CLOUD.loginInfo=loginInfo;
 		let service=null;
 		switch(loginInfo.serviceName){ // select service type
 		case "OneDriveService": service=new OneDriveService();break;
@@ -216,13 +217,15 @@ FILES.CLOUD.initCloudStorage=function(cloudService,options){
 		});
 
 		// set info
-		localStorage.setItem("oauth-login-info",JSON.stringify(storage.getLoginInfo()));
+		FILES.CLOUD.loginInfo=storage.getLoginInfo();
+		localStorage.setItem("oauth-login-info",JSON.stringify(FILES.CLOUD.loginInfo));
 	})
 	.catch(err=>{ // login error here
 		console.warn("Login Failed",err);
 		EventDistributer.footbarHint.showInfo(Lang("cloud-login-failed"),2000);
 		// and do nothing when failed
 		FILES.CLOUD.storage=null;
+		// FILES.CLOUD.loginInfo=null; do not clear, cache for faster future use
 		localStorage.removeItem("oauth-login-info");
 	});
 }

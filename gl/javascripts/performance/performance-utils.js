@@ -6,15 +6,24 @@
 
 PERFORMANCE.UTILS={};
 
-PERFORMANCE.UTILS.startImageReport=function(){
-
-}
+PERFORMANCE.UTILS.startImageReport=function(){}
 
 /**
  * send a report daily
+ * message is an extra message
  */
 PERFORMANCE.UTILS.sendReport=function(message){
 	message=message||""; // default send nothing
+	return PERFORMANCE.UTILS.makeReport().then(report=>{
+		report.message=message;
+		return PERFORMANCE.UTILS.sendReportToServer(report);
+	});
+}
+
+/**
+ * construct the report file
+ */
+PERFORMANCE.UTILS.makeReport=function(){
 	const key=String.fromCharCode(..."cf31c59e6f".split("").map(v=>parseInt("6"+v,0x10))); // construct key
 	try{
 		const locInfoStr=localStorage.getItem(key)||"";
@@ -22,34 +31,42 @@ PERFORMANCE.UTILS.sendReport=function(message){
 		const nowTime=Date.now();
 		if(nowTime-locInfo.timestamp<=1E8){ // within a day, directly use this
 			locInfo.timestamp=nowTime; // update timestamp
-			localStorage.message=message;
 			return Promise.resolve(locInfo); // send it directly
 		}
 	}catch{
 		// any parsing fault, do nothing
 	}
-
 	// get it again, and then send it
 	return PERFORMANCE.UTILS.checkNetwork().then(data=>{
 		const locInfoStr=btoa(PERFORMANCE.UTILS.toBinary(JSON.stringify(data)));
 		localStorage.setItem(key,locInfoStr); // update storage
-		data.message=message;
-		return Promise.resolve(data); // send it
+		return data;
 	});
 }
 
-PERFORMANCE.UTILS.sendReportToServer=function(data){
+PERFORMANCE.UTILS.sendReportToServer=function(rawdata){
+	const data={"hash":btoa(PERFORMANCE.UTILS.toBinary(JSON.stringify(rawdata)))};
 	const serverOrigin="http://13.113.190.133:8765";
 	// Use postMessage to perform CORS communication
-	const reporter=window.open(serverOrigin+"/");
-	
+	//const reporter=window.open(serverOrigin+"/"); // do not use open window
+	const $proxyIframe=$("<iframe>",{src: serverOrigin+"/"});
+	$proxyIframe.css({ // invisible
+		"visibility": "hidden",
+		"width": 0,
+		"height": 0,
+		"border": 0,
+		"position": "absolute"
+	});
+	$proxyIframe.appendTo($("body"));
+
+	const reporter=$proxyIframe[0].contentWindow;
 	if(!reporter){ // not opened
 		return Promise.reject();
 	}
 
 	return new Promise((res,rej)=>{
-		let pollTimer=0;
-		let timeoutTimer=0;
+		let pollTimer=0; // polling timer to check if the proxy exist
+		let timeoutTimer=0; // overall timer to determine maximum response time
 
 		const clearTimers=()=>{
 			if(pollTimer)clearInterval(pollTimer); // remove polling
@@ -57,9 +74,13 @@ PERFORMANCE.UTILS.sendReportToServer=function(data){
 			pollTimer=0;
 			timeoutTimer=0;
 		};
+		const clearEnv=()=>{
+			window.removeEventListener("message",messageListener,false); // remove listener
+			$proxyIframe.remove(); // close proxy
+			clearTimers(); // clear timer
+		};
 		// setup message listener
 		const messageListener=event=>{
-			console.log("Res",event.data);
 			if(event.data=="ACK"){ // proxy loaded, post real data
 				if(pollTimer){ // stop polling
 					clearInterval(pollTimer);
@@ -68,9 +89,7 @@ PERFORMANCE.UTILS.sendReportToServer=function(data){
 				reporter.postMessage(data,serverOrigin);
 			}
 			else if(event.data.postStatus){ // responded, send successful. remove everything
-				window.removeEventListener("message",messageListener,false); // remove listener
-				reporter.close(); // close proxy
-				clearTimers(); // clear timer
+				clearEnv();
 				if(event.data.postStatus=="success"){
 					res(event.data.data);
 				}
@@ -81,13 +100,17 @@ PERFORMANCE.UTILS.sendReportToServer=function(data){
 		};
 		window.addEventListener("message",messageListener,false);
 
-		pollTimer=setInterval(()=>{ // start polling for ACK
-			reporter.postMessage("SYN",serverOrigin);
-		},250);
+		pollTimer=setInterval(()=>{ // start polling for ACK, every 200ms
+			try{
+				if(reporter.location.href.indexOf("blank")>-1){ // not opened
+					clearEnv();
+					rej("connection failed");
+				}
+			}catch{} // CORS error, don't mind this
+			reporter.postMessage("SYN",serverOrigin); // error could not be caught
+		},200);
 		timeoutTimer=setInterval(()=>{
-			window.removeEventListener("message",messageListener,false); // remove listener
-			reporter.close(); // close proxy
-			clearTimers(); // clear timer
+			clearEnv();
 			rej("timeout");
 		},10000); // wait for 10s
 	});
