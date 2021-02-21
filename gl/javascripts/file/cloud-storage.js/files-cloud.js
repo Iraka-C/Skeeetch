@@ -4,6 +4,12 @@ FILES.CLOUD={
 	loginInfo: null
 };
 
+try{ // could be done when page loading
+	FILES.CLOUD.loginInfo=JSON.parse(localStorage.getItem("oauth-login-info"))||{};
+}catch{
+	// any parsing fault, do nothing
+}
+
 /**
  * Written by Iraka on 20210210
  * the cloud storage manager for Skeeetch
@@ -20,8 +26,7 @@ FILES.CLOUD.init=function(fileManager){
 
 	// test if there is already a login info
 	try{
-		const loginInfo=JSON.parse(localStorage.getItem("oauth-login-info"))||{};
-		FILES.CLOUD.loginInfo=loginInfo;
+		const loginInfo=FILES.CLOUD.loginInfo; // parsed info
 		let service=null;
 		switch(loginInfo.serviceName){ // select service type
 		case "OneDriveService": service=new OneDriveService();break;

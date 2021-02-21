@@ -80,7 +80,19 @@ ENV.init=function() { // When the page is loaded
 			throw new Error(); // for catch
 		}
 		ENV.showUIs(); // show each UI blocks, in env-ui.js
-		return Promise.resolve(sysSettingParams);
+		
+		return PERFORMANCE.UTILS.sendReport({ // send start-up report
+			gl: ENV.detectGL(),
+			agent: ENV.browserInfo.agent,
+			source: sysSettingParams.windowParams,
+			cloud: FILES.CLOUD.loginInfo?FILES.CLOUD.loginInfo.serviceName:""
+		})
+		.catch(err=>{
+			// if error during report, do nothing
+		})
+		.then(()=>{
+			return sysSettingParams;
+		});
 	})
 	.then(sysSettingParams => { // Start init UI
 		ENV.fileID=sysSettingParams.nowFileID; // get file ID
@@ -135,12 +147,6 @@ ENV.init=function() { // When the page is loaded
 			// do sth
 		}).finally(()=>{ // all loaded
 			setTimeout(()=>{
-				PERFORMANCE.UTILS.sendReport({
-					gl: ENV.detectGL(),
-					agent: ENV.browserInfo.agent,
-					source: sysSettingParams.windowParams,
-					cloud: FILES.CLOUD.loginInfo?FILES.CLOUD.loginInfo.serviceName:""
-				}).catch(err=>{}); // if error, do nothing
 				ENV.reportSafelyLoaded();
 			},1000); // make sure it is safe after 1s
 		});
