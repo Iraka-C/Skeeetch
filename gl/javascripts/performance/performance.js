@@ -103,6 +103,7 @@ PERFORMANCE.init=function(maxVRAMSetting){
 	if(maxVRAMSetting){
 		PERFORMANCE.maxMem.gpu=maxVRAMSetting; // saved info
 	}
+	//if(performance.memory) // do not use this as this does not reflect real usage, and not standardized
 	if(navigator.deviceMemory){
 		// the value could only be 0.25, 0.5, 1, 2, 4, 8
 		// at most 4GB

@@ -172,6 +172,7 @@ ENV.detectBrowser=function(){
 	const app=window.navigator.appVersion;
 	return{
 		macOS:   app.indexOf('Mac') > -1,                             // MacOS system
+		win:     app.indexOf('Win') > -1,                             // Windows system
 		trident: u.indexOf('Trident') > -1,                           // IE core
 		presto:  u.indexOf('Presto') > -1,                            // opera core
 		webKit:  u.indexOf('AppleWebKit') > -1,                       // apple/google core
@@ -185,6 +186,14 @@ ENV.detectBrowser=function(){
 		weixin:  u.indexOf('MicroMessenger') > -1,                    // msg (WeChat)
 		qq:      u.match(/\sQQ/i) == " qq"                            // qq
 	};
+}
+
+ENV.detectGL=function(){
+	const gl=document.createElement("canvas").getContext("webgl"); // gl 1.0
+	if(!gl)return null; // no webgl
+	const debugInfo=gl.getExtension("WEBGL_debug_renderer_info");
+	if(!debugInfo)return null; // no vendor
+	return gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL); // renderer
 }
 
 // returns a promise resolved with boolean: is safely exited last time
