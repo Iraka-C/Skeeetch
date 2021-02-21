@@ -52,7 +52,6 @@ PERFORMANCE.UTILS.sendReportToServer=function(rawdata){
 	return new Promise((res,rej)=>{
 		const req=new XMLHttpRequest();
 		req.open("POST","https://el4ht92mzk.execute-api.ap-northeast-1.amazonaws.com/report");
-		//req.open("POST","http://192.168.3.10:8765/report");
 		req.setRequestHeader("Content-Type","application/json");
 		req.timeout=10000; // 10s
 		req.onload=()=>res(req.response);
@@ -68,7 +67,7 @@ PERFORMANCE.UTILS.sendReportToServer=function(rawdata){
  */
 PERFORMANCE.UTILS.sendReportToServerHTTP=function(rawdata){
 	const data={"hash":btoa(PERFORMANCE.UTILS.toBinary(JSON.stringify(rawdata)))};
-	// const serverOrigin="http://13.113.190.133:8765";
+	//-- const serverOrigin="http://13.113.190.133:8765";
 	// Use postMessage to perform CORS communication
 	const reporter=window.open(serverOrigin+"/?timestamp="+Date.now()/*,"","menubar=0,location=0,resizable=0,toolbar=0,status=0,scrollbars=0,status=0,titlebar=0,width=100,height=100,left="+window.screenLeft+",top="+window.screenTop*/);
 	if(!reporter){ // not opened
