@@ -12,6 +12,18 @@ const STORAGE={};
  */
 STORAGE.init=function(callback){
 	STORAGE.SETTING.init().then(sysSettings=>{
+		sysSettings.storagePersistent=false;
+		if(navigator.storage&&navigator.storage.persist){ // check if the storage is persistent
+			return navigator.storage.persist().then(persistent=>{ // request permission
+				sysSettings.storagePersistent=persistent;
+				return sysSettings;
+			});
+		}
+		else{ // does not support persistent storage
+			return sysSettings;
+		}
+	})
+	.then(sysSettings=>{
 		STORAGE.FILES.init(); // sync: creating localForage instance
 		/**
 		 * NOTICE!!
