@@ -408,8 +408,9 @@ FILES.CLOUD.uploadByFileIDList=function(fileIDList,localHashMap){
 			const hash=localList[fileID].hash;
 			const filename=hash+".skeeetch";
 			// this async flow is independent to dump DB flow, needn't return
-			const task=storage.uploadFile(["Skeeetch","stores",filename],buffer,progress=>{
+			const task=storage.uploadFile(["Skeeetch","stores",filename],buffer,(progress,speed)=>{
 				FILES.fileSelector.setProgressIndicator(fileID,progress);
+				PERFORMANCE.NetworkMonitor.update(null,speed);
 			}).then(data=>{
 				console.log("Uploaded");
 			}).catch(err=>{
@@ -480,7 +481,9 @@ FILES.CLOUD.uploadThumbByFileID=function(fileID,filename){ // not certainly succ
 			},"image/png");
 		})
 	}).then(buffer=>{ // png buffer, upload this
-		return FILES.CLOUD.storage.uploadFile(["Skeeetch","stores",filename],buffer);
+		return FILES.CLOUD.storage.uploadFile(["Skeeetch","stores",filename],buffer,(progress,speed)=>{
+			PERFORMANCE.NetworkMonitor.update(null,speed);
+		});
 	}).catch(err=>{ // thumb not found
 		// directly catch: if failed, no need to redo
 		console.warn(err);
@@ -544,7 +547,9 @@ FILES.CLOUD.downloadByHashList=function(hashList,itemList,localHashMap,cloudHash
 
 		// thumb download
 		if(thumbIndex>=0){ // thumb found
-			storage.downloadFile(itemList[thumbIndex]).then(data=>{
+			storage.downloadFile(itemList[thumbIndex],(progress,speed)=>{
+				PERFORMANCE.NetworkMonitor.update(speed,null);
+			}).then(data=>{
 				const file=new File([data],"",{type:"image/png"});
 				const img=new Image();
 				img.src=URL.createObjectURL(file); // @TODO: remove url after load;
@@ -566,8 +571,9 @@ FILES.CLOUD.downloadByHashList=function(hashList,itemList,localHashMap,cloudHash
 		}
 
 		// db download
-		return storage.downloadFile(itemList[itemIndex],progress=>{
+		return storage.downloadFile(itemList[itemIndex],(progress,speed)=>{
 			FILES.fileSelector.setProgressIndicator(fileID,progress);
+			PERFORMANCE.NetworkMonitor.update(speed,null);
 		}).then(data=>{
 			FILES.fileSelector.setProgressIndicator(fileID); // finish
 			STORAGE.FILES.insertImgDB(data,{ // async flow with download

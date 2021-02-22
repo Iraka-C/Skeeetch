@@ -321,6 +321,14 @@ SettingHandler.initSystemSetting=function(sysParams) {
 			PERFORMANCE.fpsController.hide();
 		}
 	}); // Off at first
+	sys.addSwitch(Lang("Network Speed Monitor"),[Lang("Off"),Lang("On")],null,val => {
+		if(val==1){ // on
+			PERFORMANCE.NetworkMonitor.init();
+		}
+		else{ // off
+			PERFORMANCE.NetworkMonitor.close();
+		}
+	}); // Off at first
 
 	// ================= Skeeetch info =================
 	sys.addSectionTitle(Lang("About Skeeetch"));

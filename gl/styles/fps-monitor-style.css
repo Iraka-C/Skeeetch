@@ -1,12 +1,26 @@
+#monitor-boxes{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}
+
 #fps-monitor-box{
 	pointer-events: none;
 	background-color: #00000088;
 	box-shadow: 0em 0em 1em #000000cc;
-	position: absolute;
 	width: 200px;
 	height: 150px;
-	left: 1em;
-	top: 1em;
+	margin: 1em;
+	display: none;
+}
+
+#network-monitor-box{
+	pointer-events: none;
+	background-color: #00000088;
+	box-shadow: 0em 0em 1em #000000cc;
+	width: 200px;
+	height: 150px;
+	margin: 1em;
 	display: none;
 }
 
@@ -14,10 +28,8 @@
 	pointer-events: none;
 	background-color: #00000088;
 	box-shadow: 0em 0em 1em #000000cc;
-	position: absolute;
 	width: 240px;
 	height: 240px;
-	left: 1em;
-	top: 1em;
+	margin: 1em;
 	display: none;
 }

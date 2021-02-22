@@ -133,6 +133,7 @@
 	<script src="./javascripts/performance/performance-reporter.js"></script>
 	<script src="./javascripts/performance/performance-fps-monitor.js"></script>
 	<script src="./javascripts/performance/performance-fps-controller.js"></script>
+	<script src="./javascripts/performance/performance-network-monitor.js"></script>
 	<script src="./javascripts/performance/performance-utils.js"></script>
 
 	<!-- Drag selector -->
@@ -414,59 +415,88 @@
 					</div>
 				</div>
 
-				<div id="fps-monitor-box">
-					<svg width="200px" height="150px" viewBox="0 0 200 150" id="fps-svg" xmlns="http://www.w3.org/2000/svg" version="1.1">
-						<g stroke="#ffffff66" stroke-width="1" fill="none">
-							<line x1="0" x2="200" y1="30" y2="30"/>
-							<line x1="0" x2="200" y1="60" y2="60"/>
-							<line x1="0" x2="200" y1="90" y2="90"/>
-							<line x1="0" x2="200" y1="120" y2="120"/>
-						</g>
-						<g>
-							<text x="100" y="75" text-anchor="middle" alignment-baseline="middle" font-size="18px" fill="#888888">FPS Monitor</text>
-							<text x="198" y="148" text-anchor="end" font-size="12px" fill="#00ccff">animation</text>
-							<text x="198" y="135" text-anchor="end" font-size="12px" fill="#ff6600">draw</text>
-						</g>
-						<g fill="none" stroke-width="2" stroke-linecap="round">
-							<polyline id="anim-fps-line" points="" stroke="#00ccff"/>
-							<polyline id="stroke-fps-line" points="" stroke="#ff6600"/>
-						</g>
-						<g font-size="12px" fill="white">
-							<text x="2" y="28">120</text>
-							<text x="2" y="88">60</text>
-							<text x="2" y="148">0 fps</text>
-						</g>
-					</svg>
-				</div>
+				<div id="monitor-boxes">
+					<div id="fps-monitor-box">
+						<svg width="200px" height="150px" viewBox="0 0 200 150" id="fps-svg" xmlns="http://www.w3.org/2000/svg" version="1.1">
+							<g stroke="#ffffff66" stroke-width="1" fill="none">
+								<line x1="0" x2="200" y1="30" y2="30"/>
+								<line x1="0" x2="200" y1="60" y2="60"/>
+								<line x1="0" x2="200" y1="90" y2="90"/>
+								<line x1="0" x2="200" y1="120" y2="120"/>
+							</g>
+							<g>
+								<text x="100" y="75" text-anchor="middle" alignment-baseline="middle" font-size="18px" fill="#888888">FPS Monitor</text>
+								<text x="198" y="148" text-anchor="end" font-size="12px" fill="#00ccff">animation</text>
+								<text x="198" y="135" text-anchor="end" font-size="12px" fill="#ff6600">draw</text>
+							</g>
+							<g fill="none" stroke-width="2" stroke-linecap="round">
+								<polyline id="anim-fps-line" points="" stroke="#00ccff"/>
+								<polyline id="stroke-fps-line" points="" stroke="#ff6600"/>
+							</g>
+							<g font-size="12px" fill="white">
+								<text x="2" y="28">120</text>
+								<text x="2" y="88">60</text>
+								<text x="2" y="148">0 fps</text>
+							</g>
+						</svg>
+					</div>
 
-				<div id="fps-curve-box">
-					<svg width="240px" height="240px" viewBox="0 0 240 240" id="fps-cv" xmlns="http://www.w3.org/2000/svg" version="1.1">
-						<g stroke="#ffffff66" stroke-width="1" fill="none">
-							<line x1="0" x2="240" y1="60" y2="60"/>
-							<line x1="0" x2="240" y1="120" y2="120"/>
-							<line x1="0" x2="240" y1="180" y2="180"/>
-							<line y1="0" y2="240" x1="60" x2="60"/>
-							<line y1="0" y2="240" x1="120" x2="120"/>
-							<line y1="0" y2="240" x1="180" x2="180"/>
-							<line x1="0" x2="240" y1="240" y2="0"/>
-						</g>
-						<g fill="none" stroke-width="2" stroke-linecap="round">
-							<polyline id="fps-em-line" points="" stroke="#00ff88"/>
-						</g>
-						<g font-size="12px" fill="white">
-							<text x="2" y="2" alignment-baseline="hanging">Measured</text>
-							<text x="238" y="238" text-anchor="end">Exp</text>
-						</g>
-						<g font-size="12px" fill="white">
-							<text x="2" y="58">180</text>
-							<text x="2" y="118">120</text>
-							<text x="2" y="178">60</text>
-							<text x="2" y="238">0 fps</text>
-							<text x="62" y="238">60</text>
-							<text x="122" y="238">120</text>
-							<text x="182" y="238">180</text>
-						</g>
-					</svg>
+					<div id="fps-curve-box">
+						<svg width="240px" height="240px" viewBox="0 0 240 240" id="fps-cv" xmlns="http://www.w3.org/2000/svg" version="1.1">
+							<g stroke="#ffffff66" stroke-width="1" fill="none">
+								<line x1="0" x2="240" y1="60" y2="60"/>
+								<line x1="0" x2="240" y1="120" y2="120"/>
+								<line x1="0" x2="240" y1="180" y2="180"/>
+								<line y1="0" y2="240" x1="60" x2="60"/>
+								<line y1="0" y2="240" x1="120" x2="120"/>
+								<line y1="0" y2="240" x1="180" x2="180"/>
+								<line x1="0" x2="240" y1="240" y2="0"/>
+							</g>
+							<g fill="none" stroke-width="2" stroke-linecap="round">
+								<polyline id="fps-em-line" points="" stroke="#00ff88"/>
+							</g>
+							<g font-size="12px" fill="white">
+								<text x="2" y="2" alignment-baseline="hanging">Measured</text>
+								<text x="238" y="238" text-anchor="end">Exp</text>
+							</g>
+							<g font-size="12px" fill="white">
+								<text x="2" y="58">180</text>
+								<text x="2" y="118">120</text>
+								<text x="2" y="178">60</text>
+								<text x="2" y="238">0 fps</text>
+								<text x="62" y="238">60</text>
+								<text x="122" y="238">120</text>
+								<text x="182" y="238">180</text>
+							</g>
+						</svg>
+					</div>
+
+					<div id="network-monitor-box">
+						<svg width="200px" height="150px" viewBox="0 0 200 150" id="fps-svg" xmlns="http://www.w3.org/2000/svg" version="1.1">
+							<g stroke="#ffffff66" stroke-width="1" fill="none">
+								<line x1="0" x2="200" y1="30" y2="30"/>
+								<line x1="0" x2="200" y1="60" y2="60"/>
+								<line x1="0" x2="200" y1="90" y2="90"/>
+								<line x1="0" x2="200" y1="120" y2="120"/>
+							</g>
+							<g>
+								<text x="100" y="75" text-anchor="middle" alignment-baseline="middle" font-size="18px" fill="#888888">Network Monitor</text>
+								<text x="198" y="148" text-anchor="end" font-size="12px" fill="#00ccff">download</text>
+								<text x="198" y="135" text-anchor="end" font-size="12px" fill="#ff6600">upload</text>
+							</g>
+							<g fill="none" stroke-width="2" stroke-linecap="round">
+								<polyline id="download-line" points="" stroke="#00ccff"/>
+								<polyline id="upload-line" points="" stroke="#ff6600"/>
+							</g>
+							<g id="network-speed-text" font-size="12px" fill="white">
+								<text x="2" y="148">0 bps</text>
+								<text x="2" y="118">0</text>
+								<text x="2" y="88">0</text>
+								<text x="2" y="58">0</text>
+								<text x="2" y="28">0</text>
+							</g>
+						</svg>
+					</div>
 				</div>
 			</div>
 		</div>
