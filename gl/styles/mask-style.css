@@ -1,5 +1,5 @@
 #body-mask-panel{
-	background-color: #000000cc;
+	background-color: #00000088;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -7,27 +7,27 @@
 }
 
 #mask-item{
-	color: #888;
+	color: #fff;
 	font-size: calc(1rem + 3vw); /* window width related */
 }
 
 /* dialog boxes */
 .dialog-box-container{
-	color: #ccc;
+	color: #fff;
 	font-size: min(4vh, 125%);
 	width: 16em;
 	position: relative;
 }
 .dialog-box-input{
 	width: 16em;
-	color: #ccc;
+	color: #fff;
 	box-shadow: 0em 0.05em 0em 0em #ccc;
 	margin: 0em 0em 0.7em 0em;
 }
 .dialog-box-text{
-	color: #aaa;
-	text-overflow: ellipsis;
-	overflow: hidden;
+	color: #ddd;
+	/* text-overflow: ellipsis;
+	overflow: hidden; */
 }
 
 .dialog-box-button-panel{
@@ -35,7 +35,7 @@
 }
 .dialog-box-button{
 	text-align: center;
-	border: 1.6px solid #ccc;
+	border: 1.6px solid #fff;
 	border-radius: 1.4em;
 	transition: background 0.3s, box-shadow 0.2s;
 	padding: 0.15em 0.6em;

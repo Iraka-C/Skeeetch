@@ -83,7 +83,9 @@ ENV.init=function() { // When the page is loaded
 
 		// init display settings
 		Object.assign(ENV.displaySettings,sysSettingParams.preference.displaySettings);
-		return PERFORMANCE.UTILS.sendReport({
+		return document.location.protocol=="file:"?
+		sysSettingParams: // if is local file
+		PERFORMANCE.UTILS.sendReport({ // if is online
 			// send start-up report
 			gl: ENV.detectGL(),
 			agent: ENV.browserInfo.agent,
