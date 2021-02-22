@@ -130,6 +130,9 @@ STORAGE.FILES.updateCurrentThumb=function(){
 
 // ======================== Read From ========================
 
+/**
+ * returns imageData2D (compatible with RamBuf8)
+ */
 STORAGE.FILES.getThumbImageData=function(fileID){
 	return STORAGE.FILES.thumbStore.getItem(fileID).then(imgSrc => {
 		if(!imgSrc)throw new Error("No thumb in db");
@@ -175,11 +178,15 @@ STORAGE.FILES.saveThumbToDatabase=function(fileID,imgSrc){
 		imgSrc=ctx.getImageData(0,0,imgSrc.width,imgSrc.height); // change reference
 	}
 
-	const data=Compressor.encode(imgSrc.data); // although small, still encode first!
+	return STORAGE.FILES.setThumbImageData(fileID,imgSrc);
+}
+
+STORAGE.FILES.setThumbImageData=function(fileID,imageData2D){
+	const data=Compressor.encode(imageData2D.data); // although small, still encode first!
 	return STORAGE.FILES.thumbStore.setItem(fileID,{
 		type: "RAMBuf8",
-		width: imgSrc.width,
-		height: imgSrc.height,
+		width: imageData2D.width,
+		height: imageData2D.height,
 		data: data
 	});
 }

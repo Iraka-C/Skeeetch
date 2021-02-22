@@ -208,6 +208,7 @@ FILES.CLOUD.initCloudStorage=function(cloudService,options){
 		data.avatarPromise.then(url=>{ // get avatar
 			$("#cloud-icon").css("background-image","url('"+url+"')");
 			// @TODO: revoke url after use?
+			// @TODO: cache the result?
 		}).catch(err=>{
 			console.log("No avatar received");
 		});
