@@ -1,6 +1,9 @@
 .layer-panel-block{ /* The width of all elements in layer block */
 	width: var(--collapsed-layer-ui-size);
 }
+#new-layer-select-panel-outer{
+	display: none;
+}
 
 .layer-panel-button-to-collapse{
 	display: none;
